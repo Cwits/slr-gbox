@@ -297,12 +297,7 @@ BaseWidget * MainWindow::hitTest(BaseWidget * node, int x, int y) {
 void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
     if(gesture == GestLib::Gestures::Drag) {
         //TODO: shouldn't be like that... dunno yet how to make it proper way
-        /*
-            в чем проблема - _gridView->_controls тоже будут поддерживать drag, но не для файлов, а для пресетов треков
-            (хотя файлы тоже можно, просто будут помещены в начало)...
-            и, надо как то на лету понимать потенциальную цель(допустим если расширение объекта - аудио или миди файл то на _grid надо,
-            если же пресет то на _control пробрасывать). Просто вызвать getSwitchViewTarget(view) не получится
-        */
+        
         _gestureTarget = _gridView->_grid;
         // _gestureTarget = getSwitchViewTarget(view);
         switchToView(view);

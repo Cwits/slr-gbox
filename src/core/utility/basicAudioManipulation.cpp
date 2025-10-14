@@ -115,14 +115,6 @@ void fillAudioBuffer(sample_t * src, const frame_t frames, const sample_t value)
     }
 }
 
-
-/*
-... сложно... если вызераем определённому каналу то что делать со вторым каналом? заполнять перкому конце нулями? или же 
-    вырезанный отрезок нулями? как то не годиться... может делать просто для всех каналов одинаково? 
-    не понятно что делать с пустотой в других канала - если вырезал отрезок только из одного канала, и хочешь вставить в файл
-    где 2 канала, но в какой то определённый, то во втором канале образуется пустота - либо в том месте либо в конце...
-    
-*/
 /*
     cut out region from start to end from src and place it to dst. 
     if channels == 0 than for all channels, otherwise for specified(filling everything else with zeroes)

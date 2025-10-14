@@ -48,8 +48,7 @@ frame_t Metronome::process(const AudioContext &ctx,
         _lastTickFrame = ctx.elapsed;
     } else {
         frame_t framesPerBeat = ctx.timeline.framesPerBeat();
-        //TODO: есть подозрения что это будет работать немного не правильно, если 
-        //включить метроном где то в середине?
+        
         if(ctx.elapsed + ctx.frames - _lastTickFrame >= framesPerBeat) {
             tick = true;
             delay = framesPerBeat - (ctx.elapsed-_lastTickFrame);

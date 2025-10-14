@@ -12,8 +12,7 @@
 
 
     hints:
-    Для очень сложных или объемных данных, которые нецелесообразно копировать, 
-    можно сериализовать их в буфер, передать указатель на этот буфер, а цель десериализует.
+    For complicated data, that isn't good to copy - have to serialize it into some buffer, pass pointer and deserialize in target
 */
 
 namespace UI {

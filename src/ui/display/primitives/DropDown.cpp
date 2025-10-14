@@ -127,26 +127,3 @@ bool DropDown::handleTap(GestLib::TapGesture & tap) {
 }
 
 }
-
-
-/*
-Второй вариант полностью на тебе. Если не используешь indev, LVGL не будет заниматься хитом тестом и выбором пункта.
-
-Механика у lv_dropdown:
-
-Список хранится внутри lv_dropdown как lv_obj_t * list = lv_dropdown_get_list(dropdown). Это обычный lv_list.
-
-Каждый пункт — lv_button с лейблом.
-
-Когда пункт жмётся стандартным способом, вызывается lv_dropdown_set_selected(dropdown, index) и потом шлётся LV_EVENT_VALUE_CHANGED.
-
-Если обходишь indev, то единственное нормальное решение:
-
-При своём клике по координатам открытого списка найти дочерний lv_obj под точкой через lv_obj_get_child(), lv_obj_get_coords(), и сверку с твоими (x, y).
-
-Когда совпадение найдено, вызвать lv_dropdown_set_selected(dropdown, idx) и вручную lv_event_send(dropdown, LV_EVENT_VALUE_CHANGED, NULL).
-
-Парсить размеры вручную не нужно — у каждого дочернего объекта есть lv_obj_get_coords(obj, &area). Хитом тестить именно этим, а не геометрию руками высчитывать.
-
-Таким образом: открываешь lv_dropdown_open(), ждёшь клик в своей системе, ищешь ребёнка по координате, ставишь set_selected, и закрываешь lv_dropdown_close().
-*/

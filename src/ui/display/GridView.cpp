@@ -130,8 +130,6 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
 }
 
 
-//1. надо ли мне что бы все треки добавлялись как children к gridview? - 
-
 GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx) {
     setPos(LayoutDef::WORKSPACE_POSITION_X, LayoutDef::WORKSPACE_POSITION_Y);
     setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT); 

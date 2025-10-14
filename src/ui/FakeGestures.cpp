@@ -7,26 +7,6 @@
 #include "lvgl.h"
 #include "logger.h"
 
-
-// static lv_obj_t * hit_test(lv_obj_t * parent, lv_point_precise_t pt) {
-//     uint32_t child_count = lv_obj_get_child_cnt(parent);
-//     for (int32_t i = child_count - 1; i >= 0; --i) {
-//         lv_obj_t* child = lv_obj_get_child(parent, i);
-//         if (!lv_obj_is_visible(child)) continue;
-
-//         lv_area_t coords;
-//         lv_obj_get_coords(child, &coords);
-//         if (_lv_area_is_point_on(&coords, &pt)) {
-//             // Рекурсивно проверим вложенные
-//             lv_obj_t* deeper = hit_test(child, pt);
-//             return deeper ? deeper : child;
-//         }
-//     }
-//     return nullptr;
-// }
-
-// static lv_obj_t * hit_test_adv(lv_obj_t * parent, )
-
 FakeGestures::FakeGestures() {
     _gesture = GestLib::Gestures::Tap;
     _gestureOnGoing = false;

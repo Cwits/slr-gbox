@@ -88,7 +88,6 @@ AudioUnit * Project::getUnitById(ID id) {
 // std::vector<Track*> Project::tracks() {
 //     std::vector<Track*> result;
 //     for (const auto& unit_ptr : _unitList) {
-//         // Используем безопасный dynamic_cast, чтобы "отфильтровать" только треки
 //         if (Track* track_ptr = dynamic_cast<Track*>(unit_ptr.get())) {
 //             result.push_back(track_ptr);
 //         }

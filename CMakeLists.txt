@@ -32,20 +32,6 @@ include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/shared)
 
 #generate events and handles
-set(GEN_DEPS )
-#set(GEN_DEPS ${CMAKE_SOURCE_DIR}/inc/Events.h 
-#              ${CMAKE_SOURCE_DIR}/inc/FlatEvents.h 
-#              ${CMAKE_SOURCE_DIR}/src/core/ControlEngine.cpp 
-#              ${CMAKE_SOURCE_DIR}/src/core/RtEngine.cpp)
-#add_custom_command(
-#  OUTPUT ${ALL_GENERATED_SOURCES}
-#  COMMAND ${CMAKE_COMMAND} -E echo "generating Events and Handles"
-#  COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/GenaV3/main.py
-#  DEPENDS ${CMAKE_SOURCE_DIR}/evgen2/events.yaml
-#  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-#)
-#add_custom_target(run_codegen DEPENDS ${GEN_DEPS})
-
 add_custom_target(
     run_codegen
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/GenaV3/main.py
