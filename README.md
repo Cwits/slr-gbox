@@ -4,8 +4,6 @@ Sample.Loop.Repeat. is an open source hardware platform for musicians and enthus
 
 ![Demo Video](https://youtu.be/50lJfQL0hTo)
 
-[Device photo]
-
 # Idea and Philosophy:  
 The idea is to create a highly customizable, portable and standalone device that musicians and enthusiasts can take with themselves, set up quickly(basically plug and play) and start playing music and exploring the depths of soundmaking together with other people around.  
 
@@ -43,8 +41,8 @@ See [Software Setup](docs/Software_setup.md) guide
 **V0.1** - audio core  
 **V0.2** - Midi Support(usb midi + generic handler)  
 **V0.3** - Basic Ableton Push 2 support  
-**V0.4** - Plugins  
-**V0.5** - Modulation Engine and Step Sequencer  
+**V0.4** - Plugins base  
+**V0.5** - Save/Load and Undo/Redo  
 
 ### Other TODO’s:  
 See [TODO.txt](docs/TODO.txt)  

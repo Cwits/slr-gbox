@@ -48,7 +48,7 @@ I'm assuming that who is reading this have basic electronics and programming kno
 > You are building this device at your own risk.  
 > I’m not responsible for any damage to your components, property, or health. Please double-check all your connections before powering on.  
 
-All wiring details see in [wiring_diagram](docs/pics/wiring_diagram.png)  
+All wiring details see in [wiring_diagram](pics/wiring_diagram.png)  
 
 ## Power unit assembly:  
 Solder both DC-DC modules on prototyping pcb board as well as DC 2.1mm jack. Connect them together according to wiring_diagram.jpg.  
@@ -60,7 +60,7 @@ Using multimeter set up outputs to next voltages:
 Make sure that you took wires at least AWG24-AWG22 for power rails(to put it simply - not the thinnest ones).  
 **Warning**: double check voltage levels before switching on! Wrong voltages might burn your devices!  
 
-![Power Unit](docs/pics/power_supply.jpg)
+![Power Unit](pics/power_supply.jpg)
 
 ## Assembling “motherboard”:
 Assembly STM32 together with ADC and DAC on Prototyping PCB according to the wiring diagram
@@ -76,8 +76,8 @@ Do "Target -> Connect" and than "Target -> Program & Verify".
 If firmware works correctly then built-in led must blink each second.  
 If any problems occurred - search in google for more detailed information and how-to  
 
-![Motherboard Top View](docs/pics/motherboard_top.jpg)
-![Motherboard Bottom View](docs/pics/motherboard_bottom.jpg)
+![Motherboard Top View](pics/motherboard_top.jpg)
+![Motherboard Bottom View](pics/motherboard_bottom.jpg)
 
 ## Preparing audio interface board:  
 For the microphone inputs I used a salvaged audio-interface board (pre-ADC stage only). I removed custom DSP/ADC/DAC components and wired the preamp outputs into our ADC.  
@@ -98,8 +98,8 @@ First I've installed audio interface on plastic distancers and mounted Raspberry
 I've put little bit of foam around the HDD because it is vibrating and can’t be mounted on hot glue, as Raspberry Pi.
 Connect everything together.
 
-![Photo](docs/pics/assembled.jpg)
-![Photo](docs/pics/assembled_inside.jpg)
+![Case](pics/assembled.jpg)  
+![Case](pics/assembled_inside.jpg)  
 
 Unfortunately I didn't managed to squeeze all components inside the box, so some of them are sticking out of it, but that is fine for prototype, right?  
 
