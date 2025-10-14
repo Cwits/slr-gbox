@@ -1,4 +1,4 @@
-# Sample.Loop.Repeat.  
+# Sample.Loop.Repeat. v0.1  
 
 Sample.Loop.Repeat. is an open source hardware platform for musicians and enthusiasts.  
 
