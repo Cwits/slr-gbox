@@ -2,7 +2,7 @@
 
 Sample.Loop.Repeat. is an open source hardware platform for musicians and enthusiasts.  
 
-![Demo Video](https://youtu.be/50lJfQL0hTo)
+[Demo Video](https://youtu.be/50lJfQL0hTo)
 
 # Idea and Philosophy:  
 The idea is to create a highly customizable, portable and standalone device that musicians and enthusiasts can take with themselves, set up quickly(basically plug and play) and start playing music and exploring the depths of soundmaking together with other people around.  
