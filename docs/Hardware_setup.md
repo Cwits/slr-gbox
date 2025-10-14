@@ -60,8 +60,6 @@ Using multimeter set up outputs to next voltages:
 Make sure that you took wires at least AWG24-AWG22 for power rails(to put it simply - not the thinnest ones).  
 **Warning**: double check voltage levels before switching on! Wrong voltages might burn your devices!  
 
-![Power Unit](pics/power_supply.jpg)
-
 ## Assembling “motherboard”:
 Assembly STM32 together with ADC and DAC on Prototyping PCB according to the wiring diagram
 
