@@ -1,0 +1,102 @@
+keywords: START_BLOCK, INCLUDE, EV, FLAT_REQ, FLAT_RESP(optional), EV_HANDLE, RT_HANDLE, END_HANDLE, END_BLOCK
+
+1. each event described between START <name> and END blocks
+e.g.
+START_BLOCK someEvent
+...
+...
+END_BLOCK
+
+2. all structures used in events must be provided:
+    - for UI to Control Engine(or everything else to CE) events use EV
+    - for Control Engine to RT Engine use FLAT_REQ
+    - if there is no FLAT_RESP provided than for response would be used same structure as for FLAT_REQ
+    - EV and FLAT_REQ can be combined together if structure remains same
+    - the "//-> class ptr" used for forward declarations
+e.g.
+
+EV, FLAT_REQ
+struct someEvent {
+    int a;
+    float b;
+    ptr * c; //-> class ptr;
+}
+
+3. INCLUDE used for creating includes, must be placed wherever it is necessary
+
+
+4. each handle must start with EV_HANDLE or RT_HANDLE and ends with END_HANDLE keyword.
+    - for RT_HANDLE member must be declared in the class that would use it
+    - others handles declared in place
+    - everything to CE handles must have similar name(handleEvent()), but different(corresponding event in () )
+    - RT to CE handles must have unique names
+
+5. "#include" directive can be used same way as used in C/C++, path must be relative. Everything after #includes will be parsed as well
+    e.g. #include "Events/TrackEvents/OpenFile.h"
+
+
+
+
+generates and modifies several files.
+some files must be provided before starting generator.
+
+files generated:
+ModuleNameEvents.h 
+    -> includes in Events.h and FlatEvents.h
+
+with content:
+namespace slr {
+
+namespace Events {
+structs from EV... 
+    -> goes to Events.h variant<structs>
+}
+
+namespace FlatEvents {
+structs from FLAT_REQ 
+    -> goes to FlatEvents::FlatControl::Type and union
+
+structs and FLAT_RESP 
+    -> goes to FlatEvents::FlatResponse::Type nad union
+}
+
+} + forward declarations
+
+ModuleNameHandles.h
+ -> include to HandlerTable.h and declarations goes to tables
+handles declarations from EV_HANDLE + include #include "ModuleNameEvents.h"
+with content:
+
+namespace slr {
+
+void handleEvent(...);
+void handleEvent(...);
+
+}
+
+ModuleNameHandles.cpp
+with function definition from ModuleNameHandles.h
+
+to RTHandleTable.h
+adds RT_HANDLE
+
+
+
+long story short:
+
+generate:
+ModuleNameEvents.h (Events + FlatEvents structs + forward decls)
+
+for now go only with ModuleNameHandles.h with inlined functions for simplicity
+ModuleNameHandles.h (function declarations + forward decls)
+ModuleNameHandles.cpp (functions definitions + includes) 
+
+update:
+Events.h (std::variant + include ModuleNameEvents.h)
+FlatEvents.h (tagged union + include ModuleNameEvents.h)
+CEHandlerTables.h (functions from ModuleNameHandles.h - 
+                    two tables one for events other for responses)
+RTHandlerTable.h (function from Module.h class + include)
+
+??
+build/generated/event_id_map.json — persistent mapping for stable numeric IDs across builds.

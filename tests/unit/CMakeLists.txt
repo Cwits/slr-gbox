@@ -1,0 +1,8 @@
+create_test(testAudioBuffer)
+create_test(testAudioBufferManager)
+create_test(testControlEngine)
+create_test(testBasicAudioManipulation)
+create_test(testAudioFile)
+create_test(testFileWorker)
+create_test(testAudioPeaks)
+create_test(testRenderPlan)

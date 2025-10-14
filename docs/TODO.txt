@@ -1,0 +1,143 @@
+/* Core */
+Settings Manager:
+[/] - implement simple settings manager that returns constants
+    [x] - implement basic config file loading(not tested yet)
+    [ ] - implement basic config file saving
+    [ ] - implement original config file building(just in case if user deleted it) at SettingsManager.cpp:43 //build original
+    [ ] - on loading not from original - must check that all options are presented(if no - use original) and values are valid
+
+Control Engine:
+[ ] - need to make fallback if track failed to delete because i'm deleting gui, and only than in rt engine(correct way), but if it's failed...
+[ ] - make a loopback latency test function that will be called from settings.
+        (call a function -> warning("make a loopback from output to input" OK/Cancle) -> test completing -> 
+        popup with result -> "Result measured X samples latency" Apply/Cancle)
+
+Parameters: 
+[\] - lil bit of rework. use std::vector instead of array, (use bool, int instead of using float everywhere... eeee...hz), (check in google drive)
+        as soon as all the parameters are prepared in NRT and doesn't change dynamically - should be no problems
+        Now list is a vector, not array
+
+Events:
+[ ] - Events 3.0: outside they stay same way, but internal mechanism must work by stages, full isolation from outer world(kinda)...
+        то есть вместо того что бы писать handle... handle... пишешь void stage1(ctx) {...}, stage2(ctx) {...},
+        генератор сам генерит нужные структуры, а control engine вызывает только что то вроде event->processNextStage(ctx).
+        таким образом можно будет строить сложные события, которые будут происходить поэтапно:
+        прим: Жмешь кнопку удалить файл с трека.
+                этап 1: удалить UI -> дождаться ответа
+                этап 2: убрать файл из РТ трека -> дождаться ответа
+                этап 3: очистить память
+
+AudioUnit:
+[ ] - make ::outputs() to give back not the AudioBuffer * but list of 
+        struct Outputs {
+                AudioBuffer * buf;
+                std::string &name;
+                int id;
+        };
+        so the user can have access to various stages of rendering(e.g. preFX, postFX, output)
+        plus make ::output(id) to grant access to specific output for render plan builder
+[ ] - make a virtual void reinit() = 0; member function that must be called every time when some fundamental settings are changed
+        e.g. block size or sample rate or others.
+[\] - AudioUnit File Manipulation
+        [x] - Make FileContainer Part of AudioUnit, so all audio units can load audio and midi files
+        [x] - Transfer playback logic from Track to AudioUnit,
+        [x] - Transfer related to File Events from Track to AudioUnit(OpenFile, CloseFile)
+        [\] - Make some config members as bool canLoadFile(type), AudioUnit::playbackFiles() abstraction, and ???
+                canLoadFiles handled in UnitUIBase
+        [ ] - Make unified logic for drawing files...
+        
+Metronome:
+[\] - implement one(must live in rt class)(not tested)
+[ ] - //TODO: add simple decay
+
+Refactoring:
+[x] - rewrite AudioBufferManager to namespace instead of singleton
+[x] - FileWorker as a class 
+[x] - rewrite ControlEngine to namespace instead of singleton ???
+[x?] - instead of local in counters switch to one global id counter for all the entities.
+        (not only for track, but for fx, mod engine, mixer, etc...)
+[ ] - move std::string _name from track to audio unit
+[\] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
+        (Track separated, mixer left)
+[ ] - separate defines.h to two files - slr_config.h and common.h
+
+Project:
+[ ] - make save and load system(serialization)
+[ ] - make undo/redo system
+
+Render Plan:
+[ ] - treat mixer as regular audio unit.
+[ ] - instead of mixer dependencies make output dependencies, so after processing all the units rt engine can do:
+        TODO: RtEngine.cpp:150
+        int mainoutsnum = plan->mainoutscount;
+        for(int i=0; i<mainoutsnum; ++i) {
+                for(frame_t f=0; f<ctx.frames; ++f) { 
+                (*ctx.mainOutputs)[0][f] += (*plan->mainouts)[0][f];
+                (*ctx.mainOutputs)[1][f] += (*plan->mainouts)[1][f];
+                }
+        }
+        so, if there will be some units that will send directly to output - it will mix together
+
+Modules:
+[ ] - Make a proper CMakeLists.txt template for easier to implement each module and not to edit main CMakeLists in order to add new one
+
+other:
+[\] - introduce using ID = uint32_t(or uint64_t) so ID would be unified thing all across system
+        partially - only in core and snapshots(not in UI)
+
+        
+/* UI: */
+[ ] - make a function that can be called from anywhere. It should halt the system and pop up the window with "message" and await use action
+        (e.g. when user trying to edit audio driver settings during playback pop the window "Playback will be stopped" and "Proceed" or "Cancle" buttons
+                on "Proceed" pressed -> halt system, on "Cancle" -> go back as nothing happened
+        or for any kind of errors appearing that user should be notified)
+[\] - Fade out text message(also globally available) - \ added just show hide thing, no fade
+[ ] - Floating text sometimes not appearing, and sometimes disappearing too fast
+[ ] - //TODO: this + after map is odd... need to fix it in FileView::draw()
+[ ] - periodically updates need different algorithm, see TODO in postToLvgl
+[ ] - in uiControls.cpp postToLvgl() with lambdas will cause memory fragmentation.
+[\] - //sometimes visible() failed because of nullptr lvhost?? MainWindow.cpp::hitTest()::if(!child->visible())
+        in route manager it was because of duplicating pointers(not deleting from childrens), now BaseWidget deleting itself from parent->childs() on delete
+        but not sure that was the case.
+[ ] - Popup should be activated through MainWindow::activatePopup, but not through popup::activate(), popup::show().
+        for better control and etc. 
+        Should modules add popups by themselves?
+[ ] - Must somehow move to modular view, without that much coupling...
+
+Route Manager:
+[ ] - RouteManager - map and other things...
+
+Browser:
+[ ] - Browser TODO: show selector that will allow to select where we want to drag.
+            that means we have to make transferGesture to selector and than from selector
+            make another transfer to destination(if released on empty space than drom gesture)
+
+Drop Down Menu:
+[ ] - DropDown widget to handle swipe, to check how much space left for list, render above.
+[ ] - DropDown widget failing when "index is 3, vector size is 2"
+
+[ ] - guiThread must provide function to add ui update tasks to schedule, so it be simple to call from uiControls.cpp
+
+Screen Keyboard:
+[ ] - make a Shift functional
+[ ] - make clear button(erase all text)
+
+/* Other */
+CMakeLists and EvGen
+[ ] - modify cmakelists.txt to use strict file sources list for compiling, not recursive serach
+[ ] - after cmake mod - move template files from evgen folder to regular inc/src folders and modify evgen to parse them
+[ ] - EvGen not working properly with <moduleEventsGen.h> files that aren't located in src/core folder
+
+Tests:
+[ ] - tests for Control Engine
+[ ] - tests for SettingsManager
+[ ] - AudioBufferManager tests not working anymore(due to changes in acquireRecordBuffer)
+[ ] - make proper stacktrace record on fatal error's and logging to file
+[ ] - sometimes app crashes on startup or shutdown... 
+[ ] - sometimes SDL doesn't catch QUIT signal when exit via X in right top corner
+[ ] - FakeGestures doesn't allways handle events in time, but some sort of delayed handle...
+
+[ ] - more tests!
+[ ] - more logging!
+
+[ ] - there is several memory leaks in ui...

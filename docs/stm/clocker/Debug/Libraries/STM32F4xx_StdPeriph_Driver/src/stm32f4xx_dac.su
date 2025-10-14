@@ -1,0 +1,17 @@
+stm32f4xx_dac.c:180:6:DAC_DeInit	8	static
+stm32f4xx_dac.c:199:6:DAC_Init	24	static
+stm32f4xx_dac.c:235:6:DAC_StructInit	16	static
+stm32f4xx_dac.c:259:6:DAC_Cmd	16	static
+stm32f4xx_dac.c:287:6:DAC_SoftwareTriggerCmd	16	static
+stm32f4xx_dac.c:311:6:DAC_DualSoftwareTriggerCmd	16	static
+stm32f4xx_dac.c:342:6:DAC_WaveGenerationCmd	24	static
+stm32f4xx_dac.c:371:6:DAC_SetChannel1Data	24	static
+stm32f4xx_dac.c:396:6:DAC_SetChannel2Data	24	static
+stm32f4xx_dac.c:424:6:DAC_SetDualChannelData	24	static
+stm32f4xx_dac.c:458:10:DAC_GetDataOutputValue	24	static
+stm32f4xx_dac.c:503:6:DAC_DMACmd	16	static
+stm32f4xx_dac.c:551:6:DAC_ITConfig	24	static
+stm32f4xx_dac.c:583:12:DAC_GetFlagStatus	24	static
+stm32f4xx_dac.c:618:6:DAC_ClearFlag	16	static
+stm32f4xx_dac.c:641:10:DAC_GetITStatus	24	static
+stm32f4xx_dac.c:681:6:DAC_ClearITPendingBit	16	static

@@ -1,0 +1,5 @@
+i2s.c:22:6:swapVoid	24	static
+i2s.c:33:6:DMA1_Stream4_IRQHandler	8	static
+i2s.c:45:20:I2S_DMAInit	80	static
+i2s.c:94:6:I2S_PPL_Config	16	static
+i2s.c:118:6:I2SInit	72	static

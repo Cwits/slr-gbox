@@ -1,0 +1,10 @@
+bin
+build
+CMakeFiles
+CMakeCache.txt
+.vscode
+*.d
+*.obj
+*.exe
+*.iso
+q

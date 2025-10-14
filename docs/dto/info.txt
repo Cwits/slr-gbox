@@ -1,0 +1,30 @@
+This DTO is basically GenericStereoAudioCodec with changed name, taken from 
+https://github.com/AkiyukiOkayasu/RaspberryPi_I2S_Slave/blob/master/genericstereoaudiocodec.dts
+
+/* 
+Compile with:
+   dtc -@ -H epapr -O dtb -o genericstereoaudiocodec.dtbo -Wno-unit_address_vs_reg genericstereoaudiocodec.dts
+Copy genericstereoaudiocodec.dtbo to /boot/overlays 
+    sudo cp genericstereoaudiocodec.dtbo /boot/overlays
+Edit /boot/config.txt
+    sudo nano /boot/config.txt
+Edit and add to this line
+    # Uncomment some or all of these to enable the optional hardware interface
+    #dtparam=i2c_arm=on
+    #dtparam=i2s=on
+    #dtparam=spi=on
+
+    to
+
+    # Uncomment some or all of these to enable the optional hardware interface
+    #dtparam=i2c_arm=on
+    dtparam=i2s=on
+    #dtparam=spi=on
+    dtoverlay=genericstereoaudiocodec
+
+If you don't need HDMI audio output and RasPi's headphone output, comment out "dtparam=audio=on" by hash.
+like this.
+    dtparam=audio=on
+    to
+    #dtparam=audio=on
+*/

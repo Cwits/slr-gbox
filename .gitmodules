@@ -1,0 +1,9 @@
+[submodule "external/lvgl"]
+	path = external/lvgl
+	url = https://github.com/lvgl/lvgl.git
+[submodule "external/gestlib"]
+	path = external/gestlib
+	url = https://github.com/Cwits/gestlib.git
+[submodule "external/loguru"]
+	path = external/loguru
+	url = https://github.com/emilk/loguru.git

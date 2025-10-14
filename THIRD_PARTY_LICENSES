@@ -1,0 +1,16 @@
+# Third-Party Components
+
+This project uses the following external libraries:
+
+- LVGL (https://lvgl.io)  
+  License: MIT License
+
+- loguru (https://github.com/emilk/loguru)
+  License: The Unlicense
+
+- GestLib (https://github.com/Cwits/gestlib)
+  License: MIT License
+
+- Portions of the STM32 firmware are based on STMicroelectronics example code,
+  licensed under the MCD-ST Liberty SW License Agreement V2.
+  See: http://www.st.com/software_license_agreement_liberty_v2

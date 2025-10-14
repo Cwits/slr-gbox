@@ -1,0 +1,15 @@
+[ ] - ModuleNameEvents.h generation moved to parse stage, so generator only pick it up
+[ ] - separate generation of ModuleNameHandles.h(only with forward declarations) and ModuleNameHandles.cpp(with includes)
+[ ] - grammar checks(separate, move from bigger picture to smaller cases)
+[ ] - can i reuse same structures in flat controls and flat responses + throw out "Response" ?
+        i guess yeah, but need to add another namespace layer than - namespace FlatControls and namespace FlatResponses
+
+[\] - make everything to not generate from scratch but do differences only(we finding files that was edited, 
+        but needs to update generator for finding diffs)
+
+[ ] - grammar check partially done, but need to integrate it
+
+COMMAND python generator.py \
+    --input_dir ${CMAKE_SOURCE_DIR}/src \
+    --output_dir ${CMAKE_BINARY_DIR}/gen \
+    --template_dir ${CMAKE_SOURCE_DIR}/templates

@@ -1,0 +1,17 @@
+{
+    "Audio Driver": "Jack Driver",
+    "Sample Rate": 44100,
+    "Block Size": 64,
+    "Latency Compensation": 37,
+    "BPM": 120.0,
+    "PPQN": 960,
+    "Numerator": 4,
+    "Denominator": 4,
+    "Projects Path": "/home/portablejoe/music/projects/",
+    "Save Tmp to Project": true,
+    "Default Storage": "/home/portablejoe/music/",
+    "Temporary Recording Path": "/home/portablejoe/music/recordings/",
+    "Plugins Path": "/home/portablejoe/plugins/",
+    "Default Pixel Per Bar": 1000,
+    "Frames Per Pixel": 588
+}

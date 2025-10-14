@@ -1,0 +1,5 @@
+misc.c:111:6:NVIC_PriorityGroupConfig	16	static
+misc.c:129:6:NVIC_Init	24	static
+misc.c:173:6:NVIC_SetVectorTable	16	static
+misc.c:192:6:NVIC_SystemLPConfig	16	static
+misc.c:216:6:SysTick_CLKSourceConfig	16	static

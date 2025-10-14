@@ -1,0 +1,2 @@
+stm32f4xx_hash_md5.c:86:13:HASH_MD5	136	static
+stm32f4xx_hash_md5.c:161:13:HMAC_MD5	136	static

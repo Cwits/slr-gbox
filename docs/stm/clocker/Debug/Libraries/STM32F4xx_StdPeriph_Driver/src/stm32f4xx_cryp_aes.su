@@ -1,0 +1,5 @@
+stm32f4xx_cryp_aes.c:99:13:CRYP_AES_ECB	256	static
+stm32f4xx_cryp_aes.c:287:13:CRYP_AES_CBC	304	static
+stm32f4xx_cryp_aes.c:489:13:CRYP_AES_CTR	304	static
+stm32f4xx_cryp_aes.c:663:13:CRYP_AES_GCM	432	static
+stm32f4xx_cryp_aes.c:1128:13:CRYP_AES_CCM	376	static
