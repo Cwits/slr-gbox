@@ -19,14 +19,6 @@ Parameters:
 
 Events:
 [ ] - Events 3.0: outside they stay same way, but internal mechanism must work by stages, full isolation from outer world(kinda)...
-        то есть вместо того что бы писать handle... handle... пишешь void stage1(ctx) {...}, stage2(ctx) {...},
-        генератор сам генерит нужные структуры, а control engine вызывает только что то вроде event->processNextStage(ctx).
-        таким образом можно будет строить сложные события, которые будут происходить поэтапно:
-        прим: Жмешь кнопку удалить файл с трека.
-                этап 1: удалить UI -> дождаться ответа
-                этап 2: убрать файл из РТ трека -> дождаться ответа
-                этап 3: очистить память
-
 AudioUnit:
 [ ] - make ::outputs() to give back not the AudioBuffer * but list of 
         struct Outputs {
