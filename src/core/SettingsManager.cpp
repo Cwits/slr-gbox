@@ -41,7 +41,7 @@ slr::frame_t _defaultFramesPerPixel;
 std::string _defaultStoragePath;
 
 //compiling on pi change this path, as well paths in config folder
-const std::string _pathPostfix = "/slr/config/";
+const std::string _pathPostfix = "/slr-gbox/config/";
 std::string _configPath;
 
 namespace slr {
