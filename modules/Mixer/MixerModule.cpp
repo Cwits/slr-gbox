@@ -9,11 +9,16 @@
 
 #include "modules/Mixer/Mixer.h"
 #include "modules/Mixer/MixerUI.h"
+#include "modules/Mixer/MixerView.h"
 
 #include <memory>
 
 std::unique_ptr<slr::AudioUnit> createMixerRT() { 
     return std::make_unique<slr::Mixer>();
+}
+
+slr::AudioUnitView * createMixerView(slr::AudioUnit * mixer) {
+    return new slr::MixerView(static_cast<slr::Mixer*>(mixer));
 }
 
 UI::UnitUIBase * createMixerUI(slr::AudioUnitView * mixer, UI::UIContext * uictx) {
@@ -26,6 +31,7 @@ const slr::Module MixerModule {
     ._name = &_mixerName,
     ._type = slr::ModuleType::Basic,
     .createRT = createMixerRT,
+    .createView = createMixerView,
     .createUI = createMixerUI
 };
 

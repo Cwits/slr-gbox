@@ -103,6 +103,7 @@ other:
         for better control and etc. 
         Should modules add popups by themselves?
 [ ] - Must somehow move to modular view, without that much coupling...
+[ ] - Abstract GridControl UI for modules to have basic grid control with files
 
 Route Manager:
 [ ] - RouteManager - map and other things...

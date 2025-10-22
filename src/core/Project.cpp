@@ -23,25 +23,26 @@ Project::Project() : _timeline(*this) {
 
     _metronome = std::make_unique<Metronome>();
 
-    _mixer = std::make_unique<Mixer>();
+    // _mixer = std::make_unique<Mixer>();
     _isSolo = false;
 
-    AudioRoute mixOutput;
-    mixOutput._sourceType = AudioRoute::Type::INT;
-    mixOutput._sourceId = _mixer->id();
-    mixOutput._targetType = AudioRoute::Type::EXT;
-    mixOutput._targetId = 0;    //audio driver
-    for(int i=0; i<32; ++i) {
-        mixOutput._channelMap[i] = -1;
-    }
-    mixOutput._channelMap[0] = 0;
-    mixOutput._channelMap[1] = 1;
-    addRoute(mixOutput);
+    // AudioRoute mixOutput;
+    // mixOutput._sourceType = AudioRoute::Type::INT;
+    // mixOutput._sourceId = _mixer->id();
+    // mixOutput._targetType = AudioRoute::Type::EXT;
+    // mixOutput._targetId = 0;    //audio driver
+    // for(int i=0; i<32; ++i) {
+    //     mixOutput._channelMap[i] = -1;
+    // }
+    // mixOutput._channelMap[0] = 0;
+    // mixOutput._channelMap[1] = 1;
+    // addRoute(mixOutput);
 
     _renderPlan1 = buildPlan(this, routes());
     _renderPlan2 = buildPlan(this, routes());
-    const std::vector<AudioRoute> empty; 
-    _soloPlan = buildPlan(this, empty);
+    // const std::vector<AudioRoute> empty; 
+    _soloPlan = buildPlan(this, routes());
+
     _planInWork = false;
 }
 

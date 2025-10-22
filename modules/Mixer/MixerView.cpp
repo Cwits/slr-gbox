@@ -10,7 +10,7 @@ MixerView::MixerView(Mixer * const mix) :
     AudioUnitView(mix),
     _mixer(mix)
 {
-
+    _name = "Mixer " + std::to_string(_uniqueId);
 }
 
 MixerView::~MixerView() {
@@ -18,7 +18,7 @@ MixerView::~MixerView() {
 }
 
 void MixerView::update() {
-
+    AudioUnitView::update();
 }
 
 }

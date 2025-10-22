@@ -36,8 +36,8 @@ struct RenderPlan {
     Node * nodes;
     uint32_t nodesCount;
 
-    Dependencies * mixerDeps;
-    uint32_t mixerDepsCount;
+    Dependencies * outputDeps;
+    uint32_t outputDepsCount;
 
     // struct SubGraphSlice {
     //     uint32_t offset;
@@ -55,5 +55,11 @@ struct RenderPlan {
 
 RenderPlan * buildPlan(Project * prj, const std::vector<AudioRoute> & routes);
 void destroyPlan(const RenderPlan * plan);
+
+inline void clearChannelMap(int8_t * map) {
+    for(int i=0; i<32; ++i) {
+        map[i] = -1;
+    }
+}
 
 }

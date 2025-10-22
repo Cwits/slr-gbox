@@ -27,11 +27,6 @@
 
 namespace slr {
 
-
-// static const FlatEvents::FlatControl _zeroControl = {
-//     .type = FlatEvents::FlatControl::Type::Error
-// };
-
 RtEngine::RtEngine() {
     
 }
@@ -154,16 +149,26 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         node.target->process(ctx, node.deps, node.depsCount);
     }
 
-    //TODO: treat mixer as regular unit...
-    _prj->mixer()->process(ctx, plan->mixerDeps, plan->mixerDepsCount);
-    
+    for(uint32_t n=0; n<plan->outputDepsCount; ++n) {
+        const Dependencies &ext = plan->outputDeps[n];
+        const AudioBuffer * source = ext.external ? ctx.mainInputs : ext.buffer;
+
+        //mix to preFX
+        for(int ch=0; ch<32; ++ch) {
+            if(ext.channelMap[ch] == -1) continue;
+
+            for(frame_t f=0; f<ctx.frames; ++f) {
+                (*ctx.mainOutputs)[ch][f] += (*source)[ext.channelMap[ch]][f];
+            }
+        }
+    }
  
     Metronome * metro = _prj->metronome();
     if(ctx.playing) {
         metro->process(ctx, nullptr, 0);
     }
 
-    /*future improvement
+    /*future improvement mmm...???
         return not only frames count, but
         struct driver countext {
             frame_t frames;
@@ -174,18 +179,6 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         so driver will mix dependencies according to 
         channel maps to appropriate channels
     */
-
-    /*
-    TODO: rn mixer pass the finalized data to MainOutputs;
-    but it should be smth like
-    int mainoutsnum = plan->mainoutscount;
-    for(int i=0; i<mainoutsnum; ++i) {
-        for(frame_t f=0; f<ctx.frames; ++f) { 
-            (*ctx.mainOutputs)[0][f] += (*plan->mainouts)[0][f];
-            (*ctx.mainOutputs)[1][f] += (*plan->mainouts)[1][f];
-        }
-    }
-     */
 
     return frames;
 }
@@ -208,7 +201,6 @@ void RtEngine::handleControlEvents(std::array<FlatEvents::FlatControl, 256> & li
             _outputControl.push(resp);
     }
 
-    // _controlSnapshot.fill(_zeroControl);
     _snapshotCount = 0;
 }
 

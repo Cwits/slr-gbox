@@ -23,6 +23,15 @@ ProjectView::~ProjectView() {
     }
 }
 
+std::vector<AudioUnitView*> ProjectView::unitList() {
+    std::vector<AudioUnitView*> ret;
+    for(AudioUnitView * v : _unitList) {
+        ret.push_back(v);
+    }
+
+    return ret;
+}
+
 AudioUnitView * ProjectView::getUnitById(ID id) {
     AudioUnitView * unit = nullptr;
     for(std::size_t i=0; i<_unitList.size(); ++i) {

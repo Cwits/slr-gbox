@@ -1,0 +1,15 @@
+22.10.25
+Updated Route Manager to be able internal connections as well.
+Added Mixer module.
+Updated Render Plan builder to handle more complex routings. 
+Removed Mixer from Render Plan, now there is output dependencies, that mixed in RtEngine as last step.
+For now only linear, without interconnections.
+e.g. 
+EXT IN -> Track1 -> Mixer -> EXT OUT
+          Track2 -> Mixer -> EXT OUT
+          Track3 ->       -> EXT OUT
+
+
+17.10.25
+Added abstract "CreateModule" event with name parameter.
+Added Basic Mixer Unit implementation

@@ -2,6 +2,7 @@ bin
 build
 CMakeFiles
 CMakeCache.txt
+/tests/files/*
 .vscode
 *.d
 *.obj

@@ -1,15 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include <string>
-#include <vector>
-#include "Status.h"
 #include <cstdint> 
 #include "defines.h"
+#include <vector>
+#include "Status.h"
 
 namespace slr {
 
-class ContainerItem;
 class AudioUnit;
+class ContainerItem;
 class File;
 
 namespace Events {

@@ -22,7 +22,10 @@ NewModulePopup::NewModulePopup(BaseWidget *parent, UIContext * const uictx) :
     _btnTrack->setPos(100, 100);
     _btnTrack->setCallback([this]() {
         LOG_INFO("Create New Track Event");
-        slr::Events::NewTrack e;
+        // slr::Events::NewTrack e;
+        slr::Events::CreateModule e = {
+            .name = "Track"
+        };
         slr::EmitEvent(e); 
     });
 
@@ -30,6 +33,10 @@ NewModulePopup::NewModulePopup(BaseWidget *parent, UIContext * const uictx) :
     _btnMixer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnMixer->setPos(300, 100);
     _btnMixer->setCallback([this]() {
+        slr::Events::CreateModule e = {
+            .name = "Mixer"
+        };
+        slr::EmitEvent(e);
     });
 }
 

@@ -24,8 +24,8 @@ struct MixerUI : public UnitUIBase {
     bool update(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
-    BaseWidget * gridUI() override { }
-    BaseWidget * moduleUI() override { }
+    BaseWidget * gridUI() override { return _gridControl; }
+    BaseWidget * moduleUI() override { return _moduleUI; }
 
     int gridY() override;
     void setNudge(slr::frame_t nudge, const float horizontalZoom) override;
@@ -35,6 +35,12 @@ struct MixerUI : public UnitUIBase {
     UIContext * const _uictx;
     slr::MixerView * const _mixer;
     std::vector<FileView*> _viewItems;
+
+    class MixerGridControlUI;
+    class MixerModuleUI;
+
+    MixerGridControlUI * _gridControl;
+    MixerModuleUI * _moduleUI;
 
     struct MixerGridControlUI : public BaseWidget {
         MixerGridControlUI(BaseWidget *parent, MixerUI *parentUI);
@@ -59,6 +65,8 @@ struct MixerUI : public UnitUIBase {
 
         private:
         MixerUI * _parentUI;
+
+        lv_obj_t * _testRect;
 
         friend class MixerUI;
     };

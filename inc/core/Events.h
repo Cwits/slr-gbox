@@ -18,9 +18,9 @@ namespace slr {
 namespace Events {
 
 using Event = std::variant<
-		NewTrack,
-		DeleteTrack,
 		AddNewRoute,
+		DeleteModule,
+		CreateModule,
 		ToggleMetronome,
 		RequestPlayhead,
 		ChangeTimelineState,

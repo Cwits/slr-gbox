@@ -9,11 +9,16 @@
 
 #include "modules/Track/Track.h"
 #include "modules/Track/TrackUI.h"
+#include "modules/Track/TrackView.h"
 
 #include <memory>
 
 std::unique_ptr<slr::AudioUnit> createTrackRT() { 
     return std::make_unique<slr::Track>();
+}
+
+slr::AudioUnitView * createTrackView(slr::AudioUnit * track) {
+    return new slr::TrackView(static_cast<slr::Track*>(track));
 }
 
 UI::UnitUIBase * createTrackUI(slr::AudioUnitView * track, UI::UIContext * uictx) {
@@ -26,6 +31,7 @@ const slr::Module TrackModule {
     ._name = &_trackName,
     ._type = slr::ModuleType::Basic,
     .createRT = createTrackRT,
+    .createView = createTrackView,
     .createUI = createTrackUI
 };
 

@@ -1,20 +1,22 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/primitives/AudioRoute.h"
 #include "defines.h"
+#include <string>
+#include "core/primitives/AudioRoute.h"
 
 namespace slr {
 
 
 namespace Events {
 
-struct NewTrack {
-};
-struct DeleteTrack {
-    ID targetId;
-};
 struct AddNewRoute {
     AudioRoute route;
+};
+struct DeleteModule {
+    ID targetId;
+};
+struct CreateModule {
+    std::string name;
 };
 
 } //namespace Events

@@ -50,23 +50,11 @@ struct RouteManager : public Popup {
 
     Route _nextInput;
     Route _nextOutput;
-
-    // std::vector<Label*> _inputs;
-    // std::vector<Label*> _outputs;
-
-    std::vector<ExtIO> _extIO;
-
-    // lv_obj_t * _dropdownPlaceholderLeft;
-    // lv_obj_t * _dropdownPlaceholderRight;
-    // lv_obj_t * _channelMapPlaceholder;
-    // lv_obj_t * _addPlaceholder;
-
-    // DropDown * _dropDown;
-
     
     void forcedClose() override;
     bool handleTap(GestLib::TapGesture & tap) override;
     
+    static void newRoute(RouteManager * rm, bool isInput);
 };
 
 }

@@ -22,17 +22,19 @@ frame_t Mixer::process(const AudioContext &ctx,  const Dependencies * const inpu
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);
 
-    for(uint32_t i=0; i<inputsCount; ++i) {
-        for(frame_t f=0; f<ctx.frames; ++f) {
-            (*_outputs)[0][f] += (*inputs[i].buffer)[0][f];
-            (*_outputs)[1][f] += (*inputs[i].buffer)[1][f];
+    for(uint32_t i=0; i<inputsCount; ++i) {    
+        const Dependencies &ext = inputs[i];
+        const AudioBuffer * source = ext.external ? ctx.mainInputs : ext.buffer;
+
+        //mix to preFX
+        for(int ch=0; ch<32; ++ch) {
+            if(ext.channelMap[ch] == -1) continue;
+
+            for(frame_t f=0; f<ctx.frames; ++f) {
+                (*_outputs)[ch][f] += (*source)[ext.channelMap[ch]][f];
+            }
         }
     }
-
-    //this souldn't be here but in RtEngine...
-    copyAudioBuffer((*_outputs)[0], (*ctx.mainOutputs)[0], ctx.frames);
-    copyAudioBuffer((*_outputs)[1], (*ctx.mainOutputs)[1], ctx.frames);
-
 
     return ctx.frames;
 }

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-START_BLOCK DeleteTrack
+START_BLOCK DeleteModule
 
 EV
 INCLUDE "defines.h"
-struct DeleteTrack {
+struct DeleteModule {
     ID targetId;
 };
 
@@ -16,7 +16,7 @@ INCLUDE "ui/uiControls.h"
 INCLUDE "snapshots/AudioUnitView.h"
 INCLUDE "Status.h"
 INCLUDE "logger.h"
-void handleEvent(const ControlContext &ctx, const Events::DeleteTrack &e) {
+void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
     // LOG_ERROR("Not supported");
     // return;
     //remove from ui
@@ -27,7 +27,7 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteTrack &e) {
 
     RenderPlan * newPlan = buildPlan(ctx.project, ctx.project->routes());
     ctx.project->replaceEditablePlan(newPlan);
-
+ 
     bool res = true;
     if(res) {
         //swap graph

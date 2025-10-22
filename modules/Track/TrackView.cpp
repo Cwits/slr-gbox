@@ -13,6 +13,7 @@ TrackView::TrackView(Track * tr) :
     AudioUnitView(tr), 
     _track(tr) 
 {
+    _name = "Track " + std::to_string(_uniqueId);
     _record = tr->record();
     _recordSource = tr->recordSource();
 }

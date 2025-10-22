@@ -37,9 +37,9 @@ void dispatchHelper(const ControlContext &ctx, const Events::Event& ev) {
 extern "C" {
 constexpr EventHandlerFn ControlTable[] = {
     //&dispatchHelper<Events::RecordArm>,
-	&dispatchHelper<Events::NewTrack>,
-	&dispatchHelper<Events::DeleteTrack>,
 	&dispatchHelper<Events::AddNewRoute>,
+	&dispatchHelper<Events::DeleteModule>,
+	&dispatchHelper<Events::CreateModule>,
 	&dispatchHelper<Events::ToggleMetronome>,
 	&dispatchHelper<Events::RequestPlayhead>,
 	&dispatchHelper<Events::ChangeTimelineState>,

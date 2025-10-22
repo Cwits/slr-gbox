@@ -38,21 +38,28 @@ DropDown::~DropDown() {
 }
 
 void DropDown::setItems(std::vector<std::string> &items) {
-    std::size_t size = items.size();
-    std::size_t oldsize = _items.size();
-    if(size == 0) {
-        LOG_ERROR("Can't set up empty vector");
-        return;
+    if(_items.size() != 0) {
+        for(lv_obj_t * l : _items) {
+            lv_obj_delete(l);
+        }
+        _items.clear();
     }
 
-    if(_items.size() < size) {
+    std::size_t size = items.size();
+    std::size_t oldsize = _items.size();
+    // if(size == 0) {
+    //     LOG_ERROR("Can't set up empty vector");
+    //     return;
+    // }
+
+    if(_items.capacity() < size) {
         _items.reserve(size);
     }
 
-    for(std::size_t i=0; i<oldsize; ++i) {
-        lv_obj_t *l = _items.at(i);
-        lv_label_set_text(l, items.at(i).c_str());
-    }
+    // for(std::size_t i=0; i<oldsize; ++i) {
+    //     lv_obj_t *l = _items.at(i);
+    //     lv_label_set_text(l, items.at(i).c_str());
+    // }
 
     lv_obj_update_layout(lvhost());
 
@@ -62,7 +69,7 @@ void DropDown::setItems(std::vector<std::string> &items) {
     int hostHeight = height*size;
     setSize(width, hostHeight);
 
-    for(std::size_t i=oldsize; i<size; ++i) {
+    for(std::size_t i=0; i<size; ++i) {
         lv_obj_t *l = lv_label_create(lvhost());
         lv_label_set_text(l, items.at(i).c_str());
         lv_obj_set_pos(l, 0, height*(i));

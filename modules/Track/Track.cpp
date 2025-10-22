@@ -305,12 +305,8 @@ bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
 }
 
 bool Track::AudioRecord::release(FileWorker * fw) {
-    // for(int i=0; i<RECORD_BUFFER_COUNT; ++i) {
-    //     AudioBufferManager::releaseRecord(_recordBuffers[i].buf);
-    //     //request to clear buffers in ce
-    // }
-
     if(!_fileUsed) {
+        AudioBufferManager::releaseRecord(_bufferInUse);
         fw->releaseTmpAudioFile(_recordFile);
     }
 

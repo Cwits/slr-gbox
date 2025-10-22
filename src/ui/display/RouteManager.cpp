@@ -44,23 +44,6 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         // this->deactivate();
     });
 
-
-    /* Build Driver ExtIO */
-    slr::DriverView * view = slr::DriverView::driverView();
-    for(int i=0; i<view->inputs(); ++i) {
-        ExtIO in;
-        in._direction = ExtIO::Dir::IN;
-        in._uniqueId = i;
-        _extIO.push_back(in);
-    }
-
-    for(int i=0; i<view->outputs(); ++i) {
-        ExtIO out;
-        out._direction = ExtIO::Dir::OUT;
-        out._uniqueId = i;
-        _extIO.push_back(out);
-    }
-
     /* First item right side */
     _inputsText = new Label(this, "Receiving from:");
     _inputsText->setSize(250, 33);
@@ -124,19 +107,29 @@ RouteManager::~RouteManager() {
 }
 
 void RouteManager::update() {
-    std::string text = "Manage routings for ";
+    std::string text = "Routings for ";
     slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
     text.append(view->name());
     _text->setText(text);
 
     
     //routes where this id is targeting(sending from this id)
+    //receiving from
     std::vector<slr::AudioRoute> tgts = slr::ProjectView::getProjectView().targetsForId(_currentUnitId);
     for(std::size_t i=0; i<tgts.size(); ++i) {
         Route r;
+        slr::AudioRoute &in = tgts.at(i);
+        std::string textDD;
+        if(in._sourceType == slr::AudioRoute::Type::EXT) {
+            textDD = "Driver";
+        } else {
+            slr::AudioUnitView * unit = slr::ProjectView::getProjectView().getUnitById(in._sourceId);
+            textDD = unit->name();
+        }
+
         int posy = (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN) * i;
 
-        Button * extint = new Button(this, "EXT");
+        Button * extint = new Button(this, in._sourceType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
         extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
         extint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
         extint->setFont(&DEFAULT_FONT);
@@ -145,8 +138,7 @@ void RouteManager::update() {
         DropDown * drop = new DropDown(this);
         drop->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
         drop->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posy);
-        std::string text = std::to_string(tgts.at(i)._sourceId);
-        drop->setSelected(text);
+        drop->setSelected(textDD);
         drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
         r._dropdown = drop;
 
@@ -169,15 +161,23 @@ void RouteManager::update() {
     }
 
     //routes where this id is source(receiving from this id)
+    //sending to
     std::vector<slr::AudioRoute> srcs = slr::ProjectView::getProjectView().sourcesForId(_currentUnitId);
     for(std::size_t i=0; i<srcs.size(); ++i) {
-        //this shouldn't be like that, but...
-        if(srcs.at(i)._sourceType == slr::AudioRoute::Type::EXT) continue;
         Route r;
+        slr::AudioRoute & out = srcs.at(i);
+        std::string textDD;
+
+        if(out._targetType == slr::AudioRoute::Type::EXT) {
+            textDD = "Driver";
+        } else {
+            slr::AudioUnitView * au = slr::ProjectView::getProjectView().getUnitById(srcs.at(i)._targetId);// -> mixer
+            textDD = au->name();
+        }
 
         int posy = (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN) * i;
 
-        Button * extint = new Button(this, "INT");
+        Button * extint = new Button(this, out._targetType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
         extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
         extint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posy);
         extint->setFont(&DEFAULT_FONT);
@@ -186,10 +186,7 @@ void RouteManager::update() {
         DropDown * drop = new DropDown(this);
         drop->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
         drop->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posy);
-        
-        // slr::AudioUnitView * au = slr::ProjectView::getProjectView().getUnitById(tgts.at(i)._targetId); -> mixer
-        std::string text = std::to_string(srcs.at(i)._targetId);
-        drop->setSelected(text);
+        drop->setSelected(textDD);
         drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
         r._dropdown = drop;
 
@@ -215,20 +212,39 @@ void RouteManager::update() {
     int posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size);
 
     slr::DriverView *dri = slr::DriverView::driverView();
-    Button * nexiint = new Button(this, "EXT");
-    nexiint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
-    nexiint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
-    nexiint->setFont(&DEFAULT_FONT);
-    
-    DropDown * ndd = new DropDown(this);
-    ndd->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posy);
-    ndd->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-    
     std::vector<std::string> items;
     items.push_back(std::string("Mono Left"));
     items.push_back(std::string("Mono Right"));
     items.push_back(std::string("Stereo"));
     
+    Button * nexiint = new Button(this, "EXT");
+    nexiint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
+    nexiint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
+    nexiint->setFont(&DEFAULT_FONT);
+    nexiint->setCallback([this]() {
+        std::string text = this->_nextInput._extint->text();
+        if(text.compare("EXT") == 0) {
+            this->_nextInput._extint->setText("INT");
+            //fill drop
+            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+            std::vector<std::string> names;
+            for(auto u : list) {
+                names.push_back(u->name());
+            }
+            this->_nextInput._dropdown->setItems(names);
+        } else {
+            this->_nextInput._extint->setText("EXT");
+            std::vector<std::string> items;
+            items.push_back(std::string("Mono Left"));
+            items.push_back(std::string("Mono Right"));
+            items.push_back(std::string("Stereo"));
+            this->_nextInput._dropdown->setItems(items);
+        }
+    });
+    
+    DropDown * ndd = new DropDown(this);
+    ndd->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posy);
+    ndd->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
     ndd->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
     ndd->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
     ndd->setItems(items);
@@ -243,41 +259,7 @@ void RouteManager::update() {
     nadd->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
     nadd->setFont(&DEFAULT_FONT);
     nadd->setCallback([this]() {
-        slr::AudioRoute newroute;
-        const std::string io = this->_nextInput._extint->text();
-        if(io.compare("EXT") == 0) {
-            newroute._sourceType = slr::AudioRoute::Type::EXT;
-            newroute._sourceId = 0;
-        } else {
-            newroute._sourceType = slr::AudioRoute::Type::INT;
-        }
-        
-        newroute._targetType = slr::AudioRoute::Type::INT;
-        newroute._targetId = this->_currentUnitId;
-        for(int i=0; i<32; ++i) {
-            newroute._channelMap[i] = -1;
-        }
-        
-        const std::string id = this->_nextInput._dropdown->selectedItem();
-        // newroute._sourceId = std::stoi(id);
-        //TODO: issue here... Stereo thing is working correctly, 
-        //but when it is mono than channels was swapped
-        //(mono left = 0 both gave right and vice versa)
-        if(id.compare("Mono Left") == 0) {
-            newroute._channelMap[0] = 1; //that is weird...
-            newroute._channelMap[1] = 1;
-        } else if(id.compare("Mono Right") == 0) {
-            newroute._channelMap[0] = 0;
-            newroute._channelMap[1] = 0;
-        } else if(id.compare("Stereo") == 0) {
-            newroute._channelMap[0] = 0;
-            newroute._channelMap[1] = 1;
-        }
-
-        slr::Events::AddNewRoute r;
-        r.route = newroute;
-        slr::EmitEvent(r);
-
+        RouteManager::newRoute(this, true);
         //update here? or... where?
     });
 
@@ -285,6 +267,63 @@ void RouteManager::update() {
     _nextInput._dropdown = ndd;
     _nextInput._channelMap = nmap;
     _nextInput._addRemoveButton = nadd;
+
+    //new output
+    size = _outputs.size();
+    posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size);
+
+    Button * oexiint = new Button(this, "EXT");
+    oexiint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posy);
+    oexiint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
+    oexiint->setFont(&DEFAULT_FONT);
+    oexiint->setCallback([this]() {
+        std::string text = this->_nextOutput._extint->text();
+        if(text.compare("EXT") == 0) {
+            this->_nextOutput._extint->setText("INT");
+            //fill drop
+            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+            std::vector<std::string> names;
+            for(auto u : list) {
+                names.push_back(u->name());
+            }
+            this->_nextOutput._dropdown->setItems(names);
+        } else {
+            this->_nextOutput._extint->setText("EXT");
+            std::vector<std::string> items;
+            items.push_back(std::string("Mono Left"));
+            items.push_back(std::string("Mono Right"));
+            items.push_back(std::string("Stereo"));
+            this->_nextOutput._dropdown->setItems(items);
+        }
+    });
+
+    DropDown * odd = new DropDown(this);
+    odd->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posy);
+    odd->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
+    odd->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
+    odd->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
+    odd->setItems(items);
+
+    
+    Button * omap = new Button(this, "MAP");
+    omap->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posy);
+    omap->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
+    omap->setFont(&DEFAULT_FONT);
+
+    Button * oadd = new Button(this, LV_SYMBOL_PLUS);
+    oadd->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posy);
+    oadd->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
+    oadd->setFont(&DEFAULT_FONT);
+    oadd->setCallback([this]() {
+        RouteManager::newRoute(this, false);
+        //update here? or... where?
+    });
+
+    _nextOutput._extint = oexiint;
+    _nextOutput._dropdown = odd;
+    _nextOutput._channelMap = omap;
+    _nextOutput._addRemoveButton = oadd;
+
 }
 
 void RouteManager::forcedClose() {
@@ -346,6 +385,109 @@ bool RouteManager::handleTap(GestLib::TapGesture & tap) {
     LOG_INFO("pos x %d y %d", tap.x, tap.y);
 
     return true;
+}
+
+void RouteManager::newRoute(RouteManager * rm, bool isInput) {
+    slr::AudioRoute newroute;
+    for(int i=0; i<32; ++i) {
+        newroute._channelMap[i] = -1;
+    }
+    if(isInput) {            
+        const std::string io = rm->_nextInput._extint->text();
+        if(io.compare("EXT") == 0) {
+            newroute._sourceType = slr::AudioRoute::Type::EXT;
+            newroute._sourceId = 0;
+                
+            const std::string id = rm->_nextInput._dropdown->selectedItem();
+            // newroute._sourceId = std::stoi(id);
+            //TODO: issue here... Stereo thing is working correctly, 
+            //but when it is mono than channels was swapped
+            //(mono left = 0 both gave right and vice versa)
+            if(id.compare("Mono Left") == 0) {
+                newroute._channelMap[0] = 1; //that is weird...
+                newroute._channelMap[1] = 1;
+            } else if(id.compare("Mono Right") == 0) {
+                newroute._channelMap[0] = 0;
+                newroute._channelMap[1] = 0;
+            } else if(id.compare("Stereo") == 0) {
+                newroute._channelMap[0] = 0;
+                newroute._channelMap[1] = 1;
+            }
+        } else {
+            newroute._sourceType = slr::AudioRoute::Type::INT;
+            const std::string name = rm->_nextInput._dropdown->selectedItem();
+            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+            bool found = false;
+            slr::ID id = 0;
+            for(auto unit : list) {
+                if(name.compare(unit->name()) == 0) {
+                    found = true;
+                    id = unit->id();
+                    break;
+                }
+            }
+
+            if(!found) {
+                LOG_WARN("Failed to find unit named %s in unit list", name.c_str());
+                return;
+            }
+                
+            newroute._sourceId = id;
+            newroute._channelMap[0] = 0;
+            newroute._channelMap[1] = 1;
+        }
+            
+        newroute._targetType = slr::AudioRoute::Type::INT;
+        newroute._targetId = rm->_currentUnitId;
+    } else {
+        //output thing
+        const std::string io = rm->_nextOutput._extint->text();
+        if(io.compare("EXT") == 0) {
+            newroute._targetType = slr::AudioRoute::Type::EXT;
+            newroute._targetId = 0;
+
+            const std::string id = rm->_nextOutput._dropdown->selectedItem();
+            if(id.compare("Mono Left") == 0) {
+                newroute._channelMap[0] = 1;
+                newroute._channelMap[1] = 1;
+            } else if(id.compare("Mono Right") == 0) {
+                newroute._channelMap[0] = 0;
+                newroute._channelMap[1] = 0;
+            } else if(id.compare("Stereo") == 0) {
+                newroute._channelMap[0] = 0;
+                newroute._channelMap[1] = 1;
+            }
+        } else {
+            newroute._targetType = slr::AudioRoute::Type::INT;
+            const std::string name = rm->_nextOutput._dropdown->selectedItem();
+            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+            bool found = false;
+            slr::ID id = 0;
+            for(auto unit : list) {
+                if(name.compare(unit->name()) == 0) {
+                    found = true;
+                    id = unit->id();
+                    break;
+                }
+            }
+
+            if(!found) {
+                LOG_WARN("Failed to find unit named %s in unit list", name.c_str());
+                return;
+            }
+
+            newroute._targetId = id;
+            newroute._channelMap[0] = 0;
+            newroute._channelMap[1] = 1;
+        }
+
+            newroute._sourceId = rm->_currentUnitId;
+            newroute._sourceType = slr::AudioRoute::Type::INT;
+    }
+
+    slr::Events::AddNewRoute r;
+    r.route = newroute;
+    slr::EmitEvent(r);
 }
 
 }

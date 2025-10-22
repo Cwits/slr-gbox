@@ -44,7 +44,7 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
     _deleteBtn->setCallback([this]() {
         // std::cout << "Delete track: " << (int)_track->id() << std::endl;
         LOG_INFO("Delete track: %i", _currentUnit->id());
-        slr::Events::DeleteTrack e = {
+        slr::Events::DeleteModule e = {
             .targetId = _currentUnit->id()
         };
         slr::EmitEvent(e);

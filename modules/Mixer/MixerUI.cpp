@@ -5,6 +5,7 @@
 
 #include "modules/Mixer/MixerView.h"
 #include "ui/display/layoutSizes.h"
+#include "ui/display/defaultColors.h"
 #include "ui/display/primitives/Button.h"
 #include "ui/display/primitives/Label.h"
 #include "ui/display/primitives/UIContext.h"
@@ -29,19 +30,30 @@ MixerUI::~MixerUI() {
 }
 
 bool MixerUI::create(UIContext * ctx) {
+    _gridControl = new MixerGridControlUI(ctx->gridControl(), this);
+    _moduleUI = new MixerModuleUI(ctx->moduleView(), this);
     return true;
 }
 
 bool MixerUI::update(UIContext * ctx) {
+    if(_mixer->mute()) {
+        _gridControl->_btnMute->setColor(MUTE_ON_COLOR);
+    } else {
+        _gridControl->_btnMute->setColor(MUTE_OFF_COLOR);
+    }
+
+    _gridControl->_lblVolume->setText(std::to_string(_mixer->volume()));
     return true;
 }
 
 bool MixerUI::destroy(UIContext * ctx) {
+    delete _gridControl;
+    delete _moduleUI;
     return true;
 }
 
 int MixerUI::gridY() {
-    return 0;
+    return lv_obj_get_y(_gridControl->lvhost());
 }
 
 void MixerUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
@@ -76,7 +88,7 @@ MixerUI::MixerGridControlUI::MixerGridControlUI(BaseWidget *parent, MixerUI *par
         this->_parentUI->_uictx->_popManager->enableKeyboard(
             this->_parentUI->_mixer->name(), 
             [this](const std::string & text) {
-                LOG_INFO("New track name: %s for id: %d", text.c_str(), this->_parentUI->_mixer->id());
+                LOG_INFO("New mixer name: %s for id: %d", text.c_str(), this->_parentUI->_mixer->id());
                 this->_parentUI->_mixer->setName(text);
                 this->_lblName->setText(text);
             }
@@ -100,7 +112,6 @@ MixerUI::MixerGridControlUI::MixerGridControlUI(BaseWidget *parent, MixerUI *par
                     e.value = vol
                 };
                 slr::EmitEvent(e);
-                // this->_lblVolume->setText(text);
             }
         );
     });
@@ -143,6 +154,7 @@ MixerUI::MixerGridControlUI::~MixerGridControlUI() {
 }
 
 bool MixerUI::MixerGridControlUI::handleDoubleTap(GestLib::DoubleTapGesture &dt) {
+    _parentUI->_uictx->_popManager->enableUnitControl(_parentUI, this);
     return true;
 }
 
@@ -150,11 +162,21 @@ MixerUI::MixerModuleUI::MixerModuleUI(BaseWidget *parent, MixerUI *parentUI) :
     BaseWidget(parent, true),
     _parentUI(parentUI)
 {
+    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
+    setPos(0, 0);
 
+
+    _testRect = lv_obj_create(lvhost());
+    lv_obj_set_size(_testRect, 200, 200);
+    lv_obj_set_pos(_testRect, 300, 100);
+    slr::MixerView *m = _parentUI->_mixer;
+    slr::Color clr = m->color();
+    lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
+    hide();
 }
 
 MixerUI::MixerModuleUI::~MixerModuleUI() {
-
+    lv_obj_delete(_testRect);
 }
 
 

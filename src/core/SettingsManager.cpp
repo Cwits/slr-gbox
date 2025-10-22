@@ -41,7 +41,7 @@ slr::frame_t _defaultFramesPerPixel;
 std::string _defaultStoragePath;
 
 //compiling on pi change this path, as well paths in config folder
-const std::string _pathPostfix = "/slr/config/";
+const std::string _pathPostfix = "/slr-gbox/config/";
 std::string _configPath;
 
 namespace slr {
@@ -134,13 +134,13 @@ bool init(const std::string path) {
 void buildConfig(const std::string &path) {
     std::string homedir = getHomeDir();
     std::string projects_path = homedir;
-    projects_path.append("/music/projects/");
+    projects_path.append("/");
     std::string default_storage = homedir;
-    default_storage.append("/music/");
+    default_storage.append("/");
     std::string plugins_path = homedir;
-    plugins_path.append("/plugins/");
+    plugins_path.append("/");
     std::string record_path = homedir;
-    record_path.append("/music/recordings/");
+    record_path.append("/");
 
     nlohmann::ordered_json settings = {
         {"Audio Driver", "Jack Driver"},
