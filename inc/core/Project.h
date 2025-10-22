@@ -15,8 +15,6 @@
 namespace slr {
 
 class AudioUnit;
-class Mixer;
-class Track;
 class Metronome;
 
 class Project {
@@ -45,8 +43,6 @@ class Project {
     const int getUnitCount() const { return _unitList.size(); }
     AudioUnit * getUnitById(ID id); //for building track graph???
     const std::vector<std::unique_ptr<AudioUnit>> & getAllUnits() const { return _unitList; }
-    
-    // std::vector<Track*> tracks();
 
     Timeline & timeline() { return _timeline; }
 
@@ -58,7 +54,6 @@ class Project {
     bool evaluateRoute(const AudioRoute & route);
 
     //TODO: use mixer not as separate unit, but as regular one
-    Mixer * mixer() const;
     Metronome * metronome() const;
     
     private:
@@ -73,7 +68,6 @@ class Project {
     
     std::vector<std::unique_ptr<AudioUnit>> _unitList;
     std::vector<AudioRoute> _routes;
-    std::unique_ptr<Mixer> _mixer;
 
     std::unique_ptr<Metronome> _metronome;
     //std::unique_ptr<StepSequencer> _stepSequencer;

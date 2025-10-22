@@ -81,7 +81,6 @@ file(GLOB SOURCES
   src/core/Events.cpp
   src/core/FileTasks.cpp
   src/core/FileWorker.cpp
-  src/core/Mixer.cpp
   src/core/Project.cpp
   src/core/RtEngine.cpp
   src/core/SettingsManager.cpp

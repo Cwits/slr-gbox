@@ -3,7 +3,6 @@
 
 #include "core/primitives/RenderPlan.h"
 #include "core/primitives/AudioUnit.h"
-#include "core/Mixer.h"
 #include "core/Project.h"
 #include "logger.h"
 

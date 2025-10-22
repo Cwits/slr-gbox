@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "core/Mixer.h"
+#include "modules/Mixer/Mixer.h"
 #include "core/primitives/AudioContext.h"
 #include "core/utility/basicAudioManipulation.h"
 #include "core/primitives/RenderPlan.h"

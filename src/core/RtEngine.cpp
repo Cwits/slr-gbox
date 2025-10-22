@@ -16,8 +16,6 @@
 #include "core/Project.h"
 #include "core/Timeline.h"
 
-// #include "core/Track.h"
-#include "core/Mixer.h"
 #include "core/Metronome.h"
 
 #include "defines.h"

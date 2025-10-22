@@ -4,8 +4,6 @@
 #include "core/Project.h"
 #include "core/AudioBufferManager.h"
 #include "core/primitives/AudioUnit.h"
-// #include "core/Track.h"
-#include "core/Mixer.h"
 #include "core/Metronome.h"
 #include "logger.h"
 
@@ -23,26 +21,11 @@ Project::Project() : _timeline(*this) {
 
     _metronome = std::make_unique<Metronome>();
 
-    // _mixer = std::make_unique<Mixer>();
-    _isSolo = false;
-
-    // AudioRoute mixOutput;
-    // mixOutput._sourceType = AudioRoute::Type::INT;
-    // mixOutput._sourceId = _mixer->id();
-    // mixOutput._targetType = AudioRoute::Type::EXT;
-    // mixOutput._targetId = 0;    //audio driver
-    // for(int i=0; i<32; ++i) {
-    //     mixOutput._channelMap[i] = -1;
-    // }
-    // mixOutput._channelMap[0] = 0;
-    // mixOutput._channelMap[1] = 1;
-    // addRoute(mixOutput);
-
     _renderPlan1 = buildPlan(this, routes());
     _renderPlan2 = buildPlan(this, routes());
-    // const std::vector<AudioRoute> empty; 
     _soloPlan = buildPlan(this, routes());
 
+    _isSolo = false;
     _planInWork = false;
 }
 
@@ -84,21 +67,6 @@ AudioUnit * Project::getUnitById(ID id) {
 
     LOG_ERROR("Wrong Unit ID");
     return nullptr;
-}
-
-// std::vector<Track*> Project::tracks() {
-//     std::vector<Track*> result;
-//     for (const auto& unit_ptr : _unitList) {
-//         // Используем безопасный dynamic_cast, чтобы "отфильтровать" только треки
-//         if (Track* track_ptr = dynamic_cast<Track*>(unit_ptr.get())) {
-//             result.push_back(track_ptr);
-//         }
-//     }
-//     return result;
-// }
-
-Mixer * Project::mixer() const { 
-    return _mixer.get();
 }
 
 Metronome * Project::metronome() const {
