@@ -9,6 +9,10 @@
 #include "defines.h"
 #include "Color.h"
 
+#include <vector>
+#include <functional>
+#include <unordered_map>
+
 namespace slr {
 
 class AudioUnit;
@@ -19,8 +23,8 @@ class AudioUnitView {
     virtual ~AudioUnitView();
     
     void addParameter(ParameterBaseView * base);
-    void setParameter(ID parameterId, float value) { _flatParameterList.operator[](parameterId)->setValue(value); }
-    
+    void setParameter(ID parameterId, float value);
+
     virtual void update();
 
     const std::string & name() const { return _name; }

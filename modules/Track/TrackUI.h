@@ -63,12 +63,11 @@ struct TrackUI : public UnitUIBase {
     void setNudge(slr::frame_t nudge, const float horizontalZoom) override;
     void updatePosition(int x, int y) override;
 
-    std::vector<FileView*> & fileList() { return _viewItems; }
+    // std::vector<FileView*> & fileList() { return _viewItems; }
     
     private:
-    UIContext * const _uictx;
     slr::TrackView * _track;
-    std::vector<FileView*> _viewItems;
+    // std::vector<FileView*> _viewItems;
 
     class TrackGridControlUI;
     class TrackModuleUI;

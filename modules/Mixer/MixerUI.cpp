@@ -9,18 +9,23 @@
 #include "ui/display/primitives/Button.h"
 #include "ui/display/primitives/Label.h"
 #include "ui/display/primitives/UIContext.h"
+#include "ui/display/primitives/Slider.h"
 #include "ui/uiutility.h"
 
+#include "snapshots/ProjectView.h"
+#include "snapshots/AudioUnitView.h"
+#include "core/primitives/AudioRoute.h"
 #include "core/utility/helper.h"
 #include "core/Events.h"
 #include "logger.h"
 
+#include <vector>
+
 namespace UI {
 
 MixerUI::MixerUI(slr::AudioUnitView * mixer, UIContext * uictx) :
-    UnitUIBase(mixer),
-    _mixer(static_cast<slr::MixerView*>(mixer)),
-    _uictx(uictx)
+    UnitUIBase(mixer, uictx),
+    _mixer(static_cast<slr::MixerView*>(mixer))
 {
 
 }
@@ -43,26 +48,38 @@ bool MixerUI::update(UIContext * ctx) {
     }
 
     _gridControl->_lblVolume->setText(std::to_string(_mixer->volume()));
+
+    UnitUIBase::update(ctx);
     return true;
 }
 
 bool MixerUI::destroy(UIContext * ctx) {
+    UnitUIBase::destroy(ctx);
     delete _gridControl;
     delete _moduleUI;
     return true;
 }
 
-int MixerUI::gridY() {
-    return lv_obj_get_y(_gridControl->lvhost());
-}
+// int MixerUI::gridY() {
+//     return lv_obj_get_y(_gridControl->lvhost());
+// }
 
-void MixerUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
+// void MixerUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
 
-}
+// }
 
-void MixerUI::updatePosition(int x, int y) {
-
-}
+// void MixerUI::updatePosition(int x, int y) {
+//     lv_obj_set_pos(_gridControl->lvhost(), x, y);
+//     // LOG_INFO("TODO: for items: update pos y");
+//     // for(FileView * fw : _viewItems) {
+//     //     int cx = fw->getX();
+//     //     // int cy = lv_obj_get_y(fw->_canvas);
+//     //     int cy = fw->getY();
+//     //     int newy = y;
+//     //     // lv_obj_set_y(fw->_canvas, y);
+//     //     fw->setPos(cx, newy);
+//     // }
+// }
 
 MixerUI::MixerGridControlUI::MixerGridControlUI(BaseWidget *parent, MixerUI *parentUI) :
     BaseWidget(parent, true),
@@ -164,20 +181,76 @@ MixerUI::MixerModuleUI::MixerModuleUI(BaseWidget *parent, MixerUI *parentUI) :
 {
     setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
     setPos(0, 0);
-
-
-    _testRect = lv_obj_create(lvhost());
-    lv_obj_set_size(_testRect, 200, 200);
-    lv_obj_set_pos(_testRect, 300, 100);
     slr::MixerView *m = _parentUI->_mixer;
     slr::Color clr = m->color();
-    lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
+    setColor(lv_color_make(clr.r, clr.g, clr.b));
+
     hide();
 }
 
 MixerUI::MixerModuleUI::~MixerModuleUI() {
-    lv_obj_delete(_testRect);
+    for(auto sl : _sliders) {
+        delete sl;
+    }
 }
 
+void MixerUI::MixerModuleUI::show() {
+    //update here
+    std::vector<slr::AudioRoute> srcs = slr::ProjectView::getProjectView().targetsForId(_parentUI->_mixer->id());
+
+    if(_sliders.size() != srcs.size()) {
+        for(auto sl : _sliders) {
+            delete sl;
+        }
+        _sliders.clear();
+
+        const int firstSliderX = 20;
+        const int slidersY = 200;
+        int posx = firstSliderX;
+        int posy = slidersY;
+        for(slr::AudioRoute &src : srcs) {
+            Slider * sl = new Slider(this);
+
+            slr::AudioUnitView *auv = slr::ProjectView::getProjectView().getUnitById(src._sourceId);
+            const slr::Color &clr = auv->color();
+
+            sl->setPos(posx, posy);
+            sl->setColor(lv_color_make(clr.r, clr.g, clr.b));
+            sl->onChangeCallback([auv](const float value) {
+                slr::Events::SetParameter e = {
+                    .targetId = auv->id(),
+                    .parameterId = auv->volumeId(),
+                    .value = value
+                };
+                slr::EmitEvent(e);
+            });
+            sl->setCap(auv->volume());
+            
+            _sliders.push_back(sl);
+
+            UnitUIBase * uibase = nullptr;
+            for(UnitUIBase * base : _parentUI->_uictx->_unitsUI) {
+                if(auv->id() == base->id()) {
+                    uibase = base;
+                    break;
+                }
+            }
+
+            if(uibase) {
+                uibase->registerExternalUpdate(
+                    [sl, auv]() {
+                        const float value = auv->volume();
+                        if(std::fabs(value - sl->getCap()) > 0.2) {
+                            sl->setCap(value);
+                        }
+                });
+            }
+
+            posx += (200+20);
+        }
+    }
+
+    BaseWidget::show();
+}
 
 }

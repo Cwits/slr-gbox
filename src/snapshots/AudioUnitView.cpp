@@ -35,6 +35,10 @@ void AudioUnitView::addParameter(ParameterBaseView * base) {
     _flatParameterList.add(base);
 }
 
+void AudioUnitView::setParameter(ID parameterId, float value) { 
+    _flatParameterList.operator[](parameterId)->setValue(value); 
+}
+
 void AudioUnitView::update() {
     // _solo = *_au->solo();
     *_volume = _au->volume();

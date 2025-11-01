@@ -45,7 +45,7 @@ struct BaseWidget {
 
 
     void hide();
-    void show();
+    virtual void show();
     bool visible();
 
     lv_obj_t * lvhost() const { return _lvhost; }

@@ -498,7 +498,7 @@ TEST(RenderPlan, Ultimate) {
     }
     std::cout << std::endl;
 
-    //
+    {
     struct presented {
         ID id;
         bool presented;
@@ -545,7 +545,7 @@ TEST(RenderPlan, Ultimate) {
             ASSERT_TRUE(false);
         }
     }
-
+    }
 
     destroyPlan(created);
     delete prj;

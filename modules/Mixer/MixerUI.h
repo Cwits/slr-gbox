@@ -15,6 +15,7 @@ class Label;
 class Button;
 class FileView;
 class UIContext;
+class Slider;
 
 struct MixerUI : public UnitUIBase {
     MixerUI(slr::AudioUnitView * mixer, UIContext * uictx);
@@ -27,12 +28,11 @@ struct MixerUI : public UnitUIBase {
     BaseWidget * gridUI() override { return _gridControl; }
     BaseWidget * moduleUI() override { return _moduleUI; }
 
-    int gridY() override;
-    void setNudge(slr::frame_t nudge, const float horizontalZoom) override;
-    void updatePosition(int x, int y) override;
+    // int gridY() override;
+    // void setNudge(slr::frame_t nudge, const float horizontalZoom) override;
+    // void updatePosition(int x, int y) override;
 
     private:
-    UIContext * const _uictx;
     slr::MixerView * const _mixer;
     std::vector<FileView*> _viewItems;
 
@@ -63,10 +63,16 @@ struct MixerUI : public UnitUIBase {
         MixerModuleUI(BaseWidget *parent, MixerUI *parentUI);
         ~MixerModuleUI();
 
+        void show() override;
+
         private:
         MixerUI * _parentUI;
 
-        lv_obj_t * _testRect;
+        // struct sliderUnit {
+        //     Label * _lblName;
+        //     Slider * _sldVolume;
+        // };
+        std::vector<Slider*> _sliders; // need somehow to update these thing based on routes
 
         friend class MixerUI;
     };

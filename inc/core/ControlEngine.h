@@ -33,6 +33,8 @@ void awaitRtResult(const FlatEvents::FlatControl &ctl,
 
 void notify();
 
+void checkMidiDevices();
+
 ProjectView * projectSnapshot();
 DriverView * driverSnapshot();
 RtEngine * rtEngine();

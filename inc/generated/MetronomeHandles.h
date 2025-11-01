@@ -1,10 +1,10 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/utility/helper.h"
-#include "core/Project.h"
 #include "core/FlatEvents.h"
 #include "core/Metronome.h"
+#include "core/utility/helper.h"
 #include "core/ControlEngine.h"
+#include "core/Project.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {

@@ -22,6 +22,10 @@ frame_t Mixer::process(const AudioContext &ctx,  const Dependencies * const inpu
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);
 
+    if(ctx.playing) {
+        AudioUnit::playbackFiles(ctx, _outputs);
+    }
+
     for(uint32_t i=0; i<inputsCount; ++i) {    
         const Dependencies &ext = inputs[i];
         const AudioBuffer * source = ext.external ? ctx.mainInputs : ext.buffer;

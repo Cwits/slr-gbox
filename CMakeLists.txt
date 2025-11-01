@@ -24,6 +24,7 @@ find_package(SDL2 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Sndfile REQUIRED)
+pkg_check_modules(UDEV REQUIRED libudev)
 
 pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack>=0.100.0)
 find_library(JACK_LIBRARY NAMES ${JACK_LIBRARIES} HINTS ${JACK_LIBDIR})
@@ -119,6 +120,7 @@ file(GLOB SOURCES
   src/ui/display/primitives/UnitUIBase.cpp
   src/ui/display/primitives/View.cpp
   src/ui/display/primitives/UIContext.cpp
+  src/ui/display/primitives/Slider.cpp
 
   src/ui/display/defaultStyles.cpp
   src/ui/display/defaultColors.cpp
@@ -160,7 +162,8 @@ set(LIBRARIES lvgl::lvgl
               ${LIBSNDFILE_LIBRARIES}
               PkgConfig::JACK
               loguru::loguru
-              GestLib)
+              GestLib
+              ${UDEV_LIBRARIES})
 
 
 target_link_libraries(slrlib ${LIBRARIES})

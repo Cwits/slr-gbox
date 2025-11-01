@@ -1,3 +1,7 @@
+31.10.25
+Added primitive Slider UI to mixer so all connected modules volume can be adjusted from mixer.
+File loading and drawing on grid moved to UnitUIBase, now all modules can load and playback audio files
+
 22.10.25
 Updated Route Manager to be able internal connections as well.
 Added Mixer module.

@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <optional>
 #include <condition_variable>
+// #include <libudev.h>
 
 #define QUEUE_INITIAL_SIZE 128
 
@@ -67,11 +68,15 @@ std::vector<awaitEvent> _awaitEvents;
 
 ID _commandIdCounter = 0;
 
+// udev * _udevctx;
+
 namespace ControlEngine {
 void processLoop();
 
 bool init() {
     SettingsManager::init();
+
+    // _udevctx = udev_new();
 
     _shutdown = false;
     _eventQueue.reserve(QUEUE_INITIAL_SIZE);
@@ -141,6 +146,8 @@ bool shutdown() {
     }
 
     _controlThread.join();
+
+    // udev_unref(_udevctx);
     return true;
 }
 void emergencyStop() {
@@ -275,6 +282,10 @@ void processLoop() {
 // void aggregateEvents() {
 
 // }
+
+void checkMidiDevices() {
+
+}
 
 } //namespace ControlEngine
 
