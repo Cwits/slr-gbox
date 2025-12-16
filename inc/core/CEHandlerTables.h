@@ -12,6 +12,8 @@
 #include "generated/MetronomeHandles.h"
 #include "generated/TimelineEvents.h"
 #include "generated/TimelineHandles.h"
+#include "generated/MidiControllerEvents.h"
+#include "generated/MidiControllerHandles.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/AudioUnitHandles.h"
 #include "generated/TrackEvents.h"
@@ -37,22 +39,24 @@ void dispatchHelper(const ControlContext &ctx, const Events::Event& ev) {
 extern "C" {
 constexpr EventHandlerFn ControlTable[] = {
     //&dispatchHelper<Events::RecordArm>,
-	&dispatchHelper<Events::NewTrack>,
-	&dispatchHelper<Events::DeleteTrack>,
 	&dispatchHelper<Events::AddNewRoute>,
+	&dispatchHelper<Events::AddNewMidiRoute>,
+	&dispatchHelper<Events::DeleteModule>,
+	&dispatchHelper<Events::CreateModule>,
 	&dispatchHelper<Events::ToggleMetronome>,
 	&dispatchHelper<Events::RequestPlayhead>,
 	&dispatchHelper<Events::ChangeTimelineState>,
 	&dispatchHelper<Events::ToggleLoop>,
 	&dispatchHelper<Events::ChangeSigBpm>,
 	&dispatchHelper<Events::LoopPosition>,
+	&dispatchHelper<Events::ToggleMidiDevice>,
 	&dispatchHelper<Events::SetParameter>,
+	&dispatchHelper<Events::RecordArm>,
 	&dispatchHelper<Events::OpenFile>,
 	&dispatchHelper<Events::FileOpened>,
 	&dispatchHelper<Events::RemoveFile>,
 	&dispatchHelper<Events::FileUIRemoved>,
-	&dispatchHelper<Events::ModContainerItem>,
-	&dispatchHelper<Events::RecordArm>
+	&dispatchHelper<Events::ModContainerItem>
 };
 }
 
@@ -65,13 +69,14 @@ constexpr ResponseHandlerFn ResponseTable[] = {
 	&handleToggleLoop,
 	&handleChangeSigBpm,
 	&handleLoopPositionChange,
+	&handleUpdateMidiMapsResponse,
 	&handleSetParameterResponse,
-	&handleAppendItemResponse,
-	&handleContainerSwapped,
-	&handleModifyContainerItemResponse,
 	&handleRecordArmResponse,
 	&handleDumpRecordedAudio,
-	&handleReinitTrackRecord
+	&handleReinitTrackRecord,
+	&handleAppendItemResponse,
+	&handleContainerSwapped,
+	&handleModifyContainerItemResponse
 };
 }
 

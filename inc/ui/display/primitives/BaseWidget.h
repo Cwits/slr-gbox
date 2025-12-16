@@ -35,17 +35,18 @@ struct BaseWidget {
     bool handleGesture(GestLib::Gesture & gesture);
 
 
-    void setSize(lv_coord_t w, lv_coord_t h);
-    void setPos(lv_coord_t x, lv_coord_t y);
+    virtual void setSize(lv_coord_t w, lv_coord_t h);
+    virtual void setPos(lv_coord_t x, lv_coord_t y);
     void setColor(lv_color_t color);
     int getX();
     int getY();
     int width();
     int height();
+    int getZ() const;
 
 
     void hide();
-    void show();
+    virtual void show();
     bool visible();
 
     lv_obj_t * lvhost() const { return _lvhost; }
@@ -90,4 +91,4 @@ struct BaseWidget {
 
 };
 
-}
+} //namespace UI

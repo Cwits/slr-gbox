@@ -114,7 +114,7 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
             int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
             for(auto & unit : list) {
                 if(notAbsY >= unit->gridY() && notAbsY <= (unit->gridY()+LayoutDef::TRACK_HEIGHT) && unit->canLoadFiles()) {
-                    LOG_INFO("Loading file %s to trackId: %d", ctx.payload.filePath.path->c_str(), unit->id());
+                    LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
                     slr::Events::OpenFile e = {
                         .targetId = unit->id(),
                         .path = *ctx.payload.filePath.path

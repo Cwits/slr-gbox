@@ -8,6 +8,7 @@
 #include "generated/RenderPlanEvents.h"
 #include "generated/MetronomeEvents.h"
 #include "generated/TimelineEvents.h"
+#include "generated/MidiControllerEvents.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/TrackEvents.h"
 
@@ -18,22 +19,24 @@ namespace slr {
 namespace Events {
 
 using Event = std::variant<
-		NewTrack,
-		DeleteTrack,
 		AddNewRoute,
+		AddNewMidiRoute,
+		DeleteModule,
+		CreateModule,
 		ToggleMetronome,
 		RequestPlayhead,
 		ChangeTimelineState,
 		ToggleLoop,
 		ChangeSigBpm,
 		LoopPosition,
+		ToggleMidiDevice,
 		SetParameter,
+		RecordArm,
 		OpenFile,
 		FileOpened,
 		RemoveFile,
 		FileUIRemoved,
-		ModContainerItem,
-		RecordArm
+		ModContainerItem
 >;
 
 } //namespace Events

@@ -33,8 +33,7 @@ Metronome::~Metronome() {
 }
 
 frame_t Metronome::process(const AudioContext &ctx, 
-                    const Dependencies * const inputs, 
-                    const uint32_t inputsCount) 
+                    const Dependencies &inputs) 
 {
     // if(*_mute) return ctx.frames; - done from outside
 

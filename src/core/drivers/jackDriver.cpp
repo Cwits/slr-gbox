@@ -60,6 +60,7 @@ JackDriver::~JackDriver() {
 bool JackDriver::init(frame_t sampleRate, frame_t bufferSize, int numInputs, int numOutputs) {
   // std::string jackParameters = "/usr/bin/jackd -T -R -P 95 -dalsa -dhw:0 -r" + std::to_string(engine->_sampleRate) + " -p" + std::to_string(engine->_bufferSize) + " -n2 -Xseq -D -Phw:sndrpihifiberry -i2 -o2";
     bool ret = true;
+    //use "taskset -c 0 /usr/bin/jackd ..."" 
     std::string jackParameters = "/usr/bin/jackd -T -R -P 95 -dalsa -dhw:2 -r" + 
                 std::to_string(sampleRate) + " -p" + 
                 std::to_string(bufferSize) +  

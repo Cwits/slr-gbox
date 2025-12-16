@@ -54,6 +54,10 @@ void Button::setFont(const lv_font_t *value) {
 void Button::setTextColorHex(const uint32_t value) {
     lv_obj_set_style_text_color(_label, lv_color_hex(value), 0);
 }
+
+void Button::setTextPos(lv_coord_t x, lv_coord_t y) {
+    lv_obj_set_pos(_label, x, y);
+}
     
 void Button::setCallback(std::function<void()> onClick) {
     _onClick = onClick;

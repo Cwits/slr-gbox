@@ -12,8 +12,7 @@ struct Metronome : public AudioUnit {
     ~Metronome();
 
     frame_t process(const AudioContext &ctx, 
-                    const Dependencies * const inputs, 
-                    const uint32_t inputsCount) override;
+                    const Dependencies &inputs) override;
 
     void prepareToPlay() override;
     void prepareToRecord() override;

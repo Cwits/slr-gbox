@@ -33,6 +33,8 @@ class TimelinePopup;
 class ScreenKeyboard;
 class FilePopup;
 class NewModulePopup;
+class SettingsPopup;
+class VirtualMidiKeyboard;
 
 struct MainWindow : public BaseWidget {
     MainWindow(lv_obj_t * screen);
@@ -80,6 +82,8 @@ struct MainWindow : public BaseWidget {
     ScreenKeyboard * _keyboard;
     FilePopup * _filePopup;
     NewModulePopup * _newModulePopup;
+    SettingsPopup * _settingsPopup;
+    VirtualMidiKeyboard * _virtualMidiKeyboard;
     // ViewSelector * _viewSelector; //called only when need to switch from drag to target?
     //Slider mode popup * //aka AKAI MPC Live 3
 

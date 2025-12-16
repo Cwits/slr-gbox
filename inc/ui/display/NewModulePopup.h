@@ -20,6 +20,7 @@ struct NewModulePopup : public Popup {
     
     Button * _btnTrack;
     Button * _btnMixer;
+    Button * _btnOsc;
 };
 
 }

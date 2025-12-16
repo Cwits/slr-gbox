@@ -13,7 +13,7 @@ class Mixer : public AudioUnit {
     Mixer();
     ~Mixer();
 
-    frame_t process(const AudioContext &ctx,  const Dependencies * const inputs, const uint32_t inputsCount) override;
+    frame_t process(const AudioContext &ctx,  const Dependencies &inputs) override;
     void prepareToPlay() override;
     void prepareToRecord() override;
     void stopPlaying() override;

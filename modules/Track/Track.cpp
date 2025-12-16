@@ -25,8 +25,6 @@ namespace slr {
 
 
 Track::Track() : AudioUnit(AudioUnitType::Track) {
-    _sendToMixer = true;
-
     _recInt = AudioBufferManager::acquireRegular();
     _recExt = AudioBufferManager::acquireRegular();
     _preFX = AudioBufferManager::acquireRegular();
@@ -51,7 +49,7 @@ Track::~Track() {
     }
 }
 
-frame_t Track::process(const AudioContext &ctx,  const Dependencies * const inputs, const uint32_t inputsCount) {
+frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
     /* 
     handle spsc control queue events(because some may be injected via mod engine or automations)
     
@@ -59,23 +57,26 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies * const inpu
     
     //TODO: must ensure that buffers are clear - i guess introduce some flag _buffersClear(as in metronome)
     if(*_mute) {
-        if(!_buffersClear) {
-            _buffersClear = true;
-            
-            clearAudioBuffer((*_recInt)[0], ctx.frames);
-            clearAudioBuffer((*_recInt)[1], ctx.frames);
-            clearAudioBuffer((*_recExt)[0], ctx.frames);
-            clearAudioBuffer((*_recExt)[1], ctx.frames);
+        if(_buffersClear) return ctx.frames;
 
-            clearAudioBuffer((*_preFX)[0], ctx.frames);
-            clearAudioBuffer((*_preFX)[1], ctx.frames);
+        clearAudioBuffer((*_recInt)[0], ctx.frames);
+        clearAudioBuffer((*_recInt)[1], ctx.frames);
+        clearAudioBuffer((*_recExt)[0], ctx.frames);
+        clearAudioBuffer((*_recExt)[1], ctx.frames);
 
-            clearAudioBuffer((*_postFX)[0], ctx.frames);
-            clearAudioBuffer((*_postFX)[1], ctx.frames);
+        clearAudioBuffer((*_preFX)[0], ctx.frames);
+        clearAudioBuffer((*_preFX)[1], ctx.frames);
+
+        clearAudioBuffer((*_postFX)[0], ctx.frames);
+        clearAudioBuffer((*_postFX)[1], ctx.frames);
                 
-            clearAudioBuffer((*_postPan)[0], ctx.frames);
-            clearAudioBuffer((*_postPan)[1], ctx.frames);
-        }
+        clearAudioBuffer((*_postPan)[0], ctx.frames);
+        clearAudioBuffer((*_postPan)[1], ctx.frames);
+
+        clearAudioBuffer((*_outputs)[0], ctx.frames);
+        clearAudioBuffer((*_outputs)[1], ctx.frames);
+        
+        _buffersClear = true;
         return ctx.frames;
     }
     
@@ -108,12 +109,64 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies * const inpu
         clearAudioBuffer((*_postPan)[i], ctx.frames);
     }
 #endif
+    
+    /* 
+    //process midi inputs
+    for(int i=0; i<inputs->midiCount; ++i) {
+        //grab midi inputs and distribute
+        MidiDependencie * dep = inputs->midiDeps[i];
+
+        std::vector<MidiEvent> * buf = dep.external ? ctx.midiInputs[dep.extId];
+        for(int j=0; j<buf->size(); ++j) {
+            MidiEvent &ev = (*buf)[j];
+            for(int fx=0; fx<_fxChain.size(); ++fx) {
+                _fxChain[fx]->injectMidi(ev);
+            }
+
+            if(_sendThru) {
+                _midiOutput.push_back(ev);
+            }
+        }
+    }
+
+    for(int i=0; i<inputs->audioCount; ++i) {
+        AudioDependencie * dep = inputs->audioDeps[i];
+
+        const AudioBuffer * src = ext.external ? ctx.mainInputs : ext.buffer;
+
+        for(int ch=0; ch<32; ++ch) {
+            if(ext.channelMap[ch] == -1) continue;
+
+            for(frame_t f=0; f<ctx.frames; ++f) {
+                (*_preFX)[ch][f] += (*source)[ext.channelMap[ch]][f];
+            }
+        }
+
+        if(_record) {
+            AudioBuffer * target = ext.external ? _recExt : _recInt;
+            for(int ch=0; ch<32; ++ch) {
+                if(ext.channelMap[ch] == -1) continue;
+
+                for(frame_t f=0; f<ctx.frames; ++f) {
+                    (*target)[ch][f] += (*src)[ext.channelMap[ch]][f];
+                }
+            }
+        }
+    }
+
+    if(_record) {
+        if(ctx.playing && ctx.recording) {
+            //record from _recInt && _recExt
+        }
+    }
+
+    */
 
     if(_record) {
         //_preFX += _inputs
         
-        for(int i=0; i<inputsCount; ++i) {
-            const Dependencies &ext = inputs[i];
+        for(int i=0; i<inputs.audioDepsCnt; ++i) {
+            const AudioDependencie &ext = inputs.audio[i];
 
             AudioBuffer * target = ext.external ? _recExt : _recInt;
             const AudioBuffer * source = ext.external ? ctx.mainInputs : ext.buffer;
@@ -149,7 +202,7 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies * const inpu
     }
 
     if(ctx.playing) {
-        AudioUnit::playbackFiles(ctx, _preFX);
+        playbackFiles(ctx, _preFX);
     }
     
     /* preFX buffers completed */
@@ -305,12 +358,8 @@ bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
 }
 
 bool Track::AudioRecord::release(FileWorker * fw) {
-    // for(int i=0; i<RECORD_BUFFER_COUNT; ++i) {
-    //     AudioBufferManager::releaseRecord(_recordBuffers[i].buf);
-    //     //request to clear buffers in ce
-    // }
-
     if(!_fileUsed) {
+        AudioBufferManager::releaseRecord(_bufferInUse);
         fw->releaseTmpAudioFile(_recordFile);
     }
 
@@ -411,5 +460,115 @@ void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file,
     _fileUsed = true;
 }
 
+
+void Track::playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */) {
+    for(const ContainerItem * item : *(_fileContainer._items)) {
+        if(item->_muted) continue;
+
+        if((ctx.elapsed+ctx.frames) <= item->_startPosition) continue;
+        if(ctx.elapsed > (item->_startPosition+item->_length)) continue;
+
+        switch(item->_file->type()) {
+            case(FileType::Audio): {
+                const AudioFile * file = static_cast<AudioFile*>(item->_file);
+                const AudioBuffer * data = file->getData();
+                int channels = data->channels();
+
+                //TODO: i guess this can be optimized...
+                frame_t framesToRead = 0;
+                frame_t writePosition = 0;
+                frame_t readPosition = 0;
+                if(ctx.elapsed < item->_startPosition) { 
+                    //beginning
+                    framesToRead = ctx.frames - (item->_startPosition - ctx.elapsed);
+                    writePosition = item->_startPosition - ctx.elapsed;
+                    readPosition = 0;
+                } else if(ctx.elapsed + ctx.frames > item->_startPosition + item->_length) {
+                    //end
+                    framesToRead = (item->_startPosition + item->_length) - ctx.elapsed;
+                    writePosition = 0;
+                    readPosition = ctx.elapsed - item->_startPosition;
+                } else {
+                    //middle
+                    framesToRead = ctx.frames;
+                    writePosition = 0;
+                    readPosition = ctx.elapsed - item->_startPosition;
+                }
+
+                // {
+                //     LOG_INFO("elapsed: %lu, toRead: %lu, write: %lu, read: %lu, total: %lu", 
+                //                 ctx.elapsed,
+                //                 framesToRead,
+                //                 writePosition,
+                //                 readPosition,
+                //                 data->bufferSize());
+                // }
+
+                if(channels == 1) {
+                    for(frame_t f=0; f<framesToRead; ++f) {
+                        (*buf)[0][writePosition+f] += (*data)[0][readPosition+f];
+                        (*buf)[1][writePosition+f] += (*data)[0][readPosition+f];
+                    }
+                } else if(channels == 2) {
+                    for(frame_t f=0; f<framesToRead; ++f) {
+                        // for(int ch=0; ch<channels; ++ch) {
+                        //     (*buf)[ch][writePosition+f] += (*data)[ch][readPosition+f];
+                        // }
+                        (*buf)[0][writePosition+f] += (*data)[0][readPosition+f];
+                        (*buf)[1][writePosition+f] += (*data)[1][readPosition+f];
+                    }
+                }
+
+            } break;
+            case(FileType::Midi): {
+
+            } break;
+            case(FileType::AudioPeak):
+            default: {
+                LOG_ERROR("Wrong file type");
+            } break;
+        }
+    }
+}
         
+Status Track::appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    ev.appendItem.track->_fileContainer._items->push_back(ev.appendItem.item);
+    resp.type = FlatEvents::FlatResponse::Type::AppendItem;
+    resp.status = Status::Ok;
+    resp.appendItem.track = ev.appendItem.track;
+    resp.appendItem.item = ev.appendItem.item;
+    return Status::Ok;
+}
+
+Status Track::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    resp.swapContainer.oldContainer = ev.swapContainer.track->_fileContainer._items;
+    
+    ev.swapContainer.track->_fileContainer._items = ev.swapContainer.container;
+    
+    resp.type = FlatEvents::FlatResponse::Type::SwapContainer;
+    resp.status = Status::Ok;
+    resp.swapContainer.track = ev.swapContainer.track;
+    resp.swapContainer.newContainer = ev.swapContainer.container;
+    resp.commandId = ev.commandId;
+    return Status::Ok;
+}
+
+Status Track::modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    ContainerItem * item = ev.modContainerItem.item;
+
+    item->_startPosition = ev.modContainerItem.startPosition;
+    item->_length = ev.modContainerItem.length;
+    item->_muted = ev.modContainerItem.muted;
+
+    resp.type = FlatEvents::FlatResponse::Type::ModContainerItem;
+    resp.commandId = ev.commandId;
+    resp.status = Status::Ok;
+    resp.modContainerItem.track = ev.modContainerItem.track;
+    resp.modContainerItem.item = ev.modContainerItem.item;
+    resp.modContainerItem.startPosition = ev.modContainerItem.startPosition;
+    resp.modContainerItem.length = ev.modContainerItem.length;
+    resp.modContainerItem.muted = ev.modContainerItem.muted;
+    return Status::Ok;
+}
+
 }

@@ -8,8 +8,11 @@
 #include "core/primitives/Parameter.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/FileContainer.h"
+#include "core/primitives/MidiEvent.h"
 #include "core/FlatEvents.h"
 #include "Status.h"
+
+#include <vector>
 
 namespace slr {
 
@@ -34,7 +37,7 @@ class AudioUnit {
     explicit AudioUnit(AudioUnitType type, bool needsAudioOutput = true);
     virtual ~AudioUnit();
 
-    RT_FUNC virtual frame_t process(const AudioContext &ctx, const Dependencies * const inputs, const uint32_t inputsCount) = 0;
+    RT_FUNC virtual frame_t process(const AudioContext &ctx, const Dependencies &inputs) = 0;
 
     RT_FUNC virtual void prepareToPlay() = 0;
     RT_FUNC virtual void prepareToRecord() = 0;
@@ -55,13 +58,14 @@ class AudioUnit {
     // virtual const AudioBuffer * output(uint32_t outputId) const;
     virtual const AudioBuffer * outputs() const { return _outputs; }
 
-    //void injectMidi(...);
+    void injectMidi(MidiEvent & ev) { _midiQueue.push_back(ev); }
+    void clearMidiBuffer() { _midiQueue.clear(); }
+    std::vector<MidiEvent> * midiOutputs() { return &_midiQueue; }
+    const bool isMidiThru() const { return _midiThru; }
+    
+    // [[deprecated("FOR TEST PURPOSE ONLY")]]
+    // void setMidiThru(bool newState) { _midiThru = newState; } //for test purposes, use events instead
     //void injectControl(...);
-
-    const std::vector<ContainerItem*> * items() const { return _fileContainer._items; }
-    RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
     const ID id() const { return _uniqueId; }
     
@@ -87,7 +91,8 @@ class AudioUnit {
     void addParameter(ParameterBase * base);
 
     bool _solo;
-    bool _sendToMixer;
+    
+    bool _buffersClear;
     
     ParameterFloat * _volume;
     ParameterFloat * _pan;
@@ -99,9 +104,8 @@ class AudioUnit {
     const bool _haveAudioOutputs;
     AudioBuffer * _outputs;
 
-    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
-    FileContainer _fileContainer;
-
+    bool _midiThru;
+    std::vector<MidiEvent> _midiQueue;
     //spsc queue midi
     //spsc queue control
 

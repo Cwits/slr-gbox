@@ -4,6 +4,7 @@
 #pragma once
 
 #include "defines.h"
+#include <cstdint>
 
 namespace slr {
     
@@ -17,7 +18,14 @@ struct AudioRoute {
     ID _targetId;
 
     //key - target channel, value - source channel
-    char _channelMap[32] = {(char)-1};
+    int8_t _channelMap[32] = {-1};
+
+    static void clearChannels(AudioRoute &r) {
+        for(int i=0; i<32; ++i) {
+            r._channelMap[i] = -1;
+        }
+    }
 };
+
 
 }

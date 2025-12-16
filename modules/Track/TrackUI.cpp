@@ -24,9 +24,8 @@
 namespace UI {
 
 TrackUI::TrackUI(slr::AudioUnitView * track, UIContext * uictx) 
-    : UnitUIBase(track), 
-    _track(static_cast<slr::TrackView*>(track)),
-    _uictx(uictx)
+    : UnitUIBase(track, uictx), 
+    _track(static_cast<slr::TrackView*>(track))
 {
     _canLoadFiles = true;
 }
@@ -66,9 +65,10 @@ bool TrackUI::update(UIContext * ctx) {
     }
 
     _gridControl->_lblVolume->setText(std::to_string(_track->volume()));
+    
 
     //File check
-    std::size_t viewSize = _track->_fileList._items.size();
+    std::size_t viewSize = _view->_fileList._items.size();
     std::size_t uiSize = _viewItems.size();
     //create or delete
     if(viewSize != uiSize) {
@@ -76,7 +76,7 @@ bool TrackUI::update(UIContext * ctx) {
             //new items added
             std::vector<slr::ContainerItemView*> toAdd;
             for(std::size_t i=0; i<viewSize; ++i) {
-                slr::ContainerItemView * item = _track->_fileList._items.at(i);
+                slr::ContainerItemView * item = _view->_fileList._items.at(i);
                 bool found = false;
                 for(std::size_t y=0; y<uiSize; ++y) {
                     if(_viewItems.at(y)->_item->_uniqueId == item->_uniqueId) {
@@ -102,7 +102,7 @@ bool TrackUI::update(UIContext * ctx) {
                 FileView * item = _viewItems.at(i);
                 bool found = false;
                 for(std::size_t y=0; y<viewSize; ++y) {
-                    if(item->id() == _track->_fileList._items.at(y)->_uniqueId) {
+                    if(item->id() == _view->_fileList._items.at(y)->_uniqueId) {
                         found = true;
                     }
                 }
@@ -114,7 +114,7 @@ bool TrackUI::update(UIContext * ctx) {
             for(std::size_t i=0; i<toRemove.size(); ++i) {
                 slr::Events::FileUIRemoved e = {
                     .fileId = toRemove.at(i)->id(),
-                    .targetId = _view->id()
+                    .trackId = _view->id()
                 };
                 slr::EmitEvent(e);
                 for(std::size_t y=0; y<_viewItems.size(); ++y) {
@@ -130,7 +130,7 @@ bool TrackUI::update(UIContext * ctx) {
     }
 
     //update items positions(uiSize should be == viewSize)
-    viewSize = _track->_fileList._items.size();
+    viewSize = _view->_fileList._items.size();
     uiSize = _viewItems.size();
 
     for(std::size_t i=0; i<uiSize; ++i) {
@@ -142,6 +142,7 @@ bool TrackUI::update(UIContext * ctx) {
         // fui->setPos()
     }
 
+    UnitUIBase::update(ctx);
     return true;
 }
 
@@ -149,6 +150,7 @@ bool TrackUI::destroy(UIContext * ctx) {
     for(FileView * fw : _viewItems) {
         delete fw;
     }
+    UnitUIBase::destroy(ctx);
     delete _gridControl;
     delete _moduleUI;
     return true;
@@ -207,6 +209,15 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
         );
     });
 
+    // _parentUI->_track->registerOnVolumeChange([this](const float volume) {
+    //     this->_lblVolume->setText(std::to_string(volume));
+    // });
+
+    // _parentUI->_track->registerIdOnChange(
+    //     _parentUI->_track->volumeId(),
+    //     [this](const float volume) {
+    //         this->_lblVolume->setText(std::to_string(volume));
+    //     });
 
 
     int posx = 10;

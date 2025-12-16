@@ -49,7 +49,7 @@ Refactoring:
 [x?] - instead of local in counters switch to one global id counter for all the entities.
         (not only for track, but for fx, mod engine, mixer, etc...)
 [ ] - move std::string _name from track to audio unit
-[\] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
+[x] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
         (Track separated, mixer left)
 [ ] - separate defines.h to two files - slr_config.h and common.h
 
@@ -58,8 +58,8 @@ Project:
 [ ] - make undo/redo system
 
 Render Plan:
-[ ] - treat mixer as regular audio unit.
-[ ] - instead of mixer dependencies make output dependencies, so after processing all the units rt engine can do:
+[x] - treat mixer as regular audio unit.
+[x] - instead of mixer dependencies make output dependencies, so after processing all the units rt engine can do:
         TODO: RtEngine.cpp:150
         int mainoutsnum = plan->mainoutscount;
         for(int i=0; i<mainoutsnum; ++i) {
@@ -69,6 +69,10 @@ Render Plan:
                 }
         }
         so, if there will be some units that will send directly to output - it will mix together
+[ ] - implement settings checkbox "automatically update Render Plan on each new route" or smth
+        so, if checked - render plan would be rebuilt every time new route(audio or midi) would be added.
+        if unchecked - render plan would be updated only if user press specific button.(so can add bunch of routes and than update).
+        (also, if unchecked than need some notifying icon to show up when new routes were added, but wasn't plan wasnt rebuilded)
 
 Modules:
 [ ] - Make a proper CMakeLists.txt template for easier to implement each module and not to edit main CMakeLists in order to add new one
@@ -95,6 +99,7 @@ other:
         for better control and etc. 
         Should modules add popups by themselves?
 [ ] - Must somehow move to modular view, without that much coupling...
+[ ] - Abstract GridControl UI for modules to have basic grid control with files
 
 Route Manager:
 [ ] - RouteManager - map and other things...

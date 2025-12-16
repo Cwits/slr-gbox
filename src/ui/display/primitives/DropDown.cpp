@@ -38,21 +38,28 @@ DropDown::~DropDown() {
 }
 
 void DropDown::setItems(std::vector<std::string> &items) {
-    std::size_t size = items.size();
-    std::size_t oldsize = _items.size();
-    if(size == 0) {
-        LOG_ERROR("Can't set up empty vector");
-        return;
+    if(_items.size() != 0) {
+        for(lv_obj_t * l : _items) {
+            lv_obj_delete(l);
+        }
+        _items.clear();
     }
 
-    if(_items.size() < size) {
+    std::size_t size = items.size();
+    std::size_t oldsize = _items.size();
+    // if(size == 0) {
+    //     LOG_ERROR("Can't set up empty vector");
+    //     return;
+    // }
+
+    if(_items.capacity() < size) {
         _items.reserve(size);
     }
 
-    for(std::size_t i=0; i<oldsize; ++i) {
-        lv_obj_t *l = _items.at(i);
-        lv_label_set_text(l, items.at(i).c_str());
-    }
+    // for(std::size_t i=0; i<oldsize; ++i) {
+    //     lv_obj_t *l = _items.at(i);
+    //     lv_label_set_text(l, items.at(i).c_str());
+    // }
 
     lv_obj_update_layout(lvhost());
 
@@ -62,7 +69,7 @@ void DropDown::setItems(std::vector<std::string> &items) {
     int hostHeight = height*size;
     setSize(width, hostHeight);
 
-    for(std::size_t i=oldsize; i<size; ++i) {
+    for(std::size_t i=0; i<size; ++i) {
         lv_obj_t *l = lv_label_create(lvhost());
         lv_label_set_text(l, items.at(i).c_str());
         lv_obj_set_pos(l, 0, height*(i));
@@ -74,7 +81,8 @@ void DropDown::setItems(std::vector<std::string> &items) {
 
     // lv_label_set_text(_lastSelected, items.at(0).c_str());
     // lv_obj_set_size(_lastSelected, lv_obj_get_width(lvhost()), height);
-    _btn->setText(items.at(0));
+    if(size != 0) _btn->setText(items.at(0));
+    else _btn->setText("No Items");
 }
 
 void DropDown::setTextColor(lv_color_t & color) {
@@ -95,6 +103,7 @@ void DropDown::setSelected(std::string & item) {
 
 void DropDown::open() {
     _isClosed = false;
+    lv_obj_move_to_index(lvhost(), -1);
     lv_obj_clear_flag(lvhost(), LV_OBJ_FLAG_HIDDEN);
 }
 
@@ -106,17 +115,24 @@ void DropDown::close() {
 bool DropDown::handleTap(GestLib::TapGesture & tap) {
     int height = lv_font_get_line_height(_textFont);
     std::size_t size = _items.size();
-    
+
+    lv_obj_t *lvparent = lvhost();
+    int ya = 0;
+    while(lvparent != nullptr) {
+        ya += lv_obj_get_y(lvparent);
+        lvparent = lv_obj_get_parent(lvparent);
+    }
     //find item    
-    int y = getY();
+    // int y = getY();
     int h = this->height();
-    int index = ((tap.y-y) / height) - 1;
-    if(index >= _items.size()) {
+    int idx = ((tap.y-ya) / height);
+    // int index = ((tap.y-y) / height) - 1;
+    if(idx >= _items.size()) {
         LOG_ERROR("Wrong index");
         return false;
     }
     
-    std::string text = std::string(lv_label_get_text(_items.at(index)));
+    std::string text = std::string(lv_label_get_text(_items.at(idx)));
         
     _btn->setText(text);
     if(_callback) _callback(text);

@@ -31,4 +31,6 @@ enum class TrackArm {
 //track
 enum class RecordSource { Audio, Midi };
 
+
+constexpr int MIDI_SPSCQUEUE_SIZE = 128;
 }

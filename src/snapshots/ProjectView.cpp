@@ -23,6 +23,15 @@ ProjectView::~ProjectView() {
     }
 }
 
+std::vector<AudioUnitView*> ProjectView::unitList() {
+    std::vector<AudioUnitView*> ret;
+    for(AudioUnitView * v : _unitList) {
+        ret.push_back(v);
+    }
+
+    return ret;
+}
+
 AudioUnitView * ProjectView::getUnitById(ID id) {
     AudioUnitView * unit = nullptr;
     for(std::size_t i=0; i<_unitList.size(); ++i) {
@@ -94,6 +103,33 @@ const std::vector<AudioRoute> ProjectView::targetsForId(ID id) {
         }
     }
 
+    return ret;
+}
+
+void ProjectView::updateRoutes(const std::vector<MidiRoute> & routes) {
+    _midiRoutes.clear();
+    _midiRoutes = routes;
+}
+
+/*
+//TODO: this logic is wrong... sources for Id must mean where current ID is target. and vice versa
+same goes for audio routes
+*/
+const std::vector<MidiRoute> ProjectView::midiSourcesForId(ID id) {
+    std::vector<MidiRoute> ret;
+    for(MidiRoute &r : _midiRoutes) {
+        if(r._sourceId == id) ret.push_back(r);
+    }
+
+    return ret;
+}
+
+const std::vector<MidiRoute> ProjectView::midiTargetsForId(ID id) {
+    std::vector<MidiRoute> ret;
+    for(MidiRoute &r : _midiRoutes) {
+        if(r._targetId == id) ret.push_back(r);
+    }
+    
     return ret;
 }
 

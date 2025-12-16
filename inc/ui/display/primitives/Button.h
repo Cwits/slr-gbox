@@ -10,15 +10,17 @@
 namespace UI {
 
 class Button : public BaseWidget {
-    public:
+    public:  
     Button(BaseWidget * parent, std::string text = "");
     ~Button();
 
     void setPos(lv_coord_t x, lv_coord_t y);
     void setSize(lv_coord_t x, lv_coord_t y);
+
     void setText(std::string text);
     void setFont(const lv_font_t *value);
     void setTextColorHex(const uint32_t value);
+    void setTextPos(lv_coord_t x, lv_coord_t y);
     const std::string text() const;
     
     void setCallback(std::function<void()> onClick);

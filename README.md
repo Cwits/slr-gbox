@@ -1,4 +1,4 @@
-# Sample.Loop.Repeat. v0.1  
+# Sample.Loop.Repeat. v0.2  
 
 Sample.Loop.Repeat. is an open source hardware platform for musicians and enthusiasts.  
 
@@ -49,10 +49,10 @@ See [TODO.txt](docs/TODO.txt)
 
 ## Bug Reports, Feedback and Contribution  
 The device is currently in the early alpha stage. If you find a bug or have an idea, please feel free to create an Issue on GitHub.  
-As well if you want to contribute than don’t hesitate to make a Pull Request on GitHub.
+As well if you want to contribute than don’t hesitate to make a Pull Request on GitHub. Any kind of contribution will be appreciated!
 
 ## About the Project  
-This project is a solo endeavor driven by a passion for music and engineering. To learn more about the multi-year journey behind it, read the Backstory(To be added later).  
+This project is a solo endeavor driven by a passion for music and engineering.
 
 
 

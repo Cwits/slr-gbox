@@ -10,12 +10,14 @@ class Project;
 class FileWorker;
 class ProjectView;
 class RtEngine;
+class MidiController;
 
 struct ControlContext {
     Project * project;
     FileWorker * fileWorker;
     RtEngine * engine;
     ProjectView * projectView;
+    MidiController * midiController;
 };
 
 }

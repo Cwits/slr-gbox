@@ -23,6 +23,7 @@ struct Module {
     ModuleType _type;
     //some other parameters??
     std::unique_ptr<slr::AudioUnit> (*createRT)();
+    slr::AudioUnitView * (*createView)(slr::AudioUnit *);
     UI::UnitUIBase * (*createUI)(slr::AudioUnitView *, UI::UIContext *);
 };
 

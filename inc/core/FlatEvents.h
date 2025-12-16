@@ -8,6 +8,7 @@
 #include "generated/RenderPlanEvents.h"
 #include "generated/MetronomeEvents.h"
 #include "generated/TimelineEvents.h"
+#include "generated/MidiControllerEvents.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/TrackEvents.h"
 
@@ -27,12 +28,13 @@ struct FlatControl {
 		ToggleLoop,
 		ChangeSigBpm,
 		LoopPosition,
+		UpdateMidiMaps,
 		SetParameter,
+		RecordArm,
+		ReinitTrackRecord,
 		AppendItem,
 		SwapContainer,
-		ModContainerItem,
-		RecordArm,
-		ReinitTrackRecord
+		ModContainerItem
 	};
 	Type type;
 	ID commandId;
@@ -43,12 +45,13 @@ struct FlatControl {
 		FlatControls::ToggleLoop toggleLoop;
 		FlatControls::ChangeSigBpm changeSigBpm;
 		FlatControls::LoopPosition loopPosition;
+		FlatControls::UpdateMidiMaps updateMidiMaps;
 		FlatControls::SetParameter setParameter;
+		FlatControls::RecordArm recordArm;
+		FlatControls::ReinitTrackRecord reinitTrackRecord;
 		FlatControls::AppendItem appendItem;
 		FlatControls::SwapContainer swapContainer;
 		FlatControls::ModContainerItem modContainerItem;
-		FlatControls::RecordArm recordArm;
-		FlatControls::ReinitTrackRecord reinitTrackRecord;
 	};
 };
 
@@ -60,13 +63,14 @@ struct FlatResponse {
 		ToggleLoop,
 		ChangeSigBpm,
 		LoopPosition,
+		UpdateMidiMaps,
 		SetParameter,
-		AppendItem,
-		SwapContainer,
-		ModContainerItem,
 		RecordArm,
 		DumpRecordedAudio,
-		ReinitTrackRecord
+		ReinitTrackRecord,
+		AppendItem,
+		SwapContainer,
+		ModContainerItem
 	}; 
 	Type type;
 	Status status;
@@ -78,13 +82,14 @@ struct FlatResponse {
 		FlatResponses::ToggleLoop toggleLoop;
 		FlatResponses::ChangeSigBpm changeSigBpm;
 		FlatResponses::LoopPosition loopPosition;
+		FlatResponses::UpdateMidiMaps updateMidiMaps;
 		FlatResponses::SetParameter setParameter;
-		FlatResponses::AppendItem appendItem;
-		FlatResponses::SwapContainer swapContainer;
-		FlatResponses::ModContainerItem modContainerItem;
 		FlatResponses::RecordArm recordArm;
 		FlatResponses::DumpRecordedAudio dumpRecordedAudio;
 		FlatResponses::ReinitTrackRecord reinitTrackRecord;
+		FlatResponses::AppendItem appendItem;
+		FlatResponses::SwapContainer swapContainer;
+		FlatResponses::ModContainerItem modContainerItem;
 	};
 };
 

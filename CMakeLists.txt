@@ -24,6 +24,8 @@ find_package(SDL2 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Sndfile REQUIRED)
+find_package(ALSA)
+#pkg_check_modules(UDEV REQUIRED libudev)
 
 pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack>=0.100.0)
 find_library(JACK_LIBRARY NAMES ${JACK_LIBRARIES} HINTS ${JACK_LIBDIR})
@@ -67,14 +69,13 @@ file(GLOB SOURCES
   src/core/Events.cpp
   src/core/FileTasks.cpp
   src/core/FileWorker.cpp
-  src/core/Mixer.cpp
   src/core/Project.cpp
   src/core/RtEngine.cpp
   src/core/SettingsManager.cpp
   src/core/Timeline.cpp
   src/core/Metronome.cpp
-
   src/core/ModuleManager.cpp
+  src/core/MidiController.cpp
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
@@ -96,6 +97,11 @@ file(GLOB SOURCES
   modules/Mixer/MixerUI.cpp
   modules/Mixer/MixerView.cpp
 
+  modules/SimpleOscillator/SimpleOsc.cpp
+  modules/SimpleOscillator/SimpleOscModule.cpp
+  modules/SimpleOscillator/SimpleOscUI.cpp
+  modules/SimpleOscillator/SimpleOscView.cpp
+
   #ui
   src/ui/display/primitives/BaseWidget.cpp
   src/ui/display/primitives/Button.cpp
@@ -106,6 +112,8 @@ file(GLOB SOURCES
   src/ui/display/primitives/UnitUIBase.cpp
   src/ui/display/primitives/View.cpp
   src/ui/display/primitives/UIContext.cpp
+  src/ui/display/primitives/Slider.cpp
+  src/ui/display/primitives/Checkbox.cpp
 
   src/ui/display/defaultStyles.cpp
   src/ui/display/defaultColors.cpp
@@ -122,6 +130,8 @@ file(GLOB SOURCES
   src/ui/display/ScreenKeyboard.cpp
   src/ui/display/PopupManager.cpp
   src/ui/display/NewModulePopup.cpp
+  src/ui/display/SettingsPopup.cpp
+  src/ui/display/VirtualMidiKeyboard.cpp
 
   src/ui/FakeGestures.cpp
   src/ui/uiControls.cpp
@@ -147,7 +157,8 @@ set(LIBRARIES lvgl::lvgl
               ${LIBSNDFILE_LIBRARIES}
               PkgConfig::JACK
               loguru::loguru
-              GestLib)
+              GestLib
+              ALSA::ALSA)
 
 
 target_link_libraries(slrlib ${LIBRARIES})

@@ -25,13 +25,10 @@ int main(int argc, char *argv[]) {
     loguru::g_preamble_date = false;
     loguru::g_preamble_time = false;
     loguru::g_preamble_thread = false;
-    // signal(SIGSEGV, handle_sigint);
-    // signal(SIGABRT, handle_sigint);
-    // signal(SIGFPE, handle_sigint);
-    // signal(SIGILL, handle_sigint);
-    // signal(SIGBUS, handle_sigint);
 
     signal(SIGINT, handle_sigint);
+
+    LOG_INFO("C++ version is %li", __cplusplus);
 
     initGui();
 
