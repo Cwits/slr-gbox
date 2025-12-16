@@ -577,6 +577,7 @@ void RouteManager::MidiTab::update() {
 
     const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
     //inputs
+    int posy = LayoutDef::ROUTE_LINE_MARGIN;
     const std::vector<slr::MidiRoute> tgts = slr::ProjectView::getProjectView().midiTargetsForId(_currentId);
     for(std::size_t i=0; i<tgts.size(); ++i) {
         Route r;
@@ -595,10 +596,6 @@ void RouteManager::MidiTab::update() {
             slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(in._sourceId);
             tmptext = view->name();
         }
-
-        int posy = 0;
-        if(i == 0) posy = LayoutDef::ROUTE_LINE_MARGIN;
-        else posy = (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN) * i;
 
         Button * extint = new Button(this, in._sourceType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
         extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
@@ -628,10 +625,12 @@ void RouteManager::MidiTab::update() {
         });
         r._addRemoveButton = addremove;
 
+        posy += (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN);
         _inputs.push_back(r);
     }
 
     //outputs
+    posy = LayoutDef::ROUTE_LINE_MARGIN;
     const std::vector<slr::MidiRoute> srcs = slr::ProjectView::getProjectView().midiSourcesForId(_currentId);
     for(std::size_t i=0; i<srcs.size(); ++i) {
         Route r;
@@ -650,10 +649,6 @@ void RouteManager::MidiTab::update() {
             slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(out._targetId);
             tmptext = view->name();
         }
-
-        int posy = 0;
-        if(i == 0) posy = LayoutDef::ROUTE_LINE_MARGIN;
-        else posy = (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN) * i;
 
         Button * extint = new Button(this, out._targetType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
         extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
@@ -683,12 +678,13 @@ void RouteManager::MidiTab::update() {
         });
         r._addRemoveButton = addremove;
 
+        posy += (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN);
         _outputs.push_back(r);
     }
 
     //new input ones
     std::size_t size = _inputs.size();
-    int posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size);
+    posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size) + LayoutDef::ROUTE_LINE_MARGIN;
     
     Button * nexiint = new Button(this, "EXT");
     nexiint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
@@ -752,7 +748,7 @@ void RouteManager::MidiTab::update() {
 
     //new output
     size = _outputs.size();
-    posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size);
+    posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size) + LayoutDef::ROUTE_LINE_MARGIN;
 
     Button * oexiint = new Button(this, "EXT");
     oexiint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posy);

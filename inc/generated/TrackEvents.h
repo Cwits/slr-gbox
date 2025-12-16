@@ -1,11 +1,11 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "Status.h"
-#include <vector>
-#include "defines.h"
-#include <string>
 #include <cstdint> 
+#include "defines.h"
+#include <vector>
+#include <string>
 #include "core/primitives/AudioBuffer.h"
+#include "Status.h"
 
 namespace slr {
 

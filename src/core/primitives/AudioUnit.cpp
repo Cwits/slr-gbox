@@ -11,8 +11,14 @@
 #include "logger.h"
 
 namespace slr {
-    
-static ID uniqueIdCounter = 0;
+
+/* 
+//use 1024 this as starting point for counting ID's for now, 
+because there is some problem with getSourcesForId() and getTargetsForId() ->
+result yelds not existing routes(at least for midi...)
+*/    
+constexpr int FirstUnitId = 1024;
+static ID uniqueIdCounter = FirstUnitId; 
 
 AudioUnit::AudioUnit(AudioUnitType type, bool needsAudioOutputs) : _type(type), _uniqueId(uniqueIdCounter++), _haveAudioOutputs(needsAudioOutputs) {
     addParameter(_volume = new ParameterFloat("Volume", 1.0f, 0.0f, 1.0f));

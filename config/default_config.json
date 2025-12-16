@@ -7,11 +7,11 @@
     "PPQN": 960,
     "Numerator": 4,
     "Denominator": 4,
-    "Projects Path": "/home/portablejoe/music/projects/",
+    "Projects Path": "/home/",
     "Save Tmp to Project": true,
-    "Default Storage": "/home/portablejoe/music/",
-    "Temporary Recording Path": "/home/portablejoe/music/recordings/",
-    "Plugins Path": "/home/portablejoe/plugins/",
+    "Default Storage": "/home/",
+    "Temporary Recording Path": "/home/",
+    "Plugins Path": "/home/",
     "Default Pixel Per Bar": 1000,
     "Frames Per Pixel": 588
 }

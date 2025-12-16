@@ -1,14 +1,14 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
+#include "core/ControlEngine.h"
+#include "core/MidiController.h"
+#include <vector>
+#include <array>
+#include "logger.h"
 #include "core/primitives/MidiEvent.h" //for RtMidiPort
 #include "Status.h"
-#include <vector>
 #include "core/RtEngine.h"
 #include <unordered_map>
-#include "core/ControlEngine.h"
-#include "logger.h"
-#include "core/MidiController.h"
-#include <array>
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -73,10 +73,13 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
     std::vector<std::unique_ptr<MidiPort>> &activePorts = ctx.midiController->activePorts();
     MidiPort * port = nullptr;
     for(std::unique_ptr<MidiPort> &active : activePorts) {
-        if(active->_ownerDev != e.device &&
-            active->_ownerSubdev != e.subdev) continue;
-
-        port = active.get();
+        if(active->_ownerDev->_name.compare(e.device->_name) == 0 &&
+            (active->_ownerSubdev->_inputName.compare(e.subdev->_inputName) == 0 ||
+            active->_ownerSubdev->_outputName.compare(e.subdev->_outputName))
+            ) {
+                port = active.get();
+                break;
+            }
     }
 
     if(!port) {

@@ -94,10 +94,13 @@ void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevice &e) {
     std::vector<std::unique_ptr<MidiPort>> &activePorts = ctx.midiController->activePorts();
     MidiPort * port = nullptr;
     for(std::unique_ptr<MidiPort> &active : activePorts) {
-        if(active->_ownerDev != e.device &&
-            active->_ownerSubdev != e.subdev) continue;
-
-        port = active.get();
+        if(active->_ownerDev->_name.compare(e.device->_name) == 0 &&
+            (active->_ownerSubdev->_inputName.compare(e.subdev->_inputName) == 0 ||
+            active->_ownerSubdev->_outputName.compare(e.subdev->_outputName))
+            ) {
+                port = active.get();
+                break;
+            }
     }
 
     if(!port) {

@@ -111,6 +111,10 @@ void ProjectView::updateRoutes(const std::vector<MidiRoute> & routes) {
     _midiRoutes = routes;
 }
 
+/*
+//TODO: this logic is wrong... sources for Id must mean where current ID is target. and vice versa
+same goes for audio routes
+*/
 const std::vector<MidiRoute> ProjectView::midiSourcesForId(ID id) {
     std::vector<MidiRoute> ret;
     for(MidiRoute &r : _midiRoutes) {
