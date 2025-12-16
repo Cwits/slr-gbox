@@ -6,6 +6,7 @@
 #include "core/drivers/AudioDriver.h"
 
 #include "core/primitives/ControlContext.h"
+#include "core/primitives/SPSCQueue.h"
 
 #include "core/AudioBufferManager.h"
 #include "core/Events.h"
@@ -16,8 +17,10 @@
 #include "core/SettingsManager.h"
 #include "core/CEHandlerTables.h"
 #include "core/ModuleManager.h"
+#include "core/MidiController.h"
 
 #include "core/utility/helper.h"
+#include "inc/core/primitives/MidiEvent.h"
 
 #include "logger.h"
 
@@ -36,7 +39,7 @@
 #include <algorithm>
 #include <optional>
 #include <condition_variable>
-// #include <libudev.h>
+#include <unordered_map>
 
 #define QUEUE_INITIAL_SIZE 128
 
@@ -58,6 +61,9 @@ std::unique_ptr<FileWorker> _fileWorker;
 std::unique_ptr<ProjectView> _projectSnapshot;
 std::unique_ptr<DriverView> _driverView;
 
+std::thread _midiDiscoverThread;
+std::unique_ptr<MidiController> _midiController;
+
 struct awaitEvent {
     FlatEvents::FlatControl ctl;
     std::function<void(const ControlContext&, const FlatEvents::FlatResponse&)> fire;
@@ -68,15 +74,13 @@ std::vector<awaitEvent> _awaitEvents;
 
 ID _commandIdCounter = 0;
 
-// udev * _udevctx;
-
 namespace ControlEngine {
+
 void processLoop();
+void discoverMidi();
 
 bool init() {
     SettingsManager::init();
-
-    // _udevctx = udev_new();
 
     _shutdown = false;
     _eventQueue.reserve(QUEUE_INITIAL_SIZE);
@@ -101,6 +105,9 @@ bool init() {
     }
 
     ModuleManagerFactory::init();
+
+    _midiController = std::make_unique<MidiController>();
+    _midiDiscoverThread = std::thread(ControlEngine::discoverMidi);
 
     _controlThread = std::thread(ControlEngine::processLoop);
 
@@ -146,8 +153,8 @@ bool shutdown() {
     }
 
     _controlThread.join();
+    _midiDiscoverThread.join();
 
-    // udev_unref(_udevctx);
     return true;
 }
 void emergencyStop() {
@@ -204,7 +211,9 @@ FileWorker * fileWorker() {
     return _fileWorker.get();
 }
 
-
+MidiController * midiController() {
+    return _midiController.get();
+}
 
 void processLoop() {
     while(!_shutdown) {
@@ -229,6 +238,7 @@ void processLoop() {
         ctx.fileWorker = _fileWorker.get();
         ctx.engine = _engine.get();
         ctx.projectView = _projectSnapshot.get();
+        ctx.midiController = _midiController.get();
 
         //handle general Events
         for(Events::Event &e : _eventSnapshot) {
@@ -268,6 +278,8 @@ void processLoop() {
         //      or recordsize < 16 expand
         //...
 
+        // checkMidiDevices();
+
         sleep:        
         // std::unique_lock<std::mutex> l(_this->_controlLock);
         // if(_this->_cond.wait_for(l, std::chrono::milliseconds(100)) == std::cv_status::timeout) {
@@ -283,9 +295,100 @@ void processLoop() {
 
 // }
 
+/*
+//#include <libudev.h>
 void checkMidiDevices() {
+    
+        // https://github.com/gavv/snippets/blob/master/udev/udev_list_usb_storage.c
+        // https://github.com/gavv/snippets/blob/master/udev/udev_monitor_usb.c
+        // sooo... for now stay with check via RtMidi::getPortCount();
+        // but, for future need to concider possibility that several similar devices will be connected.
+        // soo, need to properly map path from udev to name/rtmidi port
 
+        // Прямого API “udev path → ALSA порт” нет. Нужно комбинировать несколько слоёв:
+
+        // 1. get sysfx-path of usb device thru udev
+        //     e.g. '/sys/bus/usb/devices/1-1.3/1-1.3:1.0' 
+        // 2. find corresponding hw:x,y in ALSA
+        //     ALSA creating devices in '/proc/asound/' and '/sys/class/sound/':
+            
+        //     * `/proc/asound/cards` — map list, index `x`.
+        //     * `/proc/asound/seq/clients` — sequential clients ALSA MIDI.
+        //     * `/sys/class/sound/cardX/device` → simlink to USB-device (`../../../1-1.3`)
+
+        //     ```
+        //     udev sysfs path: /sys/bus/usb/devices/1-1.3
+        //     ALSA card path: /sys/class/sound/card1/device -> ../../../1-1.3
+        //     ```
+
+        //     Found → `card1` correspond to this USB.
+
+        // 3. MIDI Port
+        //     ALSA MIDI-ports on 'cardX' can have several ports('hw:X,0', 'hw:X,1', 'hw:X,0,0').
+        //     Can get them via 'snd_seq_get_ports()' or via RtMidi 'getPortName(i)'.
+
+        //     * In `/sys/class/sound/cardX/device` can check interfaces (`midi1`, `midi2`) → correspond with ALSA-ports.
+
+        // ... Summary:
+        // 1. From udev path take parent usb-device -> idVendor, idProduct, sysfs path
+        // 2. Go through '/sys/class/sound/card* /device' -> find overlaps with USB sysfs path.
+        // 3. Find cardX, find corresponding MIDI-ports(0..N) -> correspond with RtMidi ports from 'getPortName()'.
+    
+   
+    udev * _udevctx;
+    _udevctx = udev_new();
+
+    struct udev_enumerate* enumerate = udev_enumerate_new(_udevctx);
+
+    udev_enumerate_add_match_subsystem(enumerate, "usb");
+    udev_enumerate_add_match_subsystem(enumerate, "usb_interface");
+    udev_enumerate_scan_devices(enumerate);
+
+    struct udev_list_entry *devices = udev_enumerate_get_list_entry(enumerate);
+    struct udev_list_entry *entry;
+
+    
+    udev_list_entry_foreach(entry, devices) {
+        const char *path = udev_list_entry_get_name(entry);
+        struct udev_device *dev = udev_device_new_from_syspath(_udevctx, path);
+
+        if (!dev)
+            continue;
+
+        const char *cls = udev_device_get_sysattr_value(dev, "bInterfaceClass");
+        const char *subcls = udev_device_get_sysattr_value(dev, "bInterfaceSubClass");
+
+        if (cls && subcls && strcmp(cls, "01") == 0 && strcmp(subcls, "03") == 0) {
+            struct udev_device *parent = udev_device_get_parent_with_subsystem_devtype(dev, "usb", "usb_device");
+            const char *vendor = udev_device_get_sysattr_value(parent, "idVendor");
+            const char *product = udev_device_get_sysattr_value(parent, "idProduct");
+            const char *devnode = udev_device_get_devnode(dev);
+            LOG_INFO("MIDI device: %s %s %s:%s %s\n",
+                    path,
+                    udev_device_get_sysattr_value(parent, "product"),
+                    vendor ? vendor : "0000",
+                    product ? product : "0000",
+                    devnode ? devnode : "(no devnode)");
+        }
+
+        udev_device_unref(dev);
+    }
+
+    udev_enumerate_unref(enumerate);
+    //...
+    udev_unref(_udevctx);
 }
+*/
+
+
+void discoverMidi() {
+    while(!_shutdown) {
+        _midiController->checkDevices();
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
 
 } //namespace ControlEngine
 

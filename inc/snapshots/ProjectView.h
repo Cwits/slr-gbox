@@ -5,6 +5,7 @@
 
 #include "snapshots/TimelineView.h"
 #include "core/primitives/AudioRoute.h"
+#include "core/primitives/MidiRoute.h"
 #include "defines.h"
 #include <vector>
 
@@ -29,6 +30,10 @@ class ProjectView {
     const std::vector<AudioRoute> sourcesForId(ID id);
     const std::vector<AudioRoute> targetsForId(ID id);
     
+    void updateRoutes(const std::vector<MidiRoute> & routes);
+    const std::vector<MidiRoute> midiSourcesForId(ID id);
+    const std::vector<MidiRoute> midiTargetsForId(ID id);
+
     TimelineView & timeline() { return _timeline; }
     static ProjectView & getProjectView();
 
@@ -36,6 +41,7 @@ class ProjectView {
     std::vector<AudioUnitView*> _unitList;
     TimelineView _timeline;
     std::vector<AudioRoute> _routes;
+    std::vector<MidiRoute> _midiRoutes;
     // frame_t _playheadPosition;
 };
 

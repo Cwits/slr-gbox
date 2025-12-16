@@ -106,5 +106,28 @@ const std::vector<AudioRoute> ProjectView::targetsForId(ID id) {
     return ret;
 }
 
+void ProjectView::updateRoutes(const std::vector<MidiRoute> & routes) {
+    _midiRoutes.clear();
+    _midiRoutes = routes;
+}
+
+const std::vector<MidiRoute> ProjectView::midiSourcesForId(ID id) {
+    std::vector<MidiRoute> ret;
+    for(MidiRoute &r : _midiRoutes) {
+        if(r._sourceId == id) ret.push_back(r);
+    }
+
+    return ret;
+}
+
+const std::vector<MidiRoute> ProjectView::midiTargetsForId(ID id) {
+    std::vector<MidiRoute> ret;
+    for(MidiRoute &r : _midiRoutes) {
+        if(r._targetId == id) ret.push_back(r);
+    }
+    
+    return ret;
+}
+
 
 }

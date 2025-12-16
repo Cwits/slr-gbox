@@ -7,6 +7,7 @@
 
 #include "core/primitives/RenderPlan.h"
 #include "core/primitives/AudioRoute.h"
+#include "core/primitives/MidiRoute.h"
 #include "core/Timeline.h"
 #include "defines.h"
 
@@ -53,7 +54,9 @@ class Project {
     void removeRoutesForId(ID id);
     bool evaluateRoute(const AudioRoute & route);
 
-    //TODO: use mixer not as separate unit, but as regular one
+    const std::vector<MidiRoute> & midiRoutes() const { return _midiRoutes; }
+    void addRoute(MidiRoute route) { _midiRoutes.push_back(route); }
+
     Metronome * metronome() const;
     
     private:
@@ -68,6 +71,7 @@ class Project {
     
     std::vector<std::unique_ptr<AudioUnit>> _unitList;
     std::vector<AudioRoute> _routes;
+    std::vector<MidiRoute> _midiRoutes;
 
     std::unique_ptr<Metronome> _metronome;
     //std::unique_ptr<StepSequencer> _stepSequencer;

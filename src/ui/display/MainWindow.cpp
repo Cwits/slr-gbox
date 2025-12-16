@@ -19,6 +19,8 @@
 #include "ui/display/TimelinePopup.h"
 #include "ui/display/ScreenKeyboard.h"
 #include "ui/display/NewModulePopup.h"
+#include "ui/display/SettingsPopup.h"
+#include "ui/display/VirtualMidiKeyboard.h"
 
 #include "snapshots/TimelineView.h"
 
@@ -82,6 +84,10 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popups.push_back(_filePopup);
     _newModulePopup = new NewModulePopup(this, &_uiContext);
     _popups.push_back(_newModulePopup);
+    _settingsPopup = new SettingsPopup(this, &_uiContext);
+    _popups.push_back(_settingsPopup);
+    _virtualMidiKeyboard = new VirtualMidiKeyboard(this, &_uiContext);
+    _popups.push_back(_virtualMidiKeyboard);
 
     _popManager._unitControlPopup = _unitControlPopup;
     _popManager._routeManager = _routeManager;
@@ -89,6 +95,8 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popManager._screenKeyboard = _keyboard;
     _popManager._filePopup = _filePopup;
     _popManager._newModulePopup = _newModulePopup;
+    _popManager._settingsPopup = _settingsPopup;
+    _popManager._virtualMidiKeyboard = _virtualMidiKeyboard;
 
     _uiContext._popManager = &_popManager;
 
@@ -118,6 +126,7 @@ MainWindow::~MainWindow() {
     delete _keyboard;
     delete _filePopup;
     delete _newModulePopup;
+    delete _settingsPopup;
     // delete _uiContext;
 }
 
@@ -264,8 +273,16 @@ bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
 
 
 BaseWidget * MainWindow::hitTest(BaseWidget * node, int x, int y) {
-    // Go from front-most (last) to back-most (first)
-    for(auto it = node->children().rbegin(); it != node->children().rend(); ++it) {
+    static auto zsort = [](const BaseWidget *op1, const BaseWidget *op2) -> bool {
+        return (op1->getZ() < op2->getZ());
+    };
+
+    std::vector<BaseWidget*> sorted;
+    sorted = node->children();
+    std::sort(sorted.begin(), sorted.end(), zsort);
+
+    //room for improve - collect all targets within acceptable region and decide which to pick based on Z
+    for(auto it = sorted.rbegin(); it != sorted.rend(); ++it) {
         auto* child = *it;
         if(!child->visible()) continue; //sometimes visible() failed because of nullptr lvhost??
 
@@ -310,15 +327,19 @@ void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
 }
 
 void MainWindow::floatingTextRegular(std::string text) {
+    LOG_INFO("%s", text.c_str());
     lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_REGULAR_COLOR, 0);
     lv_label_set_text(_floatingText, text.c_str());
+    lv_obj_move_to_index(_floatingText, -1);
     lv_obj_clear_flag(_floatingText, LV_OBJ_FLAG_HIDDEN);
     lv_timer_resume(_floatingTimer);
 }
 
 void MainWindow::floatingTextWarning(std::string text) {
+    LOG_WARN("%s", text.c_str());
     lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_WARNING_COLOR, 0);
     lv_label_set_text(_floatingText, text.c_str());
+    lv_obj_move_to_index(_floatingText, -1);
     lv_obj_clear_flag(_floatingText, LV_OBJ_FLAG_HIDDEN);
     lv_timer_resume(_floatingTimer);
 }

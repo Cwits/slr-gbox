@@ -6,6 +6,10 @@
 #include "core/primitives/AudioBuffer.h"
 #include "core/FlatEvents.h"
 #include "core/primitives/SPSCQueue.h"
+#include "core/primitives/MidiEvent.h"
+
+#include <unordered_map>
+#include <vector>
 
 namespace slr { 
 // class AudioBuffer;
@@ -21,7 +25,8 @@ struct AudioContext {
                 const AudioBuffer * in, 
                 AudioBuffer * const out, 
                 const Timeline & tl,
-                SPSCQueue<FlatEvents::FlatResponse, 256> & outControl) 
+                SPSCQueue<FlatEvents::FlatResponse, 256> & outControl,
+                std::vector<RtMidiBuffer> *midiInputs)
                 :
                 playing(playing),
                 recording(recording),
@@ -31,7 +36,9 @@ struct AudioContext {
                 mainInputs(in), 
                 mainOutputs(out),
                 timeline(tl),
-                outputControl(outControl) {}
+                outputControl(outControl),
+                midiInputs(midiInputs)
+                 {}
     
     const bool playing;
     const bool recording;
@@ -46,8 +53,20 @@ struct AudioContext {
     const Timeline & timeline;
     SPSCQueue<FlatEvents::FlatResponse, 256> & outputControl;
     
-    //array::SPSCQueue<MidiEvents> _midiInputs; - hw
+    const std::vector<RtMidiBuffer> * const midiInputs;
     //array::SPSCQueue<MidiOutputs> _midiOutputs; - hw
 };
+
+inline const std::vector<MidiEvent> * getMidiBuffer(const AudioContext &ctx, const ID &id) {
+    for(const RtMidiBuffer &p : *ctx.midiInputs) {
+        if(p.id == id) {
+            return p.buffer;
+        } 
+    }
+
+    //theoretically unreachable
+    assert(false);
+    return nullptr;
+}
 
 }

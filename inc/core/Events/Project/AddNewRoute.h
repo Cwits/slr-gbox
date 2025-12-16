@@ -24,7 +24,7 @@ void handleEvent(const ControlContext &ctx, const Events::AddNewRoute &e) {
     
     ctx.project->addRoute(e.route);
 
-    RenderPlan * newPlan = buildPlan(ctx.project, ctx.project->routes());
+    RenderPlan * newPlan = buildPlan(ctx.project);
     if(newPlan == nullptr) {
         UIControls::floatingWarning("Failed to build new plan");
         LOG_ERROR("Failed to build new plan");

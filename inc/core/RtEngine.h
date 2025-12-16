@@ -6,11 +6,15 @@
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/AudioContext.h"
 #include "core/primitives/SPSCQueue.h"
+#include "core/primitives/MidiEvent.h"
 #include "core/FlatEvents.h"
+#include "Status.h"
 
 #include <memory>
 #include <atomic>
 #include <array>
+#include <vector>
+#include <unordered_map>
 /* Sample. Loop. Repeat. */
 namespace slr {
 
@@ -44,6 +48,12 @@ class RtEngine {
     static void addRtControl(const FlatEvents::FlatControl &ctl);
     static void addRtResponse(const FlatEvents::FlatResponse & resp);
 
+    const std::vector<RtMidiBuffer> * midiLocalBuffers() const { return _midiInLocal; }
+    const std::vector<RtMidiQueue> * midiInMap() const { return _midiInputMap; }
+    const std::vector<RtMidiOutput> * midiOutMap() const { return _midiOutputMap; }
+
+    static Status updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+
     private:
     frame_t processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed);
     void handleControlEvents(std::array<FlatEvents::FlatControl, 256> & list, frame_t & framesPassed);
@@ -55,7 +65,12 @@ class RtEngine {
     std::array<FlatEvents::FlatControl, 256> _controlSnapshot;
     int _snapshotCount;
 
+    std::vector<RtMidiBuffer> * _midiInLocal;
+    std::vector<RtMidiQueue> *_midiInputMap;
+    std::vector<RtMidiOutput> *_midiOutputMap;
+    
     std::atomic<RtState> _state;
+
 };
 
 }

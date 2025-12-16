@@ -18,6 +18,8 @@ class ScreenKeyboard;
 class FilePopup;
 class FileView;
 class NewModulePopup;
+class SettingsPopup;
+class VirtualMidiKeyboard;
 
 struct PopupManager {
     PopupManager();
@@ -42,12 +44,20 @@ struct PopupManager {
     void enableNewModulePopup();
     void disableNewModulePopup();
 
+    void enableSettingsPopup();
+    void disableSettingsPopup();
+
+    void enableMidiKeyboard();
+    void disableMidiKeyboard();
+
     private:
     UnitControlPopup * _unitControlPopup;
     ScreenKeyboard * _screenKeyboard;
     RouteManager * _routeManager;
     FilePopup * _filePopup;
     NewModulePopup * _newModulePopup;
+    SettingsPopup * _settingsPopup;
+    VirtualMidiKeyboard * _virtualMidiKeyboard;
 
     friend class MainWindow;
 };

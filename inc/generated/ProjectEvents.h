@@ -1,8 +1,9 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
+#include "core/primitives/MidiRoute.h"
+#include "core/primitives/AudioRoute.h"
 #include "defines.h"
 #include <string>
-#include "core/primitives/AudioRoute.h"
 
 namespace slr {
 
@@ -11,6 +12,9 @@ namespace Events {
 
 struct AddNewRoute {
     AudioRoute route;
+};
+struct AddNewMidiRoute {
+    MidiRoute route;
 };
 struct DeleteModule {
     ID targetId;

@@ -26,11 +26,17 @@
 namespace slr {
 
 RtEngine::RtEngine() {
-    
+    _midiInLocal = new std::vector<RtMidiBuffer>();
+    _midiInputMap = new std::vector<RtMidiQueue>();
+    _midiOutputMap = new std::vector<RtMidiOutput>();
 }
 
 RtEngine::~RtEngine() {
     shutdown();
+
+    delete _midiInLocal;    
+    delete _midiInputMap;
+    delete _midiOutputMap;
 }
 
 bool RtEngine::init() {
@@ -102,8 +108,36 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
     handleControlEvents(_controlSnapshot, framesPassed);
 
-    // MidiSnapshot = MidiInputs; //depends on how midi messages are acquired - e.g. jack provides input for current block, but if
-    // we doing that manually than we need somehow limit incomming. E.g. use double buffering for every input and switch buffers at this stage
+    //midi work
+    for(RtMidiBuffer &b : *_midiInLocal) {
+        b.buffer->clear();
+    }
+
+    MidiEvent midiev;
+    for(RtMidiQueue &q : *_midiInputMap) {
+        std::vector<MidiEvent> *v = nullptr;
+        for(RtMidiBuffer &b : *_midiInLocal) {
+            if(q.id == b.id) {
+                v = b.buffer;
+                break;
+            }
+        }
+
+        RtMidiOutput * out = nullptr;
+        for(RtMidiOutput &o : *_midiOutputMap) {
+            if(o.id == q.id) {
+                out = &o;
+                break;
+            }
+        }
+
+        while(q.queue->pop(midiev)) {
+            v->push_back(midiev);
+            //echo
+            if(midiev.type == MidiEventType::NoteOn)
+                out->sendEvent(midiev);
+        }
+    }
     
     Timeline & tl = _prj->timeline();
     const bool playing = tl.playing();//must be called before elapsed because if prevstate == preparing than we can do 
@@ -117,12 +151,15 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
                     inputs,
                     outputs,
                     tl,
-                    _outputControl);
-    /* 
-    ctx._midiInputs = midiInputs;
-    ctx._midiOutputs = midiOutputs;
-    */
+                    _outputControl,
+                    _midiInLocal);
     
+    const RenderPlan * plan = (_prj->isSolo() ? _prj->soloPlan() : _prj->runPlan());
+    for(uint32_t n=0; n<plan->nodesCount; ++n) {
+        // const RenderPlan::Node & node = plan->nodes[n];
+        plan->nodes[n].target->clearMidiBuffer();
+    }
+
     /* 
     _prj->modEngine->process(ctx, nullptr, 0); -> control events to parameters by target->injectControl(ctrl);
 
@@ -141,14 +178,13 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     }
 #endif
 
-    const RenderPlan * plan = (_prj->isSolo() ? _prj->soloPlan() : _prj->runPlan());
     for(uint32_t n=0; n<plan->nodesCount; ++n) {
         const RenderPlan::Node & node = plan->nodes[n];
-        node.target->process(ctx, node.deps, node.depsCount);
+        node.target->process(ctx, node.deps);
     }
 
-    for(uint32_t n=0; n<plan->outputDepsCount; ++n) {
-        const Dependencies &ext = plan->outputDeps[n];
+    for(uint32_t n=0; n<plan->outputDeps.audioDepsCnt; ++n) {
+        const AudioDependencie &ext = plan->outputDeps.audio[n];
         const AudioBuffer * source = ext.external ? ctx.mainInputs : ext.buffer;
 
         //mix to preFX
@@ -163,20 +199,9 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
  
     Metronome * metro = _prj->metronome();
     if(ctx.playing) {
-        metro->process(ctx, nullptr, 0);
+        Dependencies dummy;
+        metro->process(ctx, dummy);
     }
-
-    /*future improvement mmm...???
-        return not only frames count, but
-        struct driver countext {
-            frame_t frames;
-            Dependencies * deps;
-            uint32_t depsCount;
-        };
-
-        so driver will mix dependencies according to 
-        channel maps to appropriate channels
-    */
 
     return frames;
 }
@@ -213,6 +238,23 @@ void RtEngine::addRtControl(const FlatEvents::FlatControl &ctl) {
 
 void RtEngine::addRtResponse(const FlatEvents::FlatResponse & resp) {
     ControlEngine::rtEngine()->FlatResponseEvent(resp);
+}
+
+Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    RtEngine * engine = ev.updateMidiMaps.engine;
+    
+    resp.type = FlatEvents::FlatResponse::Type::UpdateMidiMaps;
+    resp.status = Status::Ok;
+    resp.commandId = ev.commandId;
+    resp.updateMidiMaps.oldInput = engine->_midiInputMap;
+    resp.updateMidiMaps.oldOutput = engine->_midiOutputMap;
+    resp.updateMidiMaps.oldLocal = engine->_midiInLocal;
+
+    engine->_midiInputMap = ev.updateMidiMaps.inputMap;
+    engine->_midiOutputMap = ev.updateMidiMaps.outputMap;
+    engine->_midiInLocal = ev.updateMidiMaps.localBuffers;
+
+    return Status::Ok;
 }
 
 }

@@ -21,9 +21,9 @@ Project::Project() : _timeline(*this) {
 
     _metronome = std::make_unique<Metronome>();
 
-    _renderPlan1 = buildPlan(this, routes());
-    _renderPlan2 = buildPlan(this, routes());
-    _soloPlan = buildPlan(this, routes());
+    _renderPlan1 = buildPlan(this);
+    _renderPlan2 = buildPlan(this);
+    _soloPlan = buildPlan(this);
 
     _isSolo = false;
     _planInWork = false;

@@ -167,6 +167,14 @@ inline slr::frame_t textToLoop(const std::string &text, slr::frame_t bar, slr::f
 
     return evaluate(toParse, bar, quater, failed);
 }
+
+inline bool containsOnlyDigits(const std::string &text) {
+    for(auto ch : text) 
+        if(!std::isdigit(ch)) 
+            return false;
+            
+    return true;
+}
 /*
 inline int pixelPerBar(float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();

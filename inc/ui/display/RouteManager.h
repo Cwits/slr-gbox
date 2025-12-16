@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
+#include "ui/display/primitives/BaseWidget.h"
 #include "ui/display/primitives/Popup.h"
 #include "ui/display/primitives/Label.h"
 #include "ui/display/primitives/Button.h"
@@ -24,12 +25,8 @@ struct RouteManager : public Popup {
 
     void update();
     void liveUpdate();
-    private:
-    Label * _text;
-    Label * _inputsText;
-    Label * _outputsText;
 
-    Button * _applyBtn;
+    private:
 
     struct Route {
         Button * _extint; //button
@@ -38,23 +35,56 @@ struct RouteManager : public Popup {
         Button * _addRemoveButton; //button
     };
 
-    struct ExtIO {
-        enum class Dir { IN, OUT };
-        Dir _direction;
-        int _uniqueId;
-        // std::string & _name;
+    struct AudioTab : public BaseWidget {
+        AudioTab(BaseWidget *parent, const slr::ID &id);
+        ~AudioTab();
+
+        void update();
+        void forcedClose();
+
+        private:
+        const slr::ID & _currentId;
+        
+        std::vector<Route> _inputs;
+        std::vector<Route> _outputs;
+
+        Route _nextInput;
+        Route _nextOutput;
+        
+        void newRoute(bool isInput);
     };
 
-    std::vector<Route> _inputs;
-    std::vector<Route> _outputs;
+    struct MidiTab : public BaseWidget {
+        MidiTab(BaseWidget *parent, const slr::ID &id);
+        ~MidiTab();
 
-    Route _nextInput;
-    Route _nextOutput;
+        void update();
+        void forcedClose();
+
+        private:
+        const slr::ID & _currentId;
+
+        std::vector<Route> _inputs;
+        std::vector<Route> _outputs;
+
+        Route _nextInput;
+        Route _nextOutput;
+
+        void newRoute(bool isInput);
+    };
+
+    Label * _text;
+    Label * _inputsText;
+    Label * _outputsText;
+
+    Button * _btnAudioTab;
+    Button * _btnMidiTab;
+    Button * _btnApply;
+
+    AudioTab * _audioTab;
+    MidiTab * _midiTab;
     
     void forcedClose() override;
-    bool handleTap(GestLib::TapGesture & tap) override;
-    
-    static void newRoute(RouteManager * rm, bool isInput);
 };
 
 }

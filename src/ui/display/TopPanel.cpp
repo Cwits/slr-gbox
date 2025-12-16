@@ -8,6 +8,7 @@
 #include "ui/display/primitives/UIContext.h"
 #include "ui/display/primitives/Label.h"
 #include "ui/display/primitives/Button.h"
+#include "ui/display/PopupManager.h"
 
 #include "core/Events.h"
 
@@ -94,8 +95,8 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnSettings->setPos(posx, 0);
     _btnSettings->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnSettings->setFont(&DEFAULT_FONT);
-    _btnSettings->setCallback([]() {
-
+    _btnSettings->setCallback([this]() {
+        this->_uictx->_popManager->enableSettingsPopup();
     });
 
     posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
@@ -107,6 +108,15 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
         // LOG_WARN("Metronome on/off not here yet");
         slr::Events::ToggleMetronome e;
         slr::EmitEvent(e);
+    });
+
+    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    _btnMidiKbd = new Button(this, "MIDI Kbd");
+    _btnMidiKbd->setPos(posx, 0);
+    _btnMidiKbd->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnMidiKbd->setFont(&DEFAULT_FONT);
+    _btnMidiKbd->setCallback([this]() {
+        this->_uictx->_popManager->enableMidiKeyboard();
     });
 
 
@@ -122,6 +132,7 @@ TopPanel::~TopPanel() {
     delete _btnModEngine;
     delete _btnSettings;
     delete _btnToggleMetronome;
+    delete _btnMidiKbd;
 }
 
 void TopPanel::setMetroColor(lv_color_t color) {

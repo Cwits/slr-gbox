@@ -87,6 +87,11 @@ int BaseWidget::getY() {
     return lv_obj_get_y(_lvhost);
 }
 
+int BaseWidget::getZ() const {
+    if(!_lvhost) return 0;
+    return lv_obj_get_index(_lvhost);
+}
+
 int BaseWidget::width() {
     if(!_lvhost) return 0;
     return lv_obj_get_width(_lvhost);

@@ -14,6 +14,8 @@ namespace LayoutDef {
 #define DEFAULT_FONT lv_font_montserrat_30
 constexpr int BUTTON_SIZE = 80;
 
+constexpr int CHECKBOX_SIZE = 70;
+
 /* Main Window Defines */
 constexpr int TOTAL_WIDTH = 1920;
 constexpr int TOTAL_HEIGHT = 1080;
@@ -98,7 +100,7 @@ constexpr int ROUTE_MANAGER_Y = 100/2;
 constexpr int ROUTE_LINE_HEIGHT = 70;
 constexpr int ROUTE_LINE_MARGIN = 10;
 
-constexpr int ROUTE_LINE_FIRST_ITEM = 90;
+constexpr int ROUTE_LINE_FIRST_ITEM = 10;
 
 constexpr int ROUTE_CTL_LEFT_EXT_X = 25;
 constexpr int ROUTE_CTL_LEFT_EXT_Y = ROUTE_LINE_FIRST_ITEM;
@@ -175,13 +177,16 @@ constexpr int KB_BACKSPACE_Y = KB_TEXT_AREA_H + DEFAULT_MARGIN;
 constexpr int KB_ENTER_W = KB_BUTTON_SIZE*2;
 constexpr int KB_ENTER_H = KB_BUTTON_SIZE;
 constexpr int KB_ENTER_X = KEYBOARD_W - KB_ENTER_W - KB_BUTTON_MARGIN;
-constexpr int KB_ENTER_Y = KB_TEXT_AREA_H + (DEFAULT_MARGIN*2) + KB_BUTTON_SIZE;
+constexpr int KB_ENTER_Y = KB_TEXT_AREA_H + (DEFAULT_MARGIN*4) + (KB_BUTTON_SIZE*3);
 
 constexpr int KB_CLEAR_W = KB_BUTTON_SIZE*2;
 constexpr int KB_CLEAR_H = KB_BUTTON_SIZE;
 
 constexpr int KB_SPACE_W = KB_BUTTON_SIZE*2;
 constexpr int KB_SPACE_H = KB_BUTTON_SIZE;
+
+constexpr int KB_SHIFT_W = KB_BUTTON_SIZE*2;
+constexpr int KB_SHIFT_H = KB_BUTTON_SIZE;
 
 constexpr int KEYS_ROW_NUM = 10;
 constexpr int KEYS_ROW_1 = 10;
@@ -195,6 +200,12 @@ constexpr int FILE_POPUP_H = 300;
 constexpr int FILE_POP_DELETE_BTN_X = 10;
 constexpr int FILE_POP_DELETE_BTN_Y = 10;
 
+
+/* Settings Popup */
+constexpr int SETTINGS_POP_WIDTH = (TOTAL_WIDTH - 200);
+constexpr int SETTINGS_POP_HEIGHT = (TOTAL_HEIGHT - 100);
+constexpr int SETTINGS_POP_X = 200/2;
+constexpr int SETTINGS_POP_Y = 100/2;
 
 } //namespace Layout Def
 

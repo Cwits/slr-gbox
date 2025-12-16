@@ -1,3 +1,9 @@
+13.11.25
+Added lower and upper case in screen keyboard
+
+03.11.25
+hittest now works by sorting by Z index of objects
+
 31.10.25
 Added primitive Slider UI to mixer so all connected modules volume can be adjusted from mixer.
 File loading and drawing on grid moved to UnitUIBase, now all modules can load and playback audio files

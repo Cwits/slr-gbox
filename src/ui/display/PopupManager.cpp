@@ -8,6 +8,8 @@
 #include "ui/display/ScreenKeyboard.h"
 #include "ui/display/RouteManager.h"
 #include "ui/display/NewModulePopup.h"
+#include "ui/display/SettingsPopup.h"
+#include "ui/display/VirtualMidiKeyboard.h"
 
 namespace UI {
 
@@ -20,6 +22,7 @@ PopupManager::~PopupManager() {
 }
 
 void PopupManager::enableKeyboard(std::string initialText, std::function<void(const std::string &text)> finishCallback) {
+    lv_obj_move_to_index(_screenKeyboard->lvhost(), -1);
     _screenKeyboard->setText(initialText);
     _screenKeyboard->finishedCallback(finishCallback);
     _screenKeyboard->activate();
@@ -82,6 +85,28 @@ void PopupManager::enableNewModulePopup() {
 void PopupManager::disableNewModulePopup() {
     _newModulePopup->deactivate();
     _newModulePopup->hide();
+}
+
+void PopupManager::enableSettingsPopup() {
+    _settingsPopup->update();
+    _settingsPopup->activate();
+    _settingsPopup->show();
+}
+
+void PopupManager::disableSettingsPopup() {
+    _settingsPopup->deactivate();
+    _settingsPopup->hide();
+}
+
+void PopupManager::enableMidiKeyboard() {
+    // _virtualMidiKeyboard->update();
+    _virtualMidiKeyboard->activate();
+    _virtualMidiKeyboard->show();
+}
+
+void PopupManager::disableMidiKeyboard() {
+    _virtualMidiKeyboard->deactivate();
+    _virtualMidiKeyboard->hide();
 }
 
 

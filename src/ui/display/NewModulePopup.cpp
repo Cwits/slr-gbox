@@ -38,6 +38,16 @@ NewModulePopup::NewModulePopup(BaseWidget *parent, UIContext * const uictx) :
         };
         slr::EmitEvent(e);
     });
+
+    _btnOsc = new Button(this, "OSC");
+    _btnOsc->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnOsc->setPos(500, 100);
+    _btnOsc->setCallback([this]() {
+        slr::Events::CreateModule e = {
+            .name = "OSC"
+        };
+        slr::EmitEvent(e);
+    });
 }
 
 NewModulePopup::~NewModulePopup() {

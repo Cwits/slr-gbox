@@ -31,6 +31,7 @@ class TopPanel : public View {
     Button * _btnModEngine;
     Button * _btnSettings;
     Button * _btnToggleMetronome;
+    Button * _btnMidiKbd;
 
 };
 

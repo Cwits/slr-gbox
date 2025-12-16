@@ -25,8 +25,9 @@ struct ScreenKeyboard : public Popup {
     lv_obj_t * _keyboard;
     lv_obj_t * _textArea;
 
+    std::vector<Button*> _numMatrix;
     std::vector<Button*> _buttonMatrix;
-    std::vector<Button*> _alternativeMatrix;
+    // std::vector<Button*> _alternativeMatrix;
     
     Button * _backspaceBtn;
     Button * _enterBtn;
@@ -38,12 +39,14 @@ struct ScreenKeyboard : public Popup {
     Button * _mulButton;
     Button * _plusButton;
     Button * _spaceButton;
+    Button * _shiftButton;
     // Button * _shiftBtn;
-    enum class ShiftState { Disabled, Enabled, Long };
+    enum class ShiftState { Disabled, Enabled };
     ShiftState _shiftState;
 
     std::function<void(const std::string&)> _finished;
 
+    void toCase(bool upper);
 
     bool handleTap(GestLib::TapGesture &tap) override;
     void initButton(Button * btn, int x, int y);

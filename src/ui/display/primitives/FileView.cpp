@@ -204,7 +204,7 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
         LOG_INFO("Remove item event");
         slr::Events::RemoveFile e {
             .fileId = this->_item->_item->_uniqueId,
-            .targetId = this->_item->parentUI()->id()
+            .trackId = this->_item->parentUI()->id()
         };
 
         slr::EmitEvent(e);

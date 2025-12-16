@@ -5,6 +5,7 @@
 
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/AudioBuffer.h"
+#include "core/primitives/FileContainer.h"
 #include "core/FlatEvents.h"
 #include "defines.h"
 #include "Status.h"
@@ -25,7 +26,7 @@ class Track : public AudioUnit {
 
     Track();
     ~Track();
-    RT_FUNC frame_t process(const AudioContext &ctx,  const Dependencies * const inputs, const uint32_t inputsCount) override;
+    RT_FUNC frame_t process(const AudioContext &ctx,  const Dependencies &inputs) override;
 
     RT_FUNC void prepareToPlay() override;
     RT_FUNC void prepareToRecord() override;
@@ -49,14 +50,18 @@ class Track : public AudioUnit {
     bool prepareMidiRecord(FileWorker * fw);
     bool releaseRecordTarget(FileWorker * fw);
     
+    const std::vector<ContainerItem*> * items() const { return _fileContainer._items; }
+    RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Status modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+
+
     private:
     AudioBuffer * _recInt;
     AudioBuffer * _recExt;
     AudioBuffer * _preFX;
     AudioBuffer * _postFX;
     AudioBuffer * _postPan;
-    
-    bool _buffersClear;
 
     bool _record;
 
@@ -118,6 +123,9 @@ class Track : public AudioUnit {
     //need to forbid to change source while recording == true
     RecordSource _recordSource = RecordSource::Audio;
     RecordTarget * _recordTarget;
+
+    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
+    FileContainer _fileContainer;
 
     //midibuffer midirecordbuffer;
     //fx chain

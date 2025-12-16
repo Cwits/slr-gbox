@@ -25,7 +25,7 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
     ctx.project->removeRoutesForId(e.targetId);
     ctx.projectView->updateRoutes(ctx.project->routes());
 
-    RenderPlan * newPlan = buildPlan(ctx.project, ctx.project->routes());
+    RenderPlan * newPlan = buildPlan(ctx.project);
     ctx.project->replaceEditablePlan(newPlan);
  
     bool res = true;

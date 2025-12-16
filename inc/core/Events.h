@@ -8,6 +8,7 @@
 #include "generated/RenderPlanEvents.h"
 #include "generated/MetronomeEvents.h"
 #include "generated/TimelineEvents.h"
+#include "generated/MidiControllerEvents.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/TrackEvents.h"
 
@@ -19,6 +20,7 @@ namespace Events {
 
 using Event = std::variant<
 		AddNewRoute,
+		AddNewMidiRoute,
 		DeleteModule,
 		CreateModule,
 		ToggleMetronome,
@@ -27,13 +29,14 @@ using Event = std::variant<
 		ToggleLoop,
 		ChangeSigBpm,
 		LoopPosition,
+		ToggleMidiDevice,
 		SetParameter,
+		RecordArm,
 		OpenFile,
 		FileOpened,
 		RemoveFile,
 		FileUIRemoved,
-		ModContainerItem,
-		RecordArm
+		ModContainerItem
 >;
 
 } //namespace Events

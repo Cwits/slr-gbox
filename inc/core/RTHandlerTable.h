@@ -5,9 +5,10 @@
 #pragma once
 
 #include "modules/Track/Track.h"
+#include "core/RtEngine.h"
 #include "core/primitives/AudioUnit.h"
-#include "core/Project.h"
 #include "core/Timeline.h"
+#include "core/Project.h"
 
 #include "core/FlatEvents.h"
 #include "Status.h"
@@ -24,12 +25,13 @@ constexpr RTHandler RTTable[] = {
 	&Timeline::toggleLoop,
 	&Timeline::setBpmTimeSig,
 	&Timeline::setLoopPosition,
+	&RtEngine::updateMidiMaps,
 	&AudioUnit::setParameter,
-	&AudioUnit::appendItem,
-	&AudioUnit::swapContainer,
-	&AudioUnit::modifyContainerItem,
 	&Track::setRecordArm,
-	&Track::reinitRecord
+	&Track::reinitRecord,
+	&Track::appendItem,
+	&Track::swapContainer,
+	&Track::modifyContainerItem
 };
 }
 

@@ -6,7 +6,7 @@
 
 namespace slr {
 
-template<typename T, size_t Capacity>
+template<typename T, std::size_t Capacity>
 class SPSCQueue {
     public:
     bool push(const T& item) {
@@ -27,9 +27,13 @@ class SPSCQueue {
         return true;
     }
 
+    bool empty() {
+        return head == tail ? true : false;
+    }
+
     private:
-    std::atomic<size_t> head = 0;
-    std::atomic<size_t> tail = 0;
+    std::atomic<std::size_t> head = 0;
+    std::atomic<std::size_t> tail = 0;
     T buffer[Capacity];
 
 };

@@ -8,20 +8,37 @@
 #include "Status.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/AudioRoute.h"
+#include "core/primitives/MidiEvent.h"
 
 namespace slr {
 
 class AudioUnit;
 class Project;
 
-struct Dependencies {
+struct AudioDependencie {
     bool external;
     uint16_t extId;
 
     const AudioBuffer * buffer;
-    
     //key - target channel, value - source channel
     int8_t channelMap[32] = {-1};
+};
+
+struct MidiDependencie {
+    bool external;
+    uint16_t extId;
+
+    const std::vector<MidiEvent> *buf;
+    uint8_t channelFrom;
+    uint8_t channelTo;
+};
+
+struct Dependencies {
+    AudioDependencie * audio;
+    uint32_t audioDepsCnt;
+
+    MidiDependencie * midi;
+    uint32_t midiDepsCnt;
 };
 
 struct RenderPlan {
@@ -29,15 +46,15 @@ struct RenderPlan {
     //and use it, but don't get rid of full?
     struct Node {
         AudioUnit * target;
-        Dependencies * deps;
-        uint32_t depsCount;
+        Dependencies deps;
+        // uint32_t depsCount;
     };
 
     Node * nodes;
     uint32_t nodesCount;
 
-    Dependencies * outputDeps;
-    uint32_t outputDepsCount;
+    Dependencies outputDeps;
+    // uint32_t outputDepsCount;
 
     // struct SubGraphSlice {
     //     uint32_t offset;
@@ -53,7 +70,8 @@ struct RenderPlan {
     // uint32_t driverDepsCount;
 };
 
-RenderPlan * buildPlan(Project * prj, const std::vector<AudioRoute> & routes);
+// RenderPlan * buildPlan(Project * prj, const std::vector<AudioRoute> & routes) {}
+RenderPlan * buildPlan(Project *prj);
 void destroyPlan(const RenderPlan * plan);
 
 inline void clearChannelMap(int8_t * map) {

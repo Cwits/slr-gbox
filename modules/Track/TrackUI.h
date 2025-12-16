@@ -46,6 +46,7 @@ class Label;
 class Button;
 class FileView;
 class UIContext;
+class FileView;
 
 struct TrackUI : public UnitUIBase {
     TrackUI(slr::AudioUnitView * track, UIContext * uictx);
@@ -65,9 +66,11 @@ struct TrackUI : public UnitUIBase {
 
     // std::vector<FileView*> & fileList() { return _viewItems; }
     
+    std::vector<FileView*> & fileList() { return _viewItems; }
     private:
     slr::TrackView * _track;
     // std::vector<FileView*> _viewItems;
+    std::vector<FileView*> _viewItems;
 
     class TrackGridControlUI;
     class TrackModuleUI;

@@ -15,6 +15,7 @@ class ProjectView;
 class DriverView;
 class RtEngine;
 class FileWorker;
+class MidiController;
 
 namespace ControlEngine {
 
@@ -33,12 +34,13 @@ void awaitRtResult(const FlatEvents::FlatControl &ctl,
 
 void notify();
 
-void checkMidiDevices();
+// void checkMidiDevices();
 
 ProjectView * projectSnapshot();
 DriverView * driverSnapshot();
 RtEngine * rtEngine();
 FileWorker * fileWorker();
+MidiController * midiController();
 
 } //namespace ControlEngine
 

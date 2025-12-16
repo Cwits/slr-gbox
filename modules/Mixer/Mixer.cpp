@@ -16,18 +16,18 @@ Mixer::~Mixer() {
 
 }
 
-frame_t Mixer::process(const AudioContext &ctx,  const Dependencies * const inputs, const uint32_t inputsCount)  {
+frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs)  {
     if(*_mute) return ctx.frames;
 
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);
 
-    if(ctx.playing) {
-        AudioUnit::playbackFiles(ctx, _outputs);
-    }
+    // if(ctx.playing) {
+    //     AudioUnit::playbackFiles(ctx, _outputs);
+    // }
 
-    for(uint32_t i=0; i<inputsCount; ++i) {    
-        const Dependencies &ext = inputs[i];
+    for(uint32_t i=0; i<inputs.audioDepsCnt; ++i) {    
+        const AudioDependencie &ext = inputs.audio[i];
         const AudioBuffer * source = ext.external ? ctx.mainInputs : ext.buffer;
 
         //mix to preFX
