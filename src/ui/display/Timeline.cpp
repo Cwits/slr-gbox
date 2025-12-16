@@ -119,10 +119,8 @@ void Timeline::updatePlayhead(slr::frame_t position) {
     _playhead._points[1] = {res, LayoutDef::TIMELINE_LINE_HEIGHT};
     lv_line_set_points(_playhead._line, &_playhead._points[0], 2);
 
-    //не понятно...
     lv_obj_invalidate(_playhead._line);
 
-    //если при создании playhead в points сделать +n то отрисовывается до +n а потом пропадает... странно очень
 }
 
 void Timeline::updatePlayheadZ() {

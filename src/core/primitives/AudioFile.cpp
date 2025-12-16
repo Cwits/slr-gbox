@@ -122,29 +122,6 @@ bool AudioFile::dumpRecordedData(AudioBuffer * recBuffer) {
     return true;
 }
 
-/*
-how to do it correctly???
-1st way:
-in RtEngine:
-    ... buffer full->switch to another
-    Flat Control Event
-    e.ttype = DumpBufferToFile;
-    e.buffer = buffer;
-    e.file = file;
-    emit(e)
-
-in ControlEngine:
-    on DumpBufferToFile;
-    task FileFactory->dumpData(file, buffer); //in another thread
-    task PeakBuilder->extendPeaks(file, buffer); //in another thread
-
-    in FileFactory: 
-        file->dumpData(buffer);
-    in PeakBuilder:
-        file->peak()->extend(buffer);
-*/
-
-
 bool AudioFile::openInternal(std::string & path, bool tmp) {
     if(path.empty()) {
         LOG_ERROR("Path to file empty");

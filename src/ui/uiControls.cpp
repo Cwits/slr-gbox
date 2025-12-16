@@ -31,14 +31,13 @@ void postToLvgl(std::function<void()> fn) {
     {
         std::lock_guard<std::mutex> lk(g_async_mtx);
         g_async_queue.push_back(std::move(p));
-        // если диспетчер ещё не запланирован — мы должны его запланировать
+        
         if (!g_dispatch_scheduled.exchange(true)) {
             need_schedule = true;
         }
     }
 
     if (need_schedule) {
-        // планируем однократный вызов диспетчера в GUI-потоке
         // lv_async_call(lv_async_dispatcher, nullptr);
     }
 }

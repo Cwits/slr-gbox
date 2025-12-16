@@ -144,20 +144,18 @@ inline slr::frame_t textToLoop(const std::string &text, slr::frame_t bar, slr::f
             }
         }
 
-        // Сначала обработаем умножения
         std::vector<Token> reduced;
         for (size_t i = 0; i < tokens.size(); ++i) {
             if (tokens[i].type == Token::Mul) {
                 long long lhs = reduced.back().value;
                 long long rhs = tokens[i+1].value;
                 reduced.back().value = lhs * rhs;
-                ++i; // пропускаем rhs
+                ++i; 
             } else {
                 reduced.push_back(tokens[i]);
             }
         }
 
-        // Теперь сложения
         long long result = 0;
         for (auto& t : reduced) {
             if (t.type == Token::Number) result += t.value;

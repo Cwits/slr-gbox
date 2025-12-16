@@ -216,7 +216,6 @@ void shutdown() {
 void print_sdl_event(const SDL_Event& event) {
     std::cout << "SDL_Event: ";
     switch (event.type) {
-        // --- События мыши ---
         case SDL_MOUSEMOTION:
             std::cout << "Mouse Motion - x: " << event.motion.x
                       << ", y: " << event.motion.y
@@ -241,7 +240,6 @@ void print_sdl_event(const SDL_Event& event) {
                       << ", y: " << event.wheel.y << std::endl;
             break;
 
-        // --- События клавиатуры ---
         case SDL_KEYDOWN:
             std::cout << "Key Down - scancode: " << event.key.keysym.scancode
                       << ", keycode: " << event.key.keysym.sym
@@ -254,7 +252,6 @@ void print_sdl_event(const SDL_Event& event) {
                       << ", name: " << SDL_GetKeyName(event.key.keysym.sym) << std::endl;
             break;
             
-        // --- События тачскрина ---
         case SDL_FINGERDOWN:
             std::cout << "Finger Down - fingerId: " << event.tfinger.fingerId
                       << ", x: " << event.tfinger.x
@@ -273,20 +270,17 @@ void print_sdl_event(const SDL_Event& event) {
                       << ", y: " << event.tfinger.y << std::endl;
             break;
 
-        // --- События окна ---
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
                 case SDL_WINDOWEVENT_RESIZED:
                     std::cout << "Window Resized - w: " << event.window.data1 << ", h: " << event.window.data2 << std::endl;
                     break;
-                // ... можно добавить другие события окна ...
                 default:
                     std::cout << "Window Event - type: " << (int)event.window.event << std::endl;
                     break;
             }
             break;
         
-        // --- Событие выхода ---
         case SDL_QUIT:
             std::cout << "Quit Event" << std::endl;
             break;
