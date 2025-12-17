@@ -27,10 +27,12 @@ class ProjectView {
     AudioUnitView * removeUnitView(ID id);
 
     void updateRoutes(const std::vector<AudioRoute> & routes);
+    const std::vector<AudioRoute> & audioRoutes() const { return _routes; }
     const std::vector<AudioRoute> sourcesForId(ID id);
     const std::vector<AudioRoute> targetsForId(ID id);
     
     void updateRoutes(const std::vector<MidiRoute> & routes);
+    const std::vector<MidiRoute> & midiRoutes() const { return _midiRoutes; }
     const std::vector<MidiRoute> midiSourcesForId(ID id);
     const std::vector<MidiRoute> midiTargetsForId(ID id);
 

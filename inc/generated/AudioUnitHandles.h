@@ -1,12 +1,12 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/ControlEngine.h"
-#include "core/primitives/AudioUnit.h"  
 #include "logger.h"
-#include "core/Project.h"
-#include "Status.h"
+#include "core/primitives/AudioUnit.h"  
 #include "snapshots/ProjectView.h"
+#include "Status.h"
+#include "core/ControlEngine.h"
 #include "core/primitives/AudioUnit.h"
+#include "core/Project.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {

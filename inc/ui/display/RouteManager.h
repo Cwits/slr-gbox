@@ -5,13 +5,15 @@
 #include "ui/display/primitives/BaseWidget.h"
 #include "ui/display/primitives/Popup.h"
 #include "ui/display/primitives/Label.h"
-#include "ui/display/primitives/Button.h"
+#include "ui/display/primitives/Button.h" 
 #include "ui/display/primitives/DropDown.h"
 
 #include "defines.h"
 
 namespace slr {
     class AudioUnitView;
+    class AudioRoute;
+    class MidiRoute;
 }
 
 namespace UI {
@@ -44,6 +46,9 @@ struct RouteManager : public Popup {
 
         private:
         const slr::ID & _currentId;
+
+        void addAsInput(bool isNew, const slr::AudioRoute &in, const int posY);
+        void addAsOutput(bool isNew, const slr::AudioRoute &out, const int posY);
         
         std::vector<Route> _inputs;
         std::vector<Route> _outputs;
@@ -63,6 +68,9 @@ struct RouteManager : public Popup {
 
         private:
         const slr::ID & _currentId;
+
+        void addAsInput(bool isNew, const slr::MidiRoute &in, const int posY);
+        void addAsOutput(bool isNew, const slr::MidiRoute &out, const int posY);
 
         std::vector<Route> _inputs;
         std::vector<Route> _outputs;

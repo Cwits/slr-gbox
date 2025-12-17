@@ -1,13 +1,13 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/ControlEngine.h"
-#include "core/MidiController.h"
-#include <vector>
-#include <array>
 #include "logger.h"
-#include "core/primitives/MidiEvent.h" //for RtMidiPort
-#include "Status.h"
 #include "core/RtEngine.h"
+#include "core/MidiController.h"
+#include "core/primitives/MidiEvent.h" //for RtMidiPort
+#include <array>
+#include "Status.h"
+#include "core/ControlEngine.h"
+#include <vector>
 #include <unordered_map>
 #include "core/primitives/ControlContext.h"
 

@@ -13,6 +13,7 @@ Button::Button(BaseWidget * parent, std::string text) : BaseWidget(parent, false
     _lvhost = _btn;
     _hasHost = true;
     _isRoot = true;
+    _disabled = false;
     
     _flags.isTap = true;
     
@@ -83,6 +84,7 @@ void Button::setTouchUpCallback(std::function<void()> onTouchUp) {
 // }
 
 bool Button::handleTap(GestLib::TapGesture & tap) {
+    if(_disabled) return true;
     if(_onClick) {
         _onClick();
         return true;
@@ -91,6 +93,7 @@ bool Button::handleTap(GestLib::TapGesture & tap) {
 }
 
 bool Button::handleTouchDown(GestLib::TouchDownEvent &down) {
+    if(_disabled) return true;
     if(_onTouchDown) {
         _onTouchDown();
         return true;
@@ -100,6 +103,7 @@ bool Button::handleTouchDown(GestLib::TouchDownEvent &down) {
 }
 
 bool Button::handleTouchUp(GestLib::TouchUpEvent &up) {
+    if(_disabled) return true;
     if(_onTouchUp) {
         _onTouchUp();
         return true;

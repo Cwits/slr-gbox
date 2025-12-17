@@ -17,7 +17,7 @@ namespace slr {
 because there is some problem with getSourcesForId() and getTargetsForId() ->
 result yelds not existing routes(at least for midi...)
 */    
-constexpr int FirstUnitId = 1024;
+constexpr int FirstUnitId = 0;
 static ID uniqueIdCounter = FirstUnitId; 
 
 AudioUnit::AudioUnit(AudioUnitType type, bool needsAudioOutputs) : _type(type), _uniqueId(uniqueIdCounter++), _haveAudioOutputs(needsAudioOutputs) {

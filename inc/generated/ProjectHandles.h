@@ -1,15 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/ControlEngine.h"
+#include "logger.h"
 #include "core/ModuleManager.h"
 #include "ui/uiControls.h"
-#include "core/primitives/RenderPlan.h"
-#include "logger.h"
-#include "core/Project.h"
-#include "Status.h"
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
+#include "Status.h"
+#include "core/primitives/RenderPlan.h"
+#include "core/ControlEngine.h"
 #include "core/primitives/AudioUnit.h"
+#include "core/Project.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {

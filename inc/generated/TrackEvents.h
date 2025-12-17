@@ -1,17 +1,17 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <cstdint> 
-#include "defines.h"
-#include <vector>
-#include <string>
 #include "core/primitives/AudioBuffer.h"
+#include <string>
+#include <vector>
 #include "Status.h"
+#include "defines.h"
+#include <cstdint> 
 
 namespace slr {
 
-class File;
-class ContainerItem;
 class Track;
+class ContainerItem;
+class File;
 class AudioFile;
 
 namespace Events {
