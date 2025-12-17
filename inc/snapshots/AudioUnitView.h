@@ -44,6 +44,9 @@ class AudioUnitView {
     
     const Color & color() const { return _uniqueColor; }
 
+    const bool isMidiThru() const { return _midiThru; }
+    const bool isOmniHwInput() const { return _omniHwInput; }
+
     FileContainerView _fileList;
 
     protected:
@@ -59,6 +62,9 @@ class AudioUnitView {
     ParameterArrayView _flatParameterList;
     
     std::string _name;
+
+    bool _midiThru;
+    bool _omniHwInput;
 
 };
     

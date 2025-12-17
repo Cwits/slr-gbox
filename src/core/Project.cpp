@@ -13,17 +13,30 @@
 
 namespace slr {
 
+Dependencies dummyDep = {
+    .audio = nullptr,
+    .audioDepsCnt = 0,
+    .midi = nullptr,
+    .midiDepsCnt = 0
+};
+
+RenderPlan dummyPlan = {
+    .nodes = nullptr,
+    .nodesCount = 0,
+    .outputDeps = dummyDep
+};
+
 Project::Project() : _timeline(*this) {
     _unitList.reserve(INITIAL_UNIT_SIZE);
-    _soloPlan = nullptr;
-    _renderPlan1 = nullptr;
-    _renderPlan2 = nullptr;
+    _soloPlan = &dummyPlan;
+    _renderPlan1 = &dummyPlan;
+    _renderPlan2 = &dummyPlan;
 
     _metronome = std::make_unique<Metronome>();
 
-    _renderPlan1 = buildPlan(this);
-    _renderPlan2 = buildPlan(this);
-    _soloPlan = buildPlan(this);
+    // _renderPlan1 = buildPlan(this);
+    // _renderPlan2 = buildPlan(this);
+    // _soloPlan = buildPlan(this);
 
     _isSolo = false;
     _planInWork = false;

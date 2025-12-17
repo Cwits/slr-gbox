@@ -16,6 +16,8 @@
 
 namespace slr {
 
+extern RenderPlan dummyPlan;
+
 void copyMap(const int8_t *src, int8_t *dst) {
     for(int i=0; i<32; ++i) {
         dst[i] = src[i];
@@ -23,6 +25,7 @@ void copyMap(const int8_t *src, int8_t *dst) {
 }
 
 void destroyPlan(const RenderPlan * plan) {
+    if(plan == &dummyPlan) return; //ugh...
     for(uint32_t i=0; i<plan->nodesCount; ++i) {
         RenderPlan::Node & n = plan->nodes[i];
         delete [] n.deps.audio;
@@ -191,13 +194,22 @@ RenderPlan * buildPlan(Project *prj) {
             }
         }
 
-        if (out.size() != indegree.size())
-            throw std::runtime_error("cycle detected");
+        if (out.size() != indegree.size()) {
+            // throw std::runtime_error("cycle detected");
+            LOG_ERROR("Cyclic dependencie, abort building plan");
+            return std::vector<ID>();
+        }
 
         return out;
     };
 
     std::vector<ID> order = topoSort(edges, indegree);
+    if(order.size() == 0) {
+        //cycle detected or there is no ID's
+        LOG_ERROR("Returning empty Render Plan");
+        return nullptr;
+    }
+
     LOG_WARN("Render Order: ");
     for(ID & id : order) {
         std::cout << id << " ";

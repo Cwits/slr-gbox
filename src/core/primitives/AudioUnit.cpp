@@ -17,7 +17,7 @@ namespace slr {
 because there is some problem with getSourcesForId() and getTargetsForId() ->
 result yelds not existing routes(at least for midi...)
 */    
-constexpr int FirstUnitId = 1024;
+constexpr int FirstUnitId = 0;
 static ID uniqueIdCounter = FirstUnitId; 
 
 AudioUnit::AudioUnit(AudioUnitType type, bool needsAudioOutputs) : _type(type), _uniqueId(uniqueIdCounter++), _haveAudioOutputs(needsAudioOutputs) {
@@ -64,5 +64,30 @@ Status AudioUnit::setParameter(const FlatEvents::FlatControl &ev, FlatEvents::Fl
     resp.setParameter.value = ev.setParameter.value;
     return Status::Ok;
 }
+
+Status AudioUnit::toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    AudioUnit *u = ev.toggleMidiThru.unit;
+    u->_midiThru = ev.toggleMidiThru.newState;
+
+    resp.type = FlatEvents::FlatResponse::Type::ToggleMidiThru;
+    resp.status = Status::Ok;
+    resp.commandId = ev.commandId;
+    resp.toggleMidiThru.unit = u;
+    resp.toggleMidiThru.newState = ev.toggleMidiThru.newState;
+    return Status::Ok;
+}
+
+Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    AudioUnit *u = ev.toggleOmniHwInput.unit;
+    u->_omniHwInput = ev.toggleOmniHwInput.newState;
+
+    resp.type = FlatEvents::FlatResponse::Type::ToggleOmniHwInput;
+    resp.status = Status::Ok;
+    resp.commandId = ev.commandId;
+    resp.toggleOmniHwInput.unit = u;
+    resp.toggleOmniHwInput.newState = ev.toggleOmniHwInput.newState;
+    return Status::Ok;
+}
+
 
 }

@@ -20,9 +20,15 @@ struct DropDown : public BaseWidget {
     void setTextColor(lv_color_t &color);
     void setTextFont(const lv_font_t *font);
     void selectedCallback(std::function<void(const std::string)> clb);
-
-    Button * button() const { return _btn; }
     const std::string selectedItem() const { return _btn->text(); }
+
+    void enableButton() { _btn->enable(); }
+    void disableButton() { _btn->disable(); }
+    bool isButtonDisabled() const { return _btn->isDisabled(); }
+    Button * button() const { return _btn; }
+    
+    void setSize(lv_coord_t w, lv_coord_t h) override;
+    void setPos(lv_coord_t x, lv_coord_t y) override;
 
     private:
     Button * _btn;

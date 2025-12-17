@@ -47,6 +47,9 @@ class AudioUnit {
     RT_FUNC virtual frame_t latency() { return 0; }
 
     RT_FUNC static Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+
+    RT_FUNC static Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
     struct UnitOutput {
         AudioBuffer * ptr;
@@ -62,6 +65,7 @@ class AudioUnit {
     void clearMidiBuffer() { _midiQueue.clear(); }
     std::vector<MidiEvent> * midiOutputs() { return &_midiQueue; }
     const bool isMidiThru() const { return _midiThru; }
+    const bool isOmniHwInput() const { return _omniHwInput; }
     
     // [[deprecated("FOR TEST PURPOSE ONLY")]]
     // void setMidiThru(bool newState) { _midiThru = newState; } //for test purposes, use events instead
@@ -105,6 +109,7 @@ class AudioUnit {
     AudioBuffer * _outputs;
 
     bool _midiThru;
+    bool _omniHwInput; //unit will gather all available midi inputs event if there is no route for that
     std::vector<MidiEvent> _midiQueue;
     //spsc queue midi
     //spsc queue control

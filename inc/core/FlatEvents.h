@@ -30,6 +30,8 @@ struct FlatControl {
 		LoopPosition,
 		UpdateMidiMaps,
 		SetParameter,
+		ToggleMidiThru,
+		ToggleOmniHwInput,
 		RecordArm,
 		ReinitTrackRecord,
 		AppendItem,
@@ -47,6 +49,8 @@ struct FlatControl {
 		FlatControls::LoopPosition loopPosition;
 		FlatControls::UpdateMidiMaps updateMidiMaps;
 		FlatControls::SetParameter setParameter;
+		FlatControls::ToggleMidiThru toggleMidiThru;
+		FlatControls::ToggleOmniHwInput toggleOmniHwInput;
 		FlatControls::RecordArm recordArm;
 		FlatControls::ReinitTrackRecord reinitTrackRecord;
 		FlatControls::AppendItem appendItem;
@@ -65,6 +69,8 @@ struct FlatResponse {
 		LoopPosition,
 		UpdateMidiMaps,
 		SetParameter,
+		ToggleMidiThru,
+		ToggleOmniHwInput,
 		RecordArm,
 		DumpRecordedAudio,
 		ReinitTrackRecord,
@@ -84,6 +90,8 @@ struct FlatResponse {
 		FlatResponses::LoopPosition loopPosition;
 		FlatResponses::UpdateMidiMaps updateMidiMaps;
 		FlatResponses::SetParameter setParameter;
+		FlatResponses::ToggleMidiThru toggleMidiThru;
+		FlatResponses::ToggleOmniHwInput toggleOmniHwInput;
 		FlatResponses::RecordArm recordArm;
 		FlatResponses::DumpRecordedAudio dumpRecordedAudio;
 		FlatResponses::ReinitTrackRecord reinitTrackRecord;

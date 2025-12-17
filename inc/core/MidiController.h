@@ -115,8 +115,8 @@ struct RtMidiQueue {
 };
 
 struct RtMidiOutput {
-    RtMidiOutput(MidiPort *port, ID id) : port(port), id(id) {}
-    ID id;
+    RtMidiOutput(MidiPort *port, ID id) : id(id), port(port) {}
+    const ID id;
     void sendEvent(const MidiEvent &ev) {
         if(!port->outputOpened()) return;
 

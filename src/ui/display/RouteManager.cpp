@@ -3,6 +3,10 @@
 
 #include "ui/display/RouteManager.h"
 
+#include "ui/display/primitives/Button.h"
+#include "ui/display/primitives/Checkbox.h"
+#include "ui/display/primitives/Label.h"
+#include "ui/display/primitives/DropDown.h"
 #include "ui/display/primitives/UIContext.h"
 #include "ui/display/layoutSizes.h"
 #include "ui/display/defaultColors.h"
@@ -31,29 +35,15 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _text = new Label(this, "Routes for track ...");
     _text->setSize(800, 33);
-    _text->setPos(400, 10);
+    _text->setPos(600, 5);
     _text->setFont(&DEFAULT_FONT);
-    _text->setTextColor(lv_color_hex(0x0f0fff));
+    // _text->setTextColor(lv_color_hex(0x0f0fff));
 
     _btnApply = new Button(this, "Apply");
     _btnApply->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    // _btnApply->setPos(LayoutDef::ROUTE_MANAGER_WIDTH - (LayoutDef::BUTTON_SIZE+20),
-    //                     LayoutDef::ROUTE_MANAGER_HEIGHT - (LayoutDef::BUTTON_SIZE+20));
     _btnApply->setPos(LayoutDef::ROUTE_MANAGER_WIDTH - (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN), 40);
     _btnApply->setCallback([this]() {
         LOG_INFO("Apply routes");
-        
-        // slr::MidiRoute r;
-        // r._sourceType = slr::MidiRoute::Type::EXT;
-        // r._sourceId = 1;
-        // r._sourceChannel = 0;
-        // r._targetType = slr::MidiRoute::Type::INT;
-        // r._targetId = this->_currentUnitId;
-        // r._targetChannel = 0;
-        
-        // slr::Events::AddNewMidiRoute e;
-        // e.route = r;
-        // slr::EmitEvent(e);
         
         this->_uictx->_popManager->disableRouteManager();
     });
@@ -92,6 +82,44 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _audioTab = new AudioTab(this, _currentUnitId);
     _midiTab = new MidiTab(this, _currentUnitId);
+
+    _midiThru = new Checkbox(this);
+    _midiThru->setPos(800, 40);
+    _midiThru->setCallback([this](bool isChecked) {
+        slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
+
+        slr::Events::ToggleMidiThru e = {
+            .targetId = view->id(),
+            .newState = view->isMidiThru() ? false : true
+        };
+        slr::EmitEvent(e);
+    });
+
+    _midiThruText = new Label(this, "Midi Thru");
+    _midiThruText->setSize(200, 40);
+    _midiThruText->setPos(800+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _midiThruText->setFont(&DEFAULT_FONT);
+    
+    _omniHwInput = new Checkbox(this);
+    _omniHwInput->setPos(1200, 40);
+    _omniHwInput->setCallback([this](bool isChecked) {
+        slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(this->_currentUnitId);
+        if(!view) {
+            LOG_ERROR("Failed to find unit view for id %u", this->_currentUnitId);
+            return;
+        }
+
+        slr::Events::ToggleOmniHwInput e = {
+            .targetId = view->id(),
+            .newState = view->isOmniHwInput() ? false : true
+        };
+        slr::EmitEvent(e);
+    });
+
+    _omniHwInputText = new Label(this, "Omni HW Input");
+    _omniHwInputText->setSize(300, 40);
+    _omniHwInputText->setPos(1200+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _omniHwInputText->setFont(&DEFAULT_FONT);
 }
 
 RouteManager::~RouteManager() {
@@ -102,6 +130,11 @@ RouteManager::~RouteManager() {
     delete _btnApply;
     delete _audioTab;
     delete _midiTab;
+
+    delete _midiThru;
+    delete _omniHwInput;
+    delete _midiThruText;
+    delete _omniHwInputText;
 }
 
 void RouteManager::update() {
@@ -112,6 +145,9 @@ void RouteManager::update() {
 
     _audioTab->update();
     _midiTab->update();
+
+    _midiThru->setValue(view->isMidiThru());
+    _omniHwInput->setValue(view->isOmniHwInput());
 }
 
 void RouteManager::forcedClose() {
@@ -177,223 +213,35 @@ RouteManager::AudioTab::~AudioTab() {
 }
 
 void RouteManager::AudioTab::update() {
-    // slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentId);
-
-    //routes where this id is targeting(sending from this id)
-    //receiving from
-    std::vector<slr::AudioRoute> tgts = slr::ProjectView::getProjectView().targetsForId(_currentId);
-    for(std::size_t i=0; i<tgts.size(); ++i) {
-        Route r;
-        slr::AudioRoute &in = tgts.at(i);
-        std::string textDD;
-        if(in._sourceType == slr::AudioRoute::Type::EXT) {
-            textDD = "Driver";
-        } else {
-            slr::AudioUnitView * unit = slr::ProjectView::getProjectView().getUnitById(in._sourceId);
-            textDD = unit->name();
-        }
-
-        int posy = 0;
-        if(i == 0) posy = LayoutDef::ROUTE_LINE_MARGIN;
-        else posy = (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN) * i;
-
-        Button * extint = new Button(this, in._sourceType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
-        extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
-        extint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
-        extint->setFont(&DEFAULT_FONT);
-        r._extint = extint;
-
-        DropDown * drop = new DropDown(this);
-        drop->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-        drop->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posy);
-        drop->setSelected(textDD);
-        drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-        r._dropdown = drop;
-
-        Button * map = new Button(this, "Map");
-        map->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
-        map->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posy);
-        map->setFont(&DEFAULT_FONT);
-        r._channelMap = map;
-
-        Button * addremove = new Button(this, LV_SYMBOL_MINUS);
-        addremove->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
-        addremove->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posy);
-        addremove->setFont(&DEFAULT_FONT);
-        addremove->setCallback([this]() {
-            LOG_INFO("add Remove Route event");
-        });
-        r._addRemoveButton = addremove;
-
-        _inputs.push_back(r);
-    }
-
-    //routes where this id is source(receiving from this id)
-    //sending to
-    std::vector<slr::AudioRoute> srcs = slr::ProjectView::getProjectView().sourcesForId(_currentId);
-    for(std::size_t i=0; i<srcs.size(); ++i) {
-        Route r;
-        slr::AudioRoute & out = srcs.at(i);
-        std::string textDD;
-
-        if(out._targetType == slr::AudioRoute::Type::EXT) {
-            textDD = "Driver";
-        } else {
-            slr::AudioUnitView * au = slr::ProjectView::getProjectView().getUnitById(srcs.at(i)._targetId);// -> mixer
-            textDD = au->name();
-        }
-
-        int posy = 0;
-        if(i == 0) posy = LayoutDef::ROUTE_LINE_MARGIN;
-        else posy = (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN) * i;
-
-        Button * extint = new Button(this, out._targetType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
-        extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
-        extint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posy);
-        extint->setFont(&DEFAULT_FONT);
-        r._extint = extint;
-
-        DropDown * drop = new DropDown(this);
-        drop->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-        drop->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posy);
-        drop->setSelected(textDD);
-        drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-        r._dropdown = drop;
-
-        Button * map = new Button(this, "Map");
-        map->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
-        map->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posy);
-        map->setFont(&DEFAULT_FONT);
-        r._channelMap = map;
-
-        Button * addremove = new Button(this, LV_SYMBOL_MINUS);
-        addremove->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
-        addremove->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posy);
-        addremove->setFont(&DEFAULT_FONT);
-        r._addRemoveButton = addremove;
-
-        _outputs.push_back(r);
-    }
-
-    // std::vector<slr::AudioUnitView> allunits = slr::ProjectView::getProjectView().allUnits();
+    const std::vector<slr::AudioRoute> routes = slr::ProjectView::getProjectView().audioRoutes();
     
-    //new input controls3
-    std::size_t size = _inputs.size();
-    int posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size);
+    for(const slr::AudioRoute &r : routes) {
+        if(r._sourceId != _currentId && r._targetId != _currentId) continue;
 
-    slr::DriverView *dri = slr::DriverView::driverView();
-    std::vector<std::string> items;
-    items.push_back(std::string("Mono Left"));
-    items.push_back(std::string("Mono Right"));
-    items.push_back(std::string("Stereo"));
-    
-    Button * nexiint = new Button(this, "EXT");
-    nexiint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
-    nexiint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
-    nexiint->setFont(&DEFAULT_FONT);
-    nexiint->setCallback([this]() {
-        std::string text = this->_nextInput._extint->text();
-        if(text.compare("EXT") == 0) {
-            this->_nextInput._extint->setText("INT");
-            //fill drop
-            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
-            std::vector<std::string> names;
-            for(auto u : list) {
-                names.push_back(u->name());
-            }
-            this->_nextInput._dropdown->setItems(names);
-        } else {
-            this->_nextInput._extint->setText("EXT");
-            std::vector<std::string> items;
-            items.push_back(std::string("Mono Left"));
-            items.push_back(std::string("Mono Right"));
-            items.push_back(std::string("Stereo"));
-            this->_nextInput._dropdown->setItems(items);
+        if(r._targetId == _currentId && r._targetType == slr::AudioRoute::Type::INT) {
+            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
+                        (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                        (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+            addAsInput(false, r, posy);
+        } else if(r._sourceId == _currentId && r._sourceType == slr::AudioRoute::Type::INT) {
+            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
+                        (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
+                        (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+            
+            addAsOutput(false, r, posy);
         }
-    });
-    
-    DropDown * ndd = new DropDown(this);
-    ndd->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posy);
-    ndd->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-    ndd->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-    ndd->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-    ndd->setItems(items);
+    }   //(gdb) p parent->spec_attr->child_cnt
 
-    Button * nmap = new Button(this, "MAP");
-    nmap->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posy);
-    nmap->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
-    nmap->setFont(&DEFAULT_FONT);
+    int posy = LayoutDef::ROUTE_LINE_MARGIN + 
+                (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+    slr::AudioRoute dummy;
+    addAsInput(true, dummy, posy);
 
-    Button * nadd = new Button(this, LV_SYMBOL_PLUS);
-    nadd->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posy);
-    nadd->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
-    nadd->setFont(&DEFAULT_FONT);
-    nadd->setCallback([this]() {
-        this->newRoute(true);
-        //update here? or... where?
-    });
-
-    _nextInput._extint = nexiint;
-    _nextInput._dropdown = ndd;
-    _nextInput._channelMap = nmap;
-    _nextInput._addRemoveButton = nadd;
-
-    //new output
-    size = _outputs.size();
-    posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size);
-
-    Button * oexiint = new Button(this, "EXT");
-    oexiint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posy);
-    oexiint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
-    oexiint->setFont(&DEFAULT_FONT);
-    oexiint->setCallback([this]() {
-        std::string text = this->_nextOutput._extint->text();
-        if(text.compare("EXT") == 0) {
-            this->_nextOutput._extint->setText("INT");
-            //fill drop
-            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
-            std::vector<std::string> names;
-            for(auto u : list) {
-                names.push_back(u->name());
-            }
-            this->_nextOutput._dropdown->setItems(names);
-        } else {
-            this->_nextOutput._extint->setText("EXT");
-            std::vector<std::string> items;
-            items.push_back(std::string("Mono Left"));
-            items.push_back(std::string("Mono Right"));
-            items.push_back(std::string("Stereo"));
-            this->_nextOutput._dropdown->setItems(items);
-        }
-    });
-
-    DropDown * odd = new DropDown(this);
-    odd->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posy);
-    odd->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-    odd->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-    odd->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-    odd->setItems(items);
-
-    
-    Button * omap = new Button(this, "MAP");
-    omap->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posy);
-    omap->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
-    omap->setFont(&DEFAULT_FONT);
-
-    Button * oadd = new Button(this, LV_SYMBOL_PLUS);
-    oadd->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posy);
-    oadd->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
-    oadd->setFont(&DEFAULT_FONT);
-    oadd->setCallback([this]() {
-        this->newRoute(false);
-        //update here? or... where?
-    });
-
-    _nextOutput._extint = oexiint;
-    _nextOutput._dropdown = odd;
-    _nextOutput._channelMap = omap;
-    _nextOutput._addRemoveButton = oadd;
-
+    posy = LayoutDef::ROUTE_LINE_MARGIN + 
+            (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
+            (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+    addAsOutput(true, dummy, posy);
 }
 
 void RouteManager::AudioTab::forcedClose() {
@@ -442,6 +290,181 @@ void RouteManager::AudioTab::forcedClose() {
     _nextOutput._dropdown = nullptr;
     _nextOutput._channelMap = nullptr;
     _nextOutput._addRemoveButton = nullptr;
+}
+
+void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, const int posY) {
+    Route r;
+
+    Button * extint = nullptr;
+    if(isNew) 
+        extint = new Button(this, "EXT");
+    else 
+        extint = new Button(this, in._sourceType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
+    extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
+    extint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posY);
+    extint->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        extint->setCallback([this]() {
+            std::string text = this->_nextInput._extint->text();
+            if(text.compare("EXT") == 0) {
+                this->_nextInput._extint->setText("INT");
+                //fill drop
+                std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+                //sort out self
+                if(auto it = std::find_if(list.begin(), list.end(), [cmpid = this->_currentId](const slr::AudioUnitView *u) {
+                    return u->id() == cmpid;
+                }); it != list.end()) {
+                    list.erase(it);
+                }
+                std::vector<std::string> names;
+                for(auto u : list) {
+                    names.push_back(u->name());
+                }
+                this->_nextInput._dropdown->setItems(names);
+            } else {
+                this->_nextInput._extint->setText("EXT");
+                std::vector<std::string> items;
+                items.push_back(std::string("Mono Left"));
+                items.push_back(std::string("Mono Right"));
+                items.push_back(std::string("Stereo"));
+                this->_nextInput._dropdown->setItems(items);
+            }
+        });
+    }
+    r._extint = extint;
+
+    
+    DropDown * drop = new DropDown(this);
+    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
+    drop->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H); 
+    if(isNew) {
+        // slr::DriverView *dri = slr::DriverView::driverView(); -> fetch driver name
+        std::vector<std::string> items;
+        items.push_back(std::string("Mono Left"));
+        items.push_back(std::string("Mono Right"));
+        items.push_back(std::string("Stereo"));
+        drop->setItems(items);
+    } else {
+        std::string tmptext;
+        if(in._sourceType == slr::AudioRoute::Type::EXT) {
+            tmptext = "Audio Driver";
+        } else {
+            slr::AudioUnitView * au = slr::ProjectView::getProjectView().getUnitById(in._sourceId);
+            tmptext = au->name();
+        }
+
+        drop->setSelected(tmptext);
+        drop->disableButton();
+    }
+    r._dropdown = drop;
+
+    Button * map = new Button(this, "MAP");
+    map->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posY);
+    map->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
+    map->setFont(&DEFAULT_FONT);
+    r._channelMap = map;
+
+    Button * addremove = new Button(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
+    addremove->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posY);
+    addremove->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
+    addremove->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        addremove->setCallback([this]() {
+            this->newRoute(true);
+            //update here? or... where?
+        });
+    }
+    r._addRemoveButton = addremove;
+
+    if(isNew) _nextInput = r;
+    else _inputs.push_back(r);
+}
+
+void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out, const int posY) {
+    Route r;
+
+    Button *extint = nullptr;
+    if(isNew) 
+        extint = new Button(this, "EXT");
+    else 
+        extint = new Button(this, out._targetType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
+    extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
+    extint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posY);
+    extint->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        extint->setCallback([this]() {
+            std::string text = this->_nextOutput._extint->text();
+            if(text.compare("EXT") == 0) {
+                this->_nextOutput._extint->setText("INT");
+                //fill drop
+                std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+                if(auto it = std::find_if(list.begin(), list.end(), [cmpid = this->_currentId](const slr::AudioUnitView *u) {
+                    return u->id() == cmpid;
+                }); it != list.end()) {
+                    list.erase(it);
+                }
+                std::vector<std::string> names;
+                for(auto u : list) {
+                    names.push_back(u->name());
+                }
+                this->_nextOutput._dropdown->setItems(names);
+            } else {
+                this->_nextOutput._extint->setText("EXT");
+                std::vector<std::string> items;
+                items.push_back(std::string("Mono Left"));
+                items.push_back(std::string("Mono Right"));
+                items.push_back(std::string("Stereo"));
+                this->_nextOutput._dropdown->setItems(items);
+            }
+        }); 
+    }
+    r._extint = extint;
+
+    DropDown * drop = new DropDown(this);
+    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
+    drop->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
+    
+    if(isNew) {
+        // slr::DriverView *dri = slr::DriverView::driverView(); -> fetch driver name
+        std::vector<std::string> items;
+        items.push_back(std::string("Mono Left"));
+        items.push_back(std::string("Mono Right"));
+        items.push_back(std::string("Stereo"));
+        drop->setItems(items);
+    } else {
+        std::string tmptext;
+
+        if(out._targetType == slr::AudioRoute::Type::EXT) {
+            tmptext = "Driver";
+        } else {
+            slr::AudioUnitView * au = slr::ProjectView::getProjectView().getUnitById(out._targetId);
+            tmptext = au->name();
+        }
+        drop->setSelected(tmptext);
+        drop->disableButton();
+    }
+    r._dropdown = drop;
+
+    Button * map = new Button(this, "Map");
+    map->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
+    map->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posY);
+    map->setFont(&DEFAULT_FONT);
+    r._channelMap = map;
+
+    Button * addremove = new Button(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
+    addremove->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
+    addremove->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posY);
+    addremove->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        addremove->setCallback([this]() {
+            this->newRoute(false);
+            //update here? or... where?
+        });
+    }
+    r._addRemoveButton = addremove;
+    
+    if(isNew) _nextOutput = r;
+    else _outputs.push_back(r);
 }
 
 void RouteManager::AudioTab::newRoute(bool isInput) {
@@ -574,243 +597,33 @@ RouteManager::MidiTab::~MidiTab() {
 }
 
 void RouteManager::MidiTab::update() {
-
-    const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
-    //inputs
-    int posy = LayoutDef::ROUTE_LINE_MARGIN;
-    const std::vector<slr::MidiRoute> tgts = slr::ProjectView::getProjectView().midiTargetsForId(_currentId);
-    for(std::size_t i=0; i<tgts.size(); ++i) {
-        Route r;
-        const slr::MidiRoute &in = tgts.at(i);
-        std::string tmptext;
-        if(in._sourceType == slr::MidiRoute::Type::EXT) {
-            for(auto &p : activePorts) {
-                if(!p->isOpened()) continue;
-                if(p->id() == in._sourceId && p->inputOpened()) {
-                    tmptext = p->_ownerSubdev->_inputName;
-                    break;
-                }
-            }
-
-        } else {
-            slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(in._sourceId);
-            tmptext = view->name();
+    const std::vector<slr::MidiRoute> & routes = slr::ProjectView::getProjectView().midiRoutes();
+    for(const slr::MidiRoute &r : routes) {
+        if(r._sourceId != _currentId && r._targetId != _currentId) continue;
+        
+         if(r._targetId == _currentId && r._targetType == slr::MidiRoute::Type::INT) {
+            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
+                        (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                        (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+            addAsInput(false, r, posy);
+        } else if(r._sourceId == _currentId && r._sourceType == slr::MidiRoute::Type::INT) {
+            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
+                        (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
+                        (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+            addAsOutput(false, r, posy);
         }
-
-        Button * extint = new Button(this, in._sourceType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
-        extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
-        extint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
-        extint->setFont(&DEFAULT_FONT);
-        r._extint = extint;
-
-        DropDown * drop = new DropDown(this);
-        drop->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-        drop->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posy);
-        drop->setSelected(tmptext);
-        drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-        r._dropdown = drop;
-
-        Button * map = new Button(this, "Map");
-        map->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
-        map->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posy);
-        map->setFont(&DEFAULT_FONT);
-        r._channelMap = map;
-
-        Button * addremove = new Button(this, LV_SYMBOL_MINUS);
-        addremove->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
-        addremove->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posy);
-        addremove->setFont(&DEFAULT_FONT);
-        addremove->setCallback([this]() {
-            LOG_INFO("add Remove Midi Route event");
-        });
-        r._addRemoveButton = addremove;
-
-        posy += (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN);
-        _inputs.push_back(r);
     }
-
-    //outputs
-    posy = LayoutDef::ROUTE_LINE_MARGIN;
-    const std::vector<slr::MidiRoute> srcs = slr::ProjectView::getProjectView().midiSourcesForId(_currentId);
-    for(std::size_t i=0; i<srcs.size(); ++i) {
-        Route r;
-        const slr::MidiRoute &out = srcs.at(i);
-        std::string tmptext;
-        if(out._targetType == slr::MidiRoute::Type::EXT) {
-            for(auto &p : activePorts) {
-                if(!p->isOpened()) continue;
-                if(p->id() == out._targetId && p->outputOpened()) {
-                    tmptext = p->_ownerSubdev->_outputName;
-                    break;
-                }
-            }
-
-        } else {
-            slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(out._targetId);
-            tmptext = view->name();
-        }
-
-        Button * extint = new Button(this, out._targetType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
-        extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
-        extint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posy);
-        extint->setFont(&DEFAULT_FONT);
-        r._extint = extint;
-
-        DropDown * drop = new DropDown(this);
-        drop->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-        drop->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posy);
-        drop->setSelected(tmptext);
-        drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-        r._dropdown = drop;
-
-        Button * map = new Button(this, "Map");
-        map->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
-        map->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posy);
-        map->setFont(&DEFAULT_FONT);
-        r._channelMap = map;
-
-        Button * addremove = new Button(this, LV_SYMBOL_MINUS);
-        addremove->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
-        addremove->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posy);
-        addremove->setFont(&DEFAULT_FONT);
-        addremove->setCallback([this]() {
-            LOG_INFO("add Remove Midi Route event");
-        });
-        r._addRemoveButton = addremove;
-
-        posy += (LayoutDef::ROUTE_LINE_HEIGHT+LayoutDef::ROUTE_LINE_MARGIN);
-        _outputs.push_back(r);
-    }
-
-    //new input ones
-    std::size_t size = _inputs.size();
-    posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size) + LayoutDef::ROUTE_LINE_MARGIN;
     
-    Button * nexiint = new Button(this, "EXT");
-    nexiint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posy);
-    nexiint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
-    nexiint->setFont(&DEFAULT_FONT);
-    nexiint->setCallback([this]() {
-        std::string text = this->_nextInput._extint->text();
-        if(text.compare("EXT") == 0) {
-            this->_nextInput._extint->setText("INT");
-            //fill drop
-            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
-            std::vector<std::string> names;
-            for(auto u : list) {
-                names.push_back(u->name());
-            }
-            this->_nextInput._dropdown->setItems(names);
-        } else {
-            this->_nextInput._extint->setText("EXT");
-            std::vector<std::string> items;
-            const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
-            for(auto &p : activePorts) {
-                if(p->inputOpened())
-                    items.push_back(p->_ownerSubdev->_inputName);
-            }
-            
-            this->_nextInput._dropdown->setItems(items);
-        }
-    });
-    
-    std::vector<std::string> items;
-    for(auto &p : activePorts) {
-        if(p->inputOpened())
-            items.push_back(p->_ownerSubdev->_inputName);
-    }
+    int posy = LayoutDef::ROUTE_LINE_MARGIN + 
+                (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+    slr::MidiRoute dummy;
+    addAsInput(true, dummy, posy);
 
-    DropDown * ndd = new DropDown(this);
-    ndd->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posy);
-    ndd->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-    ndd->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-    ndd->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-    ndd->setItems(items);
-
-    Button * nmap = new Button(this, "MAP");
-    nmap->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posy);
-    nmap->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
-    nmap->setFont(&DEFAULT_FONT);
-
-    Button * nadd = new Button(this, LV_SYMBOL_PLUS);
-    nadd->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posy);
-    nadd->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
-    nadd->setFont(&DEFAULT_FONT);
-    nadd->setCallback([this]() {
-        this->newRoute(true);
-        //update here? or... where?
-    });
-
-    _nextInput._extint = nexiint;
-    _nextInput._dropdown = ndd;
-    _nextInput._channelMap = nmap;
-    _nextInput._addRemoveButton = nadd;
-
-    //new output
-    size = _outputs.size();
-    posy = (LayoutDef::ROUTE_LINE_HEIGHT*size)+(LayoutDef::ROUTE_LINE_MARGIN*size) + LayoutDef::ROUTE_LINE_MARGIN;
-
-    Button * oexiint = new Button(this, "EXT");
-    oexiint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posy);
-    oexiint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
-    oexiint->setFont(&DEFAULT_FONT);
-    oexiint->setCallback([this]() {
-        std::string text = this->_nextOutput._extint->text();
-        if(text.compare("EXT") == 0) {
-            this->_nextOutput._extint->setText("INT");
-            //fill drop
-            std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
-            std::vector<std::string> names;
-            for(auto u : list) {
-                names.push_back(u->name());
-            }
-            this->_nextOutput._dropdown->setItems(names);
-        } else {
-            this->_nextOutput._extint->setText("EXT");
-            std::vector<std::string> items;
-            const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
-            for(auto &p : activePorts) {
-                if(p->outputOpened())
-                    items.push_back(p->_ownerSubdev->_outputName);
-            }
-            this->_nextOutput._dropdown->setItems(items);
-        }
-    });
-
-
-    items.clear();
-    for(auto &p : activePorts) {
-        if(p->outputOpened())
-            items.push_back(p->_ownerSubdev->_outputName);
-    }
-
-    DropDown * odd = new DropDown(this);
-    odd->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posy);
-    odd->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-    odd->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+LayoutDef::ROUTE_LINE_HEIGHT+posy);
-    odd->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-    odd->setItems(items);
-
-    
-    Button * omap = new Button(this, "MAP");
-    omap->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posy);
-    omap->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
-    omap->setFont(&DEFAULT_FONT);
-
-    Button * oadd = new Button(this, LV_SYMBOL_PLUS);
-    oadd->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posy);
-    oadd->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
-    oadd->setFont(&DEFAULT_FONT);
-    oadd->setCallback([this]() {
-        this->newRoute(false);
-        //update here? or... where?
-    });
-
-    _nextOutput._extint = oexiint;
-    _nextOutput._dropdown = odd;
-    _nextOutput._channelMap = omap;
-    _nextOutput._addRemoveButton = oadd;
-
+    posy = LayoutDef::ROUTE_LINE_MARGIN + 
+            (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
+            (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+    addAsOutput(true, dummy, posy);
 }
 
 void RouteManager::MidiTab::forcedClose() {
@@ -855,6 +668,219 @@ void RouteManager::MidiTab::forcedClose() {
     _nextOutput._channelMap = nullptr;
     _nextOutput._dropdown = nullptr;
     _nextOutput._extint = nullptr;
+}
+
+void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, const int posY) {
+    Route r;
+
+    Button * extint = nullptr;
+    if(isNew) 
+        extint = new Button(this, "EXT");
+    else 
+        extint = new Button(this, in._sourceType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
+
+    extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
+    extint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posY);
+    extint->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        extint->setCallback([this]() {
+            std::string text = this->_nextInput._extint->text();
+            if(text.compare("EXT") == 0) {
+                this->_nextInput._extint->setText("INT");
+                //fill drop
+                std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+                //remove self
+                if(auto it = std::find_if(list.begin(), list.end(), [cmpid = this->_currentId](const slr::AudioUnitView * u) {
+                    return u->id() == cmpid;
+                }); it != list.end()) {
+                    list.erase(it);
+                }
+                std::vector<std::string> names;
+                for(auto u : list) {
+                    names.push_back(u->name());
+                }
+                this->_nextInput._dropdown->setItems(names);
+            } else {
+                this->_nextInput._extint->setText("EXT");
+                std::vector<std::string> items;
+                const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
+                for(auto &p : activePorts) {
+                    if(p->inputOpened())
+                        items.push_back(p->_ownerSubdev->_inputName);
+                }
+                
+                this->_nextInput._dropdown->setItems(items);
+            }
+        });
+    }
+    r._extint = extint;
+
+    DropDown * drop = new DropDown(this);
+    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
+    drop->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
+    if(isNew) {
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
+    
+        std::vector<std::string> items;
+        for(auto &p : activePorts) {
+            if(p->inputOpened())
+                items.push_back(p->_ownerSubdev->_inputName);
+        }
+        drop->setItems(items);
+    } else {
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
+    
+        std::string tmptext = "error";
+        if(in._sourceType == slr::MidiRoute::Type::EXT) {
+            for(auto &p : activePorts) {
+                if(!p->isOpened()) continue;
+                if(p->id() == in._sourceId && p->inputOpened()) {
+                    tmptext = p->_ownerSubdev->_inputName;
+                    break;
+                }
+            }
+        } else {
+            slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(in._sourceId);
+            tmptext = view->name();
+        }
+        drop->setSelected(tmptext);
+        drop->disableButton();
+    }
+    r._dropdown = drop;
+
+    Button * map = new Button(this, "Map");
+    map->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
+    map->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posY);
+    map->setFont(&DEFAULT_FONT);
+    r._channelMap = map;
+
+    Button * addremove  = nullptr;
+    if(isNew)
+        addremove = new Button(this, LV_SYMBOL_PLUS);
+    else 
+        addremove = new Button(this, LV_SYMBOL_MINUS);
+    addremove->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
+    addremove->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posY);
+    addremove->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        addremove->setCallback([this]() {
+            this->newRoute(true);
+        });
+    } else {
+        addremove->setCallback([this]() {
+            LOG_INFO("add Remove Midi Route event");
+        });
+    }
+    r._addRemoveButton = addremove;
+
+    if(isNew) _nextInput = r;
+    else _inputs.push_back(r);
+}
+
+void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, const int posY) {
+    Route r;
+    
+    Button * extint = nullptr;
+    if(isNew) 
+        extint = new Button(this, "EXT");
+    else 
+        extint = new Button(this, out._targetType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
+    extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
+    extint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posY);
+    extint->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        extint->setCallback([this]() {
+            std::string text = this->_nextOutput._extint->text();
+            if(text.compare("EXT") == 0) {
+                this->_nextOutput._extint->setText("INT");
+                //fill drop
+                std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+                if(auto it = std::find_if(list.begin(), list.end(), [cmpid = this->_currentId](const slr::AudioUnitView *u) {
+                    return u->id() == cmpid;
+                }); it != list.end()) {
+                    list.erase(it);
+                }
+                std::vector<std::string> names;
+                for(auto u : list) {
+                    names.push_back(u->name());
+                }
+                this->_nextOutput._dropdown->setItems(names);
+            } else {
+                this->_nextOutput._extint->setText("EXT");
+                std::vector<std::string> items;
+                const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
+                for(auto &p : activePorts) {
+                    if(p->outputOpened())
+                        items.push_back(p->_ownerSubdev->_outputName);
+                }
+                this->_nextOutput._dropdown->setItems(items);
+            }
+        });
+    }
+    r._extint = extint;
+
+    DropDown * drop = new DropDown(this);
+    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
+    drop->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
+    if(isNew) {
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
+    
+        std::vector<std::string> items;
+        for(auto &p : activePorts) {
+            if(p->outputOpened())
+                items.push_back(p->_ownerSubdev->_outputName);
+        }
+        drop->setItems(items);
+    } else {
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();  
+        
+        std::string tmptext = "error";
+        if(out._targetType == slr::MidiRoute::Type::EXT) {
+            for(auto &p : activePorts) {
+                if(!p->isOpened()) continue;
+                if(p->id() == out._targetId && p->outputOpened()) {
+                    tmptext = p->_ownerSubdev->_outputName;
+                    break;
+                }
+            }
+
+        } else {
+            slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(out._targetId);
+            tmptext = view->name();
+        }
+        drop->setSelected(tmptext);
+        drop->disableButton();
+    }
+    r._dropdown = drop;
+
+    Button * map = new Button(this, "Map");
+    map->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
+    map->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posY);
+    map->setFont(&DEFAULT_FONT);
+    r._channelMap = map;
+
+    Button * addremove = nullptr;
+    if(isNew) 
+        addremove = new Button(this, LV_SYMBOL_PLUS);
+    else 
+        addremove = new Button(this, LV_SYMBOL_MINUS);
+    addremove->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
+    addremove->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posY);
+    addremove->setFont(&DEFAULT_FONT);
+    if(isNew) {
+        addremove->setCallback([this]() {
+            this->newRoute(false);
+            //update here? or... where?
+        });
+    } else {
+        addremove->setCallback([this]() {
+            LOG_INFO("add Remove Midi Route event");
+        });
+    }
+    r._addRemoveButton = addremove;
+
+    if(isNew) _nextOutput = r;
+    else _outputs.push_back(r);
 }
 
 void RouteManager::MidiTab::newRoute(bool isInput) {

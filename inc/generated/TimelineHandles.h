@@ -1,14 +1,14 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/ControlEngine.h"
-#include "ui/uiControls.h"
-#include "defines.h"
+#include "core/Project.h"
 #include "core/FlatEvents.h"
+#include "core/ControlEngine.h"
 #include "core/Timeline.h"
 #include "snapshots/TimelineView.h"
-#include "logger.h"
-#include "core/Project.h"
+#include "ui/uiControls.h"
+#include "defines.h"
 #include "Status.h"
+#include "logger.h"
 #include "snapshots/ProjectView.h"
 #include "core/primitives/ControlContext.h"
 

@@ -27,7 +27,13 @@ class Button : public BaseWidget {
     void setTouchDownCallback(std::function<void()> onTouchDown);
     void setTouchUpCallback(std::function<void()> onTouchUp);
 
+    void disable() { _disabled = true; }
+    void enable() { _disabled = false; }
+    bool isDisabled() const { return _disabled; }
+
     private:
+    bool _disabled;
+
     lv_obj_t * _parent;
     lv_obj_t * _btn;
     lv_obj_t * _label;

@@ -37,6 +37,20 @@ DropDown::~DropDown() {
     }
 }
 
+void DropDown::setSize(lv_coord_t w, lv_coord_t h) {
+    _btn->setSize(w, h);
+
+    lv_obj_set_size(_lvhost, w, h); 
+}
+
+void DropDown::setPos(lv_coord_t x, lv_coord_t y) {
+    _btn->setPos(x, y);
+
+    int height = lv_font_get_line_height(_textFont);
+    height = height + (height/2);
+    lv_obj_set_pos(_lvhost, x, y+height);
+}
+
 void DropDown::setItems(std::vector<std::string> &items) {
     if(_items.size() != 0) {
         for(lv_obj_t * l : _items) {
@@ -67,7 +81,8 @@ void DropDown::setItems(std::vector<std::string> &items) {
     int width = this->width();
 
     int hostHeight = height*size;
-    setSize(width, hostHeight);
+    // setSize(width, hostHeight);
+    lv_obj_set_size(_lvhost, width, hostHeight);
 
     for(std::size_t i=0; i<size; ++i) {
         lv_obj_t *l = lv_label_create(lvhost());
