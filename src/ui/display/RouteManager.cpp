@@ -285,9 +285,7 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
 
     
     DropDown * drop = new DropDown(this);
-    // drop->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-    // drop->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
-    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y/*+LayoutDef::ROUTE_LINE_HEIGHT*/+posY);
+    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
     drop->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H); 
     if(isNew) {
         // slr::DriverView *dri = slr::DriverView::driverView(); -> fetch driver name
@@ -373,9 +371,7 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
     r._extint = extint;
 
     DropDown * drop = new DropDown(this);
-    // drop->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
-    // drop->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y/*+LayoutDef::ROUTE_LINE_HEIGHT*/+posY);
+    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
     drop->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
     
     if(isNew) {
@@ -670,9 +666,7 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
     r._extint = extint;
 
     DropDown * drop = new DropDown(this);
-    // drop->button()->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
-    // drop->button()->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
-    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y/*+LayoutDef::ROUTE_LINE_HEIGHT*/+posY);
+    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
     drop->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
     if(isNew) {
         const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
@@ -776,9 +770,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
     r._extint = extint;
 
     DropDown * drop = new DropDown(this);
-    // drop->button()->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
-    // drop->button()->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
-    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y/*+LayoutDef::ROUTE_LINE_HEIGHT*/+posY);
+    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
     drop->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
     if(isNew) {
         const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
