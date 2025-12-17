@@ -321,6 +321,7 @@ MidiPort::~MidiPort() {
 
 constexpr int MIDI_RAW_INPUT_SIZE = 128;
 
+/* inspired and Big Thanks to LMMS*/
 void MidiPort::inputHandle(MidiPort *port) {
     unsigned char buf[MIDI_RAW_INPUT_SIZE];
   
@@ -617,6 +618,7 @@ int expectedLength(const MidiEventType &type) {
 //     snd_rawmidi_write(_outputHandle, &c, sizeof(c));
 // }
 //writing stuff
+/*
 void MidiPort::writeHandle(MidiPort *port) {
 
     port->_runOutput = true;
@@ -643,6 +645,7 @@ void MidiPort::writeHandle(MidiPort *port) {
     port->_efd = efd;
     port->_outputOpened = true;
 
+    //this eats all the cpu somehow
     while(port->_runOutput) {
         int err = poll(pfds, npfds, -1); 
 
@@ -669,7 +672,7 @@ void MidiPort::writeHandle(MidiPort *port) {
             while(queue->pop(ev)) {
                 //TODO: assume that all outcomming events have size of 3
                 uint8_t msg[3];
-                msg[0] = static_cast<uint8_t>(ev.type) | (ev.channel & 0x0F); // статус + канал
+                msg[0] = static_cast<uint8_t>(ev.type) | (ev.channel & 0x0F); // status + channel
                 msg[1] = static_cast<uint8_t>(ev.note & 0x7F);                // note number
                 msg[2] = static_cast<uint8_t>(ev.velocity & 0x7F);            // velocity
 
@@ -704,5 +707,95 @@ void MidiPort::writeHandle(MidiPort *port) {
     close(efd);
     delete pfds;
 }
+*/
+
+/* some LLM stuff, need testing */
+void MidiPort::writeHandle(MidiPort *port)
+{
+    snd_rawmidi_t *out = port->_outputHandle;
+    auto *queue = port->outQueue();
+
+    snd_rawmidi_nonblock(out, 1);
+
+    int alsa_fds = snd_rawmidi_poll_descriptors_count(out);
+    pollfd *alsa_pfds = new pollfd[alsa_fds];
+    snd_rawmidi_poll_descriptors(out, alsa_pfds, alsa_fds);
+
+    int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+
+    pollfd idle_pfd{};
+    idle_pfd.fd = efd;
+    idle_pfd.events = POLLIN;
+
+    pollfd *write_pfds = new pollfd[alsa_fds + 1];
+    for (int i = 0; i < alsa_fds; ++i)
+        write_pfds[i] = alsa_pfds[i];
+
+    write_pfds[alsa_fds].fd = efd;
+    write_pfds[alsa_fds].events = POLLIN;
+
+    uint8_t buffer[256];
+    size_t buf_used = 0;
+
+    port->_efd = efd;
+    port->_outputOpened = true;
+    port->_runOutput = true;
+
+    while(port->_runOutput) {
+
+        if(buf_used == 0 && queue->empty()) {
+            idle_pfd.revents = 0;
+            poll(&idle_pfd, 1, -1);
+
+            if(idle_pfd.revents & POLLIN) {
+                uint64_t v;
+                read(efd, &v, sizeof(v));
+            }
+            continue;
+        }
+
+        while(buf_used + 3 <= sizeof(buffer)) {
+            MidiEvent ev;
+            if(!queue->pop(ev))
+                break;
+
+            buffer[buf_used + 0] = static_cast<uint8_t>(ev.type) | (ev.channel & 0x0F);
+            buffer[buf_used + 1] = static_cast<uint8_t>(ev.note & 0x7F);
+            buffer[buf_used + 2] = static_cast<uint8_t>(ev.velocity & 0x7F);
+            buf_used += 3;
+        }
+
+        if(buf_used == 0)
+            continue;
+
+        ssize_t r = snd_rawmidi_write(out, buffer, buf_used);
+
+        if(r > 0) {
+            memmove(buffer, buffer + r, buf_used - r);
+            buf_used -= r;
+            continue;
+        }
+
+        if(r == -EAGAIN) {
+            for(int i=0; i<alsa_fds+1; ++i)
+                write_pfds[i].revents = 0;
+
+            poll(write_pfds, alsa_fds + 1, -1);
+
+            if(write_pfds[alsa_fds].revents & POLLIN) {
+                uint64_t v;
+                read(efd, &v, sizeof(v));
+            }
+            continue;
+        }
+
+        break;
+    }
+
+    close(efd);
+    delete[] alsa_pfds;
+    delete[] write_pfds;
+}
+
 
 }
