@@ -1,12 +1,13 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "logger.h"
+#include "core/Project.h"
+#include "inc/ui/uiControls.h"
 #include "core/primitives/AudioUnit.h"  
+#include "core/ControlEngine.h"
 #include "snapshots/ProjectView.h"
 #include "Status.h"
-#include "core/ControlEngine.h"
+#include "logger.h"
 #include "core/primitives/AudioUnit.h"
-#include "core/Project.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -37,6 +38,50 @@ inline void handleSetParameterResponse(const ControlContext &ctx, const FlatEven
     }
 }
 
+inline void handleToggleMidiThruResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
+    if(resp.status == Status::Ok) {
+        LOG_INFO("Midi thru for unit %u is set to %s", 
+                    resp.toggleMidiThru.unit->id(),
+                    (resp.toggleMidiThru.newState ? "true" : "false"));
+
+        const slr::ID id = resp.toggleMidiThru.unit->id();
+        AudioUnitView * view = ctx.projectView->getUnitById(id);
+        if(!view) {
+            LOG_ERROR("Failed to find unit view with id %u", id);
+            return;
+        }
+
+        view->update();
+        UIControls::updateRouteManager();
+    } else {
+        LOG_ERROR("Failed to set midi thru for unit %u to %s",
+                    resp.toggleMidiThru.unit->id(),
+                    (resp.toggleMidiThru.newState ? "true" : "false"));
+    }
+}
+
+inline void handleToggleOmniHwInputResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
+    if(resp.status == Status::Ok) {
+        LOG_INFO("Omni hw input for unit %u is set to %s", 
+                    resp.toggleOmniHwInput.unit->id(),
+                    (resp.toggleOmniHwInput.newState ? "true" : "false"));
+
+        const slr::ID id = resp.toggleOmniHwInput.unit->id();
+        AudioUnitView * view = ctx.projectView->getUnitById(id);
+        if(!view) {
+            LOG_ERROR("Failed to find unit view with id %u", id);
+            return;
+        }
+
+        view->update();
+        UIControls::updateRouteManager();
+    } else {
+        LOG_ERROR("Failed to set midi thru for unit %u to %s",
+                    resp.toggleOmniHwInput.unit->id(),
+                    (resp.toggleOmniHwInput.newState ? "true" : "false"));
+    }
+}
+
 inline void handleEvent(const ControlContext &ctx, const Events::SetParameter &e) {
     LOG_INFO("Set parameter event. Target: %u, parameter: %u, value: %f", 
                     e.targetId, e.parameterId, e.value);
@@ -57,6 +102,42 @@ inline void handleEvent(const ControlContext &ctx, const Events::SetParameter &e
     ctl.setParameter.unit = unit;
     ctl.setParameter.parameterId = e.parameterId;
     ctl.setParameter.value = e.value;
+    ControlEngine::emitRtControl(ctl);
+}
+
+inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiThru &e) {
+    LOG_INFO("Toggling midi thru for unit %u new state %s",
+                e.targetId, (e.newState ? "true" : "false"));
+
+    AudioUnit *u = ctx.project->getUnitById(e.targetId);
+    if(!u) {
+        LOG_ERROR("Failed to find unit with id %u", e.targetId);
+        return;
+    }
+
+    FlatEvents::FlatControl ctl;
+    ctl.type = FlatEvents::FlatControl::Type::ToggleMidiThru;
+    ctl.commandId = ControlEngine::generateCommandId();
+    ctl.toggleMidiThru.unit = u;
+    ctl.toggleMidiThru.newState = e.newState;
+    ControlEngine::emitRtControl(ctl);
+}
+
+inline void handleEvent(const ControlContext &ctx, const Events::ToggleOmniHwInput &e) {
+    LOG_INFO("Toggling midi thru for unit %u new state %s",
+                e.targetId, (e.newState ? "true" : "false"));
+
+    AudioUnit *u = ctx.project->getUnitById(e.targetId);
+    if(!u) {
+        LOG_ERROR("Failed to find unit with id %u", e.targetId);
+        return;
+    }
+
+    FlatEvents::FlatControl ctl;
+    ctl.type = FlatEvents::FlatControl::Type::ToggleOmniHwInput;
+    ctl.commandId = ControlEngine::generateCommandId();
+    ctl.toggleOmniHwInput.unit = u;
+    ctl.toggleOmniHwInput.newState = e.newState;
     ControlEngine::emitRtControl(ctl);
 }
 

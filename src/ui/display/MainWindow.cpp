@@ -8,6 +8,7 @@
 #include "ui/display/primitives/FileView.h"
 #include "ui/display/primitives/UnitUIBase.h"
 #include "ui/display/primitives/UIContext.h"
+#include "ui/display/primitives/Label.h"
 
 #include "ui/display/GridView.h"
 #include "ui/display/ModuleView.h"

@@ -65,4 +65,29 @@ Status AudioUnit::setParameter(const FlatEvents::FlatControl &ev, FlatEvents::Fl
     return Status::Ok;
 }
 
+Status AudioUnit::toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    AudioUnit *u = ev.toggleMidiThru.unit;
+    u->_midiThru = ev.toggleMidiThru.newState;
+
+    resp.type = FlatEvents::FlatResponse::Type::ToggleMidiThru;
+    resp.status = Status::Ok;
+    resp.commandId = ev.commandId;
+    resp.toggleMidiThru.unit = u;
+    resp.toggleMidiThru.newState = ev.toggleMidiThru.newState;
+    return Status::Ok;
+}
+
+Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    AudioUnit *u = ev.toggleOmniHwInput.unit;
+    u->_omniHwInput = ev.toggleOmniHwInput.newState;
+
+    resp.type = FlatEvents::FlatResponse::Type::ToggleOmniHwInput;
+    resp.status = Status::Ok;
+    resp.commandId = ev.commandId;
+    resp.toggleOmniHwInput.unit = u;
+    resp.toggleOmniHwInput.newState = ev.toggleOmniHwInput.newState;
+    return Status::Ok;
+}
+
+
 }

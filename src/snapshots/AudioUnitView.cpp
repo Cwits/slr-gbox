@@ -44,6 +44,8 @@ void AudioUnitView::update() {
     *_volume = _au->volume();
     *_pan = _au->pan();
     *_mute = _au->mute();
+    _midiThru = _au->isMidiThru();
+    _omniHwInput = _au->isOmniHwInput();
 }
     
 }

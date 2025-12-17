@@ -4,9 +4,6 @@
 #pragma once
 #include "ui/display/primitives/BaseWidget.h"
 #include "ui/display/primitives/Popup.h"
-#include "ui/display/primitives/Label.h"
-#include "ui/display/primitives/Button.h" 
-#include "ui/display/primitives/DropDown.h"
 
 #include "defines.h"
 
@@ -17,7 +14,12 @@ namespace slr {
 }
 
 namespace UI {
+
 class UIContext;
+class Checkbox;
+class Label;
+class Button;
+class DropDown;
 
 struct RouteManager : public Popup {
     RouteManager(BaseWidget * parent, UIContext * const uictx);
@@ -88,6 +90,11 @@ struct RouteManager : public Popup {
     Button * _btnAudioTab;
     Button * _btnMidiTab;
     Button * _btnApply;
+
+    Label * _midiThruText;
+    Checkbox * _midiThru;
+    Label * _omniHwInputText;
+    Checkbox * _omniHwInput;
 
     AudioTab * _audioTab;
     MidiTab * _midiTab;

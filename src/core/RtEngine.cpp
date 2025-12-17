@@ -133,9 +133,9 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
         while(q.queue->pop(midiev)) {
             v->push_back(midiev);
-            //echo
-            if(midiev.type == MidiEventType::NoteOn)
-                out->sendEvent(midiev);
+            //test echo
+            // if(midiev.type == MidiEventType::NoteOn)
+            //     out->sendEvent(midiev);
         }
     }
     

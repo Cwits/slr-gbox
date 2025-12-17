@@ -13,6 +13,14 @@ struct SetParameter {
     ID parameterId;
     float value;
 };
+struct ToggleMidiThru {
+    ID targetId;
+    bool newState;
+};
+struct ToggleOmniHwInput {
+    ID targetId;
+    bool newState;
+};
 
 } //namespace Events
 
@@ -25,6 +33,14 @@ struct SetParameter {
     ID parameterId;
     float value;
 };
+struct ToggleMidiThru {
+    AudioUnit * unit; //-> class AudioUnit;
+    bool newState;
+};
+struct ToggleOmniHwInput {
+    AudioUnit * unit; //-> class AudioUnit;
+    bool newState;
+};
 
 } //namespace FlatControls
 
@@ -34,6 +50,14 @@ struct SetParameter {
     AudioUnit * unit; //-> class AudioUnit;
     ID parameterId;
     float value;
+};
+struct ToggleMidiThru {
+    AudioUnit * unit; //-> class AudioUnit;
+    bool newState;
+};
+struct ToggleOmniHwInput {
+    AudioUnit * unit; //-> class AudioUnit;
+    bool newState;
 };
 
 } //namespace FlatResponses

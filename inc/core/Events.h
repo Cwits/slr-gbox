@@ -31,6 +31,8 @@ using Event = std::variant<
 		LoopPosition,
 		ToggleMidiDevice,
 		SetParameter,
+		ToggleMidiThru,
+		ToggleOmniHwInput,
 		RecordArm,
 		OpenFile,
 		FileOpened,

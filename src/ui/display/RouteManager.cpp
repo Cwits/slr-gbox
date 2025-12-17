@@ -3,6 +3,10 @@
 
 #include "ui/display/RouteManager.h"
 
+#include "ui/display/primitives/Button.h"
+#include "ui/display/primitives/Checkbox.h"
+#include "ui/display/primitives/Label.h"
+#include "ui/display/primitives/DropDown.h"
 #include "ui/display/primitives/UIContext.h"
 #include "ui/display/layoutSizes.h"
 #include "ui/display/defaultColors.h"
@@ -31,9 +35,9 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _text = new Label(this, "Routes for track ...");
     _text->setSize(800, 33);
-    _text->setPos(400, 10);
+    _text->setPos(600, 5);
     _text->setFont(&DEFAULT_FONT);
-    _text->setTextColor(lv_color_hex(0x0f0fff));
+    // _text->setTextColor(lv_color_hex(0x0f0fff));
 
     _btnApply = new Button(this, "Apply");
     _btnApply->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
@@ -78,6 +82,44 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _audioTab = new AudioTab(this, _currentUnitId);
     _midiTab = new MidiTab(this, _currentUnitId);
+
+    _midiThru = new Checkbox(this);
+    _midiThru->setPos(800, 40);
+    _midiThru->setCallback([this](bool isChecked) {
+        slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
+
+        slr::Events::ToggleMidiThru e = {
+            .targetId = view->id(),
+            .newState = view->isMidiThru() ? false : true
+        };
+        slr::EmitEvent(e);
+    });
+
+    _midiThruText = new Label(this, "Midi Thru");
+    _midiThruText->setSize(200, 40);
+    _midiThruText->setPos(800+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _midiThruText->setFont(&DEFAULT_FONT);
+    
+    _omniHwInput = new Checkbox(this);
+    _omniHwInput->setPos(1200, 40);
+    _omniHwInput->setCallback([this](bool isChecked) {
+        slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(this->_currentUnitId);
+        if(!view) {
+            LOG_ERROR("Failed to find unit view for id %u", this->_currentUnitId);
+            return;
+        }
+
+        slr::Events::ToggleOmniHwInput e = {
+            .targetId = view->id(),
+            .newState = view->isOmniHwInput() ? false : true
+        };
+        slr::EmitEvent(e);
+    });
+
+    _omniHwInputText = new Label(this, "Omni HW Input");
+    _omniHwInputText->setSize(300, 40);
+    _omniHwInputText->setPos(1200+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _omniHwInputText->setFont(&DEFAULT_FONT);
 }
 
 RouteManager::~RouteManager() {
@@ -88,6 +130,11 @@ RouteManager::~RouteManager() {
     delete _btnApply;
     delete _audioTab;
     delete _midiTab;
+
+    delete _midiThru;
+    delete _omniHwInput;
+    delete _midiThruText;
+    delete _omniHwInputText;
 }
 
 void RouteManager::update() {
@@ -98,6 +145,9 @@ void RouteManager::update() {
 
     _audioTab->update();
     _midiTab->update();
+
+    _midiThru->setValue(view->isMidiThru());
+    _omniHwInput->setValue(view->isOmniHwInput());
 }
 
 void RouteManager::forcedClose() {
