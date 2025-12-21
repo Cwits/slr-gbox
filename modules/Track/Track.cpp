@@ -191,6 +191,12 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
         }
 
         if(ctx.playing && ctx.recording) {
+            /* 
+            smth like
+            if(_recordTarget->firstAccurance()) {
+                _recordTarget->setFilePosition(ctx.elapsed);
+            }
+            */
             if(_recordSource == RecordSource::Audio) {
                 _recordTarget->writeData(_recInt, ctx.frames, 2, false); //don't compensate
                 _recordTarget->writeData(_recExt, ctx.frames, 2, true); //compensate latency

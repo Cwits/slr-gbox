@@ -224,13 +224,15 @@ bool Browser::handleDrag(GestLib::DragGesture & drag) {
         _dragndrop.append(lb->text());
         // _dragndrop = lb->text();
 
-        DragContext & ctx = _uictx->_dragContext;
+        DragContext & ctx = *_uictx->dragContext();
         ctx.origin = this;
         ctx.startX = drag.x;
         ctx.startY = drag.y;
         ctx.payload.type = DragPayload::DataType::FilePath;
         ctx.payload.filePath.path = &_dragndrop;
         ctx.dragOnGoing = true;
+        ctx.updateIconPos(drag.x, drag.y);
+        ctx.showIcon();
 
         /* 
             TODO: show selector that will allow to select where we want to drag.

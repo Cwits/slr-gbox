@@ -5,7 +5,8 @@
 #include <string>
 #include <cstdio>
 
-const std::string pathToTestFolder = "/home/portablejoe/slr/tests/files/";
+// const std::string pathToTestFolder = "/home/portablejoe/slr/tests/files/";
+const std::string pathToTestFolder = "./../../../tests/testfiles/";
 const std::string configPath = "./../../../config/";
 
 

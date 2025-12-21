@@ -95,16 +95,17 @@ GridGrid::~GridGrid() {
 }
 
 bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
+    DragContext & ctx = *_uictx->dragContext();
     if(drag.state == GestLib::GestureState::Start) {
 
     } else if(drag.state == GestLib::GestureState::Move) {
-        
+        if(ctx.dragOnGoing) {
+            ctx.updateIconPos(drag.x, drag.y);
+        }    
     } else if(drag.state == GestLib::GestureState::End) {
         LOG_INFO("Drag End x: %d, y: %d", drag.x, drag.y);
-        DragContext & ctx = _uictx->_dragContext;
         
         if(ctx.dragOnGoing && ctx.origin != nullptr) {
-            ctx.dragOnGoing = false;
             if(ctx.payload.type != DragPayload::DataType::FilePath) {
                 return true;
             }
@@ -120,10 +121,11 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
                         .path = *ctx.payload.filePath.path
                     };
                     slr::EmitEvent(e);
+                    break;
                 }
             }
-            ctx.reset();
         }
+        ctx.reset();
     }
 
     return true;

@@ -709,9 +709,8 @@ void MidiPort::writeHandle(MidiPort *port) {
 }
 */
 
-/* some LLM stuff, need testing */
-void MidiPort::writeHandle(MidiPort *port)
-{
+/* some LLM stuff, need testing. don't want to dive deep into alsa right now */
+void MidiPort::writeHandle(MidiPort *port) {
     snd_rawmidi_t *out = port->_outputHandle;
     auto *queue = port->outQueue();
 

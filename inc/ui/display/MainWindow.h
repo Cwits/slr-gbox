@@ -4,11 +4,12 @@
 #pragma once
 #include "lvgl.h"
 #include "ui/display/primitives/BaseWidget.h"
-#include "ui/display/primitives/DragContext.h"
 #include "ui/display/primitives/UIContext.h"
 #include "ui/display/PopupManager.h"
 
 #include "defines.h"
+
+#include <memory>
 
 namespace slr {
     class AudioUnitView;
@@ -35,6 +36,8 @@ class FilePopup;
 class NewModulePopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
+
+class DragContext;
 
 struct MainWindow : public BaseWidget {
     MainWindow(lv_obj_t * screen);
@@ -67,23 +70,23 @@ struct MainWindow : public BaseWidget {
     
     static MainWindow * inst();
     
-    TopPanel * _topPanel;
-    BottomPanel * _bottomPanel;
+    std::unique_ptr<TopPanel> _topPanel;
+    std::unique_ptr<BottomPanel> _bottomPanel;
 
-    //Main panels
-    GridView * _gridView;
-    ModuleView * _moduleView; //TODO: last selected unit view
-    Browser * _browser;;
+    //Main views
+    std::unique_ptr<GridView> _gridView;
+    std::unique_ptr<ModuleView> _moduleView; //TODO: last selected unit view
+    std::unique_ptr<Browser> _browser;;
 
     //popups
-    UnitControlPopup * _unitControlPopup;
-    RouteManager * _routeManager;
-    TimelinePopup * _timelinePopup;
-    ScreenKeyboard * _keyboard;
-    FilePopup * _filePopup;
-    NewModulePopup * _newModulePopup;
-    SettingsPopup * _settingsPopup;
-    VirtualMidiKeyboard * _virtualMidiKeyboard;
+    std::unique_ptr<UnitControlPopup> _unitControlPopup;
+    std::unique_ptr<RouteManager> _routeManager;
+    std::unique_ptr<TimelinePopup> _timelinePopup;
+    std::unique_ptr<ScreenKeyboard> _keyboard;
+    std::unique_ptr<FilePopup> _filePopup;
+    std::unique_ptr<NewModulePopup> _newModulePopup;
+    std::unique_ptr<SettingsPopup> _settingsPopup;
+    std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;
     // ViewSelector * _viewSelector; //called only when need to switch from drag to target?
     //Slider mode popup * //aka AKAI MPC Live 3
 
@@ -93,6 +96,8 @@ struct MainWindow : public BaseWidget {
 
     std::vector<Popup*> _popups; //only one popup must be active at the time
     
+    std::unique_ptr<DragContext> _dragContext;
+
     MainView _currentView;
     MainView _prevView;
 
