@@ -32,11 +32,11 @@ struct FlatControl {
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
-		RecordArm,
-		ReinitTrackRecord,
 		AppendItem,
 		SwapContainer,
-		ModContainerItem
+		ModContainerItem,
+		RecordArm,
+		ReinitTrackRecord
 	};
 	Type type;
 	ID commandId;
@@ -51,11 +51,11 @@ struct FlatControl {
 		FlatControls::SetParameter setParameter;
 		FlatControls::ToggleMidiThru toggleMidiThru;
 		FlatControls::ToggleOmniHwInput toggleOmniHwInput;
-		FlatControls::RecordArm recordArm;
-		FlatControls::ReinitTrackRecord reinitTrackRecord;
 		FlatControls::AppendItem appendItem;
 		FlatControls::SwapContainer swapContainer;
 		FlatControls::ModContainerItem modContainerItem;
+		FlatControls::RecordArm recordArm;
+		FlatControls::ReinitTrackRecord reinitTrackRecord;
 	};
 };
 
@@ -71,12 +71,12 @@ struct FlatResponse {
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
-		RecordArm,
-		DumpRecordedAudio,
-		ReinitTrackRecord,
 		AppendItem,
 		SwapContainer,
-		ModContainerItem
+		ModContainerItem,
+		RecordArm,
+		DumpRecordedAudio,
+		ReinitTrackRecord
 	}; 
 	Type type;
 	Status status;
@@ -92,12 +92,12 @@ struct FlatResponse {
 		FlatResponses::SetParameter setParameter;
 		FlatResponses::ToggleMidiThru toggleMidiThru;
 		FlatResponses::ToggleOmniHwInput toggleOmniHwInput;
-		FlatResponses::RecordArm recordArm;
-		FlatResponses::DumpRecordedAudio dumpRecordedAudio;
-		FlatResponses::ReinitTrackRecord reinitTrackRecord;
 		FlatResponses::AppendItem appendItem;
 		FlatResponses::SwapContainer swapContainer;
 		FlatResponses::ModContainerItem modContainerItem;
+		FlatResponses::RecordArm recordArm;
+		FlatResponses::DumpRecordedAudio dumpRecordedAudio;
+		FlatResponses::ReinitTrackRecord reinitTrackRecord;
 	};
 };
 

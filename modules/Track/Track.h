@@ -41,20 +41,9 @@ class Track : public AudioUnit {
     const bool record() const { return _record; }
     const RecordSource recordSource() const { return _recordSource; }
     
-    /* NON RT Use only!!! */
-    
-    bool checkFileContainerNeedResize();
-    void resizeFileContainer();
-    
     bool prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate);
     bool prepareMidiRecord(FileWorker * fw);
     bool releaseRecordTarget(FileWorker * fw);
-    
-    const std::vector<ContainerItem*> * items() const { return _fileContainer._items; }
-    RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-
 
     private:
     AudioBuffer * _recInt;
@@ -123,9 +112,6 @@ class Track : public AudioUnit {
     //need to forbid to change source while recording == true
     RecordSource _recordSource = RecordSource::Audio;
     RecordTarget * _recordTarget;
-
-    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
-    FileContainer _fileContainer;
 
     //midibuffer midirecordbuffer;
     //fx chain

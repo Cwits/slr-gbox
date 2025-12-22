@@ -13,9 +13,7 @@ namespace UI {
 
 class Label;
 class Button;
-class FileView;
 class UIContext;
-class FileView;
 
 struct TrackUI : public UnitUIBase {
     TrackUI(slr::AudioUnitView * track, UIContext * uictx);
@@ -29,17 +27,8 @@ struct TrackUI : public UnitUIBase {
     BaseWidget * moduleUI() override { return _moduleUI; }
     // BaseWidget * patchUI() override;
  
-    int gridY() override;
-    void setNudge(slr::frame_t nudge, const float horizontalZoom) override;
-    void updatePosition(int x, int y) override;
-
-    // std::vector<FileView*> & fileList() { return _viewItems; }
-    
-    std::vector<FileView*> & fileList() { return _viewItems; }
     private:
     slr::TrackView * _track;
-    // std::vector<FileView*> _viewItems;
-    std::vector<FileView*> _viewItems;
 
     class TrackGridControlUI;
     class TrackModuleUI;
@@ -73,7 +62,7 @@ struct TrackUI : public UnitUIBase {
 
         private:
         TrackUI * _parentUI;
-        std::vector<FileView*> _viewItems;
+        // std::vector<FileView*> _viewItems;
     
         Label * _name;
         lv_obj_t * _testRect;

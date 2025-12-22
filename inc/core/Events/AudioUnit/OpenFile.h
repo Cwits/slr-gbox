@@ -19,7 +19,7 @@ struct FileOpened {
 
 FLAT_REQ
 struct AppendItem {
-	Track * track; //-> class Track;
+	AudioUnit * unit; //-> class AudioUnit;
 	ContainerItem * item; //->class ContainerItem;
 };
 
@@ -37,11 +37,11 @@ void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
 		LOG_ERROR("No unit with such id %u", e.targetId);
 		return;
 	}
-	Track * trg = dynamic_cast<Track*>(u);
-	if(!trg) {
-		LOG_ERROR("Failed to convert to Track ptr");
-		return;
-	}
+	// Track * trg = dynamic_cast<Track*>(u);
+	// if(!trg) {
+	// 	LOG_ERROR("Failed to convert to Track ptr");
+	// 	return;
+	// }
 
     auto task = std::make_unique<Tasks::openFile>();
 	task->path = e.path;
@@ -56,11 +56,11 @@ INCLUDE "core/primitives/FileContainer.h"
 INCLUDE "core/ControlEngine.h"
 INCLUDE "core/Project.h"
 INCLUDE "core/FlatEvents.h"
-INCLUDE "modules/Track/Track.h"
+INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE <string>
 void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
     if(e.status == Status::Ok) {
-		LOG_INFO("File %s opened with id %u, adding to target track %u", e.file->path().c_str(), e.file->id(), e.targetId);
+		LOG_INFO("File %s opened with id %u, adding to target unit %u", e.file->path().c_str(), e.file->id(), e.targetId);
 
 		ContainerItem * item = new ContainerItem(e.file);
 		// item->_file = e.file;
@@ -74,43 +74,43 @@ void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
 			LOG_ERROR("No unit with such id %u", e.targetId);
 			return;
 		}
-		Track * trg = static_cast<Track*>(u);
-		if(!trg) {
-			LOG_ERROR("Failed to convert to Track ptr");
-			return;
-		}
+		// Track * trg = static_cast<Track*>(u);
+		// if(!trg) {
+		// 	LOG_ERROR("Failed to convert to Track ptr");
+		// 	return;
+		// }
 
-		std::size_t size = trg->items()->size();
-		if(trg->items()->size()+1 > trg->items()->capacity()) {
+		std::size_t size = u->items()->size();
+		if(u->items()->size()+1 > u->items()->capacity()) {
 			//create new vector
-			LOG_INFO("Track id:%u container run out of space, resizing", e.targetId);
+			LOG_INFO("Unit id:%u container run out of space, resizing", e.targetId);
 			std::vector<ContainerItem*> * container = new std::vector<ContainerItem*>();
 			container->reserve(size*2);
-			*container = *trg->items();
+			*container = *u->items();
 
 			container->push_back(item);
 
 			FlatEvents::FlatControl ctrl;
 			ctrl.type = FlatEvents::FlatControl::Type::SwapContainer;
 			ctrl.commandId = ControlEngine::generateCommandId();
-			ctrl.swapContainer.track = trg;
+			ctrl.swapContainer.unit = u;
 			ctrl.swapContainer.container = container;
    
 			ControlEngine::awaitRtResult(ctrl, [item](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
 				FlatEvents::FlatResponse fake;
 				fake.type = FlatEvents::FlatResponse::Type::AppendItem;
 				fake.status = resp.status;
-				fake.appendItem.track = resp.swapContainer.track;
+				fake.appendItem.unit = resp.swapContainer.unit;
 				fake.appendItem.item = item;
 				handleAppendItemResponse(ctx, fake);
 			});
 		} else {
 			//just append
-			LOG_INFO("Appending item %u to track id: %u", item->_uniqueId, e.targetId);
+			LOG_INFO("Appending item %u to unit id: %u", item->_uniqueId, e.targetId);
 			FlatEvents::FlatControl ctrl;
 			ctrl.type = FlatEvents::FlatControl::Type::AppendItem;
 			ctrl.commandId = ControlEngine::generateCommandId();
-			ctrl.appendItem.track = trg;
+			ctrl.appendItem.unit = u;
 			ctrl.appendItem.item = item;
 			ControlEngine::emitRtControl(ctrl);
 		}
@@ -122,8 +122,8 @@ void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
 END_HANDLE
 
 RT_HANDLE
-INCLUDE "modules/Track/Track.h"
-&Track::appendItem
+INCLUDE "core/primitives/AudioUnit.h"
+&AudioUnit::appendItem
 END_HANDLE
 
 RESP_HANDLE
@@ -132,26 +132,26 @@ INCLUDE "snapshots/ProjectView.h"
 INCLUDE "snapshots/FileContainerView.h"
 INCLUDE "core/ControlEngine.h"
 INCLUDE "ui/uiControls.h"
-INCLUDE "modules/Track/Track.h"
+INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "logger.h"  
 void handleAppendItemResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
     if(resp.status == Status::Ok) {
-		LOG_INFO("Item %u appended successfully on track id: %u", resp.appendItem.item->_uniqueId, resp.appendItem.track->id());
+		LOG_INFO("Item %u appended successfully on unit id: %u", resp.appendItem.item->_uniqueId, resp.appendItem.unit->id());
 		// ProjectView * psnap = ControlEngine::getLastSnapshot();
 		
-		AudioUnitView * uview = ctx.projectView->getUnitById(resp.appendItem.track->id());
-		TrackView * tv = static_cast<TrackView*>(uview);
-		if(!tv) {
-			LOG_ERROR("Failed to find TrackView with id %u", resp.appendItem.track->id());
+		AudioUnitView * uview = ctx.projectView->getUnitById(resp.appendItem.unit->id());
+		// TrackView * tv = static_cast<TrackView*>(uview);
+		if(!uview) {
+			LOG_ERROR("Failed to find AudioUnitView with id %u", resp.appendItem.unit->id());
 			return;
 		}
 
 		ContainerItemView * item = new ContainerItemView(resp.appendItem.item);
-		tv->_fileList._items.push_back(item);
+		uview->_fileList._items.push_back(item);
 		// ctx.projectView->getTrack(resp.appendItem.track->id())->_fileList._items.push_back(item);
 		
 		// UIControls::addFileToTrackUI(tv->id(), tv->_fileList._items.back());
-		UIControls::updateModuleUI(tv->id());
+		UIControls::updateModuleUI(uview->id());
 		// swapSnapshot();
 	} else { 
 		LOG_ERROR("Need to handle error!");

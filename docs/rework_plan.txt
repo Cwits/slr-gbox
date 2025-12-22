@@ -1,0 +1,10 @@
+move forming flat response from rtengine to control engine:
+    - send flat control from control engine to rt engine and save event
+    - make a loop in control engine to check that last events is completed
+    - if completed - form the flat response and call the handler
+
+надо отвязать RtEngine от Flat Responses...
+что бы это сделать - надо перенести генерацию Flat Response из 
+RtEngine в Control Engine. 
+То есть Control Engine отдает Flat Request в RtEngine и 
+потом смотрит изменилось ли что то или нет. Нужен какой то таймаут?

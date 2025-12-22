@@ -8,23 +8,22 @@ INCLUDE <cstdint>
 INCLUDE "defines.h"
 struct RemoveFile {
     ID fileId;
-    ID trackId;
+    ID unitId;
 };
 
 EV
 INCLUDE "defines.h"
 struct FileUIRemoved {
     ID fileId;
-    ID trackId;
+    ID unitId;
 };
 
 EV_HANDLE
 INCLUDE "core/Project.h"
-INCLUDE "modules/Track/Track.h"
+INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "core/primitives/FileContainer.h"
 INCLUDE "snapshots/ProjectView.h"
-INCLUDE "modules/Track/TrackView.h"
 INCLUDE "snapshots/FileContainerView.h"
 INCLUDE "snapshots/AudioUnitView.h"
 INCLUDE "ui/uiControls.h"
@@ -33,20 +32,20 @@ INCLUDE "core/ControlEngine.h"
 INCLUDE "core/primitives/File.h"
 INCLUDE "logger.h"
 void handleEvent(const ControlContext &ctx, const Events::RemoveFile &e) {    
-    LOG_INFO("Removing file UI %u from track %u", e.fileId, e.trackId);
+    LOG_INFO("Removing file UI %u from unit %u", e.fileId, e.unitId);
     // ProjectView * snap = ctx.projectView;
     // TrackView * trview = snap->getTrack(e.trackId);
-    AudioUnitView * uview = ctx.projectView->getUnitById(e.trackId);
-    TrackView * trview = static_cast<TrackView*>(uview);
-    if(trview == nullptr) {
-        LOG_ERROR("Failed to find TrackView for track: %u", e.trackId);
+    AudioUnitView * uview = ctx.projectView->getUnitById(e.unitId);
+    // TrackView * trview = static_cast<TrackView*>(uview);
+    if(uview == nullptr) {
+        LOG_ERROR("Failed to find AudioUnitView for track: %u", e.unitId);
         return;
     }
     //need to remove containerview as well
     //find ContainerItemView
     std::size_t idxViews = 0;
     ContainerItemView * itemView = nullptr;
-    std::vector<ContainerItemView*> & itemsViews = trview->_fileList._items;
+    std::vector<ContainerItemView*> & itemsViews = uview->_fileList._items;
     for(auto & itm : itemsViews) {
         if(itm->_uniqueId == e.fileId) {   
             itemView = itm;
@@ -56,7 +55,7 @@ void handleEvent(const ControlContext &ctx, const Events::RemoveFile &e) {
     } 
 
     if(itemView == nullptr) {
-        LOG_ERROR("failed to find FileView for file %u in track %u", e.fileId, e.trackId);
+        LOG_ERROR("failed to find FileView for file %u in track %u", e.fileId, e.unitId);
         return;
     }
 
@@ -65,13 +64,12 @@ void handleEvent(const ControlContext &ctx, const Events::RemoveFile &e) {
     itemsViews.erase(itemsViews.begin()+idxViews);
     delete itemView;
     
-    UIControls::updateModuleUI(e.trackId);
+    UIControls::updateModuleUI(e.unitId);
 }
 END_HANDLE
 
 EV_HANDLE
 INCLUDE "core/Project.h"
-INCLUDE "modules/Track/Track.h"
 INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "core/primitives/FileContainer.h"
 INCLUDE "snapshots/ProjectView.h"
@@ -84,17 +82,17 @@ INCLUDE "core/ControlEngine.h"
 INCLUDE "core/primitives/File.h"
 INCLUDE "logger.h"
 void handleEvent(const ControlContext &ctx, const Events::FileUIRemoved &e) { 
-    LOG_INFO("Removing file id %u from track id %u", e.fileId, e.trackId);
+    LOG_INFO("Removing file id %u from unit id %u", e.fileId, e.unitId);
     //remove
-    AudioUnit * unit = ctx.project->getUnitById(e.trackId);
-    Track * tr = dynamic_cast<Track*>(unit);
-    if(tr == nullptr) {
-        LOG_ERROR("Failed to find track, id: %u is wrong or track doesn't exists", e.trackId);
+    AudioUnit * unit = ctx.project->getUnitById(e.unitId);
+    // Track * tr = dynamic_cast<Track*>(unit);
+    if(unit == nullptr) {
+        LOG_ERROR("Failed to find unit, id: %u is wrong or unit doesn't exists", e.unitId);
         return;
     }
 
     ContainerItem * item = nullptr;
-    const std::vector<ContainerItem*> * items = tr->items();
+    const std::vector<ContainerItem*> * items = unit->items();
     std::size_t idx = 0;
     for(std::size_t i=0; i<items->size(); ++i) {
         if(items->at(i)->_file->id() == e.fileId) {
@@ -105,7 +103,7 @@ void handleEvent(const ControlContext &ctx, const Events::FileUIRemoved &e) {
     }
 
     if(item == nullptr) {
-        LOG_ERROR("Failed to find file with id %u in track %u", e.fileId, e.trackId);
+        LOG_ERROR("Failed to find file with id %u in unit %u", e.fileId, e.unitId);
         return;
     }
 
@@ -118,14 +116,14 @@ void handleEvent(const ControlContext &ctx, const Events::FileUIRemoved &e) {
     FlatEvents::FlatControl swap;
     swap.type = FlatEvents::FlatControl::Type::SwapContainer;
     swap.commandId = ControlEngine::generateCommandId();
-    swap.swapContainer.track = tr;
+    swap.swapContainer.unit = unit;
     swap.swapContainer.container = container;
 
     ControlEngine::awaitRtResult(swap, [](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
         if(resp.status == Status::Ok) {
-            LOG_INFO("Item removed from track %u successfully", resp.swapContainer.track->id());
+            LOG_INFO("Item removed from unit %u successfully", resp.swapContainer.unit->id());
         } else { 
-            LOG_ERROR("Failed to remove item from track %u", resp.swapContainer.track->id());
+            LOG_ERROR("Failed to remove item from unit %u", resp.swapContainer.unit->id());
         }
     });
 }

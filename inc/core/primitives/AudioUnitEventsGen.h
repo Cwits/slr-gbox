@@ -4,3 +4,9 @@
 #include "inc/core/Events/AudioUnit/SetParameter.h"
 #include "inc/core/Events/AudioUnit/ToggleMidiThru.h"
 #include "inc/core/Events/AudioUnit/ToggleOmniHwInput.h"
+
+#include "inc/core/Events/AudioUnit/OpenFile.h"
+#include "inc/core/Events/AudioUnit/CloseFile.h"
+#include "inc/core/Events/AudioUnit/RemoveFile.h"
+#include "inc/core/Events/AudioUnit/SwapContainer.h"
+#include "inc/core/Events/AudioUnit/ModifyContainerItem.h"

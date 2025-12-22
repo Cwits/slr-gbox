@@ -19,7 +19,7 @@ namespace UI {
 
 class Button;
 class UIContext;
-// class FileView;
+class FileView;
 
 struct GridBase : public BaseWidget {
     GridBase(BaseWidget * parent, bool hasHost, bool addAsChild) 
@@ -62,7 +62,7 @@ struct UnitUIBase {
     
     void registerExternalUpdate(std::function<void()> clb) { _externalUpdates.push_back(std::move(clb)); }
 
-    // std::vector<FileView*> & fileList() { return _viewItems; }
+    std::vector<FileView*> & fileList() { return _viewItems; }
 
     protected:
 
@@ -70,7 +70,7 @@ struct UnitUIBase {
     bool _canLoadFiles = false;
     slr::AudioUnitView * _view;
     
-    // std::vector<FileView*> _viewItems;
+    std::vector<FileView*> _viewItems;
 
     std::vector<std::function<void()>> _externalUpdates;
 };

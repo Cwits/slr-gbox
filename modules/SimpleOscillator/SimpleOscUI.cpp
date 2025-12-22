@@ -144,15 +144,15 @@ SimpleOscUI::SimpleOscModuleUI::~SimpleOscModuleUI() {
     lv_obj_delete(_testRect);
 }
 
-int SimpleOscUI::gridY() {
-    return lv_obj_get_y(_gridControl->lvhost());
-}
+// int SimpleOscUI::gridY() {
+//     return lv_obj_get_y(_gridControl->lvhost());
+// }
 
-void SimpleOscUI::updatePosition(int x, int y) {
-    lv_obj_set_pos(_gridControl->lvhost(), x, y);
-    // LOG_INFO("TODO: for items: update pos y");
+// void SimpleOscUI::updatePosition(int x, int y) {
+//     lv_obj_set_pos(_gridControl->lvhost(), x, y);
+//     // LOG_INFO("TODO: for items: update pos y");
    
-}
+// }
 
 
 }

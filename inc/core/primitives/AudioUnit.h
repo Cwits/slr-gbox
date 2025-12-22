@@ -90,6 +90,14 @@ class AudioUnit {
 
     bool hasParameterWithId(ID parameterId);
 
+    bool checkFileContainerNeedResize();
+    void resizeFileContainer();
+    
+    const std::vector<ContainerItem*> * items() const { return _fileContainer._items; }
+    RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Status modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+
     protected:
     AudioUnitType _type;
     void addParameter(ParameterBase * base);
@@ -117,6 +125,9 @@ class AudioUnit {
     //midi learn map
     //automation clips
 
+    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
+    FileContainer _fileContainer;
+    
     friend class AudioUnitView;
 };
 

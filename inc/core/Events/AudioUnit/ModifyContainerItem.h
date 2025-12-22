@@ -16,7 +16,7 @@ struct ModContainerItem {
 FLAT_REQ
 INCLUDE "defines.h"
 struct ModContainerItem {
-    Track * track; //-> class Track;
+    AudioUnit * unit; //-> class AudioUnit;
     ContainerItem * item; //->class ContainerItem;
     frame_t startPosition;
     frame_t length;
@@ -25,7 +25,7 @@ struct ModContainerItem {
 
 EV_HANDLE
 INCLUDE "core/Project.h"
-INCLUDE "modules/Track/Track.h"
+INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "core/primitives/FileContainer.h"
 INCLUDE "core/FlatEvents.h"
 INCLUDE "core/ControlEngine.h"
@@ -44,13 +44,13 @@ void handleEvent(const ControlContext &ctx, const Events::ModContainerItem &e) {
         return;
     }
 
-    Track * track = static_cast<Track*>(unit);
-    if(!track) {
-        LOG_ERROR("Unit is not a track");
-        return;
-    }
+    // Track * track = static_cast<Track*>(unit);
+    // if(!track) {
+    //     LOG_ERROR("Unit is not a track");
+    //     return;
+    // }
 
-    const std::vector<ContainerItem*> *items = track->items();
+    const std::vector<ContainerItem*> *items = unit->items();
     ContainerItem * item = nullptr;
     for(std::size_t i=0; i<items->size(); ++i) {
         if(items->at(i)->_uniqueId == e.itemId) {
@@ -67,7 +67,7 @@ void handleEvent(const ControlContext &ctx, const Events::ModContainerItem &e) {
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::ModContainerItem;
     ctl.commandId = ControlEngine::generateCommandId();
-    ctl.modContainerItem.track = track;
+    ctl.modContainerItem.unit = unit;
     ctl.modContainerItem.item = item;
     ctl.modContainerItem.startPosition = e.startPosition;
     ctl.modContainerItem.length = e.length;
@@ -77,8 +77,8 @@ void handleEvent(const ControlContext &ctx, const Events::ModContainerItem &e) {
 END_HANDLE
 
 RT_HANDLE
-INCLUDE "modules/Track/Track.h"
-&Track::modifyContainerItem
+INCLUDE "core/primitives/AudioUnit.h"
+&AudioUnit::modifyContainerItem
 END_HANDLE
 
 RESP_HANDLE
@@ -91,7 +91,7 @@ INCLUDE "logger.h"
 void handleModifyContainerItemResponse(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
     if(resp.status == Status::NotOk) {
         LOG_ERROR("Failed to modify container item:  unit %u, item %u, start %lu, length %lu, muted %s",
-                    resp.modContainerItem.track->id(),
+                    resp.modContainerItem.unit->id(),
                     resp.modContainerItem.item->_uniqueId,
                     resp.modContainerItem.startPosition,
                     resp.modContainerItem.length,
@@ -100,24 +100,24 @@ void handleModifyContainerItemResponse(const ControlContext &ctx, const FlatEven
     }
 
     LOG_INFO("Container item modified:  unit %u, item %u, start %lu, length %lu, muted %s",
-                    resp.modContainerItem.track->id(),
+                    resp.modContainerItem.unit->id(),
                     resp.modContainerItem.item->_uniqueId,
                     resp.modContainerItem.startPosition,
                     resp.modContainerItem.length,
                     (resp.modContainerItem.muted ? "true" : "false"));
 
-    AudioUnitView * uview = ctx.projectView->getUnitById(resp.modContainerItem.track->id());
+    AudioUnitView * uview = ctx.projectView->getUnitById(resp.modContainerItem.unit->id());
     if(!uview) {
-        LOG_ERROR("Failed to find AudioUnitView for unit %u", resp.modContainerItem.track->id());
+        LOG_ERROR("Failed to find AudioUnitView for unit %u", resp.modContainerItem.unit->id());
         return;  
     }
-    TrackView * tv = static_cast<TrackView*>(uview);
-	if(!tv) {
-		LOG_ERROR("Failed to find TrackView with id %u", resp.appendItem.track->id());
-		return;
-	}
+    // TrackView * tv = static_cast<TrackView*>(uview);
+	// if(!tv) {
+	// 	LOG_ERROR("Failed to find TrackView with id %u", resp.appendItem.track->id());
+	// 	return;
+	// }
 
-    std::vector<ContainerItemView*> items = tv->_fileList._items;
+    std::vector<ContainerItemView*> items = uview->_fileList._items;
     ContainerItemView * item = nullptr;
     for(std::size_t i=0; i<items.size(); ++i) {
         if(resp.modContainerItem.item->_uniqueId == items.at(i)->_uniqueId) {
@@ -135,7 +135,7 @@ void handleModifyContainerItemResponse(const ControlContext &ctx, const FlatEven
     item->_length = resp.modContainerItem.item->_length;
     item->_muted = resp.modContainerItem.item->_muted;
 
-    UIControls::updateModuleUI(tv->id());
+    UIControls::updateModuleUI(uview->id());
 }
 END_HANDLE
 

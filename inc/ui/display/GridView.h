@@ -12,7 +12,7 @@
 #include <memory>
 
 namespace slr {
-    class TrackView;
+    // class TrackView;
     class ContainerItemView;
 }
 

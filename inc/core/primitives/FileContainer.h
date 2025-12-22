@@ -34,6 +34,7 @@ class FileContainer {
 
     // RTVector<ContainerItem*> _items;
     std::vector<ContainerItem*> * _items; //prepare new one in Control Engine and swap in rt i guess 
+    uint64_t _containerVersion;
 };
 
 }
