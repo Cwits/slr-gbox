@@ -8,21 +8,19 @@
 namespace slr {
 
 class File;
-class ContainerItem;
+class ClipItem;
 
-struct ContainerItemView {
-    ContainerItemView(ContainerItem * container);
+struct ClipItemView {
+    ClipItemView(ClipItem * container);
     frame_t _startPosition;
     frame_t _length;
     bool _muted;
-    File * _file;
+    const File * const _file;
     const ID _uniqueId;
 };
 
-class FileContainerView {
-    public:
-
-    std::vector<ContainerItemView*> _items;
+struct ClipContainerView {
+    std::vector<ClipItemView*> _items;
 };
 
 

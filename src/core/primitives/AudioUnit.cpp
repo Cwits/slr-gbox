@@ -91,7 +91,7 @@ Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvent
 
 
 void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */) {
-    for(const ContainerItem * item : *(_fileContainer._items)) {
+    for(const ClipItem * const item : *(_clipContainer._clips)) {
         if(item->_muted) continue;
 
         if((ctx.elapsed+ctx.frames) <= item->_startPosition) continue;
@@ -99,7 +99,7 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiB
 
         switch(item->_file->type()) {
             case(FileType::Audio): {
-                const AudioFile * file = static_cast<AudioFile*>(item->_file);
+                const AudioFile * const file = static_cast<const AudioFile* const>(item->_file);
                 const AudioBuffer * data = file->getData();
                 int channels = data->channels();
 
@@ -167,9 +167,9 @@ bool AudioUnit::checkFileContainerNeedResize() {
 void AudioUnit::resizeFileContainer() {
 
 }
-        
+
 Status AudioUnit::appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ev.appendItem.unit->_fileContainer._items->push_back(ev.appendItem.item);
+    ev.appendItem.unit->_clipContainer._clips->push_back(ev.appendItem.item);
     resp.type = FlatEvents::FlatResponse::Type::AppendItem;
     resp.status = Status::Ok;
     resp.appendItem.unit = ev.appendItem.unit;
@@ -178,9 +178,9 @@ Status AudioUnit::appendItem(const FlatEvents::FlatControl &ev, FlatEvents::Flat
 }
 
 Status AudioUnit::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    resp.swapContainer.oldContainer = ev.swapContainer.unit->_fileContainer._items;
+    resp.swapContainer.oldContainer = ev.swapContainer.unit->_clipContainer._clips;
     
-    ev.swapContainer.unit->_fileContainer._items = ev.swapContainer.container;
+    ev.swapContainer.unit->_clipContainer._clips = ev.swapContainer.container;
     
     resp.type = FlatEvents::FlatResponse::Type::SwapContainer;
     resp.status = Status::Ok;
@@ -190,21 +190,23 @@ Status AudioUnit::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::F
     return Status::Ok;
 }
 
-Status AudioUnit::modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ContainerItem * item = ev.modContainerItem.item;
+Status AudioUnit::modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    ClipItem * item = ev.modClipItem.item;
 
-    item->_startPosition = ev.modContainerItem.startPosition;
-    item->_length = ev.modContainerItem.length;
-    item->_muted = ev.modContainerItem.muted;
+    item->_startPosition = ev.modClipItem.startPosition;
+    item->_length = ev.modClipItem.length;
+    item->_muted = ev.modClipItem.muted;
 
-    resp.type = FlatEvents::FlatResponse::Type::ModContainerItem;
+    resp.type = FlatEvents::FlatResponse::Type::ModClipItem;
     resp.commandId = ev.commandId;
     resp.status = Status::Ok;
-    resp.modContainerItem.unit = ev.modContainerItem.unit;
-    resp.modContainerItem.item = ev.modContainerItem.item;
-    resp.modContainerItem.startPosition = ev.modContainerItem.startPosition;
-    resp.modContainerItem.length = ev.modContainerItem.length;
-    resp.modContainerItem.muted = ev.modContainerItem.muted;
+    resp.modClipItem.unit = ev.modClipItem.unit;
+    resp.modClipItem.item = ev.modClipItem.item;
+    resp.modClipItem.startPosition = ev.modClipItem.startPosition;
+    resp.modClipItem.length = ev.modClipItem.length;
+    resp.modClipItem.muted = ev.modClipItem.muted;
+    
     return Status::Ok;
 }
+
 }

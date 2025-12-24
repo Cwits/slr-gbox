@@ -151,3 +151,36 @@ Tests:
 [ ] - more logging!
 
 [ ] - there is several memory leaks in ui...?
+
+
+
+/* Notes */
+ - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 
+        all MIDI events that reaches specific unit won't be able to travel to unit output(doesn't matter if it's 
+        from external device or from MIDI Clip). To enable MIDI Events to travel further "Midi Thru" should be enabled for 
+        specific unit.
+
+        e.g.
+        MIDI Clip is on whatever unit. 
+        Without "Midi Thru" enabled MIDI Events will affect only that unit, and not appear in _midiOutput buffer of that unit.
+        (doesn't matter if there is some MIDI routings from unit to somewhere(dunno yeat about routings to external devices)).
+        With "Midi Thru" option enabled MIDI Events will affect unit and go to _midiOutput buffer of that unit. So, if there is 
+        any MIDI routings from unit to somewhere else than those events can be grabbed on that frame.
+
+
+
+        struct FileOpenedNew : public Undoable {
+    Status status;
+    File * file; //-> class File;
+	ID unitId;
+
+	void undo() {
+		if(status == Status::Nok) return;
+
+		Events::RemoveFile e = {
+			.fileId = file->id(),
+			.unitId = unitId
+		};
+		Events::EmitEvent(e);
+	}
+};

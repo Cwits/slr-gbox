@@ -46,18 +46,18 @@ bool UnitUIBase::update(UIContext * ctx) {
     }
 
     //File check
-    std::size_t viewSize = _view->_fileList._items.size();
-    std::size_t uiSize = _viewItems.size();
+    std::size_t viewSize = _view->_clipContainer._items.size();
+    std::size_t uiSize = _viewItems.size(); 
     //create or delete
     if(viewSize != uiSize) {
         if(viewSize > uiSize) {
             //new items added
-            std::vector<slr::ContainerItemView*> toAdd;
+            std::vector<slr::ClipItemView*> toAdd;
             for(std::size_t i=0; i<viewSize; ++i) {
-                slr::ContainerItemView * item = _view->_fileList._items.at(i);
+                slr::ClipItemView * item = _view->_clipContainer._items.at(i);
                 bool found = false;
                 for(std::size_t y=0; y<uiSize; ++y) {
-                    if(_viewItems.at(y)->_item->_uniqueId == item->_uniqueId) {
+                    if(_viewItems.at(y)->_clipItem->_uniqueId == item->_uniqueId) {
                         found = true;
                     }
                 }
@@ -80,7 +80,7 @@ bool UnitUIBase::update(UIContext * ctx) {
                 FileView * item = _viewItems.at(i);
                 bool found = false;
                 for(std::size_t y=0; y<viewSize; ++y) {
-                    if(item->id() == _view->_fileList._items.at(y)->_uniqueId) {
+                    if(item->id() == _view->_clipContainer._items.at(y)->_uniqueId) {
                         found = true;
                     }
                 }
@@ -90,6 +90,7 @@ bool UnitUIBase::update(UIContext * ctx) {
             }
             //need to erase from _viewItems container as well...
             for(std::size_t i=0; i<toRemove.size(); ++i) {
+                // LOG_ERROR("RESTORE DIS");
                 slr::Events::FileUIRemoved e = {
                     .fileId = toRemove.at(i)->id(),
                     .unitId = _view->id()
@@ -108,12 +109,12 @@ bool UnitUIBase::update(UIContext * ctx) {
     }
 
     //update items positions(uiSize should be == viewSize)
-    viewSize = _view->_fileList._items.size();
+    viewSize = _view->_clipContainer._items.size();
     uiSize = _viewItems.size();
 
     for(std::size_t i=0; i<uiSize; ++i) {
         FileView * fui = _viewItems.at(i);
-        slr::ContainerItemView * fview = fui->_item;
+        const slr::ClipItemView * const fview = fui->_clipItem;
 
         float xposition = UIUtility::frameToPixel(fview->_startPosition, _uictx->gridHorizontalZoom());
         fui->setPos(xposition, gridY());

@@ -54,7 +54,7 @@ void handleDumpRecordedAudio(const ControlContext &ctx, const FlatEvents::FlatRe
                 fw->closeTmpAudioFile(target);
 
                 slr::Events::OpenFile e = {
-                    .targetId = trackId,
+                    .unitId = trackId,
                     .path = path
                 };
                 slr::EmitEvent(e);

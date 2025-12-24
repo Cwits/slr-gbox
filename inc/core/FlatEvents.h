@@ -33,8 +33,8 @@ struct FlatControl {
 		ToggleMidiThru,
 		ToggleOmniHwInput,
 		AppendItem,
+		ModClipItem,
 		SwapContainer,
-		ModContainerItem,
 		RecordArm,
 		ReinitTrackRecord
 	};
@@ -52,8 +52,8 @@ struct FlatControl {
 		FlatControls::ToggleMidiThru toggleMidiThru;
 		FlatControls::ToggleOmniHwInput toggleOmniHwInput;
 		FlatControls::AppendItem appendItem;
+		FlatControls::ModClipItem modClipItem;
 		FlatControls::SwapContainer swapContainer;
-		FlatControls::ModContainerItem modContainerItem;
 		FlatControls::RecordArm recordArm;
 		FlatControls::ReinitTrackRecord reinitTrackRecord;
 	};
@@ -72,8 +72,8 @@ struct FlatResponse {
 		ToggleMidiThru,
 		ToggleOmniHwInput,
 		AppendItem,
+		ModClipItem,
 		SwapContainer,
-		ModContainerItem,
 		RecordArm,
 		DumpRecordedAudio,
 		ReinitTrackRecord
@@ -93,8 +93,8 @@ struct FlatResponse {
 		FlatResponses::ToggleMidiThru toggleMidiThru;
 		FlatResponses::ToggleOmniHwInput toggleOmniHwInput;
 		FlatResponses::AppendItem appendItem;
+		FlatResponses::ModClipItem modClipItem;
 		FlatResponses::SwapContainer swapContainer;
-		FlatResponses::ModContainerItem modContainerItem;
 		FlatResponses::RecordArm recordArm;
 		FlatResponses::DumpRecordedAudio dumpRecordedAudio;
 		FlatResponses::ReinitTrackRecord reinitTrackRecord;

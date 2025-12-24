@@ -1,25 +1,26 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/FlatEvents.h"
-#include "snapshots/ProjectView.h"
-#include "snapshots/FileContainerView.h"
-#include "core/FileWorker.h"
-#include "core/FileTasks.h"
-#include "inc/ui/uiControls.h"
-#include <string>
-#include "logger.h"  
-#include "Status.h"
 #include <memory>
-#include "core/primitives/AudioUnit.h"  
-#include "ui/uiControls.h"
-#include "logger.h"
-#include "modules/Track/TrackView.h"
-#include "snapshots/AudioUnitView.h"
-#include "core/primitives/FileContainer.h"
 #include "core/primitives/AudioUnit.h"
 #include "core/ControlEngine.h"
+#include "modules/Track/TrackView.h"
+#include "core/FlatEvents.h"
+#include "snapshots/ProjectView.h"
 #include "core/Project.h"
+#include "core/primitives/FileContainer.h"
+#include "snapshots/FileContainerView.h"
 #include "core/primitives/File.h"
+#include "logger.h"
+#include "inc/ui/uiControls.h"
+#include "Status.h"
+#include "core/primitives/AudioUnit.h"  
+#include "snapshots/AudioUnitView.h"
+#include "core/FileWorker.h"
+#include <string>
+#include "logger.h"  
+#include "core/FileTasks.h"
+#include "ui/uiControls.h"
+#include <algorithm>
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -94,8 +95,8 @@ inline void handleToggleOmniHwInputResponse(const ControlContext &ctx, const Fla
     }
 }
 
-inline void handleAppendItemResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
-    if(resp.status == Status::Ok) {
+inline void handleAppendItemNewResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
+	if(resp.status == Status::Ok) {
 		LOG_INFO("Item %u appended successfully on unit id: %u", resp.appendItem.item->_uniqueId, resp.appendItem.unit->id());
 		// ProjectView * psnap = ControlEngine::getLastSnapshot();
 		
@@ -106,75 +107,67 @@ inline void handleAppendItemResponse(const ControlContext &ctx, const FlatEvents
 			return;
 		}
 
-		ContainerItemView * item = new ContainerItemView(resp.appendItem.item);
-		uview->_fileList._items.push_back(item);
-		// ctx.projectView->getTrack(resp.appendItem.track->id())->_fileList._items.push_back(item);
-		
-		// UIControls::addFileToTrackUI(tv->id(), tv->_fileList._items.back());
+		ClipItemView * item = new ClipItemView(resp.appendItem.item);
+		uview->_clipContainer._items.push_back(item);
+
 		UIControls::updateModuleUI(uview->id());
-		// swapSnapshot();
-	} else { 
+	} else {    
 		LOG_ERROR("Need to handle error!");
 	}
 }
 
-inline void handleContainerSwapped(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-    if(resp.status == Status::Ok) {
-        LOG_INFO("Container for unit %u swapped, deleting old one", resp.swapContainer.unit->id());
-        delete resp.swapContainer.oldContainer;
-    } else {
-        LOG_ERROR("Failed to swap unit %u container", resp.swapContainer.unit->id());
-    }
-}
-
-inline void handleModifyContainerItemResponse(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+inline void handleModifyClipItemResponse(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
     if(resp.status == Status::NotOk) {
-        LOG_ERROR("Failed to modify container item:  unit %u, item %u, start %lu, length %lu, muted %s",
-                    resp.modContainerItem.unit->id(),
-                    resp.modContainerItem.item->_uniqueId,
-                    resp.modContainerItem.startPosition,
-                    resp.modContainerItem.length,
-                    (resp.modContainerItem.muted ? "true" : "false"));
+        LOG_ERROR("Failed to modify clip item:  unit %u, item %u, start %lu, length %lu, muted %s",
+                    resp.modClipItem.unit->id(),
+                    resp.modClipItem.item->_uniqueId,
+                    resp.modClipItem.startPosition,
+                    resp.modClipItem.length,
+                    (resp.modClipItem.muted ? "true" : "false"));
         return;
     }
 
-    LOG_INFO("Container item modified:  unit %u, item %u, start %lu, length %lu, muted %s",
-                    resp.modContainerItem.unit->id(),
-                    resp.modContainerItem.item->_uniqueId,
-                    resp.modContainerItem.startPosition,
-                    resp.modContainerItem.length,
-                    (resp.modContainerItem.muted ? "true" : "false"));
+    LOG_INFO("Clip item modified:  unit %u, item %u, start %lu, length %lu, muted %s",
+                    resp.modClipItem.unit->id(),
+                    resp.modClipItem.item->_uniqueId,
+                    resp.modClipItem.startPosition,
+                    resp.modClipItem.length,
+                    (resp.modClipItem.muted ? "true" : "false"));
 
-    AudioUnitView * uview = ctx.projectView->getUnitById(resp.modContainerItem.unit->id());
+    AudioUnitView * uview = ctx.projectView->getUnitById(resp.modClipItem.unit->id());
     if(!uview) {
-        LOG_ERROR("Failed to find AudioUnitView for unit %u", resp.modContainerItem.unit->id());
+        LOG_ERROR("Failed to find AudioUnitView for unit %u", resp.modClipItem.unit->id());
         return;  
     }
-    // TrackView * tv = static_cast<TrackView*>(uview);
-	// if(!tv) {
-	// 	LOG_ERROR("Failed to find TrackView with id %u", resp.appendItem.track->id());
-	// 	return;
-	// }
 
-    std::vector<ContainerItemView*> items = uview->_fileList._items;
-    ContainerItemView * item = nullptr;
+    std::vector<ClipItemView*> items = uview->_clipContainer._items;
+    ClipItemView * item = nullptr;
     for(std::size_t i=0; i<items.size(); ++i) {
-        if(resp.modContainerItem.item->_uniqueId == items.at(i)->_uniqueId) {
+        if(resp.modClipItem.item->_uniqueId == items.at(i)->_uniqueId) {
             item = items.at(i);
             break;
         }
     }
 
     if(!item) {
-        LOG_ERROR("Failed to find ContainerItemView for item %u", resp.modContainerItem.item->_uniqueId);
+        LOG_ERROR("Failed to find ClipItemView for item %u", resp.modClipItem.item->_uniqueId);
         return;
     }
 
-    item->_startPosition = resp.modContainerItem.item->_startPosition;
-    item->_length = resp.modContainerItem.item->_length;
-    item->_muted = resp.modContainerItem.item->_muted;
+    item->_startPosition = resp.modClipItem.item->startPosition();
+    item->_length = resp.modClipItem.item->length();
+    item->_muted = resp.modClipItem.item->isMuted();
 
     UIControls::updateModuleUI(uview->id());
+}
+
+inline void handleContainerSwappedNew(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+    if(resp.status == Status::Ok) {
+        LOG_INFO("Container for unit %u swapped, deleting old one", resp.swapContainer.unit->id());
+        // delete resp.swapContainerNew.oldContainer;
+    } else {
+        LOG_ERROR("Failed to swap unit %u container", resp.swapContainer.unit->id());
+    }
 }
 
 inline void handleEvent(const ControlContext &ctx, const Events::SetParameter &e) {
@@ -239,92 +232,112 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleOmniHwInp
 inline void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
 	LOG_INFO("Opening a file %s", e.path.c_str());
 
-
-	AudioUnit * u = ctx.project->getUnitById(e.targetId);
+	AudioUnit * u = ctx.project->getUnitById(e.unitId);
 	if(!u) {
-		LOG_ERROR("No unit with such id %u", e.targetId);
+		LOG_ERROR("No unit with such id %u", e.unitId);
 		return;
 	}
-	// Track * trg = dynamic_cast<Track*>(u);
-	// if(!trg) {
-	// 	LOG_ERROR("Failed to convert to Track ptr");
-	// 	return;
-	// }
 
     auto task = std::make_unique<Tasks::openFile>();
 	task->path = e.path;
-	task->targetId = e.targetId;
+	task->targetId = e.unitId;
+	task->finished = [](bool success, const ID targetId, const File * file, const std::string & path) {
+		if(!success) {
+			LOG_ERROR("File Worker failed to load file %s", path.c_str());
+			return;
+		}
+
+		Events::FileOpened e = {
+            .status = slr::Status::Ok,
+            .file = file,
+            .unitId = targetId
+        };
+
+        EmitEvent(e);
+        LOG_INFO("File %s loaded to trackid: %d", path.c_str(), targetId);
+	};
 	ctx.fileWorker->addTask(std::move(task));
 }
 
 inline void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
-    if(e.status == Status::Ok) {
-		LOG_INFO("File %s opened with id %u, adding to target unit %u", e.file->path().c_str(), e.file->id(), e.targetId);
-
-		ContainerItem * item = new ContainerItem(e.file);
-		// item->_file = e.file;
-		item->_startPosition = 0;
-		item->_length = e.file->frames();
-		item->_muted = false;
-		// item->_uniqueId = e.file->id();
-
-		AudioUnit * u = ctx.project->getUnitById(e.targetId);
-		if(!u) {
-			LOG_ERROR("No unit with such id %u", e.targetId);
-			return;
-		}
-		// Track * trg = static_cast<Track*>(u);
-		// if(!trg) {
-		// 	LOG_ERROR("Failed to convert to Track ptr");
-		// 	return;
-		// }
-
-		std::size_t size = u->items()->size();
-		if(u->items()->size()+1 > u->items()->capacity()) {
-			//create new vector
-			LOG_INFO("Unit id:%u container run out of space, resizing", e.targetId);
-			std::vector<ContainerItem*> * container = new std::vector<ContainerItem*>();
-			container->reserve(size*2);
-			*container = *u->items();
-
-			container->push_back(item);
-
-			FlatEvents::FlatControl ctrl;
-			ctrl.type = FlatEvents::FlatControl::Type::SwapContainer;
-			ctrl.commandId = ControlEngine::generateCommandId();
-			ctrl.swapContainer.unit = u;
-			ctrl.swapContainer.container = container;
-   
-			ControlEngine::awaitRtResult(ctrl, [item](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-				FlatEvents::FlatResponse fake;
-				fake.type = FlatEvents::FlatResponse::Type::AppendItem;
-				fake.status = resp.status;
-				fake.appendItem.unit = resp.swapContainer.unit;
-				fake.appendItem.item = item;
-				handleAppendItemResponse(ctx, fake);
-			});
-		} else {
-			//just append
-			LOG_INFO("Appending item %u to unit id: %u", item->_uniqueId, e.targetId);
-			FlatEvents::FlatControl ctrl;
-			ctrl.type = FlatEvents::FlatControl::Type::AppendItem;
-			ctrl.commandId = ControlEngine::generateCommandId();
-			ctrl.appendItem.unit = u;
-			ctrl.appendItem.item = item;
-			ControlEngine::emitRtControl(ctrl);
-		}
-	} else {
+    if(e.status == Status::NotOk) {
         //TODO: failed to open
 		LOG_ERROR("Failed to open audio file");
+        return;
+    }
+
+	LOG_INFO("File %s opened with id %u, adding to target unit %u", e.file->path().c_str(), e.file->id(), e.unitId);
+    AudioUnit *unit = ctx.project->getUnitById(e.unitId);
+    if(!unit) {
+        LOG_ERROR("Failed to find unit %u", e.unitId);
+        return;
+    }
+
+	ClipContainerMap &map = ctx.project->clipContainerMap();
+	auto [it, inserted] = map.try_emplace(e.unitId);
+	ClipStorage &clipStorage = it->second;
+
+	bool isSwapping = false;
+	std::vector<ClipItem*> *workable = nullptr;
+	const std::vector<ClipItem*> *clips = unit->clips();
+	if(!clips) {
+		// workable = clipStorage._rawVector1.get();
+		workable = clipStorage.getOtherVector(nullptr);
+		workable->reserve(4);
+		isSwapping = true;
+	} else {
+		if(clips->size()+1 > clips->capacity()) {
+			workable = clipStorage.getOtherVector(clips);
+			workable->clear();
+			workable->reserve(clips->capacity()*2);
+			*workable = *clips;
+			isSwapping = true;
+		} else {
+			workable = clipStorage.getCurrentVector(clips);
+		}
+	}
+
+	ClipItem * appendable = nullptr;
+	std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(e.file);
+	clipStorage._clipsOwner.push_back(std::move(itemUniq));
+	appendable = clipStorage._clipsOwner.back().get();
+	
+    if(isSwapping) {
+        //swap one
+		LOG_INFO("Unit id:%u container run out of space, resizing", e.unitId);
+		
+		workable->push_back(appendable);
+
+		FlatEvents::FlatControl ctrl;
+		ctrl.type = FlatEvents::FlatControl::Type::SwapContainer;
+		ctrl.commandId = ControlEngine::generateCommandId();
+		ctrl.swapContainer.unit = unit;
+		ctrl.swapContainer.container = workable;
+   
+		ControlEngine::awaitRtResult(ctrl, [appendable](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+			FlatEvents::FlatResponse fake;
+			fake.type = FlatEvents::FlatResponse::Type::AppendItem;
+			fake.status = resp.status;
+			fake.appendItem.unit = resp.swapContainer.unit;
+			fake.appendItem.item = appendable;
+			handleAppendItemNewResponse(ctx, fake);
+		});
+    } else {
+        //append?
+		LOG_INFO("Appending item %u to unit id: %u", appendable->_uniqueId, e.unitId);
+		FlatEvents::FlatControl ctrl;
+		ctrl.type = FlatEvents::FlatControl::Type::AppendItem;
+		ctrl.commandId = ControlEngine::generateCommandId();
+		ctrl.appendItem.unit = unit;
+		ctrl.appendItem.item = appendable;
+		ControlEngine::emitRtControl(ctrl);
     }
 }
 
 inline void handleEvent(const ControlContext &ctx, const Events::RemoveFile &e) {    
     LOG_INFO("Removing file UI %u from unit %u", e.fileId, e.unitId);
-    // ProjectView * snap = ctx.projectView;
-    // TrackView * trview = snap->getTrack(e.trackId);
+    
     AudioUnitView * uview = ctx.projectView->getUnitById(e.unitId);
-    // TrackView * trview = static_cast<TrackView*>(uview);
     if(uview == nullptr) {
         LOG_ERROR("Failed to find AudioUnitView for track: %u", e.unitId);
         return;
@@ -332,8 +345,8 @@ inline void handleEvent(const ControlContext &ctx, const Events::RemoveFile &e) 
     //need to remove containerview as well
     //find ContainerItemView
     std::size_t idxViews = 0;
-    ContainerItemView * itemView = nullptr;
-    std::vector<ContainerItemView*> & itemsViews = uview->_fileList._items;
+    ClipItemView * itemView = nullptr;
+    std::vector<ClipItemView*> & itemsViews = uview->_clipContainer._items;
     for(auto & itm : itemsViews) {
         if(itm->_uniqueId == e.fileId) {   
             itemView = itm;
@@ -359,18 +372,17 @@ inline void handleEvent(const ControlContext &ctx, const Events::FileUIRemoved &
     LOG_INFO("Removing file id %u from unit id %u", e.fileId, e.unitId);
     //remove
     AudioUnit * unit = ctx.project->getUnitById(e.unitId);
-    // Track * tr = dynamic_cast<Track*>(unit);
     if(unit == nullptr) {
         LOG_ERROR("Failed to find unit, id: %u is wrong or unit doesn't exists", e.unitId);
         return;
     }
 
-    ContainerItem * item = nullptr;
-    const std::vector<ContainerItem*> * items = unit->items();
+    ClipItem * item = nullptr;
+    const std::vector<ClipItem*> * clips = unit->clips();
     std::size_t idx = 0;
-    for(std::size_t i=0; i<items->size(); ++i) {
-        if(items->at(i)->_file->id() == e.fileId) {
-            item = items->at(i);
+    for(std::size_t i=0; i<clips->size(); ++i) {
+        if(clips->at(i)->_file->id() == e.fileId) {
+            item = clips->at(i);
             idx = i;
             break;
         }
@@ -381,29 +393,42 @@ inline void handleEvent(const ControlContext &ctx, const Events::FileUIRemoved &
         return;
     }
 
-    //prepare swapable container
-    std::vector<ContainerItem*> * container = new std::vector<ContainerItem*>();
-    *container = *items;
-    //TODO: must check that item removed from container
-    container->erase(container->begin()+idx);
+    ClipContainerMap &map = ctx.project->clipContainerMap();
+	ClipStorage &clipStorage = map.at(e.unitId); //??? eeeegh...
+
+    std::vector<ClipItem*> * swappable = clipStorage.getOtherVector(clips);
+    swappable->clear();
+    *swappable = *clips;
+
+    swappable->erase(swappable->begin()+idx);
 
     FlatEvents::FlatControl swap;
     swap.type = FlatEvents::FlatControl::Type::SwapContainer;
     swap.commandId = ControlEngine::generateCommandId();
     swap.swapContainer.unit = unit;
-    swap.swapContainer.container = container;
+    swap.swapContainer.container = swappable;
 
-    ControlEngine::awaitRtResult(swap, [](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-        if(resp.status == Status::Ok) {
-            LOG_INFO("Item removed from unit %u successfully", resp.swapContainer.unit->id());
-        } else { 
+    ControlEngine::awaitRtResult(swap, [itemId = item->_uniqueId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+        if(resp.status == Status::NotOk) 
             LOG_ERROR("Failed to remove item from unit %u", resp.swapContainer.unit->id());
-        }
+        
+        const ID & unitId = resp.swapContainer.unit->id();
+
+        //remove from memory owner
+        ClipContainerMap &map = ctx.project->clipContainerMap();
+        ClipStorage & clipStorage = map.at(unitId);
+
+        std::vector<std::unique_ptr<ClipItem>> &owner = clipStorage._clipsOwner;
+        owner.erase(std::remove_if(owner.begin(), owner.end(), [itemId](const std::unique_ptr<ClipItem> & itm) {
+            return itemId == itm->_uniqueId;
+        }), owner.end());
+
+        LOG_INFO("Item %u removed from unit %u successfully", itemId, resp.swapContainer.unit->id());
     });
 }
 
-inline void handleEvent(const ControlContext &ctx, const Events::ModContainerItem &e) {
-    LOG_INFO("Modify Container Item Event: unit %u, item %u, start %lu, length %lu, muted %s",
+inline void handleEvent(const ControlContext &ctx, const Events::ModClipItem &e) {
+    LOG_INFO("Modify Clip Item Event: unit %u, item %u, start %lu, length %lu, muted %s",
                     e.unitId,
                     e.itemId,
                     e.startPosition,
@@ -412,18 +437,12 @@ inline void handleEvent(const ControlContext &ctx, const Events::ModContainerIte
     
     AudioUnit * unit = ctx.project->getUnitById(e.unitId);
     if(!unit) {
-        LOG_ERROR("Modify Container Item failed to find unit %u", e.unitId);
+        LOG_ERROR("Modify Clip Item failed to find unit %u", e.unitId);
         return;
     }
 
-    // Track * track = static_cast<Track*>(unit);
-    // if(!track) {
-    //     LOG_ERROR("Unit is not a track");
-    //     return;
-    // }
-
-    const std::vector<ContainerItem*> *items = unit->items();
-    ContainerItem * item = nullptr;
+    const std::vector<ClipItem*> *items = unit->clips();
+    ClipItem * item = nullptr;
     for(std::size_t i=0; i<items->size(); ++i) {
         if(items->at(i)->_uniqueId == e.itemId) {
             item = items->at(i);
@@ -432,18 +451,18 @@ inline void handleEvent(const ControlContext &ctx, const Events::ModContainerIte
     }
 
     if(!item) {
-        LOG_ERROR("Modify Container Item failed to find item %u in unit %u", e.itemId, e.unitId);
+        LOG_ERROR("Modify Clip Item failed to find item %u in unit %u", e.itemId, e.unitId);
         return;
     }
 
     FlatEvents::FlatControl ctl;
-    ctl.type = FlatEvents::FlatControl::Type::ModContainerItem;
+    ctl.type = FlatEvents::FlatControl::Type::ModClipItem;
     ctl.commandId = ControlEngine::generateCommandId();
-    ctl.modContainerItem.unit = unit;
-    ctl.modContainerItem.item = item;
-    ctl.modContainerItem.startPosition = e.startPosition;
-    ctl.modContainerItem.length = e.length;
-    ctl.modContainerItem.muted = e.muted;
+    ctl.modClipItem.unit = unit;
+    ctl.modClipItem.item = item;
+    ctl.modClipItem.startPosition = e.startPosition;
+    ctl.modClipItem.length = e.length;
+    ctl.modClipItem.muted = e.muted;
     ControlEngine::emitRtControl(ctl);
 }
 

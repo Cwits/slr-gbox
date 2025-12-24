@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
-#include <memory>
-#include <array>
 
 #include "core/primitives/RenderPlan.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
+#include "core/primitives/FileContainer.h"
 #include "core/Timeline.h"
 #include "defines.h"
 
-// #define MAXIMUM_TRACKS 64
+#include <memory>
+#include <array>
+#include <unordered_map>
 
 namespace slr {
 
@@ -59,6 +60,7 @@ class Project {
 
     Metronome * metronome() const;
     
+    ClipContainerMap & clipContainerMap() { return _clipContainerMap; }
     private:
     bool _isSolo;
     RenderPlan * _soloPlan;
@@ -74,6 +76,8 @@ class Project {
     std::vector<MidiRoute> _midiRoutes;
 
     std::unique_ptr<Metronome> _metronome;
+
+    ClipContainerMap _clipContainerMap;
     //std::unique_ptr<StepSequencer> _stepSequencer;
     //std::unique_ptr<ModulationEngine> _modEngine;
     //_globalParameterList??

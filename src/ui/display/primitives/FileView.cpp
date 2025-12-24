@@ -32,14 +32,14 @@ static int map(int x, int in_min, int in_max, int out_min, int out_max) {
 
 namespace UI {
 
-FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, slr::ContainerItemView * item, UIContext * const uictx) 
-    : BaseWidget(parent, true, true), 
+FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipItemView * clipItem, UIContext * const uictx) :
+    BaseWidget(parent, true, true),
     _uictx(uictx),
-    _parentUI(parentUI), 
-    _item(item), 
-    _uniqueId(item->_uniqueId)
+    _parentUI(parentUI),
+    _clipItem(clipItem),
+    _uniqueId(clipItem->_uniqueId)
 {
-    // _lvhost = parent->lvhost();
+// _lvhost = parent->lvhost();
     _canvas = lv_canvas_create(lvhost());
 
     _flags.isTap = true;
@@ -52,7 +52,7 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, slr::ContainerIte
     //calculate width
     slr::TimelineView & tlsnap = slr::TimelineView::getTimelineView();
 
-    slr::frame_t frames = item->_length;// testme.frames();
+    slr::frame_t frames = clipItem->_length;// testme.frames();
     int framesPerBar = tlsnap.framesPerBar();
     int pixPerBar = UIUtility::pixelPerBar(_uictx->gridHorizontalZoom());
     float pixelPerFrame = (float)pixPerBar/framesPerBar;
@@ -94,12 +94,12 @@ void FileView::update() {
 void FileView::draw() {
     lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
 
-    if(_item->_file->isAudio()) {
-        slr::AudioFile * afile = static_cast<slr::AudioFile*>(_item->_file);
+    if(_clipItem->_file->isAudio()) {
+        const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->_file);
         const slr::AudioPeakFile * peakFile = afile->peaks();
 
         int xsize = _canvasWidth;
-        float ratio = (float)_item->_length / (float)xsize; 
+        float ratio = (float)_clipItem->_length / (float)xsize; 
         slr::AudioPeaks::LODLevels nearestLvl = slr::AudioPeaks::pickLevel(ratio);
 
         {//draw
@@ -140,7 +140,7 @@ void FileView::draw() {
                 }
             }
         }
-    } else if(_item->_file->isMidi()) {
+    } else if(_clipItem->_file->isMidi()) {
         //draw midi file
     }
 }
@@ -178,12 +178,12 @@ bool FileView::handleHold(GestLib::HoldGesture &hold) {
         //TODO: snap to grid
         slr::frame_t res = UIUtility::pixelToFrame(cx, _uictx->gridHorizontalZoom());
         LOG_WARN("File sample pos: %lu", res);
-        slr::Events::ModContainerItem e = {
+        slr::Events::ModClipItem e = {
             .unitId = _parentUI->view()->id(),
-            .itemId = _item->_uniqueId,
+            .itemId = _clipItem->_uniqueId,
             .startPosition = res,
-            .length = _item->_length,
-            .muted = _item->_muted
+            .length = _clipItem->_length,
+            .muted = _clipItem->_muted
         };
         slr::EmitEvent(e);
         //emit event
@@ -203,14 +203,12 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     _deleteBtn->setCallback([this]() {
         LOG_INFO("Remove item event");
         slr::Events::RemoveFile e {
-            .fileId = this->_item->_item->_uniqueId,
+            .fileId = this->_item->_clipItem->_uniqueId,
             .unitId = this->_item->parentUI()->id()
         };
 
         slr::EmitEvent(e);
         this->_uictx->_popManager->disableFilePopup();
-        // this->deactivate();
-        // this->hide();
     });
 }
 

@@ -35,6 +35,7 @@ enum class AudioUnitType {
 class AudioUnit {
     public:
     explicit AudioUnit(AudioUnitType type, bool needsAudioOutput = true);
+    //explicit AudioUnit(ClipContainer & container, bool needsAudioOutput = true);
     virtual ~AudioUnit();
 
     RT_FUNC virtual frame_t process(const AudioContext &ctx, const Dependencies &inputs) = 0;
@@ -92,12 +93,12 @@ class AudioUnit {
 
     bool checkFileContainerNeedResize();
     void resizeFileContainer();
-    
-    const std::vector<ContainerItem*> * items() const { return _fileContainer._items; }
+
+    const std::vector<ClipItem*> * clips() const { return _clipContainer.clips(); }
     RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-
+    RT_FUNC static Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    
     protected:
     AudioUnitType _type;
     void addParameter(ParameterBase * base);
@@ -126,7 +127,7 @@ class AudioUnit {
     //automation clips
 
     RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
-    FileContainer _fileContainer;
+    ClipContainer _clipContainer;
     
     friend class AudioUnitView;
 };

@@ -1,18 +1,21 @@
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 START_BLOCK SwapContainer
 
 FLAT_REQ
 INCLUDE <vector>
 struct SwapContainer {
     AudioUnit * unit; //-> class AudioUnit;
-    std::vector<ContainerItem*> * container; //-> class ContainerItem;
+    std::vector<ClipItem*> * container; //-> class ClipItem;
 };
 
 FLAT_RESP
 INCLUDE <vector>
 struct SwapContainer {
     AudioUnit * unit;
-    std::vector<ContainerItem*> * oldContainer; //-> class ContainerItem;
-    std::vector<ContainerItem*> * newContainer;
+    std::vector<ClipItem*> * oldContainer; //-> class ClipItem;
+    std::vector<ClipItem*> * newContainer;
 };
  
 RT_HANDLE
@@ -23,10 +26,10 @@ END_HANDLE
 RESP_HANDLE
 INCLUDE "core/Project.h"
 INCLUDE "logger.h"
-void handleContainerSwapped(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+void handleContainerSwappedNew(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
     if(resp.status == Status::Ok) {
         LOG_INFO("Container for unit %u swapped, deleting old one", resp.swapContainer.unit->id());
-        delete resp.swapContainer.oldContainer;
+        // delete resp.swapContainerNew.oldContainer;
     } else {
         LOG_ERROR("Failed to swap unit %u container", resp.swapContainer.unit->id());
     }

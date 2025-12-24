@@ -9,6 +9,7 @@
 #include "defines.h"
 
 #include <functional>
+
 namespace slr {
 
 class ProjectView;

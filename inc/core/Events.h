@@ -37,7 +37,7 @@ using Event = std::variant<
 		FileOpened,
 		RemoveFile,
 		FileUIRemoved,
-		ModContainerItem,
+		ModClipItem,
 		RecordArm
 >;
 

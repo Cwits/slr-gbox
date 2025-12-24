@@ -8,5 +8,5 @@
 #include "inc/core/Events/AudioUnit/OpenFile.h"
 #include "inc/core/Events/AudioUnit/CloseFile.h"
 #include "inc/core/Events/AudioUnit/RemoveFile.h"
+#include "inc/core/Events/AudioUnit/ModifyClipItem.h"
 #include "inc/core/Events/AudioUnit/SwapContainer.h"
-#include "inc/core/Events/AudioUnit/ModifyContainerItem.h"

@@ -1,16 +1,19 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "defines.h"
+#include <cstdint> 
+#include "core/FileWorker.h"
+#include <memory>
 #include <vector>
 #include <string>
-#include <cstdint> 
+#include "defines.h"
+#include "core/FileTasks.h"
 #include "Status.h"
 
 namespace slr {
 
-class File;
-class ContainerItem;
 class AudioUnit;
+class ClipItem;
+class File;
 
 namespace Events {
 
@@ -28,13 +31,13 @@ struct ToggleOmniHwInput {
     bool newState;
 };
 struct OpenFile {
-	ID targetId;
+	ID unitId;
     std::string path;
 };
 struct FileOpened {
     Status status;
-    File * file; //-> class File;
-	ID targetId;
+    const File * file; //-> class File;
+	ID unitId;
 };
 struct RemoveFile {
     ID fileId;
@@ -44,7 +47,7 @@ struct FileUIRemoved {
     ID fileId;
     ID unitId;
 };
-struct ModContainerItem {
+struct ModClipItem {
     ID unitId;
     ID itemId;
     frame_t startPosition;
@@ -73,18 +76,18 @@ struct ToggleOmniHwInput {
 };
 struct AppendItem {
 	AudioUnit * unit; //-> class AudioUnit;
-	ContainerItem * item; //->class ContainerItem;
+	ClipItem * item; //-> class ClipItem;
 };
-struct SwapContainer {
+struct ModClipItem {
     AudioUnit * unit; //-> class AudioUnit;
-    std::vector<ContainerItem*> * container; //-> class ContainerItem;
-};
-struct ModContainerItem {
-    AudioUnit * unit; //-> class AudioUnit;
-    ContainerItem * item; //->class ContainerItem;
+    ClipItem * item; //-> class ClipItem;
     frame_t startPosition;
     frame_t length;
     bool muted;
+};
+struct SwapContainer {
+    AudioUnit * unit; //-> class AudioUnit;
+    std::vector<ClipItem*> * container; //-> class ClipItem;
 };
 
 } //namespace FlatControls
@@ -106,19 +109,19 @@ struct ToggleOmniHwInput {
 };
 struct AppendItem {
 	AudioUnit * unit; //-> class AudioUnit;
-	ContainerItem * item; //->class ContainerItem;
+	ClipItem * item; //-> class ClipItem;
 };
-struct SwapContainer {
-    AudioUnit * unit;
-    std::vector<ContainerItem*> * oldContainer; //-> class ContainerItem;
-    std::vector<ContainerItem*> * newContainer;
-};
-struct ModContainerItem {
+struct ModClipItem {
     AudioUnit * unit; //-> class AudioUnit;
-    ContainerItem * item; //->class ContainerItem;
+    ClipItem * item; //-> class ClipItem;
     frame_t startPosition;
     frame_t length;
     bool muted;
+};
+struct SwapContainer {
+    AudioUnit * unit;
+    std::vector<ClipItem*> * oldContainer; //-> class ClipItem;
+    std::vector<ClipItem*> * newContainer;
 };
 
 } //namespace FlatResponses
