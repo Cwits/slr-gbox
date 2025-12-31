@@ -191,6 +191,11 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
         }
 
         if(ctx.playing && ctx.recording) {
+            if(_recordTarget->isFirstWrite()) {
+                _recordTarget->setFileStartPosition(ctx.elapsed);
+                _recordTarget->markDirty();
+            }
+            
             if(_recordSource == RecordSource::Audio) {
                 _recordTarget->writeData(_recInt, ctx.frames, 2, false); //don't compensate
                 _recordTarget->writeData(_recExt, ctx.frames, 2, true); //compensate latency
@@ -294,14 +299,6 @@ Status Track::reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents::FlatRe
     return Status::NotOk; //don't send response
 }
 
-bool Track::checkFileContainerNeedResize() {
-    return false;
-}
-
-void Track::resizeFileContainer() {
-
-}
-
 //latencyToCompensate comes from RecordArm or ReinitRecord events...
 bool Track::prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate) {
     if(_recordTarget != nullptr) {
@@ -378,7 +375,7 @@ void Track::AudioRecord::stopRecord() {
 void Track::AudioRecord::finalize() {
     _recordFile->finalizeFile();
 
-    dumpDataCommand(_bufferInUse, _recordFile, _currentBufferFill);
+    dumpDataCommand(_bufferInUse, _recordFile, _currentBufferFill, fileStartPosition());
     _currentBufferFill = 0;
 }
 
@@ -402,7 +399,7 @@ void Track::AudioRecord::incrementCounter(frame_t frames) {
     }
 
     if(_dumpOldBuffer) {
-        dumpDataCommand(_oldBuffer, _recordFile, _oldBuffer->bufferSize());
+        dumpDataCommand(_oldBuffer, _recordFile, _oldBuffer->bufferSize(), 0);
         _compensatedLatency = 0;
         _dumpOldBuffer = false;
         _oldBuffer = nullptr;
@@ -448,127 +445,17 @@ void Track::AudioRecord::writeData(void * data, frame_t frames, uint8_t numChann
     }
 }
 
-void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size) {
+void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition) {
     FlatEvents::FlatResponse dump;
     dump.type = FlatEvents::FlatResponse::Type::DumpRecordedAudio;
     dump.dumpRecordedAudio.targetBuffer = buffer;
     dump.dumpRecordedAudio.targetFile = file;
     dump.dumpRecordedAudio.size = size;
+    dump.dumpRecordedAudio.fileStartPosition = fileStartPosition;
     dump.dumpRecordedAudio.trackId = _parent->id();
     RtEngine::addRtResponse(dump);
 
     _fileUsed = true;
-}
-
-
-void Track::playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */) {
-    for(const ContainerItem * item : *(_fileContainer._items)) {
-        if(item->_muted) continue;
-
-        if((ctx.elapsed+ctx.frames) <= item->_startPosition) continue;
-        if(ctx.elapsed > (item->_startPosition+item->_length)) continue;
-
-        switch(item->_file->type()) {
-            case(FileType::Audio): {
-                const AudioFile * file = static_cast<AudioFile*>(item->_file);
-                const AudioBuffer * data = file->getData();
-                int channels = data->channels();
-
-                //TODO: i guess this can be optimized...
-                frame_t framesToRead = 0;
-                frame_t writePosition = 0;
-                frame_t readPosition = 0;
-                if(ctx.elapsed < item->_startPosition) { 
-                    //beginning
-                    framesToRead = ctx.frames - (item->_startPosition - ctx.elapsed);
-                    writePosition = item->_startPosition - ctx.elapsed;
-                    readPosition = 0;
-                } else if(ctx.elapsed + ctx.frames > item->_startPosition + item->_length) {
-                    //end
-                    framesToRead = (item->_startPosition + item->_length) - ctx.elapsed;
-                    writePosition = 0;
-                    readPosition = ctx.elapsed - item->_startPosition;
-                } else {
-                    //middle
-                    framesToRead = ctx.frames;
-                    writePosition = 0;
-                    readPosition = ctx.elapsed - item->_startPosition;
-                }
-
-                // {
-                //     LOG_INFO("elapsed: %lu, toRead: %lu, write: %lu, read: %lu, total: %lu", 
-                //                 ctx.elapsed,
-                //                 framesToRead,
-                //                 writePosition,
-                //                 readPosition,
-                //                 data->bufferSize());
-                // }
-
-                if(channels == 1) {
-                    for(frame_t f=0; f<framesToRead; ++f) {
-                        (*buf)[0][writePosition+f] += (*data)[0][readPosition+f];
-                        (*buf)[1][writePosition+f] += (*data)[0][readPosition+f];
-                    }
-                } else if(channels == 2) {
-                    for(frame_t f=0; f<framesToRead; ++f) {
-                        // for(int ch=0; ch<channels; ++ch) {
-                        //     (*buf)[ch][writePosition+f] += (*data)[ch][readPosition+f];
-                        // }
-                        (*buf)[0][writePosition+f] += (*data)[0][readPosition+f];
-                        (*buf)[1][writePosition+f] += (*data)[1][readPosition+f];
-                    }
-                }
-
-            } break;
-            case(FileType::Midi): {
-
-            } break;
-            case(FileType::AudioPeak):
-            default: {
-                LOG_ERROR("Wrong file type");
-            } break;
-        }
-    }
-}
-        
-Status Track::appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ev.appendItem.track->_fileContainer._items->push_back(ev.appendItem.item);
-    resp.type = FlatEvents::FlatResponse::Type::AppendItem;
-    resp.status = Status::Ok;
-    resp.appendItem.track = ev.appendItem.track;
-    resp.appendItem.item = ev.appendItem.item;
-    return Status::Ok;
-}
-
-Status Track::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    resp.swapContainer.oldContainer = ev.swapContainer.track->_fileContainer._items;
-    
-    ev.swapContainer.track->_fileContainer._items = ev.swapContainer.container;
-    
-    resp.type = FlatEvents::FlatResponse::Type::SwapContainer;
-    resp.status = Status::Ok;
-    resp.swapContainer.track = ev.swapContainer.track;
-    resp.swapContainer.newContainer = ev.swapContainer.container;
-    resp.commandId = ev.commandId;
-    return Status::Ok;
-}
-
-Status Track::modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ContainerItem * item = ev.modContainerItem.item;
-
-    item->_startPosition = ev.modContainerItem.startPosition;
-    item->_length = ev.modContainerItem.length;
-    item->_muted = ev.modContainerItem.muted;
-
-    resp.type = FlatEvents::FlatResponse::Type::ModContainerItem;
-    resp.commandId = ev.commandId;
-    resp.status = Status::Ok;
-    resp.modContainerItem.track = ev.modContainerItem.track;
-    resp.modContainerItem.item = ev.modContainerItem.item;
-    resp.modContainerItem.startPosition = ev.modContainerItem.startPosition;
-    resp.modContainerItem.length = ev.modContainerItem.length;
-    resp.modContainerItem.muted = ev.modContainerItem.muted;
-    return Status::Ok;
 }
 
 }

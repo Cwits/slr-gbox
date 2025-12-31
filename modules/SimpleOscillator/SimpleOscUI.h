@@ -29,8 +29,8 @@ struct SimpleOscUI : public UnitUIBase {
     BaseWidget * moduleUI() override { return _moduleUI; }
     // BaseWidget * patchUI() override;
  
-    int gridY() override;
-    void updatePosition(int x, int y) override;
+    // int gridY() override;
+    // void updatePosition(int x, int y) override;
 
     private:
     slr::SimpleOscView * _osc;

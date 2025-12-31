@@ -19,6 +19,7 @@ Parameters:
 
 Events:
 [ ] - Events 3.0: outside they stay same way, but internal mechanism must work by stages, full isolation from outer world(kinda)...
+
 AudioUnit:
 [ ] - make ::outputs() to give back not the AudioBuffer * but list of 
         struct Outputs {
@@ -30,13 +31,15 @@ AudioUnit:
         plus make ::output(id) to grant access to specific output for render plan builder
 [ ] - make a virtual void reinit() = 0; member function that must be called every time when some fundamental settings are changed
         e.g. block size or sample rate or others.
-[\] - AudioUnit File Manipulation
+[\] - ~~AudioUnit File Manipulation~~ rolled back, now only Track can load audio and midi files.
         [x] - Make FileContainer Part of AudioUnit, so all audio units can load audio and midi files
         [x] - Transfer playback logic from Track to AudioUnit,
         [x] - Transfer related to File Events from Track to AudioUnit(OpenFile, CloseFile)
         [\] - Make some config members as bool canLoadFile(type), AudioUnit::playbackFiles() abstraction, and ???
                 canLoadFiles handled in UnitUIBase
         [ ] - Make unified logic for drawing files...
+
+[ ] - each module needs to have some function to reconfigure samplerate and blocksize?
         
 Metronome:
 [\] - implement one(must live in rt class)(not tested)
@@ -52,6 +55,13 @@ Refactoring:
 [x] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
         (Track separated, mixer left)
 [ ] - separate defines.h to two files - slr_config.h and common.h
+
+[ ] - big one: Get rid of Flat Response from RtEngine. Ideally RtEngine must not send back anything.
+        The main idea is to fire event from Control Engine to Rt Engine via Flat Event and that's all.
+        For UI Updating - Control Engine stores sent events and check's if it is completed.
+                - like instead of "handle Responses from RT Engine" - "check value updated"
+                  than call UI update.
+                  I guess should be some kind of timeout for that otherwise sent event's that failed to succeed will stay forever?
 
 Project:
 [ ] - make save and load system(serialization)
@@ -76,6 +86,8 @@ Render Plan:
 
 Modules:
 [ ] - Make a proper CMakeLists.txt template for easier to implement each module and not to edit main CMakeLists in order to add new one
+[ ] - now modules registring in ModuleManager directly -> each module has to compile as dynamically linked libs - 
+        .so and ModuleManager has to discover them automatically
 
 other:
 [\] - introduce using ID = uint32_t(or uint64_t) so ID would be unified thing all across system
@@ -102,7 +114,8 @@ other:
 [ ] - Abstract GridControl UI for modules to have basic grid control with files
 
 Route Manager:
-[ ] - RouteManager - map and other things...
+[ ] - channel mapping
+[ ] - removing route
 
 Browser:
 [ ] - Browser TODO: show selector that will allow to select where we want to drag.
@@ -111,7 +124,7 @@ Browser:
 
 Drop Down Menu:
 [ ] - DropDown widget to handle swipe, to check how much space left for list, render above.
-[ ] - DropDown widget failing when "index is 3, vector size is 2"
+[x] - DropDown widget failing when "index is 3, vector size is 2" - now position calculating in absolute values
 
 [ ] - guiThread must provide function to add ui update tasks to schedule, so it be simple to call from uiControls.cpp
 
@@ -137,4 +150,37 @@ Tests:
 [ ] - more tests!
 [ ] - more logging!
 
-[ ] - there is several memory leaks in ui...
+[ ] - there is several memory leaks in ui...?
+
+
+
+/* Notes */
+ - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 
+        all MIDI events that reaches specific unit won't be able to travel to unit output(doesn't matter if it's 
+        from external device or from MIDI Clip). To enable MIDI Events to travel further "Midi Thru" should be enabled for 
+        specific unit.
+
+        e.g.
+        MIDI Clip is on whatever unit. 
+        Without "Midi Thru" enabled MIDI Events will affect only that unit, and not appear in _midiOutput buffer of that unit.
+        (doesn't matter if there is some MIDI routings from unit to somewhere(dunno yeat about routings to external devices)).
+        With "Midi Thru" option enabled MIDI Events will affect unit and go to _midiOutput buffer of that unit. So, if there is 
+        any MIDI routings from unit to somewhere else than those events can be grabbed on that frame.
+
+
+
+        struct FileOpenedNew : public Undoable {
+    Status status;
+    File * file; //-> class File;
+	ID unitId;
+
+	void undo() {
+		if(status == Status::Nok) return;
+
+		Events::RemoveFile e = {
+			.fileId = file->id(),
+			.unitId = unitId
+		};
+		Events::EmitEvent(e);
+	}
+};

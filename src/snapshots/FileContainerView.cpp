@@ -6,14 +6,13 @@
 
 namespace slr {
 
-ContainerItemView::ContainerItemView(ContainerItem * container) : 
-    _startPosition(container->_startPosition),
-    _length(container->_length),
-    _muted(container->_muted),
+ClipItemView::ClipItemView(ClipItem * container) : 
+    _startPosition(container->startPosition()),
+    _length(container->length()),
+    _muted(container->isMuted()),
     _file(container->_file),
     _uniqueId(container->_uniqueId) {
 
-}
-
+} 
     
 }

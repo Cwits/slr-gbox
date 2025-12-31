@@ -33,7 +33,8 @@ enum class MainView {
 };
 
 struct UIContext {
-    DragContext _dragContext;
+    DragContext * dragContext() { return _dragContext; }
+    
     std::vector<UnitUIBase*> _unitsUI;
     
     PopupManager * _popManager;
@@ -62,6 +63,8 @@ struct UIContext {
     float gridHorizontalZoom();
 
     private:
+    DragContext * _dragContext;
+    
     TopPanel * _topPanel;
     BottomPanel * _bottomPanel;
     GridView * _gridView;

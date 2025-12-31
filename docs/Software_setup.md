@@ -57,6 +57,9 @@ https://jackaudio.org/faq/linux_rt_config.html
 
 > sudo reboot  
 
+### Configuring folders
+Please edit the 'default_config.json' file and change folder locations(create folders if necessary)
+
 ## Building and Running 
 
 > git clone --recurse-submodules https://github.com/Cwits/slr-gbox.git  

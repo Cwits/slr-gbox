@@ -7,6 +7,7 @@
 // #include <rtmidi/RtMidi.h>
 #include "logger.h"
 #include "core/primitives/MidiEvent.h"
+#include "core/SettingsManager.h"
 
 #include <iostream>
 #include <vector>
@@ -25,8 +26,10 @@ int expectedLength(const MidiEventType &type);
 
 ID _midiPortIdCounter = 1;
 
-MidiController::MidiController() {
+frame_t _input_constant_delay = 0;
 
+MidiController::MidiController() {
+    _input_constant_delay = SettingsManager::getBlockSize();
 }
 
 MidiController::~MidiController() {
@@ -485,6 +488,7 @@ void MidiPort::pushEvent(const MidiEventType type, const int channel, const int 
     ev.type = type;
     ev.note = note;
     ev.velocity = velocity;
+    // ev.timestamp = std::chrono::steady_clock::now();
     _inQueue->push(ev);
 }
 
@@ -612,106 +616,8 @@ int expectedLength(const MidiEventType &type) {
     }
 }
 
-
-// void MidiPort::sendByte(unsigned char c) {
-//     if(!_outputHandle) return; //mby move this to some better place?
-//     snd_rawmidi_write(_outputHandle, &c, sizeof(c));
-// }
-//writing stuff
-/*
+/* some LLM stuff, need testing. don't want to dive deep into alsa right now */
 void MidiPort::writeHandle(MidiPort *port) {
-
-    port->_runOutput = true;
-
-    snd_rawmidi_t * out = port->_outputHandle;
-    SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE> * queue = port->outQueue();
-
-    snd_rawmidi_nonblock(out, 1);
-    
-    int alsa_fds = snd_rawmidi_poll_descriptors_count(out);
-    int npfds    = alsa_fds + 1;
-    pollfd *pfds = new pollfd[npfds];
-    
-    snd_rawmidi_poll_descriptors(out, pfds, alsa_fds);
-    
-    int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-    
-    pfds[alsa_fds].fd = efd;
-    pfds[alsa_fds].events = POLLIN;
-
-    uint8_t buffer[256];
-    size_t  buf_used = 0;
-
-    port->_efd = efd;
-    port->_outputOpened = true;
-
-    //this eats all the cpu somehow
-    while(port->_runOutput) {
-        int err = poll(pfds, npfds, -1); 
-
-        if(err < 0) {
-            //some error
-            break;
-        }
-
-        if(pfds[alsa_fds].revents & POLLIN) {
-            uint64_t v;
-            read(efd, &v, sizeof(v));
-        }
-
-        bool alsa_writable = false;
-        for(int i = 0; i < alsa_fds; ++i)
-            if(pfds[i].revents & POLLOUT)
-                alsa_writable = true;
-
-        if(!alsa_writable)
-            continue;
-
-        while(!queue->empty()) {
-            MidiEvent ev;
-            while(queue->pop(ev)) {
-                //TODO: assume that all outcomming events have size of 3
-                uint8_t msg[3];
-                msg[0] = static_cast<uint8_t>(ev.type) | (ev.channel & 0x0F); // status + channel
-                msg[1] = static_cast<uint8_t>(ev.note & 0x7F);                // note number
-                msg[2] = static_cast<uint8_t>(ev.velocity & 0x7F);            // velocity
-
-                if (buf_used + 3 > sizeof(buffer))
-                    break;
-
-                memcpy(buffer + buf_used, msg, 3);
-                buf_used += 3;
-            }
-
-            // while (queue->pop(ev)) {
-            //     memcpy(buffer + buf_used, ev.data, ev.size);
-            //     buf_used += ev.size;
-            //     if (buf_used > sizeof(buffer) - 3)
-            //         break;
-            // }
-
-            ssize_t r = snd_rawmidi_write(out, buffer, buf_used);
-
-            if (r > 0) {
-                memmove(buffer, buffer + r, buf_used - r);
-                buf_used -= r;
-            } else if (r == -EAGAIN) {
-                break;
-            } else {
-                // error
-                break;
-            }
-        }
-    }
-
-    close(efd);
-    delete pfds;
-}
-*/
-
-/* some LLM stuff, need testing */
-void MidiPort::writeHandle(MidiPort *port)
-{
     snd_rawmidi_t *out = port->_outputHandle;
     auto *queue = port->outQueue();
 

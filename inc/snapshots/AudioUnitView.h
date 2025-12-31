@@ -47,7 +47,7 @@ class AudioUnitView {
     const bool isMidiThru() const { return _midiThru; }
     const bool isOmniHwInput() const { return _omniHwInput; }
 
-    FileContainerView _fileList;
+    ClipContainerView _clipContainer;
 
     protected:
     const AudioUnit * _au;

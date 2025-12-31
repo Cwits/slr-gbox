@@ -33,12 +33,12 @@ using Event = std::variant<
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
-		RecordArm,
 		OpenFile,
 		FileOpened,
 		RemoveFile,
 		FileUIRemoved,
-		ModContainerItem
+		ModClipItem,
+		RecordArm
 >;
 
 } //namespace Events

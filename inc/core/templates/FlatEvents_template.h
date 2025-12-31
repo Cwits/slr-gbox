@@ -8,6 +8,7 @@
 #include "Status.h"
 #include "defines.h"
 #include <cstdint>
+#include <assert.h>
 
 namespace slr {
 
@@ -35,6 +36,9 @@ struct FlatResponse {
 		//GENERATE_RESP_UNIONS
 	};
 };
+
+// static_assert(sizeof(FlatControl <= 64)); //TODO: ? it is bigger lol :/
+static_assert(sizeof(FlatResponse) <= 64);
 
 } //namespace FlatEvents
 

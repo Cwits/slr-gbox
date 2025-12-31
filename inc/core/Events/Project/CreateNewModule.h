@@ -11,6 +11,8 @@ struct CreateModule {
 
 EV_HANDLE
 INCLUDE "core/ModuleManager.h"
+INCLUDE "core/primitives/FileContainer.h"
+INCLUDE "core/Project.h"
 INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "snapshots/AudioUnitView.h"
 INCLUDE "ui/uiControls.h"
@@ -22,27 +24,36 @@ void handleEvent(const ControlContext &ctx, const Events::CreateModule &e) {
         return;
     }
 
-    AudioUnit * au = nullptr;
-    AudioUnitView * view = nullptr;
 
     try {
+        AudioUnit * au = nullptr;
+        AudioUnitView * view = nullptr;
         std::unique_ptr<AudioUnit> unit = mod->createRT();
         au = unit.get();
         ctx.project->addUnit(std::move(unit));
         
         view = mod->createView(au);
         ctx.projectView->addUnitView(view);
+
+        if(!au && !view) {
+            LOG_ERROR("2 Failed to create module %s", e.name.c_str());
+            return;
+        }
+
+        ClipContainerMap &map = ctx.project->clipContainerMap();
+        auto [it, inserted] = map.try_emplace(au->id());
+        ClipStorage & storage = it->second;
+
+        au->setClips(storage.getOtherVector(nullptr));
+        
+        if(!inserted) LOG_ERROR("Clip Container Map with %u id already exists", au->id());
+
+        UIControls::addModuleUI(mod, view);
     } catch(...) {
         LOG_ERROR("Failed to create module %s", e.name.c_str());
         return;
     }
 
-    if(!au && !view) {
-        LOG_ERROR("2 Failed to create module %s", e.name.c_str());
-        return;
-    }
-
-    UIControls::addModuleUI(mod, view);
 }
 END_HANDLE
 

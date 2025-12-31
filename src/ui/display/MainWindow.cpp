@@ -9,6 +9,7 @@
 #include "ui/display/primitives/UnitUIBase.h"
 #include "ui/display/primitives/UIContext.h"
 #include "ui/display/primitives/Label.h"
+#include "ui/display/primitives/DragContext.h"
 
 #include "ui/display/GridView.h"
 #include "ui/display/ModuleView.h"
@@ -48,18 +49,18 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     // _uiContext = new UIContext();
     _uiContext._mainWindow = this;
 
-    _topPanel = new TopPanel(this, &_uiContext);
-    _bottomPanel = new BottomPanel(this, &_uiContext);
-    _gridView = new GridView(this, &_uiContext);
-    _moduleView = new ModuleView(this, &_uiContext);
-    _browser = new Browser(this, &_uiContext);
+    _topPanel = std::make_unique<TopPanel>(this, &_uiContext);
+    _bottomPanel = std::make_unique<BottomPanel>(this, &_uiContext);
+    _gridView = std::make_unique<GridView>(this, &_uiContext);
+    _moduleView = std::make_unique<ModuleView>(this, &_uiContext);
+    _browser = std::make_unique<Browser>(this, &_uiContext);
     
     //TODO: set context values...
-    _uiContext._topPanel = _topPanel;
-    _uiContext._bottomPanel = _bottomPanel;
-    _uiContext._gridView = _gridView;
-    _uiContext._module = _moduleView;
-    _uiContext._browser = _browser;
+    _uiContext._topPanel = _topPanel.get();
+    _uiContext._bottomPanel = _bottomPanel.get();
+    _uiContext._gridView = _gridView.get();
+    _uiContext._module = _moduleView.get();
+    _uiContext._browser = _browser.get();
     _uiContext._gridTimeline = _gridView->_timeline;
 
     _playheadUpdateTimer = lv_timer_create(&MainWindow::playheadUpdateCb, LV_DEF_REFR_PERIOD, nullptr);
@@ -71,33 +72,33 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _currentView = MainView::Grid;
     _prevView = _currentView;
     
-    _uiContext._dragContext.reset();
+    // _uiContext._dragContext.reset();
 
-    _unitControlPopup = new UnitControlPopup(this, &_uiContext);
-    _popups.push_back(_unitControlPopup);
-    _routeManager = new RouteManager(this, &_uiContext);
-    _popups.push_back(_routeManager);
-    _timelinePopup = new TimelinePopup(this, &_uiContext);
-    _popups.push_back(_timelinePopup);
-    _keyboard = new ScreenKeyboard(this, &_uiContext);
-    _popups.push_back(_keyboard);
-    _filePopup = new FilePopup(this, &_uiContext);
-    _popups.push_back(_filePopup);
-    _newModulePopup = new NewModulePopup(this, &_uiContext);
-    _popups.push_back(_newModulePopup);
-    _settingsPopup = new SettingsPopup(this, &_uiContext);
-    _popups.push_back(_settingsPopup);
-    _virtualMidiKeyboard = new VirtualMidiKeyboard(this, &_uiContext);
-    _popups.push_back(_virtualMidiKeyboard);
+    _unitControlPopup = std::make_unique<UnitControlPopup>(this, &_uiContext);
+    _popups.push_back(_unitControlPopup.get());
+    _routeManager = std::make_unique<RouteManager>(this, &_uiContext);
+    _popups.push_back(_routeManager.get());
+    _timelinePopup = std::make_unique<TimelinePopup>(this, &_uiContext);
+    _popups.push_back(_timelinePopup.get());
+    _keyboard = std::make_unique<ScreenKeyboard>(this, &_uiContext);
+    _popups.push_back(_keyboard.get());
+    _filePopup = std::make_unique<FilePopup>(this, &_uiContext);
+    _popups.push_back(_filePopup.get());
+    _newModulePopup = std::make_unique<NewModulePopup>(this, &_uiContext);
+    _popups.push_back(_newModulePopup.get());
+    _settingsPopup = std::make_unique<SettingsPopup>(this, &_uiContext);
+    _popups.push_back(_settingsPopup.get());
+    _virtualMidiKeyboard = std::make_unique<VirtualMidiKeyboard>(this, &_uiContext);
+    _popups.push_back(_virtualMidiKeyboard.get());
 
-    _popManager._unitControlPopup = _unitControlPopup;
-    _popManager._routeManager = _routeManager;
-    _popManager._timelinePopup = _timelinePopup;
-    _popManager._screenKeyboard = _keyboard;
-    _popManager._filePopup = _filePopup;
-    _popManager._newModulePopup = _newModulePopup;
-    _popManager._settingsPopup = _settingsPopup;
-    _popManager._virtualMidiKeyboard = _virtualMidiKeyboard;
+    _popManager._unitControlPopup = _unitControlPopup.get();
+    _popManager._routeManager = _routeManager.get();
+    _popManager._timelinePopup = _timelinePopup.get();
+    _popManager._screenKeyboard = _keyboard.get();
+    _popManager._filePopup = _filePopup.get();
+    _popManager._newModulePopup = _newModulePopup.get();
+    _popManager._settingsPopup = _settingsPopup.get();
+    _popManager._virtualMidiKeyboard = _virtualMidiKeyboard.get();
 
     _uiContext._popManager = &_popManager;
 
@@ -105,29 +106,33 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _floatingText = lv_label_create(_lvhost);
     lv_obj_set_style_text_font(_floatingText, &lv_font_montserrat_40, 0);
     lv_obj_set_pos(_floatingText, 30, LayoutDef::TOTAL_HEIGHT-200);
-    _floatingTimer = lv_timer_create(&MainWindow::timercb, FLOATING_TEXT_TIMEOUT, _floatingText);
+    _floatingTimer = lv_timer_create(&MainWindow::floatingTimercb, FLOATING_TEXT_TIMEOUT, _floatingText);
     lv_timer_set_auto_delete(_floatingTimer, false);
 
     // lv_timer_set_repeat_count(_floatingTimer, 1);
     lv_obj_add_flag(_floatingText, LV_OBJ_FLAG_HIDDEN);
 
+    _dragContext = std::make_unique<DragContext>(this);
+    _dragContext->reset();
+    _uiContext._dragContext = _dragContext.get();
 }
 
 MainWindow::~MainWindow() {
     //but no clean of lvgl object - would be cleaned on main exit
     // delete _btnAddTrack;
-    delete _gridView;
-    delete _moduleView;
-    delete _browser;
-    delete _bottomPanel;
-    delete _topPanel;
-    delete _unitControlPopup;
-    delete _routeManager;
-    delete _timelinePopup;
-    delete _keyboard;
-    delete _filePopup;
-    delete _newModulePopup;
-    delete _settingsPopup;
+    // delete _gridView;
+    // delete _moduleView;
+    // delete _browser;
+    // delete _bottomPanel;
+    // delete _topPanel;
+    // delete _unitControlPopup;
+    // delete _routeManager;
+    // delete _timelinePopup;
+    // delete _keyboard;
+    // delete _filePopup;
+    // delete _newModulePopup;
+    // delete _settingsPopup;
+    // delete _virtualMidiKeyboard;
     // delete _uiContext;
 }
 
@@ -185,19 +190,19 @@ bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
 
             if(y <= LayoutDef::TOP_PANEL_HEIGHT) {
                 //look in top panel
-                node = _topPanel;
+                node = _topPanel.get();
             } else if(y > LayoutDef::TOP_PANEL_HEIGHT && y < (LayoutDef::WORKSPACE_HEIGHT+LayoutDef::TOP_PANEL_HEIGHT)) {
                 //look in workspace
                 switch(_currentView) {
-                    case(MainView::Grid): node = _gridView; break;
-                    case(MainView::Module): node = _moduleView; break;
-                    case(MainView::Browser): node = _browser; break;
+                    case(MainView::Grid): node = _gridView.get(); break;
+                    case(MainView::Module): node = _moduleView.get(); break;
+                    case(MainView::Browser): node = _browser.get(); break;
                 }
 
             } else {
                 //look in bottom panel
                 //node = _bottomPanel;
-                node = _bottomPanel;
+                node = _bottomPanel.get();
             }
 
         }
@@ -322,29 +327,25 @@ void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
     }
 }
 
-void MainWindow::floatingTextRegular(std::string text) {
-    LOG_INFO("%s", text.c_str());
-    lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_REGULAR_COLOR, 0);
+void MainWindow::floatingText(bool warning, const std::string &text) {
+    if(warning) {
+        LOG_WARN("%s", text.c_str());
+        lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_WARNING_COLOR, 0);    
+    } else {
+        LOG_INFO("%s", text.c_str());
+        lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_REGULAR_COLOR, 0);
+    }
     lv_label_set_text(_floatingText, text.c_str());
     lv_obj_move_to_index(_floatingText, -1);
     lv_obj_clear_flag(_floatingText, LV_OBJ_FLAG_HIDDEN);
+    lv_timer_reset(_floatingTimer);
     lv_timer_resume(_floatingTimer);
 }
 
-void MainWindow::floatingTextWarning(std::string text) {
-    LOG_WARN("%s", text.c_str());
-    lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_WARNING_COLOR, 0);
-    lv_label_set_text(_floatingText, text.c_str());
-    lv_obj_move_to_index(_floatingText, -1);
-    lv_obj_clear_flag(_floatingText, LV_OBJ_FLAG_HIDDEN);
-    lv_timer_resume(_floatingTimer);
-}
-
-void MainWindow::timercb(lv_timer_t * timer) {
+void MainWindow::floatingTimercb(lv_timer_t * timer) {
     lv_obj_t * label = static_cast<lv_obj_t*>(lv_timer_get_user_data(timer));
     lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
     lv_timer_pause(timer);
-    lv_timer_reset(timer);
 }
 
 MainWindow * MainWindow::inst() {
@@ -354,9 +355,9 @@ MainWindow * MainWindow::inst() {
 View * MainWindow::getSwitchViewTarget(MainView & view) {
     View * ret = nullptr;
     switch(view) {
-        case(MainView::Grid): ret = _gridView; break;
-        case(MainView::Module): ret = _moduleView; break;
-        case(MainView::Browser): ret = _browser; break;
+        case(MainView::Grid): ret = _gridView.get(); break;
+        case(MainView::Module): ret = _moduleView.get(); break;
+        case(MainView::Browser): ret = _browser.get(); break;
         case(MainView::Patch): ; break;
         case(MainView::Editor): ; break;
         case(MainView::StepSequencer): ; break;

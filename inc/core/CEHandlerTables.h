@@ -53,12 +53,12 @@ constexpr EventHandlerFn ControlTable[] = {
 	&dispatchHelper<Events::SetParameter>,
 	&dispatchHelper<Events::ToggleMidiThru>,
 	&dispatchHelper<Events::ToggleOmniHwInput>,
-	&dispatchHelper<Events::RecordArm>,
 	&dispatchHelper<Events::OpenFile>,
 	&dispatchHelper<Events::FileOpened>,
 	&dispatchHelper<Events::RemoveFile>,
 	&dispatchHelper<Events::FileUIRemoved>,
-	&dispatchHelper<Events::ModContainerItem>
+	&dispatchHelper<Events::ModClipItem>,
+	&dispatchHelper<Events::RecordArm>
 };
 }
 
@@ -75,12 +75,12 @@ constexpr ResponseHandlerFn ResponseTable[] = {
 	&handleSetParameterResponse,
 	&handleToggleMidiThruResponse,
 	&handleToggleOmniHwInputResponse,
+	&handleAppendItemNewResponse,
+	&handleModifyClipItemResponse,
+	&handleContainerSwappedNew,
 	&handleRecordArmResponse,
 	&handleDumpRecordedAudio,
-	&handleReinitTrackRecord,
-	&handleAppendItemResponse,
-	&handleContainerSwapped,
-	&handleModifyContainerItemResponse
+	&handleReinitTrackRecord
 };
 }
 

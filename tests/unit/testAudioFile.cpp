@@ -10,8 +10,9 @@
 
 #include "core/primitives/AudioBuffer.h"
 #include "core/utility/basicAudioManipulation.h"
+#include "testhelper.h"
+#include "core/FileWorker.h"
 
-const std::string pathToTestFiles = "/home/portablejoe/slr/tests/files/";
 const slr::frame_t testFileSize = 64;
 
 bool file_exists(const std::string& path) {
@@ -29,7 +30,7 @@ bool delete_file(const std::string& path) {
 
 TEST(AudioFile, OpenClose) {
     slr::AudioFile * file = new slr::AudioFile();
-    std::string path = pathToTestFiles;
+    std::string path = pathToTestFolder;
 
     //test 1 ch
     path.append("test_1ch_float.wav");
@@ -50,7 +51,7 @@ TEST(AudioFile, OpenClose) {
     ASSERT_TRUE(file->close());
 
     //test 2 ch
-    path = pathToTestFiles;
+    path = pathToTestFolder;
     path.append("test_2ch_float.wav");
 
     ASSERT_TRUE(file->open(path));
@@ -69,12 +70,12 @@ TEST(AudioFile, OpenClose) {
     ASSERT_TRUE(file->close());
 
     //if next tests failed to success than, most probably, audio file started to support multichannel:)
-    path = pathToTestFiles;
+    path = pathToTestFolder;
     path.append("test_3ch_float.wav");
 
     ASSERT_FALSE(file->open(path));
 
-    path = pathToTestFiles;
+    path = pathToTestFolder;
     path.append("test_4ch_float.wav");
 
     ASSERT_FALSE(file->open(path));
@@ -86,7 +87,7 @@ TEST(AudioFile, OpenClose) {
 TEST(AudioFile, Temporary1ch) {
     const slr::frame_t BUFFERSIZE = 64;
     slr::AudioFile * f = new slr::AudioFile();
-    std::string path = pathToTestFiles;
+    std::string path = pathToTestFolder;
     path.append("tmp_test_1ch.wav");
 
     if(file_exists(path)) {
@@ -144,7 +145,7 @@ TEST(AudioFile, Temporary1ch) {
 TEST(AudioFile, Temporary2ch) {
     const slr::frame_t BUFFERSIZE = 64;
     slr::AudioFile * f = new slr::AudioFile();
-    std::string path = pathToTestFiles;
+    std::string path = pathToTestFolder;
     path.append("tmp_test_2ch.wav");
 
     if(file_exists(path)) {

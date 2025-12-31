@@ -50,28 +50,9 @@ void openFile::exec(FileWorker *f) {
             if(success) {
                 afile->setPeaks(apk.get());
                 f->appendFile(std::move(apk));
-
-                Events::FileOpened e = {
-                    .status = slr::Status::Ok,
-                    .file = afile,
-                    .targetId = targetId
-                };
-
-                EmitEvent(e);
-                LOG_INFO("File %s loaded to trackid: %d", afile->path().c_str(), targetId);
             }
-            //check for existing peaks file, if there is no such - build
-            /* pseudo
-
-            //later in gui:
-            uint8_t * data = audioFile->getPeaks(LODLevel::Level1);
-            frame_t dataSize = audioFile->getPeaks(LODLevel::Level1);
-            //draw
-
-            or
-
-            draw = interpolate(dataLevel1, dataSize1, dataLevel2, dataSize2);
-            */
+            finished(success, targetId, afile, path, fileStartPosition);
+            
         } else {
             LOG_WARN("Failed to open Audio File");
         }

@@ -155,13 +155,23 @@ const RenderPlan * Project::soloPlan() const {
 void Project::removeRoutesForId(ID id) {
     _routes.erase(std::remove_if(_routes.begin(), _routes.end(), 
         [&id](const AudioRoute &r) {
-            if(r._sourceId == id || r._targetId == id) {
+            if((r._sourceId == id && r._sourceType == AudioRoute::Type::INT) || 
+                (r._targetId == id && r._targetType == AudioRoute::Type::INT)) {
                 return true;
-            } else {
-                return false;
-            }
+            } 
+            
+            return false;
     }), _routes.end());
 
+    _midiRoutes.erase(std::remove_if(_midiRoutes.begin(), _midiRoutes.end(),
+        [&id](const MidiRoute &r) {
+            if((r._sourceId == id && r._sourceType == MidiRoute::Type::INT) ||
+                r._targetId == id && r._targetType == MidiRoute::Type::INT) {
+                return true;
+            }
+
+            return false;
+    }), _midiRoutes.end());
 }
 
 }

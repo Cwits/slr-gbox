@@ -23,6 +23,8 @@ struct openFile : public Task {
 
     std::string path;
     ID targetId;
+    frame_t fileStartPosition;
+    std::function<void(bool success, const ID targetId, const File * file, const std::string & path, const frame_t fileStartPosition)> finished;
 };
 
 struct closeFile : public Task {

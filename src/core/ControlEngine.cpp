@@ -49,10 +49,6 @@ std::thread _controlThread;
 std::atomic<bool> _shutdown;
 std::condition_variable _cond;
 
-std::vector<Events::Event> _eventQueue;
-std::vector<Events::Event> _eventSnapshot;
-std::mutex _controlLock;
-
 std::unique_ptr<RtEngine> _engine;
     
 std::unique_ptr<Project> _project;
@@ -63,6 +59,14 @@ std::unique_ptr<DriverView> _driverView;
 
 std::thread _midiDiscoverThread;
 std::unique_ptr<MidiController> _midiController;
+
+// SPSCQueue<Events::Event, 256> _controlEventQueue;
+
+std::mutex _controlLock;
+std::vector<Events::Event> _eventQueue;
+std::vector<Events::Event> _eventSnapshot;
+
+std::vector<FlatEvents::FlatResponse> _flatResponseSnapshot;
 
 struct awaitEvent {
     FlatEvents::FlatControl ctl;
@@ -76,8 +80,96 @@ ID _commandIdCounter = 0;
 
 namespace ControlEngine {
 
-void processLoop();
 void discoverMidi();
+
+
+void processLoop() {
+    bool pendingDeleteEvent = false;
+
+    while(!_shutdown) {
+        // Events::Event e;
+        if(_engine == nullptr) {
+            LOG_WARN("RT Engine not set!");
+            goto sleep;
+        }
+
+        if(_engine->getState() != RtEngine::RtState::RUN) {
+            LOG_WARN("RT Engine not running!");
+            goto sleep;
+        }
+
+        ControlContext ctx;
+        ctx.project = _project.get();
+        ctx.fileWorker = _fileWorker.get();
+        ctx.engine = _engine.get(); //might be bad :/
+        ctx.projectView = _projectSnapshot.get();
+        ctx.midiController = _midiController.get();
+
+        //handle general Events
+        _eventSnapshot.clear();
+        {
+            std::lock_guard<std::mutex> l(_controlLock);
+            _eventSnapshot = std::move(_eventQueue);
+            // _eventQueue.clear();
+        }
+
+        for(const Events::Event &e : _eventSnapshot) {
+            Handlers::ControlTable[e.index()](ctx, e);
+        }
+
+        //handle Responses from RT Engine
+        _flatResponseSnapshot.clear();
+        {
+            FlatEvents::FlatResponse resp;
+            SPSCQueue<FlatEvents::FlatResponse, 256> &queue = _engine->getOutputQueue();
+            while(queue.pop(resp)) {
+                _flatResponseSnapshot.push_back(resp);
+            }
+        }
+
+        pendingDeleteEvent = false;
+        for(FlatEvents::FlatResponse & resp : _flatResponseSnapshot) {
+            Handlers::ResponseTable[static_cast<size_t>(resp.type)](ctx, resp);
+
+            for(awaitEvent &e : _awaitEvents) {
+                if(e.ctl.commandId == resp.commandId) {
+                    e.fire(ctx, resp);
+                    e.deleteEvent = true;
+                    pendingDeleteEvent = true;
+                }
+            }
+        }
+
+        if(pendingDeleteEvent) {
+            _awaitEvents.erase(
+                std::remove_if(
+                    _awaitEvents.begin(), 
+                    _awaitEvents.end(),
+                    [](const awaitEvent &ev) {
+                        return ev.deleteEvent;
+                    }), 
+                _awaitEvents.end()
+            );
+        }
+        
+        //TODO:check pools for need for expand:
+        //e.g. if audiobufferpool::regularsize < 8 than expand
+        //      or recordsize < 16 expand
+        //...
+
+        // checkMidiDevices();
+
+        sleep:        
+        // std::unique_lock<std::mutex> l(_this->_controlLock);
+        // if(_this->_cond.wait_for(l, std::chrono::milliseconds(100)) == std::cv_status::timeout) {
+        //     // if(f->_shutdown) {
+        //     //     goto exit;
+        //     // }
+        // }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
 
 bool init() {
     SettingsManager::init();
@@ -85,6 +177,7 @@ bool init() {
     _shutdown = false;
     _eventQueue.reserve(QUEUE_INITIAL_SIZE);
     _eventSnapshot.reserve(QUEUE_INITIAL_SIZE);
+    _flatResponseSnapshot.reserve(256);
 
     if(!AudioBufferManager::init(SettingsManager::getBlockSize(),
                                 DEFAULT_BUFFER_CHANNELS)) {
@@ -168,10 +261,12 @@ const ID generateCommandId() {
 void EmitEvent(const Events::Event &e) {
     std::lock_guard<std::mutex> l(_controlLock);
     _eventQueue.push_back(e);
+    // _controlEventQueue.push(e);
 }
 
 void emitRtControl(const FlatEvents::FlatControl &ctl) {
     _engine->FlatControlEvent(ctl);
+    // _pendingAck.push_back({ctl, false});
 }
 
 void emitRtResponse(const FlatEvents::FlatResponse &resp) {
@@ -213,82 +308,6 @@ FileWorker * fileWorker() {
 
 MidiController * midiController() {
     return _midiController.get();
-}
-
-void processLoop() {
-    while(!_shutdown) {
-        if(_engine == nullptr) {
-            LOG_WARN("RT Engine not set!");
-            goto sleep;
-        }
-
-        if(_engine->getState() != RtEngine::RtState::RUN) {
-            LOG_WARN("RT Engine not running!");
-            goto sleep;
-        }
-
-        {
-            std::lock_guard<std::mutex> l(_controlLock);
-            _eventSnapshot = _eventQueue;
-            _eventQueue.clear();
-        }
-
-        ControlContext ctx;
-        ctx.project = _project.get();
-        ctx.fileWorker = _fileWorker.get();
-        ctx.engine = _engine.get();
-        ctx.projectView = _projectSnapshot.get();
-        ctx.midiController = _midiController.get();
-
-        //handle general Events
-        for(Events::Event &e : _eventSnapshot) {
-            Handlers::ControlTable[e.index()](ctx, e);
-        }
-        _eventSnapshot.clear();
-
-        //handle Responses from RT Engine
-        {
-            FlatEvents::FlatResponse resp;
-            SPSCQueue<FlatEvents::FlatResponse, 256> &queue = _engine->getOutputQueue();
-            while(queue.pop(resp)) {
-                Handlers::ResponseTable[static_cast<size_t>(resp.type)](ctx, resp);
-
-                for(awaitEvent &e : _awaitEvents) {
-                    if(e.ctl.commandId == resp.commandId) {
-                        e.fire(ctx, resp);
-                        e.deleteEvent = true;
-                    }
-                }
-
-                _awaitEvents.erase(
-                    std::remove_if(
-                        _awaitEvents.begin(), 
-                        _awaitEvents.end(),
-                        [](const awaitEvent &ev) {
-                            return ev.deleteEvent;
-                        }), 
-                    _awaitEvents.end()
-                );
-            }
-        }
-
-        
-        //TODO:check pools for need for expand:
-        //e.g. if audiobufferpool::regularsize < 8 than expand
-        //      or recordsize < 16 expand
-        //...
-
-        // checkMidiDevices();
-
-        sleep:        
-        // std::unique_lock<std::mutex> l(_this->_controlLock);
-        // if(_this->_cond.wait_for(l, std::chrono::milliseconds(100)) == std::cv_status::timeout) {
-        //     // if(f->_shutdown) {
-        //     //     goto exit;
-        //     // }
-        // }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
 }
 
 // void aggregateEvents() {

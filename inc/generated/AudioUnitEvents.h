@@ -1,9 +1,18 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
+#include <memory>
+#include <cstdint> 
+#include <vector>
+#include "core/FileWorker.h"
 #include "defines.h"
+#include "Status.h"
+#include "core/FileTasks.h"
+#include <string>
 
 namespace slr {
 
+class ClipItem;
+class File;
 class AudioUnit;
 
 namespace Events {
@@ -20,6 +29,32 @@ struct ToggleMidiThru {
 struct ToggleOmniHwInput {
     ID targetId;
     bool newState;
+};
+struct OpenFile {
+	ID unitId;
+    std::string path;
+	frame_t fileStartPosition;  
+};
+struct FileOpened {
+    Status status;
+    const File * file; //-> class File;
+	ID unitId;
+	frame_t fileStartPosition;
+};
+struct RemoveFile {
+    ID fileId;
+    ID unitId;
+};
+struct FileUIRemoved {
+    ID fileId;
+    ID unitId;
+};
+struct ModClipItem {
+    ID unitId;
+    ID itemId;
+    frame_t startPosition;
+    frame_t length;
+    bool muted;
 };
 
 } //namespace Events
@@ -41,6 +76,21 @@ struct ToggleOmniHwInput {
     AudioUnit * unit; //-> class AudioUnit;
     bool newState;
 };
+struct AppendItem {
+	AudioUnit * unit; //-> class AudioUnit;
+	ClipItem * item; //-> class ClipItem;
+};
+struct ModClipItem { 
+    AudioUnit * unit; //-> class AudioUnit;
+    ClipItem * item; //-> class ClipItem;
+    frame_t startPosition;
+    frame_t length;
+    bool muted;
+};
+struct SwapContainer {
+    AudioUnit * unit; //-> class AudioUnit;
+    std::vector<ClipItem*> * container; //-> class ClipItem;
+};
 
 } //namespace FlatControls
 
@@ -58,6 +108,22 @@ struct ToggleMidiThru {
 struct ToggleOmniHwInput {
     AudioUnit * unit; //-> class AudioUnit;
     bool newState;
+};
+struct AppendItem {
+	AudioUnit * unit; //-> class AudioUnit;
+	ClipItem * item; //-> class ClipItem;
+};
+struct ModClipItem { 
+    AudioUnit * unit; //-> class AudioUnit;
+    ClipItem * item; //-> class ClipItem;
+    frame_t startPosition;
+    frame_t length;
+    bool muted;
+};
+struct SwapContainer {
+    AudioUnit * unit;
+    std::vector<ClipItem*> * oldContainer; //-> class ClipItem;
+    std::vector<ClipItem*> * newContainer;
 };
 
 } //namespace FlatResponses

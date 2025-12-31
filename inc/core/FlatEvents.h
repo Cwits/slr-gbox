@@ -15,6 +15,7 @@
 #include "Status.h"
 #include "defines.h"
 #include <cstdint>
+#include <assert.h>
 
 namespace slr {
 
@@ -32,11 +33,11 @@ struct FlatControl {
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
-		RecordArm,
-		ReinitTrackRecord,
 		AppendItem,
+		ModClipItem,
 		SwapContainer,
-		ModContainerItem
+		RecordArm,
+		ReinitTrackRecord
 	};
 	Type type;
 	ID commandId;
@@ -51,11 +52,11 @@ struct FlatControl {
 		FlatControls::SetParameter setParameter;
 		FlatControls::ToggleMidiThru toggleMidiThru;
 		FlatControls::ToggleOmniHwInput toggleOmniHwInput;
+		FlatControls::AppendItem appendItem;
+		FlatControls::ModClipItem modClipItem;
+		FlatControls::SwapContainer swapContainer;
 		FlatControls::RecordArm recordArm;
 		FlatControls::ReinitTrackRecord reinitTrackRecord;
-		FlatControls::AppendItem appendItem;
-		FlatControls::SwapContainer swapContainer;
-		FlatControls::ModContainerItem modContainerItem;
 	};
 };
 
@@ -71,12 +72,12 @@ struct FlatResponse {
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
+		AppendItem,
+		ModClipItem,
+		SwapContainer,
 		RecordArm,
 		DumpRecordedAudio,
-		ReinitTrackRecord,
-		AppendItem,
-		SwapContainer,
-		ModContainerItem
+		ReinitTrackRecord
 	}; 
 	Type type;
 	Status status;
@@ -92,14 +93,17 @@ struct FlatResponse {
 		FlatResponses::SetParameter setParameter;
 		FlatResponses::ToggleMidiThru toggleMidiThru;
 		FlatResponses::ToggleOmniHwInput toggleOmniHwInput;
+		FlatResponses::AppendItem appendItem;
+		FlatResponses::ModClipItem modClipItem;
+		FlatResponses::SwapContainer swapContainer;
 		FlatResponses::RecordArm recordArm;
 		FlatResponses::DumpRecordedAudio dumpRecordedAudio;
 		FlatResponses::ReinitTrackRecord reinitTrackRecord;
-		FlatResponses::AppendItem appendItem;
-		FlatResponses::SwapContainer swapContainer;
-		FlatResponses::ModContainerItem modContainerItem;
 	};
 };
+
+// static_assert(sizeof(FlatControl <= 64)); //TODO: ? it is bigger lol :/
+static_assert(sizeof(FlatResponse) <= 64);
 
 } //namespace FlatEvents
 

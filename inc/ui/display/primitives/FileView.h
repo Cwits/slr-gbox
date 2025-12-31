@@ -9,6 +9,7 @@
 
 namespace slr {
     class ContainerItemView;
+    class ClipItemView;
 }
 
 namespace UI {
@@ -18,7 +19,7 @@ class Button;
 class UIContext;
 
 struct FileView : public BaseWidget {
-    FileView(BaseWidget * parent, UnitUIBase * _parentUI, slr::ContainerItemView * item, UIContext * const uictx);
+    FileView(BaseWidget * parent, UnitUIBase * _parentUI, const slr::ClipItemView * const item, UIContext * const uictx);
     ~FileView();
 
     void update();
@@ -32,7 +33,7 @@ struct FileView : public BaseWidget {
     lv_color_t _peakColor;
     lv_color_t _fillColor;
 
-    slr::ContainerItemView * _item;
+    const slr::ClipItemView * const _clipItem;
     
     private:
     UIContext * const _uictx;

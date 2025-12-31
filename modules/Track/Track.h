@@ -41,20 +41,9 @@ class Track : public AudioUnit {
     const bool record() const { return _record; }
     const RecordSource recordSource() const { return _recordSource; }
     
-    /* NON RT Use only!!! */
-    
-    bool checkFileContainerNeedResize();
-    void resizeFileContainer();
-    
     bool prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate);
     bool prepareMidiRecord(FileWorker * fw);
     bool releaseRecordTarget(FileWorker * fw);
-    
-    const std::vector<ContainerItem*> * items() const { return _fileContainer._items; }
-    RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status modifyContainerItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-
 
     private:
     AudioBuffer * _recInt;
@@ -77,11 +66,18 @@ class Track : public AudioUnit {
         RT_FUNC virtual void finalize() = 0;
         RT_FUNC virtual void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) = 0;
         
+        RT_FUNC void setFileStartPosition(frame_t frame) { _fileStartPosition = frame; }
+        RT_FUNC bool isFirstWrite() const { return _firstWrite; }
+        RT_FUNC void markDirty() { _firstWrite = false; }
+        RT_FUNC const frame_t & fileStartPosition() { return _fileStartPosition; }
+
         bool used() const { return _fileUsed; }
         Track * parent = nullptr;
         protected:
         bool _fileUsed = false;
         bool _finalizeRequested = false;
+        bool _firstWrite = true;
+        frame_t _fileStartPosition = 0;
     };
 
     struct AudioRecord : public RecordTarget {
@@ -108,7 +104,7 @@ class Track : public AudioUnit {
         AudioBuffer * _oldBuffer = nullptr;
         frame_t _currentBufferFill = 0;
 
-        void dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size/*, const AudioContext &ctx*/);
+        void dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition/*, const AudioContext &ctx*/);
     };
 
     // struct MidiRecord : public RecordTarget {
@@ -123,9 +119,6 @@ class Track : public AudioUnit {
     //need to forbid to change source while recording == true
     RecordSource _recordSource = RecordSource::Audio;
     RecordTarget * _recordTarget;
-
-    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
-    FileContainer _fileContainer;
 
     //midibuffer midirecordbuffer;
     //fx chain

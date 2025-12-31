@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "core/Project.h"
-#include "core/Timeline.h"
-#include "modules/Track/Track.h"
-#include "core/RtEngine.h"
 #include "core/primitives/AudioUnit.h"
+#include "core/Project.h"
+#include "core/RtEngine.h"
+#include "modules/Track/Track.h"
+#include "core/Timeline.h"
 
 #include "core/FlatEvents.h"
 #include "Status.h"
@@ -29,11 +29,11 @@ constexpr RTHandler RTTable[] = {
 	&AudioUnit::setParameter,
 	&AudioUnit::toggleMidiThru,
 	&AudioUnit::toggleOmniHwInput,
+	&AudioUnit::appendItem,
+	&AudioUnit::modifyClipItem,
+	&AudioUnit::swapContainer,
 	&Track::setRecordArm,
-	&Track::reinitRecord,
-	&Track::appendItem,
-	&Track::swapContainer,
-	&Track::modifyContainerItem
+	&Track::reinitRecord
 };
 }
 
