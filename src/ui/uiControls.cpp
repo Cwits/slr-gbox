@@ -60,13 +60,13 @@ void postToLvgl(std::function<void()> fn) {
 
 void floatingInfo(std::string text) {
     postToLvgl([text]() {
-        UI::MainWindow::inst()->floatingTextRegular(text);
+        UI::MainWindow::inst()->floatingText(false, text);
     });
 }
 
 void floatingWarning(std::string text) {
     postToLvgl([text]() {
-        UI::MainWindow::inst()->floatingTextWarning(text);
+        UI::MainWindow::inst()->floatingText(true, text);
     });
 }
 

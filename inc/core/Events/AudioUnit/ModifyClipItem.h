@@ -15,14 +15,14 @@ struct ModClipItem {
 
 FLAT_REQ
 INCLUDE "defines.h"
-struct ModClipItem {
+struct ModClipItem { 
     AudioUnit * unit; //-> class AudioUnit;
     ClipItem * item; //-> class ClipItem;
     frame_t startPosition;
     frame_t length;
     bool muted;
 };
-
+  
 EV_HANDLE
 INCLUDE "core/Project.h"
 INCLUDE "core/primitives/AudioUnit.h"

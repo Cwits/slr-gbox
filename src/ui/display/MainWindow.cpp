@@ -106,7 +106,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _floatingText = lv_label_create(_lvhost);
     lv_obj_set_style_text_font(_floatingText, &lv_font_montserrat_40, 0);
     lv_obj_set_pos(_floatingText, 30, LayoutDef::TOTAL_HEIGHT-200);
-    _floatingTimer = lv_timer_create(&MainWindow::timercb, FLOATING_TEXT_TIMEOUT, _floatingText);
+    _floatingTimer = lv_timer_create(&MainWindow::floatingTimercb, FLOATING_TEXT_TIMEOUT, _floatingText);
     lv_timer_set_auto_delete(_floatingTimer, false);
 
     // lv_timer_set_repeat_count(_floatingTimer, 1);
@@ -327,29 +327,25 @@ void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
     }
 }
 
-void MainWindow::floatingTextRegular(std::string text) {
-    LOG_INFO("%s", text.c_str());
-    lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_REGULAR_COLOR, 0);
+void MainWindow::floatingText(bool warning, const std::string &text) {
+    if(warning) {
+        LOG_WARN("%s", text.c_str());
+        lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_WARNING_COLOR, 0);    
+    } else {
+        LOG_INFO("%s", text.c_str());
+        lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_REGULAR_COLOR, 0);
+    }
     lv_label_set_text(_floatingText, text.c_str());
     lv_obj_move_to_index(_floatingText, -1);
     lv_obj_clear_flag(_floatingText, LV_OBJ_FLAG_HIDDEN);
+    lv_timer_reset(_floatingTimer);
     lv_timer_resume(_floatingTimer);
 }
 
-void MainWindow::floatingTextWarning(std::string text) {
-    LOG_WARN("%s", text.c_str());
-    lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_WARNING_COLOR, 0);
-    lv_label_set_text(_floatingText, text.c_str());
-    lv_obj_move_to_index(_floatingText, -1);
-    lv_obj_clear_flag(_floatingText, LV_OBJ_FLAG_HIDDEN);
-    lv_timer_resume(_floatingTimer);
-}
-
-void MainWindow::timercb(lv_timer_t * timer) {
+void MainWindow::floatingTimercb(lv_timer_t * timer) {
     lv_obj_t * label = static_cast<lv_obj_t*>(lv_timer_get_user_data(timer));
     lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
     lv_timer_pause(timer);
-    lv_timer_reset(timer);
 }
 
 MainWindow * MainWindow::inst() {

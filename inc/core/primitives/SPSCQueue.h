@@ -3,39 +3,64 @@
 
 #pragma once
 #include <atomic>
+#include <cstddef>
 
 namespace slr {
-
+/* some LLM stuff here */
 template<typename T, std::size_t Capacity>
-class SPSCQueue {
-    public:
+struct SPSCQueue {
     bool push(const T& item) {
-        std::size_t nextHead = (head + 1) % Capacity;
-        if (nextHead == tail.load(std::memory_order_acquire))
-            return false; // full
-        buffer[head] = item;
-        head.store(nextHead, std::memory_order_release);
+        const std::size_t next = (_head + 1) & mask;
+        if (next == _tailAtomic.load(std::memory_order_acquire))
+            return false;
+
+        _buffer[_head] = item;
+        _head = next;
+        _headAtomic.store(_head, std::memory_order_release);
         return true;
     }
 
     bool pop(T& item) {
-        if (tail == head.load(std::memory_order_acquire))
-            return false; // empty
-        item = buffer[tail];
-        tail.store((tail + 1) % Capacity, std::memory_order_release);
+        const std::size_t tail = _tail;
+        if(tail == _headAtomic.load(std::memory_order_acquire))
+            return false;
 
+        item = _buffer[tail];
+        _tail = (_tail + 1) & mask;
+        _tailAtomic.store(_tail, std::memory_order_release);
         return true;
     }
 
-    bool empty() {
-        return head == tail ? true : false;
+    bool peek(const T*& ptr) const {
+        const std::size_t tail = _tail;
+        if (tail == _headAtomic.load(std::memory_order_acquire))
+            return false;
+
+        ptr = &_buffer[tail];
+        return true;
     }
 
-    private:
-    std::atomic<std::size_t> head = 0;
-    std::atomic<std::size_t> tail = 0;
-    T buffer[Capacity];
+    void commit_pop() {
+        _tail = (_tail + 1) & mask;
+        _tailAtomic.store(_tail, std::memory_order_release);
+    }
 
+    bool empty() const {
+        return _tailAtomic.load(std::memory_order_acquire) == _headAtomic.load(std::memory_order_acquire);
+    }
+
+private:
+    static constexpr std::size_t mask = Capacity - 1;
+
+    alignas(64) std::size_t _head = 0;
+    alignas(64) std::size_t _tail = 0;
+
+    alignas(64) std::atomic<std::size_t> _headAtomic{0};
+    alignas(64) std::atomic<std::size_t> _tailAtomic{0};
+
+    T _buffer[Capacity];
+
+    static_assert((Capacity & (Capacity - 1)) == 0, "Capacity must be power of two");
 };
 
 }

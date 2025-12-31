@@ -1,19 +1,19 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <cstdint> 
-#include "core/FileWorker.h"
 #include <memory>
+#include <cstdint> 
 #include <vector>
-#include <string>
+#include "core/FileWorker.h"
 #include "defines.h"
-#include "core/FileTasks.h"
 #include "Status.h"
+#include "core/FileTasks.h"
+#include <string>
 
 namespace slr {
 
-class AudioUnit;
 class ClipItem;
 class File;
+class AudioUnit;
 
 namespace Events {
 
@@ -33,11 +33,13 @@ struct ToggleOmniHwInput {
 struct OpenFile {
 	ID unitId;
     std::string path;
+	frame_t fileStartPosition;  
 };
 struct FileOpened {
     Status status;
     const File * file; //-> class File;
 	ID unitId;
+	frame_t fileStartPosition;
 };
 struct RemoveFile {
     ID fileId;
@@ -78,7 +80,7 @@ struct AppendItem {
 	AudioUnit * unit; //-> class AudioUnit;
 	ClipItem * item; //-> class ClipItem;
 };
-struct ModClipItem {
+struct ModClipItem { 
     AudioUnit * unit; //-> class AudioUnit;
     ClipItem * item; //-> class ClipItem;
     frame_t startPosition;
@@ -111,7 +113,7 @@ struct AppendItem {
 	AudioUnit * unit; //-> class AudioUnit;
 	ClipItem * item; //-> class ClipItem;
 };
-struct ModClipItem {
+struct ModClipItem { 
     AudioUnit * unit; //-> class AudioUnit;
     ClipItem * item; //-> class ClipItem;
     frame_t startPosition;

@@ -99,6 +99,7 @@ class AudioUnit {
     RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     RT_FUNC static Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
+    void setClips(std::vector<ClipItem*> * ptr) { _clipContainer._clips = ptr; }
     protected:
     AudioUnitType _type;
     void addParameter(ParameterBase * base);

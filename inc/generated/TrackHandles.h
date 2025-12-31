@@ -1,28 +1,28 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/primitives/AudioFile.h"
-#include <cmath>
-#include "core/primitives/AudioUnit.h"
 #include "core/ControlEngine.h"
-#include "modules/Track/TrackView.h"
-#include "core/FlatEvents.h"
-#include "core/SettingsManager.h"
-#include "snapshots/ProjectView.h"
-#include "core/Project.h"
-#include "core/primitives/File.h"
 #include "core/primitives/AudioBuffer.h"
-#include "logger.h"
-#include "core/utility/helper.h"
-#include "modules/Track/Track.h"
+#include "core/SettingsManager.h"
+#include "ui/uiControls.h"
+#include "core/Project.h"
+#include "core/primitives/AudioUnit.h"
+#include <string>
+#include <cmath>
+#include "core/FileWorker.h"
 #include "core/RtEngine.h"
 #include "snapshots/AudioUnitView.h"
-#include "core/FileWorker.h"
-#include "core/drivers/AudioDriver.h"
-#include "core/utility/basicAudioManipulation.h"
-#include <string>
-#include "defines.h"
+#include "snapshots/ProjectView.h"
+#include "core/primitives/AudioFile.h"
+#include "core/FlatEvents.h"
 #include "core/FileTasks.h"
-#include "ui/uiControls.h"
+#include "modules/Track/TrackView.h"
+#include "core/utility/helper.h"
+#include "core/utility/basicAudioManipulation.h"
+#include "core/primitives/File.h"
+#include "logger.h"
+#include "core/drivers/AudioDriver.h"
+#include "defines.h"
+#include "modules/Track/Track.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -65,35 +65,42 @@ inline void handleDumpRecordedAudio(const ControlContext &ctx, const FlatEvents:
 
     task->callback = [rec = resp.dumpRecordedAudio.targetBuffer, 
                     target = resp.dumpRecordedAudio.targetFile, 
-                    trackId = resp.dumpRecordedAudio.trackId](FileWorker * fw, bool success) {
-        if(success) {
-            LOG_INFO("audio data dumped successfully to file %s", target->name().c_str());
-            AudioBuffer * buf = rec;
+                    trackId = resp.dumpRecordedAudio.trackId,
+                    startPos = resp.dumpRecordedAudio.fileStartPosition]
+                    (FileWorker * fw, bool success) 
+    {
+        //clean and release buffer no matter what happened
+        AudioBuffer * buf = rec;
             
-            for(int i=0; i<buf->channels(); ++i) {
-                clearAudioBuffer((*buf)[i], buf->bufferSize());
-            }
+        for(int i=0; i<buf->channels(); ++i) {
+            clearAudioBuffer((*buf)[i], buf->bufferSize());
+        }
             
-            AudioBufferManager::releaseRecord(buf);
-            
-            if(target->finalize()) {
-                LOG_INFO("Finalizing audio file %s path %s", 
-                    target->name().c_str(), 
-                    target->path().c_str());
-                // LOG_WARN("Finalizing audio file not implemented");
-                //finalize file and return it to track
-                std::string path = target->path();
+        AudioBufferManager::releaseRecord(buf);
 
-                fw->closeTmpAudioFile(target);
-
-                slr::Events::OpenFile e = {
-                    .unitId = trackId,
-                    .path = path
-                };
-                slr::EmitEvent(e);
-            }
-        } else {
+        if(!success) {
             LOG_ERROR("Failed to dump audio data to file");
+            return;
+        }
+        
+        LOG_INFO("audio data dumped successfully to file %s", target->name().c_str());
+            
+        if(target->finalize()) {
+            LOG_INFO("Finalizing audio file %s path %s", 
+                target->name().c_str(), 
+                target->path().c_str());
+            // LOG_WARN("Finalizing audio file not implemented");
+            //finalize file and return it to track
+            std::string path = target->path();
+
+            fw->closeTmpAudioFile(target);
+
+            slr::Events::OpenFile e = {
+                .unitId = trackId,
+                .path = path,
+                .fileStartPosition = startPos
+            };
+            slr::EmitEvent(e);
         }
     };
 

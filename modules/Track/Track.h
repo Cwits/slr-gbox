@@ -66,11 +66,18 @@ class Track : public AudioUnit {
         RT_FUNC virtual void finalize() = 0;
         RT_FUNC virtual void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) = 0;
         
+        RT_FUNC void setFileStartPosition(frame_t frame) { _fileStartPosition = frame; }
+        RT_FUNC bool isFirstWrite() const { return _firstWrite; }
+        RT_FUNC void markDirty() { _firstWrite = false; }
+        RT_FUNC const frame_t & fileStartPosition() { return _fileStartPosition; }
+
         bool used() const { return _fileUsed; }
         Track * parent = nullptr;
         protected:
         bool _fileUsed = false;
         bool _finalizeRequested = false;
+        bool _firstWrite = true;
+        frame_t _fileStartPosition = 0;
     };
 
     struct AudioRecord : public RecordTarget {
@@ -97,7 +104,7 @@ class Track : public AudioUnit {
         AudioBuffer * _oldBuffer = nullptr;
         frame_t _currentBufferFill = 0;
 
-        void dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size/*, const AudioContext &ctx*/);
+        void dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition/*, const AudioContext &ctx*/);
     };
 
     // struct MidiRecord : public RecordTarget {

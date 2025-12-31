@@ -191,12 +191,11 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
         }
 
         if(ctx.playing && ctx.recording) {
-            /* 
-            smth like
-            if(_recordTarget->firstAccurance()) {
-                _recordTarget->setFilePosition(ctx.elapsed);
+            if(_recordTarget->isFirstWrite()) {
+                _recordTarget->setFileStartPosition(ctx.elapsed);
+                _recordTarget->markDirty();
             }
-            */
+            
             if(_recordSource == RecordSource::Audio) {
                 _recordTarget->writeData(_recInt, ctx.frames, 2, false); //don't compensate
                 _recordTarget->writeData(_recExt, ctx.frames, 2, true); //compensate latency
@@ -376,7 +375,7 @@ void Track::AudioRecord::stopRecord() {
 void Track::AudioRecord::finalize() {
     _recordFile->finalizeFile();
 
-    dumpDataCommand(_bufferInUse, _recordFile, _currentBufferFill);
+    dumpDataCommand(_bufferInUse, _recordFile, _currentBufferFill, fileStartPosition());
     _currentBufferFill = 0;
 }
 
@@ -400,7 +399,7 @@ void Track::AudioRecord::incrementCounter(frame_t frames) {
     }
 
     if(_dumpOldBuffer) {
-        dumpDataCommand(_oldBuffer, _recordFile, _oldBuffer->bufferSize());
+        dumpDataCommand(_oldBuffer, _recordFile, _oldBuffer->bufferSize(), 0);
         _compensatedLatency = 0;
         _dumpOldBuffer = false;
         _oldBuffer = nullptr;
@@ -446,12 +445,13 @@ void Track::AudioRecord::writeData(void * data, frame_t frames, uint8_t numChann
     }
 }
 
-void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size) {
+void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition) {
     FlatEvents::FlatResponse dump;
     dump.type = FlatEvents::FlatResponse::Type::DumpRecordedAudio;
     dump.dumpRecordedAudio.targetBuffer = buffer;
     dump.dumpRecordedAudio.targetFile = file;
     dump.dumpRecordedAudio.size = size;
+    dump.dumpRecordedAudio.fileStartPosition = fileStartPosition;
     dump.dumpRecordedAudio.trackId = _parent->id();
     RtEngine::addRtResponse(dump);
 

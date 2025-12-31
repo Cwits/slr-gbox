@@ -34,6 +34,7 @@ bool AudioFile::createTemporary(std::string & path, int channels, int samplerate
 
     _path = path;
     return true; //openInternal(path, true);
+    // return openInternal(path, true);
 }
 
 //for files that exists in file system
@@ -47,7 +48,7 @@ bool AudioFile::save() {
     clearDirty();
 
     return true;
-}
+} 
 
 bool AudioFile::close() {
     
@@ -136,7 +137,7 @@ bool AudioFile::openInternal(std::string & path, bool tmp) {
     //check if folders exists
 
     _file = sf_open(path.c_str(), SFM_READ | SFM_WRITE, &_info);
-
+    
     if(!_file) {
         std::string errorMsg(sf_error_number(sf_perror(_file)));
         LOG_ERROR("Failed to open file. Error msg: %s", errorMsg.c_str());

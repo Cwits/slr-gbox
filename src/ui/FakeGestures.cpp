@@ -29,25 +29,32 @@ FakeGestures::~FakeGestures() {
 
 void FakeGestures::handleKeyboard(SDL_KeyboardEvent & key) {
     SDL_Scancode & code = key.keysym.scancode;
+    std::string text;
     if(key.state == SDL_PRESSED) {
         if(code == SDL_SCANCODE_Z) {
             changeGesture(GestLib::Gestures::Tap);
-            UI::MainWindow::inst()->floatingTextRegular("Using fake gesture Tap");
+            text = "Using fake gesture Tap";
+            UI::MainWindow::inst()->floatingText(false, text);
         } else if(code == SDL_SCANCODE_X) {
             changeGesture(GestLib::Gestures::Hold);
-            UI::MainWindow::inst()->floatingTextRegular("Using fake gesture Hold");
+            text = "Using fake gesture Hold";
+            UI::MainWindow::inst()->floatingText(false, text);
         } else if(code == SDL_SCANCODE_C) {
             changeGesture(GestLib::Gestures::Drag);
-            UI::MainWindow::inst()->floatingTextRegular("Using fake gesture Drag");
+            text = "Using fake gesture Drag";
+            UI::MainWindow::inst()->floatingText(false, text);
         } else if(code == SDL_SCANCODE_V) {
             changeGesture(GestLib::Gestures::Swipe);
-            UI::MainWindow::inst()->floatingTextRegular("Using fake gesture Swipe");
+            text = "Using fake gesture Swipe";
+            UI::MainWindow::inst()->floatingText(false, text);
         } else if(code == SDL_SCANCODE_B) {
             changeGesture(GestLib::Gestures::DoubleTap);
-            UI::MainWindow::inst()->floatingTextRegular("Using fake gesture Double Tap");
+            text = "Using fake gesture Double Tap";
+            UI::MainWindow::inst()->floatingText(false, text);
         } else if(code == SDL_SCANCODE_N) {
             changeGesture(GestLib::Gestures::DoubleTapSwipe);
-            UI::MainWindow::inst()->floatingTextRegular("Using fake gesture Double Tap Swipe");
+            text = "Using fake gesture Double Tap Swipe";
+            UI::MainWindow::inst()->floatingText(false, text);
         } else if(code == SDL_SCANCODE_R) {
             //reset...
         }

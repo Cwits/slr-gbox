@@ -113,6 +113,39 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         b.buffer->clear();
     }
 
+    /*
+    for(RtMidiQueue &q : *_midiInputMap) {
+        std::vector<MidiEvent> *v = nullptr;
+        for(RtMidiBuffer &b : *_midiInLocal) {
+            if(q.id == b.id) {
+                v = b.buffer;
+                break;
+            }
+        }
+        
+        //for echo
+        RtMidiOutput * out = nullptr;
+        for(RtMidiOutput &o : *_midiOutputMap) {
+            if(o.id == q.id) {
+                out = &o;
+                break;
+            }
+        }
+
+        const MidiEvent * peekptr;
+        while(q.queue->peek(peekptr)) {
+            if(peekptr->frame <= currentFrame + blockSize) {
+                // q.queue->pop(midiev);
+                v->push_back(*peekptr);
+                q.queue->commit_pop();
+            } else {
+                break;
+            }
+            out->sendEvent(*peekptr);
+        }
+    }
+    */
+   
     MidiEvent midiev;
     for(RtMidiQueue &q : *_midiInputMap) {
         std::vector<MidiEvent> *v = nullptr;

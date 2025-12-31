@@ -118,7 +118,8 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
                     LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
                     slr::Events::OpenFile e = {
                         .unitId = unit->id(),
-                        .path = *ctx.payload.filePath.path
+                        .path = *ctx.payload.filePath.path,
+                        .fileStartPosition = 0
                     };
                     slr::EmitEvent(e);
                     break;

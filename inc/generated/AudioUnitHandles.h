@@ -1,26 +1,26 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include <memory>
-#include "core/primitives/AudioUnit.h"
 #include "core/ControlEngine.h"
-#include "modules/Track/TrackView.h"
-#include "core/FlatEvents.h"
-#include "snapshots/ProjectView.h"
-#include "core/Project.h"
-#include "core/primitives/FileContainer.h"
-#include "snapshots/FileContainerView.h"
-#include "core/primitives/File.h"
-#include "logger.h"
-#include "inc/ui/uiControls.h"
+#include "logger.h"  
 #include "Status.h"
+#include "ui/uiControls.h"
+#include <string>
+#include "core/Project.h"
+#include "core/primitives/AudioUnit.h"
+#include "core/FileWorker.h"
+#include "core/primitives/FileContainer.h"
 #include "core/primitives/AudioUnit.h"  
 #include "snapshots/AudioUnitView.h"
-#include "core/FileWorker.h"
-#include <string>
-#include "logger.h"  
+#include "snapshots/FileContainerView.h"
+#include "inc/ui/uiControls.h"
+#include "snapshots/ProjectView.h"
+#include "core/FlatEvents.h"
 #include "core/FileTasks.h"
-#include "ui/uiControls.h"
+#include "modules/Track/TrackView.h"
+#include "core/primitives/File.h"
 #include <algorithm>
+#include "logger.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -241,7 +241,8 @@ inline void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
     auto task = std::make_unique<Tasks::openFile>();
 	task->path = e.path;
 	task->targetId = e.unitId;
-	task->finished = [](bool success, const ID targetId, const File * file, const std::string & path) {
+	task->fileStartPosition = e.fileStartPosition;
+	task->finished = [](bool success, const ID targetId, const File * file, const std::string & path, const frame_t fileStartPosition) {
 		if(!success) {
 			LOG_ERROR("File Worker failed to load file %s", path.c_str());
 			return;
@@ -250,7 +251,8 @@ inline void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
 		Events::FileOpened e = {
             .status = slr::Status::Ok,
             .file = file,
-            .unitId = targetId
+            .unitId = targetId,
+			.fileStartPosition = fileStartPosition
         };
 
         EmitEvent(e);
@@ -274,31 +276,41 @@ inline void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) 
     }
 
 	ClipContainerMap &map = ctx.project->clipContainerMap();
-	auto [it, inserted] = map.try_emplace(e.unitId);
-	ClipStorage &clipStorage = it->second;
+	// auto [it, inserted] = map.try_emplace(e.unitId);
+	ClipStorage &clipStorage = map.at(e.unitId);
+	// ClipStorage &clipStorage = it->second;
 
 	bool isSwapping = false;
 	std::vector<ClipItem*> *workable = nullptr;
 	const std::vector<ClipItem*> *clips = unit->clips();
-	if(!clips) {
-		// workable = clipStorage._rawVector1.get();
-		workable = clipStorage.getOtherVector(nullptr);
-		workable->reserve(4);
+	if(clips->size()+1 > clips->capacity()) {
+		workable = clipStorage.getOtherVector(clips);
+		workable->clear();
+		workable->reserve(clips->capacity()*2);
+		*workable = *clips;
 		isSwapping = true;
 	} else {
-		if(clips->size()+1 > clips->capacity()) {
-			workable = clipStorage.getOtherVector(clips);
-			workable->clear();
-			workable->reserve(clips->capacity()*2);
-			*workable = *clips;
-			isSwapping = true;
-		} else {
-			workable = clipStorage.getCurrentVector(clips);
-		}
+		workable = clipStorage.getCurrentVector(clips);
 	}
+	// if(!clips) {
+	// 	// workable = clipStorage._rawVector1.get();
+	// 	workable = clipStorage.getOtherVector(nullptr);
+	// 	workable->reserve(4);
+	// 	isSwapping = true;
+	// } else {
+	// 	if(clips->size()+1 > clips->capacity()) {
+	// 		workable = clipStorage.getOtherVector(clips);
+	// 		workable->clear();
+	// 		workable->reserve(clips->capacity()*2);
+	// 		*workable = *clips;
+	// 		isSwapping = true;
+	// 	} else {
+	// 		workable = clipStorage.getCurrentVector(clips);
+	// 	}
+	// }
 
 	ClipItem * appendable = nullptr;
-	std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(e.file);
+	std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(e.file, e.fileStartPosition);
 	clipStorage._clipsOwner.push_back(std::move(itemUniq));
 	appendable = clipStorage._clipsOwner.back().get();
 	

@@ -11,6 +11,7 @@
 #include "core/primitives/AudioBuffer.h"
 #include "core/utility/basicAudioManipulation.h"
 #include "testhelper.h"
+#include "core/FileWorker.h"
 
 const slr::frame_t testFileSize = 64;
 

@@ -9,6 +9,7 @@ INCLUDE "defines.h"
 struct OpenFile {
 	ID unitId;
     std::string path;
+	frame_t fileStartPosition;  
 };
 
 EV
@@ -18,6 +19,7 @@ struct FileOpened {
     Status status;
     const File * file; //-> class File;
 	ID unitId;
+	frame_t fileStartPosition;
 };
 
 FLAT_REQ
@@ -44,7 +46,8 @@ void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
     auto task = std::make_unique<Tasks::openFile>();
 	task->path = e.path;
 	task->targetId = e.unitId;
-	task->finished = [](bool success, const ID targetId, const File * file, const std::string & path) {
+	task->fileStartPosition = e.fileStartPosition;
+	task->finished = [](bool success, const ID targetId, const File * file, const std::string & path, const frame_t fileStartPosition) {
 		if(!success) {
 			LOG_ERROR("File Worker failed to load file %s", path.c_str());
 			return;
@@ -53,7 +56,8 @@ void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
 		Events::FileOpened e = {
             .status = slr::Status::Ok,
             .file = file,
-            .unitId = targetId
+            .unitId = targetId,
+			.fileStartPosition = fileStartPosition
         };
 
         EmitEvent(e);
@@ -86,31 +90,41 @@ void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
     }
 
 	ClipContainerMap &map = ctx.project->clipContainerMap();
-	auto [it, inserted] = map.try_emplace(e.unitId);
-	ClipStorage &clipStorage = it->second;
+	// auto [it, inserted] = map.try_emplace(e.unitId);
+	ClipStorage &clipStorage = map.at(e.unitId);
+	// ClipStorage &clipStorage = it->second;
 
 	bool isSwapping = false;
 	std::vector<ClipItem*> *workable = nullptr;
 	const std::vector<ClipItem*> *clips = unit->clips();
-	if(!clips) {
-		// workable = clipStorage._rawVector1.get();
-		workable = clipStorage.getOtherVector(nullptr);
-		workable->reserve(4);
+	if(clips->size()+1 > clips->capacity()) {
+		workable = clipStorage.getOtherVector(clips);
+		workable->clear();
+		workable->reserve(clips->capacity()*2);
+		*workable = *clips;
 		isSwapping = true;
 	} else {
-		if(clips->size()+1 > clips->capacity()) {
-			workable = clipStorage.getOtherVector(clips);
-			workable->clear();
-			workable->reserve(clips->capacity()*2);
-			*workable = *clips;
-			isSwapping = true;
-		} else {
-			workable = clipStorage.getCurrentVector(clips);
-		}
+		workable = clipStorage.getCurrentVector(clips);
 	}
+	// if(!clips) {
+	// 	// workable = clipStorage._rawVector1.get();
+	// 	workable = clipStorage.getOtherVector(nullptr);
+	// 	workable->reserve(4);
+	// 	isSwapping = true;
+	// } else {
+	// 	if(clips->size()+1 > clips->capacity()) {
+	// 		workable = clipStorage.getOtherVector(clips);
+	// 		workable->clear();
+	// 		workable->reserve(clips->capacity()*2);
+	// 		*workable = *clips;
+	// 		isSwapping = true;
+	// 	} else {
+	// 		workable = clipStorage.getCurrentVector(clips);
+	// 	}
+	// }
 
 	ClipItem * appendable = nullptr;
-	std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(e.file);
+	std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(e.file, e.fileStartPosition);
 	clipStorage._clipsOwner.push_back(std::move(itemUniq));
 	appendable = clipStorage._clipsOwner.back().get();
 	

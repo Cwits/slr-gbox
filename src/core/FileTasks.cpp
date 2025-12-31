@@ -51,7 +51,7 @@ void openFile::exec(FileWorker *f) {
                 afile->setPeaks(apk.get());
                 f->appendFile(std::move(apk));
             }
-            finished(success, targetId, afile, path);
+            finished(success, targetId, afile, path, fileStartPosition);
             
         } else {
             LOG_WARN("Failed to open Audio File");

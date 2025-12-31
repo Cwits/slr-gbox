@@ -1,15 +1,16 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "snapshots/AudioUnitView.h"
-#include "core/primitives/RenderPlan.h"
-#include "snapshots/ProjectView.h"
-#include "core/Project.h"
-#include "ui/uiControls.h"
-#include "logger.h"
-#include "core/primitives/AudioUnit.h"
-#include "core/ControlEngine.h"
 #include "core/ModuleManager.h"
+#include "core/ControlEngine.h"
+#include "core/primitives/FileContainer.h"
+#include "core/primitives/AudioUnit.h"
+#include "snapshots/ProjectView.h"
+#include "logger.h"
+#include "snapshots/AudioUnitView.h"
 #include "Status.h"
+#include "ui/uiControls.h"
+#include "core/primitives/RenderPlan.h"
+#include "core/Project.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -105,8 +106,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::AddNewMidiRoute
 }
 
 inline void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
-    // LOG_ERROR("Not supported");
-    // return;
     //remove from ui
     UIControls::destroyModuleUI(e.targetId);
 
@@ -116,39 +115,41 @@ inline void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e
     RenderPlan * newPlan = buildPlan(ctx.project);
     ctx.project->replaceEditablePlan(newPlan);
  
-    bool res = true;
-    if(res) {
-        //swap graph
-        FlatEvents::FlatControl ctl;
-        ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
-        ctl.swapRenderPlan.project = ctx.project;
-        ctl.commandId = ControlEngine::generateCommandId();
+    FlatEvents::FlatControl ctl;
+    ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
+    ctl.swapRenderPlan.project = ctx.project;
+    ctl.commandId = ControlEngine::generateCommandId();
     
-        ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-            if(resp.status == Status::Ok) {
-                    bool res = ctx.project->removeUnit(targetId);
-                    AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
+    ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+        if(resp.status != Status::Ok) {
+            LOG_ERROR("RT Engine failed to remove unit");
+            return;
+        }
 
-                    if(view) {
-                        res &= true;
-                        delete view;
-                    } else {
-                        res &= false;
-                        LOG_ERROR("Failed to find view with id %u", targetId);
-                    }
-                    // res &= ctx.projectView->removeTrack(targetId);
+        bool res = ctx.project->removeUnit(targetId);
+        AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
+        
+        if(view) {
+            res &= true;
+            delete view;
+        } else {
+            res &= false;
+            LOG_ERROR("Failed to find view with id %u", targetId);
+        }
+        
+        ClipContainerMap &map = ctx.project->clipContainerMap();
+        auto it = map.find(targetId);
+        if(it == map.end()) {
+            LOG_ERROR("No clip storage for unit %u exists to delete", targetId);
+            return;
+        }
+        
+        map.erase(it);
 
-                    if(!res) {
-                        LOG_ERROR("Failed to delete track from project");
-                    }
-                } else {
-                    LOG_ERROR("RT Engine failed to remove track");
-                }
-        });
-    } else {
-        LOG_ERROR("Failed to remove track from render graph");
-    }
-    
+        if(!res) {
+            LOG_ERROR("Failed to delete unit from project");
+        }
+    });
 }
 
 inline void handleEvent(const ControlContext &ctx, const Events::CreateModule &e) {
@@ -158,27 +159,36 @@ inline void handleEvent(const ControlContext &ctx, const Events::CreateModule &e
         return;
     }
 
-    AudioUnit * au = nullptr;
-    AudioUnitView * view = nullptr;
 
     try {
+        AudioUnit * au = nullptr;
+        AudioUnitView * view = nullptr;
         std::unique_ptr<AudioUnit> unit = mod->createRT();
         au = unit.get();
         ctx.project->addUnit(std::move(unit));
         
         view = mod->createView(au);
         ctx.projectView->addUnitView(view);
+
+        if(!au && !view) {
+            LOG_ERROR("2 Failed to create module %s", e.name.c_str());
+            return;
+        }
+
+        ClipContainerMap &map = ctx.project->clipContainerMap();
+        auto [it, inserted] = map.try_emplace(au->id());
+        ClipStorage & storage = it->second;
+
+        au->setClips(storage.getOtherVector(nullptr));
+        
+        if(!inserted) LOG_ERROR("Clip Container Map with %u id already exists", au->id());
+
+        UIControls::addModuleUI(mod, view);
     } catch(...) {
         LOG_ERROR("Failed to create module %s", e.name.c_str());
         return;
     }
 
-    if(!au && !view) {
-        LOG_ERROR("2 Failed to create module %s", e.name.c_str());
-        return;
-    }
-
-    UIControls::addModuleUI(mod, view);
 }
 
 } //namespace slr

@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 #include <array>
+#include <chrono>
 
 namespace slr {
 
@@ -38,9 +39,10 @@ using MidiMessage = std::vector<uchar>;
 
 struct MidiEvent {
     MidiEventType type;
-    int channel;
-    int note;
-    int velocity;
+    uint8_t channel;
+    uint8_t note;
+    uint8_t velocity;
+    std::chrono::time_point<std::chrono::steady_clock> timestamp;
 };
 
 struct RtMidiBuffer {

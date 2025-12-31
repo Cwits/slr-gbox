@@ -17,8 +17,6 @@ INCLUDE "snapshots/AudioUnitView.h"
 INCLUDE "Status.h"
 INCLUDE "logger.h"
 void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
-    // LOG_ERROR("Not supported");
-    // return;
     //remove from ui
     UIControls::destroyModuleUI(e.targetId);
 
@@ -28,39 +26,41 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
     RenderPlan * newPlan = buildPlan(ctx.project);
     ctx.project->replaceEditablePlan(newPlan);
  
-    bool res = true;
-    if(res) {
-        //swap graph
-        FlatEvents::FlatControl ctl;
-        ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
-        ctl.swapRenderPlan.project = ctx.project;
-        ctl.commandId = ControlEngine::generateCommandId();
+    FlatEvents::FlatControl ctl;
+    ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
+    ctl.swapRenderPlan.project = ctx.project;
+    ctl.commandId = ControlEngine::generateCommandId();
     
-        ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-            if(resp.status == Status::Ok) {
-                    bool res = ctx.project->removeUnit(targetId);
-                    AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
+    ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+        if(resp.status != Status::Ok) {
+            LOG_ERROR("RT Engine failed to remove unit");
+            return;
+        }
 
-                    if(view) {
-                        res &= true;
-                        delete view;
-                    } else {
-                        res &= false;
-                        LOG_ERROR("Failed to find view with id %u", targetId);
-                    }
-                    // res &= ctx.projectView->removeTrack(targetId);
+        bool res = ctx.project->removeUnit(targetId);
+        AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
+        
+        if(view) {
+            res &= true;
+            delete view;
+        } else {
+            res &= false;
+            LOG_ERROR("Failed to find view with id %u", targetId);
+        }
+        
+        ClipContainerMap &map = ctx.project->clipContainerMap();
+        auto it = map.find(targetId);
+        if(it == map.end()) {
+            LOG_ERROR("No clip storage for unit %u exists to delete", targetId);
+            return;
+        }
+        
+        map.erase(it);
 
-                    if(!res) {
-                        LOG_ERROR("Failed to delete track from project");
-                    }
-                } else {
-                    LOG_ERROR("RT Engine failed to remove track");
-                }
-        });
-    } else {
-        LOG_ERROR("Failed to remove track from render graph");
-    }
-    
+        if(!res) {
+            LOG_ERROR("Failed to delete unit from project");
+        }
+    });
 }
 END_HANDLE
 

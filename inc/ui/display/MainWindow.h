@@ -50,8 +50,7 @@ struct MainWindow : public BaseWidget {
     bool handleGesture(GestLib::Gesture & gesture);
     void transferGesture(MainView view, GestLib::Gestures gesture);
 
-    void floatingTextRegular(std::string text);
-    void floatingTextWarning(std::string text);
+    void floatingText(bool warning, const std::string &text);
 
     void updateTimeline(const bool timeSigOrBpm);
     void updatePlayheadPosition(slr::frame_t position);
@@ -108,7 +107,7 @@ struct MainWindow : public BaseWidget {
 
     lv_obj_t * _floatingText;
     lv_timer_t * _floatingTimer;
-    static void timercb(lv_timer_t * timer);
+    static void floatingTimercb(lv_timer_t * timer);
 
     View * getSwitchViewTarget(MainView & view);
 

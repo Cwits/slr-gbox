@@ -1,13 +1,13 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
+#include "defines.h"
 #include "core/primitives/AudioBuffer.h"
 #include "Status.h"
-#include "defines.h"
 
 namespace slr {
 
-class Track;
 class AudioFile;
+class Track;
 
 namespace Events {
 
@@ -46,6 +46,7 @@ struct DumpRecordedAudio {
     AudioBuffer * targetBuffer;
     AudioFile * targetFile; //-> class AudioFile;
     frame_t size;
+    frame_t fileStartPosition;
     ID trackId;
 };
 struct ReinitTrackRecord {

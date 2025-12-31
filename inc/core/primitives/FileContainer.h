@@ -14,7 +14,7 @@ namespace slr {
 class AudioUnit;
 
 struct ClipItem {
-    ClipItem(const File * const file) : _startPosition(0), _length(file->frames()), _fileOffset(0), _muted(false), _file(file), _uniqueId(file->id()) {}
+    ClipItem(const File * const file, frame_t startPos) : _startPosition(startPos), _length(file->frames()), _fileOffset(0), _muted(false), _file(file), _uniqueId(file->id()) {}
     ~ClipItem() {}
 
     frame_t startPosition() const { return _startPosition; }
@@ -56,6 +56,8 @@ struct ClipStorage {
     ClipStorage() {
         _rawVector1 = std::make_unique<std::vector<ClipItem*>>();
         _rawVector2 = std::make_unique<std::vector<ClipItem*>>();
+        _rawVector1->reserve(2);
+        _rawVector2->reserve(2);
     }
     std::vector<ClipItem*> * getOtherVector(const std::vector<ClipItem*> * current) {
         if(current == nullptr) return _rawVector1.get();

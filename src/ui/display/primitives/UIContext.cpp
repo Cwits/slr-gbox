@@ -33,8 +33,9 @@ bool UIContext::cancleGesture(BaseWidget * widget) {
 }
 
 void UIContext::floatingText(bool warn, std::string text) {
-    if(warn) _mainWindow->floatingTextWarning(text);
-    else _mainWindow->floatingTextRegular(text);
+    // if(warn) _mainWindow->floatingTextWarning(text);
+    // else _mainWindow->floatingTextRegular(text);
+    _mainWindow->floatingText(warn, text);
 }
 
 void UIContext::setLastSelected(UnitUIBase * mod) {
