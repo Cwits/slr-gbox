@@ -488,9 +488,10 @@ void MidiPort::parseInput(unsigned char *raw, const int &size) {
 void MidiPort::pushEvent(const MidiEventType type, const int channel, const int note, const int velocity) {
     
     std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-    frame_t offset = std::chrono::duration_cast<std::chrono::seconds>(now - _anchorTimepoint).count();
-    frame_t sample = offset * (1.0f/_sample_rate);
-    
+    frame_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - _anchorTimepoint).count();
+    // frame_t sample = offset * (1.0f/_sample_rate);
+    frame_t sample = millis * (1.0f/_sample_rate);
+
     MidiEvent ev;
     ev.channel = channel;
     ev.type = type;
