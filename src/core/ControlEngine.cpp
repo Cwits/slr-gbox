@@ -214,7 +214,9 @@ bool init() {
     _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
 
     _engine->setProject(_project.get());
-    if(!_engine->start()) {
+    if(!_engine->start([ctl = _midiController.get()]() {
+        ctl->setAnchor();
+    })) {
         LOG_ERROR("Failed to start RT Engine");
         return false;
     }

@@ -15,6 +15,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <chrono>
 
 namespace slr {
 
@@ -80,7 +81,8 @@ struct MidiPort {
     std::atomic<bool> _outputOpened;
     bool _justCreated;
 
-    // private:
+    std::chrono::time_point<std::chrono::steady_clock> _anchorTimepoint;
+
     std::atomic<bool> _run;
     std::thread _readingThread;
 
@@ -152,6 +154,11 @@ struct MidiController {
     void openDevice(MidiPort *port, bool input, bool output);
     void closeDevice(MidiPort *port);
 
+    void setAnchor() {
+        _midiAnchorTimepoint = std::chrono::steady_clock::now();
+    }
+    std::chrono::time_point<std::chrono::steady_clock> getAnchor() const { return _midiAnchorTimepoint; }
+
     private:
     std::mutex _mutex;
     std::vector<MidiDevice> _deviceList;
@@ -160,6 +167,8 @@ struct MidiController {
     std::vector<MidiDevice> discoverMidiDevices();
     bool is_input(snd_ctl_t *ctl, int card, int device, int sub);
     bool is_output(snd_ctl_t *ctl, int card, int device, int sub);
+
+    std::chrono::time_point<std::chrono::steady_clock> _midiAnchorTimepoint;
 
 };
 

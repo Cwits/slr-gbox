@@ -29,6 +29,7 @@ RtEngine::RtEngine() {
     _midiInLocal = new std::vector<RtMidiBuffer>();
     _midiInputMap = new std::vector<RtMidiQueue>();
     _midiOutputMap = new std::vector<RtMidiOutput>();
+    _isFirstCallback = true;
 }
 
 RtEngine::~RtEngine() {
@@ -41,8 +42,8 @@ RtEngine::~RtEngine() {
 
 bool RtEngine::init() {
     _snapshotCount = 0;
-    // _controlSnapshot.fill(_zeroControl);
-
+    _isFirstCallback = true;
+    
 #if defined(__aarch64__)
     _driver = AudioDriverFactory::create(SettingsManager::getAudioDriver());
 #else
@@ -61,10 +62,14 @@ bool RtEngine::init() {
     return true;
 }
 
-bool RtEngine::start() {
+bool RtEngine::start(std::function<void()> anchorLambda) {
     if(_state == RtState::ERROR) return false;
 
-    if(!_driver->start([this](AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed) -> frame_t {
+    if(!_driver->start([this, anchorLambda](AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed) -> frame_t {
+        if(this->_isFirstCallback) {
+            anchorLambda(); //lol is that very bad? :/
+            this->_isFirstCallback = false;
+        }
         return this->processNextBlock(inputs, outputs, frames, framesPassed);
     })) {
         //error
@@ -141,7 +146,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
             } else {
                 break;
             }
-            out->sendEvent(*peekptr);
+            //out->sendEvent(*peekptr);
         }
     }
     */

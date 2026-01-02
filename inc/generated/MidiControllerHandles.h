@@ -1,14 +1,14 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <array>
-#include "core/ControlEngine.h"
 #include <vector>
-#include <unordered_map>
-#include "core/primitives/MidiEvent.h" //for RtMidiPort
-#include "core/MidiController.h"
+#include "core/ControlEngine.h"
 #include "logger.h"
 #include "core/RtEngine.h"
+#include "core/primitives/MidiEvent.h" //for RtMidiPort
+#include <unordered_map>
+#include <array>
 #include "Status.h"
+#include "core/MidiController.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -87,6 +87,7 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
         std::unique_ptr<MidiPort> tmp = std::make_unique<MidiPort>();
         port = tmp.get();
         ctx.midiController->addNewPort(std::move(tmp));
+        // TODO: ctx.midiController->addNewPort(e.device, e.subdev);
 
         port->_path = e.subdev->_path;
         port->_ownerDev = e.device;

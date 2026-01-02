@@ -1,13 +1,13 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <memory>
-#include <cstdint> 
 #include <vector>
-#include "core/FileWorker.h"
 #include "defines.h"
-#include "Status.h"
-#include "core/FileTasks.h"
+#include <cstdint> 
 #include <string>
+#include "core/FileTasks.h"
+#include "core/FileWorker.h"
+#include <memory>
+#include "Status.h"
 
 namespace slr {
 

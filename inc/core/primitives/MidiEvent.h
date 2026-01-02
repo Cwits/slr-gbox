@@ -42,7 +42,7 @@ struct MidiEvent {
     uint8_t channel;
     uint8_t note;
     uint8_t velocity;
-    std::chrono::time_point<std::chrono::steady_clock> timestamp;
+    frame_t offset;
 };
 
 struct RtMidiBuffer {

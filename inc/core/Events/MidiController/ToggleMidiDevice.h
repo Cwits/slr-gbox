@@ -108,6 +108,7 @@ void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevice &e) {
         std::unique_ptr<MidiPort> tmp = std::make_unique<MidiPort>();
         port = tmp.get();
         ctx.midiController->addNewPort(std::move(tmp));
+        // TODO: ctx.midiController->addNewPort(e.device, e.subdev);
 
         port->_path = e.subdev->_path;
         port->_ownerDev = e.device;

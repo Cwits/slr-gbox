@@ -27,9 +27,11 @@ int expectedLength(const MidiEventType &type);
 ID _midiPortIdCounter = 1;
 
 frame_t _input_constant_delay = 0;
+frame_t _sample_rate = 0;
 
 MidiController::MidiController() {
     _input_constant_delay = SettingsManager::getBlockSize();
+    _sample_rate = SettingsManager::getSampleRate();
 }
 
 MidiController::~MidiController() {
@@ -129,7 +131,8 @@ void MidiController::openDevice(MidiPort *port, bool input, bool output) {
 
     port->_isOpened        = true;
     port->_inputOpened   = input;
-    // port->_outputOpened  = output;
+    port->_outputOpened  = output;
+    port->_anchorTimepoint = _midiAnchorTimepoint;
 
     //start reading thread if necessary
     if(input)
@@ -483,12 +486,17 @@ void MidiPort::parseInput(unsigned char *raw, const int &size) {
 }
 
 void MidiPort::pushEvent(const MidiEventType type, const int channel, const int note, const int velocity) {
+    
+    std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+    frame_t offset = std::chrono::duration_cast<std::chrono::seconds>(now - _anchorTimepoint).count();
+    frame_t sample = offset * (1.0f/_sample_rate);
+    
     MidiEvent ev;
     ev.channel = channel;
     ev.type = type;
     ev.note = note;
     ev.velocity = velocity;
-    // ev.timestamp = std::chrono::steady_clock::now();
+    ev.offset = sample;
     _inQueue->push(ev);
 }
 
