@@ -1,15 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "ui/uiControls.h"
+#include "core/primitives/AudioUnit.h"
 #include "core/ControlEngine.h"
+#include "core/Project.h"
+#include "snapshots/ProjectView.h"
+#include "logger.h"
+#include "Status.h"
+#include "core/primitives/FileContainer.h"
+#include "ui/uiControls.h"
 #include "core/ModuleManager.h"
 #include "core/primitives/RenderPlan.h"
-#include "core/Project.h"
-#include "logger.h"
-#include "core/primitives/AudioUnit.h"
-#include "snapshots/ProjectView.h"
-#include "core/primitives/FileContainer.h"
-#include "Status.h"
 #include "snapshots/AudioUnitView.h"
 #include "core/primitives/ControlContext.h"
 

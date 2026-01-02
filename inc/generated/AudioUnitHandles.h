@@ -1,26 +1,26 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "snapshots/FileContainerView.h"
-#include "ui/uiControls.h"
-#include "core/Project.h"
-#include "core/primitives/AudioUnit.h"
-#include "modules/Track/TrackView.h"
-#include <algorithm>
 #include "core/ControlEngine.h"
 #include <memory>
+#include <algorithm>
 #include "logger.h"  
 #include "core/FlatEvents.h"
+#include "core/primitives/AudioUnit.h"
+#include "snapshots/ProjectView.h"
 #include "core/primitives/AudioUnit.h"  
+#include "Status.h"
+#include "core/FileWorker.h"
+#include "snapshots/AudioUnitView.h"
+#include "core/Project.h"
+#include <string>
+#include "core/primitives/FileContainer.h"
+#include "ui/uiControls.h"
+#include "inc/ui/uiControls.h"
+#include "core/primitives/File.h"
 #include "core/FileTasks.h"
 #include "logger.h"
-#include "core/primitives/File.h"
-#include "snapshots/ProjectView.h"
-#include "core/primitives/FileContainer.h"
-#include <string>
-#include "core/FileWorker.h"
-#include "inc/ui/uiControls.h"
-#include "Status.h"
-#include "snapshots/AudioUnitView.h"
+#include "snapshots/FileContainerView.h"
+#include "modules/Track/TrackView.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {

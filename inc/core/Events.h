@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "generated/ProjectEvents.h"
-#include "generated/RenderPlanEvents.h"
-#include "generated/MetronomeEvents.h"
+#include "generated/TrackEvents.h"
 #include "generated/TimelineEvents.h"
 #include "generated/MidiControllerEvents.h"
+#include "generated/MetronomeEvents.h"
+#include "generated/ProjectEvents.h"
+#include "generated/RenderPlanEvents.h"
 #include "generated/AudioUnitEvents.h"
-#include "generated/TrackEvents.h"
 
 #include <variant>
 
@@ -19,17 +19,18 @@ namespace slr {
 namespace Events {
 
 using Event = std::variant<
-		AddNewRoute,
-		AddNewMidiRoute,
-		DeleteModule,
-		CreateModule,
-		ToggleMetronome,
+		RecordArm,
 		RequestPlayhead,
 		ChangeTimelineState,
 		ToggleLoop,
 		ChangeSigBpm,
 		LoopPosition,
 		ToggleMidiDevice,
+		ToggleMetronome,
+		AddNewRoute,
+		AddNewMidiRoute,
+		DeleteModule,
+		CreateModule,
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
@@ -37,8 +38,7 @@ using Event = std::variant<
 		FileOpened,
 		RemoveFile,
 		FileUIRemoved,
-		ModClipItem,
-		RecordArm
+		ModClipItem
 >;
 
 } //namespace Events

@@ -31,7 +31,7 @@ class RtEngine {
 
     bool init();
     bool shutdown();
-    bool start(std::function<void()> anchorLambda);
+    bool start(std::function<void(frame_t)> anchorLambda);
     bool stop();
 
     const RtState getState() const { return _state; } 

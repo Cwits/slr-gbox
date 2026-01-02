@@ -1,9 +1,9 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "defines.h"
 #include <string>
-#include <unordered_map>
 #include "Status.h"
+#include "defines.h"
+#include <unordered_map>
 #include "core/MidiController.h"
 
 namespace slr {

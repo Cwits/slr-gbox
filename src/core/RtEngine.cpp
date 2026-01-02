@@ -62,14 +62,11 @@ bool RtEngine::init() {
     return true;
 }
 
-bool RtEngine::start(std::function<void()> anchorLambda) {
+bool RtEngine::start(std::function<void(frame_t)> anchorLambda) {
     if(_state == RtState::ERROR) return false;
 
     if(!_driver->start([this, anchorLambda](AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed) -> frame_t {
-        if(this->_isFirstCallback) {
-            anchorLambda(); //lol is that very bad? :/
-            this->_isFirstCallback = false;
-        }
+        anchorLambda(framesPassed); //lol is that very bad? :/
         return this->processNextBlock(inputs, outputs, frames, framesPassed);
     })) {
         //error
@@ -118,7 +115,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         b.buffer->clear();
     }
 
-    /*
+    frame_t blockEnd = framesPassed + frames;
     for(RtMidiQueue &q : *_midiInputMap) {
         std::vector<MidiEvent> *v = nullptr;
         for(RtMidiBuffer &b : *_midiInLocal) {
@@ -139,18 +136,20 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
         const MidiEvent * peekptr;
         while(q.queue->peek(peekptr)) {
-            if(peekptr->frame <= currentFrame + blockSize) {
+            if(peekptr->offset <= blockEnd) {
                 // q.queue->pop(midiev);
                 v->push_back(*peekptr);
                 q.queue->commit_pop();
+                LOG_INFO("Midi Ev offset %lu, frames passed %lu", peekptr->offset, framesPassed);
             } else {
+                LOG_INFO("Still ev left  offset %lu, frames passed %lu", peekptr->offset, framesPassed);
                 break;
             }
             //out->sendEvent(*peekptr);
         }
     }
-    */
-   
+    
+   /*
     MidiEvent midiev;
     for(RtMidiQueue &q : *_midiInputMap) {
         std::vector<MidiEvent> *v = nullptr;
@@ -170,12 +169,13 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         }
 
         while(q.queue->pop(midiev)) {
+            LOG_INFO("Midi Ev offset %lu, frames passed %lu", midiev.offset, framesPassed);
             v->push_back(midiev);
             //test echo
             if(midiev.type == MidiEventType::NoteOn)
                 out->sendEvent(midiev);
         }
-    }
+    }*/
     
     Timeline & tl = _prj->timeline();
     const bool playing = tl.playing();//must be called before elapsed because if prevstate == preparing than we can do 

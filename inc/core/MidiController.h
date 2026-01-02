@@ -81,7 +81,8 @@ struct MidiPort {
     std::atomic<bool> _outputOpened;
     bool _justCreated;
 
-    std::chrono::time_point<std::chrono::steady_clock> _anchorTimepoint;
+    // std::chrono::time_point<std::chrono::steady_clock> _anchorTimepoint;
+    MidiController * _controller; 
 
     std::atomic<bool> _run;
     std::thread _readingThread;
@@ -148,17 +149,19 @@ struct MidiController {
     }
 
     void addNewPort(std::unique_ptr<MidiPort> port) {
+        port->_controller = this;
         _activePorts.push_back(std::move(port));
     }
 
     void openDevice(MidiPort *port, bool input, bool output);
     void closeDevice(MidiPort *port);
 
-    void setAnchor() {
-        _midiAnchorTimepoint = std::chrono::steady_clock::now();
+    void setAnchor(frame_t framesPassed) {
+        _midiAnchorTimepoint.store(std::chrono::steady_clock::now(), std::memory_order_relaxed);
+        _lastSample.store(framesPassed, std::memory_order_relaxed);
     }
-    std::chrono::time_point<std::chrono::steady_clock> getAnchor() const { return _midiAnchorTimepoint; }
-
+    std::chrono::time_point<std::chrono::steady_clock> getAnchor() const { return _midiAnchorTimepoint.load(std::memory_order_acquire); }
+    frame_t getLastSample() const { return _lastSample.load(std::memory_order_acquire); }
     private:
     std::mutex _mutex;
     std::vector<MidiDevice> _deviceList;
@@ -168,7 +171,8 @@ struct MidiController {
     bool is_input(snd_ctl_t *ctl, int card, int device, int sub);
     bool is_output(snd_ctl_t *ctl, int card, int device, int sub);
 
-    std::chrono::time_point<std::chrono::steady_clock> _midiAnchorTimepoint;
+    std::atomic<std::chrono::time_point<std::chrono::steady_clock>> _midiAnchorTimepoint;
+    std::atomic<frame_t> _lastSample;
 
 };
 

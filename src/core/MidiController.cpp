@@ -28,10 +28,12 @@ ID _midiPortIdCounter = 1;
 
 frame_t _input_constant_delay = 0;
 frame_t _sample_rate = 0;
+frame_t _block_size = 0;
 
 MidiController::MidiController() {
     _input_constant_delay = SettingsManager::getBlockSize();
     _sample_rate = SettingsManager::getSampleRate();
+    _block_size = SettingsManager::getBlockSize();
 }
 
 MidiController::~MidiController() {
@@ -132,7 +134,7 @@ void MidiController::openDevice(MidiPort *port, bool input, bool output) {
     port->_isOpened        = true;
     port->_inputOpened   = input;
     port->_outputOpened  = output;
-    port->_anchorTimepoint = _midiAnchorTimepoint;
+    // port->_anchorTimepoint = _midiAnchorTimepoint;
 
     //start reading thread if necessary
     if(input)
@@ -488,16 +490,22 @@ void MidiPort::parseInput(unsigned char *raw, const int &size) {
 void MidiPort::pushEvent(const MidiEventType type, const int channel, const int note, const int velocity) {
     
     std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-    frame_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - _anchorTimepoint).count();
+    // std::chrono::duration<double> millis = now - _anchorTimepoint;
     // frame_t sample = offset * (1.0f/_sample_rate);
-    frame_t sample = millis * (1.0f/_sample_rate);
+    // frame_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - _controller->getAnchor()).count();
+    std::chrono::duration<double> diff = now - _controller->getAnchor(); //in seconds?
+    frame_t lastSample = _controller->getLastSample();
+    frame_t sample = diff.count() * _sample_rate;
+    frame_t offset = lastSample + _input_constant_delay + sample;
 
+    LOG_INFO("diff: %f", diff.count());
+    
     MidiEvent ev;
     ev.channel = channel;
     ev.type = type;
     ev.note = note;
     ev.velocity = velocity;
-    ev.offset = sample;
+    ev.offset = offset;
     _inQueue->push(ev);
 }
 
