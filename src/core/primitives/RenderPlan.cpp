@@ -207,7 +207,7 @@ RenderPlan * buildPlan(Project *prj) {
     if(order.size() == 0) {
         //cycle detected or there is no ID's
         LOG_WARN("No items to render, returning dummy Render Plan");
-        return &dummyPlan;
+        return &dummyPlan; 
     }
 
     LOG_WARN("Render Order: ");
