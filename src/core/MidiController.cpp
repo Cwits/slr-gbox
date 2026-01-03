@@ -17,6 +17,10 @@
 // #include <fcntl.h> //open() O_RDONLY
 #include <sys/eventfd.h>
 
+#ifndef LOG_MIDI_EVENTS
+#define LOG_MIDI_EVENTS
+#endif
+
 namespace slr {
 
 void event(MidiPort *port, const MidiEventType type, const int channel, const unsigned char *data);
@@ -490,16 +494,11 @@ void MidiPort::parseInput(unsigned char *raw, const int &size) {
 void MidiPort::pushEvent(const MidiEventType type, const int channel, const int note, const int velocity) {
     
     std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-    // std::chrono::duration<double> millis = now - _anchorTimepoint;
-    // frame_t sample = offset * (1.0f/_sample_rate);
-    // frame_t millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - _controller->getAnchor()).count();
     std::chrono::duration<double> diff = now - _controller->getAnchor(); //in seconds?
     frame_t lastSample = _controller->getLastSample();
     frame_t sample = diff.count() * _sample_rate;
     frame_t offset = lastSample + _input_constant_delay + sample;
-
-    LOG_INFO("diff: %f", diff.count());
-    
+    // frame_t offset = lastSample + sample;
     MidiEvent ev;
     ev.channel = channel;
     ev.type = type;

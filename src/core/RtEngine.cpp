@@ -115,7 +115,6 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         b.buffer->clear();
     }
 
-    frame_t blockEnd = framesPassed + frames;
     for(RtMidiQueue &q : *_midiInputMap) {
         std::vector<MidiEvent> *v = nullptr;
         for(RtMidiBuffer &b : *_midiInLocal) {
@@ -136,13 +135,21 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
         const MidiEvent * peekptr;
         while(q.queue->peek(peekptr)) {
-            if(peekptr->offset <= blockEnd) {
-                // q.queue->pop(midiev);
-                v->push_back(*peekptr);
-                q.queue->commit_pop();
-                LOG_INFO("Midi Ev offset %lu, frames passed %lu", peekptr->offset, framesPassed);
+            if(peekptr->offset >= framesPassed) {
+                MidiEvent ev;
+                q.queue->pop(ev);
+                ev.offset = ev.offset - framesPassed; //or calculate this in midi input handle, assuming that event will be handled in next frame by default?
+                v->push_back(ev);
+                // q.queue->commit_pop();
+#if (RT_TRACE == 1)
+                LOG_INFO("Midi Ev offset %lu, frames passed %lu", ev.offset, framesPassed);
+#endif
             } else {
+#if (RT_TRACE == 1)
                 LOG_INFO("Still ev left  offset %lu, frames passed %lu", peekptr->offset, framesPassed);
+                LOG_ERROR("theoretically Unreachable?");
+#endif
+                q.queue->commit_pop(); //just skip this
                 break;
             }
             //out->sendEvent(*peekptr);

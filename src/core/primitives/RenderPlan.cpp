@@ -206,8 +206,8 @@ RenderPlan * buildPlan(Project *prj) {
     std::vector<ID> order = topoSort(edges, indegree);
     if(order.size() == 0) {
         //cycle detected or there is no ID's
-        LOG_ERROR("Returning empty Render Plan");
-        return nullptr;
+        LOG_WARN("No items to render, returning dummy Render Plan");
+        return &dummyPlan;
     }
 
     LOG_WARN("Render Order: ");
