@@ -3,8 +3,8 @@
 
 #include "core/MidiController.h"
 
+#include "slr_config.h"
 
-// #include <rtmidi/RtMidi.h>
 #include "logger.h"
 #include "core/primitives/MidiEvent.h"
 #include "core/SettingsManager.h"
@@ -13,13 +13,7 @@
 #include <vector>
 #include <algorithm>
 
-// #include <unistd.h> //close(fd)
-// #include <fcntl.h> //open() O_RDONLY
 #include <sys/eventfd.h>
-
-#ifndef LOG_MIDI_EVENTS
-#define LOG_MIDI_EVENTS
-#endif
 
 namespace slr {
 
@@ -260,9 +254,6 @@ std::vector<MidiDevice> MidiController::discoverMidiDevices() {
                 if(hasOutput) subdev._outputName = std::string(subOutName);
 
                 dev._ports.push_back(subdev);
-                // printf("%c%c  hw:%d,%d,%d  %s\n",
-                //                 hasInput ? 'I' : ' ', hasOutput ? 'O' : ' ',
-                //                 card, device, sub, subName);
                 sub++;
             }
         }
@@ -513,106 +504,150 @@ void event(MidiPort *port, const MidiEventType type, const int channel, const un
         case(MidiEventType::NoteOff): {
             int note = static_cast<int>(data[0]);
             int velocity = static_cast<int>(data[1]);
+            port->pushEvent(type, channel, note, velocity);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Note Off channel %d note %d vel %d",
                         channel, note, velocity);
-            port->pushEvent(type, channel, note, velocity);
+#endif
         } break;
         case(MidiEventType::NoteOn): {
             int note = static_cast<int>(data[0]);
             int velocity = static_cast<int>(data[1]);
             if(velocity > 0) {
+                port->pushEvent(type, channel, note, velocity);
+#if (MIDI_TRACE == 1)
                 LOG_INFO("Note On channel %d note %d vel %d",
                         channel, note, velocity);
-                port->pushEvent(type, channel, note, velocity);
+#endif
             } else {
+                port->pushEvent(MidiEventType::NoteOff, channel, note, velocity);
+#if (MIDI_TRACE == 1)
                 LOG_INFO("Note On(Off) channel %d note %d vel %d",
                         channel, note, velocity);
-                port->pushEvent(MidiEventType::NoteOff, channel, note, velocity);
+#endif      
             }
         } break;
         case(MidiEventType::Aftertouch): { 
             int note = static_cast<int>(data[0]);
             int pressure = static_cast<int>(data[1]);
+            port->pushEvent(type, channel, note, pressure);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Aftertouch channel %d note %d pressure %d",
                         channel, note, pressure);
-            port->pushEvent(type, channel, note, pressure);
+#endif      
         } break;
         case(MidiEventType::CC): { 
             int cc = static_cast<int>(data[0]);
             int value = static_cast<int>(data[1]);
+            port->pushEvent(type, channel, cc, value);
+#if (MIDI_TRACE == 1)
             LOG_INFO("CC channel %d cc %d value %d",
                         channel, cc, value);
-                        
-            port->pushEvent(type, channel, cc, value);
+#endif                  
         } break;
         case(MidiEventType::ProgramChange): { 
             int program = static_cast<int>(data[0]);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Program Change channel %d program %d",
                         channel, program);
+#endif
         } break;
         case(MidiEventType::ChannelPressure): { 
             int pressure = static_cast<int>(data[0]);
+            port->pushEvent(type, channel, pressure, 0);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Channel Pressure channel %d pressure %d",
                         channel, pressure);
-                        
-            port->pushEvent(type, channel, pressure, 0);
+#endif                  
         } break;
         case(MidiEventType::PitchBend): {
             int lsb = static_cast<int>(data[0]);
             int msb = static_cast<int>(data[1]);
             int pitch = lsb | (msb << 7);
+            port->pushEvent(type, channel, pitch, 0);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Pitch Bend channel %d pitch %d",
                         channel, pitch);
-                        
-            port->pushEvent(type, channel, pitch, 0);
+#endif                  
         } break;
         case(MidiEventType::SongPosition): {
             int lsb = static_cast<int>(data[0]);
             int msb = static_cast<int>(data[1]);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Song Position lsb %x msb %x",
                         lsb, msb);
+#endif
         } break;
         case(MidiEventType::SongSelect): {
             int song = static_cast<int>(data[0]);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Song Select song %d", song);
+#endif
         } break;
         case(MidiEventType::TimeCodeQuarterFrame): {
             int dta = static_cast<int>(data[0]);
+#if (MIDI_TRACE == 1)
             LOG_INFO("Time Code Quater Frame data %d", dta);
+#endif
         } break;
         case(MidiEventType::TuneRequest): {
+#if (MIDI_TRACE == 1)
             LOG_INFO("Tune Request");
+#endif
         }
     }
 }
 
 void realTimeEvent(MidiPort *port, const MidiEventType type) {
     switch(type) {
-        case(MidiEventType::Clock): LOG_INFO("Clock"); break;
-        case(MidiEventType::Start): LOG_INFO("Start"); break;
-        case(MidiEventType::Continue): LOG_INFO("Continue"); break;
-        case(MidiEventType::Stop): LOG_INFO("Stop"); break;
-        case(MidiEventType::ActiveSensing): /*LOG_INFO("Active Sensing")*/; break;
+        case(MidiEventType::Clock): {
+#if (MIDI_TRACE == 1)
+            LOG_INFO("Clock"); 
+#endif
+        } break;
+        case(MidiEventType::Start): {
+#if (MIDI_TRACE == 1)
+            LOG_INFO("Start"); 
+#endif
+        } break;
+        case(MidiEventType::Continue): {
+#if (MIDI_TRACE == 1)
+            LOG_INFO("Continue"); 
+#endif
+        } break;
+        case(MidiEventType::Stop): {
+#if (MIDI_TRACE == 1)
+            LOG_INFO("Stop"); 
+#endif
+        } break;
+        case(MidiEventType::ActiveSensing): {
+#if (MIDI_TRACE == 1)
+            LOG_INFO("Active Sensing"); 
+#endif
+        } break;
         case(MidiEventType::SystemReset): {
-            LOG_INFO("System Reset"); break;
+#if (MIDI_TRACE == 1)
+            LOG_INFO("System Reset");
+#endif
             port->_dataBytesReaded = 0;
             port->_currentCommand = MidiEventType::InvalidType;
             port->_channel = 0;
             port->_expectedLength = 0;
-        }
+        } break;
     }
 }
 
 void sysexEvent(const unsigned char *data, const int &len) {
-    // pr("SysEx event length " << len << " data: ");
+#if (MIDI_TRACE == 1)
+    LOG_INFO("SysEx event length: %d", len);
     // pr(std::hex);
     // pr("0xf0 ");
-    LOG_INFO("SysEx event length: %d", len);
     // for(int i=0; i<len; ++i) {
         // pr((int)data[i] << " ");
     // }
     // pr("f7")
     // prl(std::dec);
+#endif
 }
 
 int expectedLength(const MidiEventType &type) {

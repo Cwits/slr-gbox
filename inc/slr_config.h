@@ -6,6 +6,7 @@
 namespace slr {
 
 #define RT_TRACE 0
+#define MIDI_TRACE 0
 
 /* Audio Buffer Manager */
 #define DEFAULT_BUFFER_COUNT 64
