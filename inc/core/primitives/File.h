@@ -24,6 +24,8 @@ class File {
     virtual void prepareForRecord() = 0;
     virtual void finishAfterRecord() = 0;
 
+    virtual const frame_t frames() const = 0;
+
     const FileType type() const { return _type; }
     const bool isAudio() const { return _type == FileType::Audio ? true : false; }
     const bool isMidi() const { return _type == FileType::Midi ? true : false; }
@@ -46,8 +48,6 @@ class File {
     const bool offline() const { return _offline; }
     void setOffline() { _offline = true; }
     void setOnline() { _offline = false; }
-
-    virtual const frame_t frames() const = 0;
 
     protected:
     std::string _name;

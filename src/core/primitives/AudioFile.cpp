@@ -124,6 +124,7 @@ bool AudioFile::dumpRecordedData(AudioBuffer * recBuffer) {
 }
 
 bool AudioFile::openInternal(std::string & path, bool tmp) {
+    //TODO: check if already opened, and if file exists 
     if(path.empty()) {
         LOG_ERROR("Path to file empty");
         return false;

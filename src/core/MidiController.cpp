@@ -20,7 +20,6 @@ namespace slr {
 void event(MidiPort *port, const MidiEventType type, const int channel, const unsigned char *data);
 void realTimeEvent(MidiPort *port, const MidiEventType type);
 void sysexEvent(const unsigned char *data, const int &len);
-int expectedLength(const MidiEventType &type);
 
 ID _midiPortIdCounter = 1;
 
@@ -648,23 +647,6 @@ void sysexEvent(const unsigned char *data, const int &len) {
     // pr("f7")
     // prl(std::dec);
 #endif
-}
-
-int expectedLength(const MidiEventType &type) {
-    switch(type) {
-        case(MidiEventType::NoteOff):
-        case(MidiEventType::NoteOn):
-        case(MidiEventType::Aftertouch):
-        case(MidiEventType::CC):
-        case(MidiEventType::PitchBend):
-        case(MidiEventType::SongPosition): return 2; break;
-        case(MidiEventType::ProgramChange):
-        case(MidiEventType::ChannelPressure):
-        case(MidiEventType::TimeCodeQuarterFrame):
-        case(MidiEventType::SongSelect): return 1; break;
-        case(MidiEventType::SysEx): return -1; break;
-        default: return 0; break;
-    }
 }
 
 /* some LLM stuff, need testing. don't want to dive deep into alsa right now */
