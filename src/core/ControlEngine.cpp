@@ -9,6 +9,7 @@
 #include "core/primitives/SPSCQueue.h"
 
 #include "core/AudioBufferManager.h"
+#include "core/BufferManager.h"
 #include "core/Events.h"
 #include "core/FlatEvents.h"
 #include "core/RtEngine.h"
@@ -49,6 +50,8 @@ std::thread _controlThread;
 std::atomic<bool> _shutdown;
 std::condition_variable _cond;
 
+std::unique_ptr<BufferManager> _bufferManager;
+
 std::unique_ptr<RtEngine> _engine;
     
 std::unique_ptr<Project> _project;
@@ -88,6 +91,13 @@ void processLoop() {
 
     while(!_shutdown) {
         // Events::Event e;
+        ControlContext ctx(_project.get(),
+                            _fileWorker.get(),
+                            _engine.get(),
+                            _projectSnapshot.get(),
+                            _midiController.get(),
+                            _bufferManager.get());
+
         if(_engine == nullptr) {
             LOG_WARN("RT Engine not set!");
             goto sleep;
@@ -97,14 +107,7 @@ void processLoop() {
             LOG_WARN("RT Engine not running!");
             goto sleep;
         }
-
-        ControlContext ctx;
-        ctx.project = _project.get();
-        ctx.fileWorker = _fileWorker.get();
-        ctx.engine = _engine.get(); //might be bad :/
-        ctx.projectView = _projectSnapshot.get();
-        ctx.midiController = _midiController.get();
-
+        
         //handle general Events
         _eventSnapshot.clear();
         {
@@ -179,6 +182,12 @@ bool init() {
     _eventSnapshot.reserve(QUEUE_INITIAL_SIZE);
     _flatResponseSnapshot.reserve(256);
 
+    _bufferManager = std::make_unique<BufferManager>();
+    if(!_bufferManager->init(SettingsManager::getBlockSize(), DEFAULT_BUFFER_CHANNELS)) {
+        LOG_ERROR("Failed to init Buffer Manager");
+        return false;
+    }
+
     if(!AudioBufferManager::init(SettingsManager::getBlockSize(),
                                 DEFAULT_BUFFER_CHANNELS)) {
         LOG_ERROR("Failed to init Audio Buffer Manager");
@@ -246,6 +255,8 @@ bool shutdown() {
         LOG_ERROR("Failed to shutdown Audio Buffer Manager");
         return false;
     }
+
+    _bufferManager->shutdown();
 
     _controlThread.join();
     _midiDiscoverThread.join();

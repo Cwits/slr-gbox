@@ -49,6 +49,23 @@ Track::~Track() {
     }
 }
 
+bool Track::create(BufferManager *man) {
+    AudioUnit::create(man);
+    // _recInt = AudioBufferManager::acquireRegular();
+    // _recExt = AudioBufferManager::acquireRegular();
+    // _preFX = AudioBufferManager::acquireRegular();
+    // _postFX = AudioBufferManager::acquireRegular();
+    // _postPan = AudioBufferManager::acquireRegular();  
+    // _bufferManagerPtr = man;
+}
+
+bool Track::destroy(BufferManager *man) {
+    AudioUnit::destroy(man);
+    // AudioBufferManager::releaseRegular(_preFX);
+    // AudioBufferManager::releaseRegular(_postFX);
+    // AudioBufferManager::releaseRegular(_postPan);
+}
+
 frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
     /* 
     handle spsc control queue events(because some may be injected via mod engine or automations)

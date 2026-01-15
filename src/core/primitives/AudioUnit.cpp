@@ -8,6 +8,7 @@
 #include "core/primitives/AudioContext.h"
 
 #include "core/AudioBufferManager.h"
+#include "core/BufferManager.h"
 #include "logger.h"
 
 namespace slr {
@@ -36,6 +37,17 @@ AudioUnit::~AudioUnit() {
     if(_haveAudioOutputs) {
         AudioBufferManager::releaseRegular(_outputs);
     }
+}
+
+bool AudioUnit::create(BufferManager *man) {
+    //     addParameter(_volume = new ParameterFloat("Volume", 1.0f, 0.0f, 1.0f));
+    // addParameter(_pan = new ParameterFloat("Pan", 0.5f, 0.f, 1.f));
+    // addParameter(_mute = new ParameterBool("Mute", 0.0f, 0.f, 1.f));
+    // _output = man->acquireAudioRegular();
+}
+
+bool AudioUnit::destroy(BufferManager *man) {
+    // man->releaseAudioRegular(_output);
 }
 
 void AudioUnit::addParameter(ParameterBase * base) {

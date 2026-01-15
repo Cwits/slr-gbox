@@ -30,8 +30,14 @@ void handleEvent(const ControlContext &ctx, const Events::CreateModule &e) {
         AudioUnitView * view = nullptr;
         std::unique_ptr<AudioUnit> unit = mod->createRT();
         au = unit.get();
+
+        if(!unit->create(ctx.bufferManager)) {
+            LOG_ERROR("Failed to create unit for some reasons");
+            return;
+        }
+
         ctx.project->addUnit(std::move(unit));
-        
+
         view = mod->createView(au);
         ctx.projectView->addUnitView(view);
 

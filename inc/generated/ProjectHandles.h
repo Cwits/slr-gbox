@@ -1,16 +1,16 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include "core/primitives/AudioUnit.h"
-#include "core/ControlEngine.h"
-#include "core/Project.h"
-#include "snapshots/ProjectView.h"
-#include "logger.h"
-#include "Status.h"
-#include "core/primitives/FileContainer.h"
-#include "ui/uiControls.h"
 #include "core/ModuleManager.h"
-#include "core/primitives/RenderPlan.h"
+#include "ui/uiControls.h"
 #include "snapshots/AudioUnitView.h"
+#include "core/Project.h"
+#include "core/ControlEngine.h"
+#include "core/primitives/RenderPlan.h"
+#include "Status.h"
+#include "logger.h"
+#include "core/primitives/FileContainer.h"
+#include "snapshots/ProjectView.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -165,8 +165,14 @@ inline void handleEvent(const ControlContext &ctx, const Events::CreateModule &e
         AudioUnitView * view = nullptr;
         std::unique_ptr<AudioUnit> unit = mod->createRT();
         au = unit.get();
+
+        if(!unit->create(ctx.bufferManager)) {
+            LOG_ERROR("Failed to create unit for some reasons");
+            return;
+        }
+
         ctx.project->addUnit(std::move(unit));
-        
+
         view = mod->createView(au);
         ctx.projectView->addUnitView(view);
 

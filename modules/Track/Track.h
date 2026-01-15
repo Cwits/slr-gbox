@@ -26,6 +26,10 @@ class Track : public AudioUnit {
 
     Track();
     ~Track();
+    
+    bool create(BufferManager *man);
+    bool destroy(BufferManager *man);
+
     RT_FUNC frame_t process(const AudioContext &ctx,  const Dependencies &inputs) override;
 
     RT_FUNC void prepareToPlay() override;

@@ -64,6 +64,7 @@ file(GLOB SOURCES
   src/core/utility/basicAudioManipulation.cpp
 
   src/core/AudioBufferManager.cpp
+  src/core/BufferManager.cpp
   src/core/AudioPeakBuilder.cpp
   src/core/ControlEngine.cpp
   src/core/Events.cpp

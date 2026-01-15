@@ -62,6 +62,7 @@ Refactoring:
                 - like instead of "handle Responses from RT Engine" - "check value updated"
                   than call UI update.
                   I guess should be some kind of timeout for that otherwise sent event's that failed to succeed will stay forever?
+[ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
 
 Project:
 [ ] - make save and load system(serialization)

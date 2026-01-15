@@ -74,7 +74,6 @@ void setTmpRecordPath(std::string & path);
 const std::string & getPluginPath();
 void setPluginPath(std::string & path);
 
-
 /* UI */
 const int getDefaultPixelPerBar();
 void setDefaultPixelPerBar(int pixel);

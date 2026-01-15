@@ -13,5 +13,7 @@
     "Temporary Recording Path": "/home/",
     "Plugins Path": "/home/",
     "Default Pixel Per Bar": 1000,
-    "Frames Per Pixel": 588
+    "Frames Per Pixel": 588,
+    "Regular Buffer Count": 1024,
+    "Record Buffer Count": 128
 }

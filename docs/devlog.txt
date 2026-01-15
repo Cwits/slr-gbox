@@ -1,3 +1,9 @@
+14.01.25
+... sooo... long time... 
+i don't like AudioBufferManager thing... have to move that to more generalized BufferManager, that will remain as namespace
+but provide options for MidiBuffers, than recording midi will be possible.
+but need to figure out flow of midi 
+
 13.11.25
 Added lower and upper case in screen keyboard
 

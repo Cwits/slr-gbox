@@ -22,6 +22,7 @@ class ParameterBool;
 class ParameterInt;
 class ParameterBase;
 class Dependencies;
+class BufferManager;
 
 enum class AudioUnitType {
     Error,
@@ -37,6 +38,9 @@ class AudioUnit {
     explicit AudioUnit(AudioUnitType type, bool needsAudioOutput = true);
     //explicit AudioUnit(ClipContainer & container, bool needsAudioOutput = true);
     virtual ~AudioUnit();
+
+    virtual bool create(BufferManager *man);
+    virtual bool destroy(BufferManager *man);
 
     RT_FUNC virtual frame_t process(const AudioContext &ctx, const Dependencies &inputs) = 0;
 
