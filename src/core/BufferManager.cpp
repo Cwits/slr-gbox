@@ -70,7 +70,8 @@ AudioBuffer* BufferManager::acquireAudioRegular() {
     }
 
     AudioBuffer *buf = _regularAudioFree.back();
-    _regularAudioFree.erase(_regularAudioFree.end());
+    _regularAudioFree.pop_back();
+    // _regularAudioFree.erase(_regularAudioFree.end());
 
     return buf;
 }
@@ -105,7 +106,8 @@ MidiBuffer* BufferManager::acquireMidiRegular() {
     }
     
     MidiBuffer *buf = _regularMidiFree.back();
-    _regularMidiFree.erase(_regularMidiFree.end());
+    _regularMidiFree.pop_back();
+    // _regularMidiFree.erase(_regularMidiFree.end());
 
     return buf;
 }
