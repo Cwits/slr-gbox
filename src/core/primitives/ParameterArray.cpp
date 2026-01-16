@@ -12,9 +12,9 @@ ParameterArray::ParameterArray() {
 }
 
 ParameterArray::~ParameterArray() {
-    for(ParameterBase * base : _list) {
-        delete base;
-    }
+    // for(ParameterBase * base : _list) {
+    //     delete base;
+    // }
 }
 
 bool ParameterArray::add(ParameterBase * base) {
