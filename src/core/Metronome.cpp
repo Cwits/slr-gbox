@@ -12,7 +12,7 @@
 
 namespace slr {
     
-Metronome::Metronome() : AudioUnit(AudioUnitType::Metronome) {
+Metronome::Metronome() : AudioUnit() {
     _lastTickFrame = 0;
     _lastPlayedStep = -1;
     _remainedSamplesToPlay = 0;
@@ -25,7 +25,7 @@ Metronome::Metronome() : AudioUnit(AudioUnitType::Metronome) {
     _tau = 0.03 / _sampleRate; //30ms / samplingRate
 
     _buffersClear = false;
-    *_mute = true;
+    _mute = true;
 }
 
 Metronome::~Metronome() {
@@ -35,9 +35,6 @@ Metronome::~Metronome() {
 frame_t Metronome::process(const AudioContext &ctx, 
                     const Dependencies &inputs) 
 {
-    // if(*_mute) return ctx.frames; - done from outside
-
-    // if(ctx.playing) { //done from outside
     bool tick = false;
     frame_t delay = 0;
     frame_t samplesToPlay = 0;
@@ -55,7 +52,7 @@ frame_t Metronome::process(const AudioContext &ctx,
         }
     }
 
-    if(*_mute) return ctx.frames;
+    if(isMuted(ctx)) return ctx.frames;
 
     if(tick) {
         _remainedSamplesToPlay = _soundLength;

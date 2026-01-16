@@ -40,7 +40,8 @@ class Project {
 
     //nonRT
     bool addUnit(std::unique_ptr<AudioUnit> unit);
-    bool removeUnit(ID id);
+    // bool removeUnit(ID id);
+    std::unique_ptr<AudioUnit> removeUnit(ID id);
 
     const int getUnitCount() const { return _unitList.size(); }
     AudioUnit * getUnitById(ID id); //for building track graph???

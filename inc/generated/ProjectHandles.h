@@ -1,16 +1,16 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include "core/primitives/AudioUnit.h"
+#include "snapshots/ProjectView.h"
+#include "core/primitives/FileContainer.h"
+#include "logger.h"
+#include "core/primitives/RenderPlan.h"
+#include "Status.h"
 #include "core/ModuleManager.h"
 #include "ui/uiControls.h"
 #include "snapshots/AudioUnitView.h"
 #include "core/Project.h"
 #include "core/ControlEngine.h"
-#include "core/primitives/RenderPlan.h"
-#include "Status.h"
-#include "logger.h"
-#include "core/primitives/FileContainer.h"
-#include "snapshots/ProjectView.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -126,7 +126,15 @@ inline void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e
             return;
         }
 
-        bool res = ctx.project->removeUnit(targetId);
+        bool res = true;
+        std::unique_ptr<AudioUnit> unit = ctx.project->removeUnit(targetId);
+        if(unit == nullptr) {
+            LOG_ERROR("Failed to find unit");
+            res = false;
+        }
+
+        unit->destroy(ctx.bufferManager);
+        // bool res = ctx.project->removeUnit(targetId);
         AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
         
         if(view) {

@@ -13,7 +13,7 @@
 
 namespace slr {
 
-SimpleOsc::SimpleOsc() : AudioUnit(AudioUnitType::Effect) {
+SimpleOsc::SimpleOsc() : AudioUnit() {
     _phase = 0.0f;
     _deltaTime = 1.0f/(float)SettingsManager::getSampleRate();
     _time = 0.0f;
@@ -24,26 +24,15 @@ SimpleOsc::~SimpleOsc() {
 }
 
 frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) {
-    if(*_mute) {
-        if(_buffersClear) return ctx.frames;
+    if(isMuted(ctx)) return ctx.frames;
 
-        clearAudioBuffer((*_outputs)[0], ctx.frames);
-        clearAudioBuffer((*_outputs)[1], ctx.frames);
-
-        _midiQueue.clear();
-        _activeVoices = 0;
-
-        _buffersClear = true;
-        return ctx.frames;
-    }
-
-    _midiQueue.clear();
+    _midiOutput->clear();
 
     //parse midi
     for(int i=0; i<inputs.midiDepsCnt; ++i) {
         MidiDependencie &dep = inputs.midi[i];
 
-        const std::vector<MidiEvent> *buf = dep.external ? 
+        const MidiBuffer *buf = dep.external ? 
             getMidiBuffer(ctx, dep.extId) :
             dep.buf;
 
@@ -68,7 +57,7 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
                 } break;
             }
 
-            if(_midiThru) _midiQueue.push_back(ev);
+            if(_midiThru) _midiOutput->push_back(ev);
         }
     }
 

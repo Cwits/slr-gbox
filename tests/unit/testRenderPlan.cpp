@@ -19,7 +19,7 @@
 #include <unordered_map>
 
 struct Dummy : public slr::AudioUnit {
-    Dummy() : slr::AudioUnit(slr::AudioUnitType::Effect) {
+    Dummy() : slr::AudioUnit() {
 
     }
     ~Dummy() {}

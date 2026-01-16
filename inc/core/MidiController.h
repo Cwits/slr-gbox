@@ -4,6 +4,7 @@
 
 #include "core/primitives/SPSCQueue.h"
 #include "core/primitives/MidiEvent.h"
+#include "core/primitives/MidiBuffer.h"
 #include "defines.h"
 
 #include <alsa/asoundlib.h>
@@ -62,7 +63,7 @@ struct MidiPort {
     bool justCreated() const { return _justCreated; }
     void portsAddedToRt() { _justCreated = false; }
 
-    std::vector<MidiEvent> * rtLocalBuffer() { return _rtLocalBuffer.get(); }
+    MidiBuffer * rtLocalBuffer() { return _rtLocalBuffer.get(); }
     SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE> * inQueue() { return _inQueue.get();}
     SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE> * outQueue() { return _outQueue.get(); }
 
@@ -72,7 +73,7 @@ struct MidiPort {
     snd_rawmidi_t* _inputHandle = nullptr;
     snd_rawmidi_t* _outputHandle = nullptr;
 
-    std::unique_ptr<std::vector<MidiEvent>> _rtLocalBuffer;
+    std::unique_ptr<MidiBuffer> _rtLocalBuffer;
     std::unique_ptr<SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE>> _inQueue;
     std::unique_ptr<SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE>> _outQueue;
 
@@ -133,6 +134,11 @@ struct RtMidiOutput {
 
     private:
     MidiPort *port;
+};
+
+struct RtMidiBuffer {
+    ID id;
+    MidiBuffer * buffer;
 };
 
 struct MidiController {

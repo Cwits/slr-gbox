@@ -306,8 +306,8 @@ MidiPort::MidiPort() :
     _uniqueId(_midiPortIdCounter++),
     _justCreated(true)
 {
-    _rtLocalBuffer = std::make_unique<std::vector<MidiEvent>>();
-    _rtLocalBuffer->reserve(MIDI_SPSCQUEUE_SIZE);
+    _rtLocalBuffer = std::make_unique<MidiBuffer>();
+    // _rtLocalBuffer->reserve(MIDI_SPSCQUEUE_SIZE);
     _inQueue = std::make_unique<SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE>>();
     _outQueue = std::make_unique<SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE>>();
 }

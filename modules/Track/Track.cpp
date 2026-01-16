@@ -9,6 +9,7 @@
 #include "core/primitives/RenderPlan.h"
 
 #include "core/AudioBufferManager.h"
+#include "core/BufferManager.h"
 #include "core/FileWorker.h"
 #include "core/FileTasks.h"
 #include "core/SettingsManager.h"
@@ -24,12 +25,12 @@
 namespace slr {
 
 
-Track::Track() : AudioUnit(AudioUnitType::Track) {
-    _recInt = AudioBufferManager::acquireRegular();
-    _recExt = AudioBufferManager::acquireRegular();
-    _preFX = AudioBufferManager::acquireRegular();
-    _postFX = AudioBufferManager::acquireRegular();
-    _postPan = AudioBufferManager::acquireRegular();  
+Track::Track() : AudioUnit() {
+    // _recInt = AudioBufferManager::acquireRegular();
+    // _recExt = AudioBufferManager::acquireRegular();
+    // _preFX = AudioBufferManager::acquireRegular();
+    // _postFX = AudioBufferManager::acquireRegular();
+    // _postPan = AudioBufferManager::acquireRegular();  
 
     _record = false;
     _recordSource = RecordSource::Audio;
@@ -37,9 +38,9 @@ Track::Track() : AudioUnit(AudioUnitType::Track) {
 }
 
 Track::~Track() {
-    AudioBufferManager::releaseRegular(_preFX);
-    AudioBufferManager::releaseRegular(_postFX);
-    AudioBufferManager::releaseRegular(_postPan);
+    // AudioBufferManager::releaseRegular(_preFX);
+    // AudioBufferManager::releaseRegular(_postFX);
+    // AudioBufferManager::releaseRegular(_postPan);
 
     if(_recordTarget) {
         FileWorker * fw = ControlEngine::fileWorker();
@@ -51,29 +52,30 @@ Track::~Track() {
 
 bool Track::create(BufferManager *man) {
     AudioUnit::create(man);
-    // _recInt = AudioBufferManager::acquireRegular();
-    // _recExt = AudioBufferManager::acquireRegular();
-    // _preFX = AudioBufferManager::acquireRegular();
-    // _postFX = AudioBufferManager::acquireRegular();
-    // _postPan = AudioBufferManager::acquireRegular();  
+    _recInt = man->acquireAudioRegular();
+    _recExt = man->acquireAudioRegular();
+    _preFX = man->acquireAudioRegular();
+    _postFX = man->acquireAudioRegular();
+    _postPan = man->acquireAudioRegular();
     // _bufferManagerPtr = man;
 }
 
 bool Track::destroy(BufferManager *man) {
     AudioUnit::destroy(man);
-    // AudioBufferManager::releaseRegular(_preFX);
-    // AudioBufferManager::releaseRegular(_postFX);
-    // AudioBufferManager::releaseRegular(_postPan);
+    man->releaseAudioRegular(_recInt);
+    man->releaseAudioRegular(_recExt);
+    man->releaseAudioRegular(_preFX);
+    man->releaseAudioRegular(_postFX);
+    man->releaseAudioRegular(_postPan);
 }
 
 frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
     /* 
     handle spsc control queue events(because some may be injected via mod engine or automations)
-    
     */
     
     //TODO: must ensure that buffers are clear - i guess introduce some flag _buffersClear(as in metronome)
-    if(*_mute) {
+    if(_mute) {
         if(_buffersClear) return ctx.frames;
 
         clearAudioBuffer((*_recInt)[0], ctx.frames);
@@ -244,7 +246,7 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
    copyAudioBuffer((*_preFX)[0], (*_postFX)[0], ctx.frames);
    copyAudioBuffer((*_preFX)[1], (*_postFX)[1], ctx.frames);
 
-    float volume = (*_volume);
+    float volume = (_volume);
 #if (DEFAULT_BUFFER_CHANNELS == 2) 
     mulAudioBufferToValue((*_postFX)[0], ctx.frames, volume);
     mulAudioBufferToValue((*_postFX)[1], ctx.frames, volume);

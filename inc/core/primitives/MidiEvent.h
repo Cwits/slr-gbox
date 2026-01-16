@@ -73,11 +73,6 @@ struct SysexEvent {
     std::vector<uint8_t> data;
 };
 
-struct RtMidiBuffer {
-    ID id;
-    std::vector<MidiEvent> * buffer;
-};
-
 inline int expectedLength(const MidiEventType &type) {
     switch(type) {
         case(MidiEventType::NoteOff):

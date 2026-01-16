@@ -3,6 +3,9 @@
 
 #include "core/primitives/RenderPlan.h"
 #include "core/primitives/AudioUnit.h"
+#include "core/primitives/AudioBuffer.h"
+#include "core/primitives/MidiBuffer.h"
+#include "core/primitives/MidiEvent.h"
 #include "core/Project.h"
 #include "logger.h"
 

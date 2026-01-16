@@ -116,10 +116,10 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     }
 
     for(RtMidiQueue &q : *_midiInputMap) {
-        std::vector<MidiEvent> *v = nullptr;
+        MidiBuffer *buf = nullptr;
         for(RtMidiBuffer &b : *_midiInLocal) {
             if(q.id == b.id) {
-                v = b.buffer;
+                buf = b.buffer;
                 break;
             }
         }
@@ -139,7 +139,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
                 MidiEvent ev;
                 q.queue->pop(ev);
                 ev.offset = ev.offset - framesPassed; //or calculate this in midi input handle, assuming that event will be handled in next frame by default?
-                v->push_back(ev);
+                buf->push_back(ev);
                 // q.queue->commit_pop();
 #if (RT_TRACE == 1)
                 LOG_INFO("Midi Ev offset %lu, frames passed %lu", ev.offset, framesPassed);

@@ -8,7 +8,7 @@
 
 namespace slr {
 
-Mixer::Mixer() : AudioUnit(AudioUnitType::Mixer) {
+Mixer::Mixer() : AudioUnit() {
 
 }
 
@@ -17,7 +17,7 @@ Mixer::~Mixer() {
 }
 
 frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs)  {
-    if(*_mute) return ctx.frames;
+    if(isMuted(ctx)) return ctx.frames;
 
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);

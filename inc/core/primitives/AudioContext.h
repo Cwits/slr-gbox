@@ -7,6 +7,7 @@
 #include "core/FlatEvents.h"
 #include "core/primitives/SPSCQueue.h"
 #include "core/primitives/MidiEvent.h"
+#include "core/primitives/MidiBuffer.h"
 
 #include <unordered_map>
 #include <vector>
@@ -57,7 +58,7 @@ struct AudioContext {
     //array::SPSCQueue<MidiOutputs> _midiOutputs; - hw
 };
 
-inline const std::vector<MidiEvent> * getMidiBuffer(const AudioContext &ctx, const ID &id) {
+inline const MidiBuffer * getMidiBuffer(const AudioContext &ctx, const ID &id) {
     for(const RtMidiBuffer &p : *ctx.midiInputs) {
         if(p.id == id) {
             return p.buffer;

@@ -55,16 +55,20 @@ bool Project::addUnit(std::unique_ptr<AudioUnit> unit) {
     return true;
 }
 
-bool Project::removeUnit(ID id) {
+std::unique_ptr<AudioUnit> Project::removeUnit(ID id) {
     std::size_t size = _unitList.size();
     for(std::size_t i=0; i<size; ++i) {
         // if(_trackList.at(i) == nullptr) continue;
         if(_unitList.at(i).get()->id() == id) {
+            // _unitList.erase(_unitList.begin()+i);
+            std::unique_ptr<AudioUnit> ret = std::move(_unitList.at(i));
             _unitList.erase(_unitList.begin()+i);
-            return true;
+            return std::move(ret);
+            // return true;
         }
     }
-    return false;
+    // return false;
+    return nullptr;
 }
 
 AudioUnit * Project::getUnitById(ID id) {

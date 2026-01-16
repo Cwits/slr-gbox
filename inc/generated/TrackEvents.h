@@ -6,8 +6,8 @@
 
 namespace slr {
 
-class Track;
 class AudioFile;
+class Track;
 
 namespace Events {
 
