@@ -61,6 +61,7 @@ bool BufferManager::init(int blockSize, int channels) {
 
 bool BufferManager::shutdown() {
 
+    return true;
 }
 
 AudioBuffer* BufferManager::acquireAudioRegular() {

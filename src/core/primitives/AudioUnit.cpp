@@ -44,12 +44,14 @@ bool AudioUnit::create(BufferManager *man) {
     _outputs = man->acquireAudioRegular();
     _midiInput = man->acquireMidiRegular();
     _midiOutput = man->acquireMidiRegular();
+    return true;
 }
 
 bool AudioUnit::destroy(BufferManager *man) {
     man->releaseAudioRegular(_outputs);
     man->releaseMidiRegular(_midiInput);
     man->releaseMidiRegular(_midiOutput);
+    return true;
 }
 
 void AudioUnit::addParameter(ParameterBase * base) {

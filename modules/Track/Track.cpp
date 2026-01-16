@@ -58,6 +58,7 @@ bool Track::create(BufferManager *man) {
     _postFX = man->acquireAudioRegular();
     _postPan = man->acquireAudioRegular();
     // _bufferManagerPtr = man;
+    return true;
 }
 
 bool Track::destroy(BufferManager *man) {
@@ -67,6 +68,7 @@ bool Track::destroy(BufferManager *man) {
     man->releaseAudioRegular(_preFX);
     man->releaseAudioRegular(_postFX);
     man->releaseAudioRegular(_postPan);
+    return true;
 }
 
 frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
