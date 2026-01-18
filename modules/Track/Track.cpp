@@ -8,7 +8,6 @@
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/RenderPlan.h"
 
-#include "core/AudioBufferManager.h"
 #include "core/BufferManager.h"
 #include "core/FileWorker.h"
 #include "core/FileTasks.h"
@@ -58,6 +57,7 @@ bool Track::create(BufferManager *man) {
     _postFX = man->acquireAudioRegular();
     _postPan = man->acquireAudioRegular();
     // _bufferManagerPtr = man;
+    _bufferManager = man;
     return true;
 }
 
@@ -354,7 +354,8 @@ bool Track::releaseRecordTarget(FileWorker * fw) {
 }
 
 bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
-    _bufferInUse = AudioBufferManager::acquireRecord();
+    // _bufferInUse = AudioBufferManager::acquireRecord();
+    _bufferInUse = _parent->_bufferManager->acquireAudioRecord();
 
     std::string generated = getDateTime();
     generated.append(generateRandomName(4));
@@ -377,7 +378,8 @@ bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
 
 bool Track::AudioRecord::release(FileWorker * fw) {
     if(!_fileUsed) {
-        AudioBufferManager::releaseRecord(_bufferInUse);
+        // AudioBufferManager::releaseRecord(_bufferInUse);
+        _parent->_bufferManager->releaseAudioRecord(_bufferInUse);
         fw->releaseTmpAudioFile(_recordFile);
     }
 
@@ -416,7 +418,8 @@ void Track::AudioRecord::incrementCounter(frame_t frames) {
 
     if(_currentBufferFill == 0) {
         _oldBuffer = _bufferInUse;
-        _bufferInUse = AudioBufferManager::acquireRecord();
+        // _bufferInUse = AudioBufferManager::acquireRecord();
+        _parent->_bufferManager->acquireAudioRecord();
     }
 
     if(_dumpOldBuffer) {

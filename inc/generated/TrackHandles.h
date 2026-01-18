@@ -1,28 +1,28 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
+#include "core/utility/helper.h"
+#include "core/primitives/File.h"
+#include "core/FileWorker.h"
+#include "core/Project.h"
 #include "core/utility/basicAudioManipulation.h"
-#include "core/primitives/AudioFile.h"
-#include "core/primitives/AudioBuffer.h"
-#include "core/FileTasks.h"
-#include "ui/uiControls.h"
+#include "logger.h"
+#include "modules/Track/Track.h"
+#include <string>
 #include "defines.h"
+#include "snapshots/AudioUnitView.h"
+#include "ui/uiControls.h"
+#include "core/RtEngine.h"
+#include "core/primitives/AudioUnit.h"
 #include "core/ControlEngine.h"
+#include "snapshots/ProjectView.h"
+#include "core/primitives/AudioBuffer.h"
 #include "modules/Track/TrackView.h"
 #include "core/FlatEvents.h"
-#include "logger.h"
-#include "core/FileWorker.h"
-#include "core/primitives/File.h"
+#include "core/primitives/AudioFile.h"
 #include "core/SettingsManager.h"
-#include <string>
-#include "core/drivers/AudioDriver.h"
-#include "snapshots/AudioUnitView.h"
-#include "core/RtEngine.h"
-#include "modules/Track/Track.h"
 #include <cmath>
-#include "core/primitives/AudioUnit.h"
-#include "snapshots/ProjectView.h"
-#include "core/utility/helper.h"
-#include "core/Project.h"
+#include "core/drivers/AudioDriver.h"
+#include "core/FileTasks.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -63,7 +63,7 @@ inline void handleDumpRecordedAudio(const ControlContext &ctx, const FlatEvents:
     task->file = resp.dumpRecordedAudio.targetFile;
     task->size = resp.dumpRecordedAudio.size;
 
-    task->callback = [rec = resp.dumpRecordedAudio.targetBuffer, 
+    task->callback = [ctx, rec = resp.dumpRecordedAudio.targetBuffer, 
                     target = resp.dumpRecordedAudio.targetFile, 
                     trackId = resp.dumpRecordedAudio.trackId,
                     startPos = resp.dumpRecordedAudio.fileStartPosition]
@@ -76,7 +76,8 @@ inline void handleDumpRecordedAudio(const ControlContext &ctx, const FlatEvents:
             clearAudioBuffer((*buf)[i], buf->bufferSize());
         }
             
-        AudioBufferManager::releaseRecord(buf);
+        // AudioBufferManager::releaseRecord(buf);
+        ctx.bufferManager->releaseAudioRecord(buf);
 
         if(!success) {
             LOG_ERROR("Failed to dump audio data to file");

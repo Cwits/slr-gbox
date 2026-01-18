@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/Project.h"
-#include "core/AudioBufferManager.h"
 #include "core/primitives/AudioUnit.h"
 #include "core/Metronome.h"
 #include "logger.h"
@@ -33,7 +32,6 @@ Project::Project() : _timeline(*this) {
     _renderPlan2 = &dummyPlan;
 
     _metronome = std::make_unique<Metronome>();
-
     // _renderPlan1 = buildPlan(this);
     // _renderPlan2 = buildPlan(this);
     // _soloPlan = buildPlan(this);

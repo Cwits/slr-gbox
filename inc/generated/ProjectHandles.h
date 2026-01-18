@@ -1,16 +1,16 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/primitives/AudioUnit.h"
-#include "snapshots/ProjectView.h"
 #include "core/primitives/FileContainer.h"
-#include "logger.h"
+#include "snapshots/AudioUnitView.h"
 #include "core/primitives/RenderPlan.h"
-#include "Status.h"
+#include "core/Project.h"
 #include "core/ModuleManager.h"
 #include "ui/uiControls.h"
-#include "snapshots/AudioUnitView.h"
-#include "core/Project.h"
+#include "core/primitives/AudioUnit.h"
+#include "logger.h"
+#include "Status.h"
 #include "core/ControlEngine.h"
+#include "snapshots/ProjectView.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {

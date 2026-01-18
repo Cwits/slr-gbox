@@ -14,6 +14,7 @@ namespace slr {
 
 class ParameterBase;
 class FileWorker;
+class BufferManager;
 
 struct RecordBuffer { 
     enum class State { Idle, Filling, Full, Processing };
@@ -50,6 +51,8 @@ class Track : public AudioUnit {
     bool releaseRecordTarget(FileWorker * fw);
 
     private:
+    BufferManager * _bufferManager;
+
     AudioBuffer * _recInt;
     AudioBuffer * _recExt;
     AudioBuffer * _preFX;

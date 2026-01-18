@@ -8,7 +8,7 @@
 #include "core/primitives/ControlContext.h"
 #include "core/primitives/SPSCQueue.h"
 
-#include "core/AudioBufferManager.h"
+// #include "core/AudioBufferManager.h"
 #include "core/BufferManager.h"
 #include "core/Events.h"
 #include "core/FlatEvents.h"
@@ -19,6 +19,7 @@
 #include "core/CEHandlerTables.h"
 #include "core/ModuleManager.h"
 #include "core/MidiController.h"
+#include "core/Metronome.h"
 
 #include "core/utility/helper.h"
 #include "inc/core/primitives/MidiEvent.h"
@@ -188,11 +189,11 @@ bool init() {
         return false;
     }
 
-    if(!AudioBufferManager::init(SettingsManager::getBlockSize(),
-                                DEFAULT_BUFFER_CHANNELS)) {
-        LOG_ERROR("Failed to init Audio Buffer Manager");
-        return false;
-    }
+    // if(!AudioBufferManager::init(SettingsManager::getBlockSize(),
+    //                             DEFAULT_BUFFER_CHANNELS)) {
+    //     LOG_ERROR("Failed to init Audio Buffer Manager");
+    //     return false;
+    // }
 
     _fileWorker = std::make_unique<FileWorker>();
     if(!_fileWorker->init()) {
@@ -220,6 +221,7 @@ bool init() {
     */
 
     _project = std::make_unique<Project>();
+    _project->metronome()->create(_bufferManager.get());
     _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
 
     _engine->setProject(_project.get());
@@ -251,10 +253,10 @@ bool shutdown() {
     }
     _fileWorker.reset();
 
-    if(!AudioBufferManager::shutdown()) {
-        LOG_ERROR("Failed to shutdown Audio Buffer Manager");
-        return false;
-    }
+    // if(!AudioBufferManager::shutdown()) {
+    //     LOG_ERROR("Failed to shutdown Audio Buffer Manager");
+    //     return false;
+    // }
 
     _bufferManager->shutdown();
 

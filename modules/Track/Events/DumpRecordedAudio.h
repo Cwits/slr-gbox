@@ -31,7 +31,7 @@ void handleDumpRecordedAudio(const ControlContext &ctx, const FlatEvents::FlatRe
     task->file = resp.dumpRecordedAudio.targetFile;
     task->size = resp.dumpRecordedAudio.size;
 
-    task->callback = [rec = resp.dumpRecordedAudio.targetBuffer, 
+    task->callback = [ctx, rec = resp.dumpRecordedAudio.targetBuffer, 
                     target = resp.dumpRecordedAudio.targetFile, 
                     trackId = resp.dumpRecordedAudio.trackId,
                     startPos = resp.dumpRecordedAudio.fileStartPosition]
@@ -44,7 +44,8 @@ void handleDumpRecordedAudio(const ControlContext &ctx, const FlatEvents::FlatRe
             clearAudioBuffer((*buf)[i], buf->bufferSize());
         }
             
-        AudioBufferManager::releaseRecord(buf);
+        // AudioBufferManager::releaseRecord(buf);
+        ctx.bufferManager->releaseAudioRecord(buf);
 
         if(!success) {
             LOG_ERROR("Failed to dump audio data to file");

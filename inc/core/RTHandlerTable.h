@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "modules/Track/Track.h"
 #include "core/RtEngine.h"
-#include "core/Project.h"
-#include "core/primitives/AudioUnit.h"
 #include "core/Timeline.h"
+#include "modules/Track/Track.h"
+#include "core/primitives/AudioUnit.h"
+#include "core/Project.h"
 
 #include "core/FlatEvents.h"
 #include "Status.h"

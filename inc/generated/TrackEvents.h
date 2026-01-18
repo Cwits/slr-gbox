@@ -1,8 +1,8 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include "core/primitives/AudioBuffer.h"
-#include "defines.h"
 #include "Status.h"
+#include "defines.h"
 
 namespace slr {
 
