@@ -418,8 +418,7 @@ void Track::AudioRecord::incrementCounter(frame_t frames) {
 
     if(_currentBufferFill == 0) {
         _oldBuffer = _bufferInUse;
-        // _bufferInUse = AudioBufferManager::acquireRecord();
-        _parent->_bufferManager->acquireAudioRecord();
+        _bufferInUse = _parent->_bufferManager->acquireAudioRecord();
     }
 
     if(_dumpOldBuffer) {
