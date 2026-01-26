@@ -33,6 +33,8 @@ class AudioUnit {
     virtual bool create(BufferManager *man);
     virtual bool destroy(BufferManager *man);
 
+    // virtual void reinit() {}
+
     RT_FUNC virtual frame_t process(const AudioContext &ctx, const Dependencies &inputs) = 0;
 
     RT_FUNC virtual void prepareToPlay() = 0;

@@ -1,28 +1,28 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/utility/helper.h"
-#include "core/primitives/File.h"
-#include "core/FileWorker.h"
-#include "core/Project.h"
-#include "core/utility/basicAudioManipulation.h"
-#include "logger.h"
-#include "modules/Track/Track.h"
-#include <string>
-#include "defines.h"
-#include "snapshots/AudioUnitView.h"
-#include "ui/uiControls.h"
 #include "core/RtEngine.h"
-#include "core/primitives/AudioUnit.h"
-#include "core/ControlEngine.h"
-#include "snapshots/ProjectView.h"
+#include "core/utility/basicAudioManipulation.h"
 #include "core/primitives/AudioBuffer.h"
 #include "modules/Track/TrackView.h"
+#include "snapshots/AudioUnitView.h"
+#include "core/primitives/AudioUnit.h"
+#include "defines.h"
+#include "core/Project.h"
 #include "core/FlatEvents.h"
-#include "core/primitives/AudioFile.h"
-#include "core/SettingsManager.h"
-#include <cmath>
-#include "core/drivers/AudioDriver.h"
+#include "core/utility/helper.h"
 #include "core/FileTasks.h"
+#include "core/ControlEngine.h"
+#include <cmath>
+#include <string>
+#include "modules/Track/Track.h"
+#include "snapshots/ProjectView.h"
+#include "logger.h"
+#include "ui/uiControls.h"
+#include "core/primitives/File.h"
+#include "core/primitives/AudioFile.h"
+#include "core/FileWorker.h"
+#include "core/drivers/AudioDriver.h"
+#include "core/SettingsManager.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {

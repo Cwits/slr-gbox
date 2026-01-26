@@ -16,8 +16,8 @@ namespace slr {
 
 #define RECORD_QUEUE_LENGTH 64
 
-constexpr int MIDI_BUFFER_DEFAULT_SIZE = 128;
-constexpr int MIDI_BUFFER_RECORD_SIZE = 0xFFFF;
+constexpr std::size_t MIDI_BUFFER_DEFAULT_SIZE = 128;
+constexpr std::size_t MIDI_BUFFER_RECORD_SIZE = 0xFFFF;
 
 constexpr int REGULAR_BUFFER_COUNT = 1024;
 constexpr int RECORD_BUFFER_COUNT = 128; //assume 4 per track == 32 tracks recording simultaniously

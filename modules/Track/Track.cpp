@@ -7,6 +7,8 @@
 #include "core/primitives/Parameter.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/RenderPlan.h"
+#include "core/primitives/MidiBuffer.h"
+#include "core/primitives/MidiFile.h"
 
 #include "core/BufferManager.h"
 #include "core/FileWorker.h"
@@ -132,21 +134,24 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
 #endif
     
     /* 
+        get all possible events to one buffer than sort with (Timsort or introsort)?
+
     //process midi inputs
     for(int i=0; i<inputs->midiCount; ++i) {
         //grab midi inputs and distribute
         MidiDependencie * dep = inputs->midiDeps[i];
 
-        std::vector<MidiEvent> * buf = dep.external ? ctx.midiInputs[dep.extId];
+        const MidiBuffer * buf = dep.external ? ctx.midiInputs[dep.extId];
         for(int j=0; j<buf->size(); ++j) {
-            MidiEvent &ev = (*buf)[j];
-            for(int fx=0; fx<_fxChain.size(); ++fx) {
-                _fxChain[fx]->injectMidi(ev);
-            }
+            const MidiEvent &ev = (*buf)[j];
+            // for(int fx=0; fx<_fxChain.size(); ++fx) {
+            //     _fxChain[fx]->injectMidi(ev);
+            // }
+            _midiInput.push_back(ev);
 
-            if(_sendThru) {
-                _midiOutput.push_back(ev);
-            }
+            // if(_sendThru) {
+            //     _midiOutput.push_back(ev);
+            // }
         }
     }
 
@@ -181,6 +186,19 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
         }
     }
 
+    if(ctx.playing) {
+        //playfiles(...)?
+    }
+
+    //sort _midiInput
+
+    // if(_sendThru) {
+        // _midiOutput.push_back(ev);
+    // }
+
+    //send to fx
+
+    //apply self midi learned cc?
     */
 
     if(_record) {
@@ -334,13 +352,25 @@ bool Track::prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate) {
 
     _recordTarget = new AudioRecord(this);
     ret = _recordTarget->prepare(fw, latencyToCompensate);
-    _recordTarget->parent = this;
+    // _recordTarget->parent = this;
     return ret;
 }
     
 bool Track::prepareMidiRecord(FileWorker * fw) {
-    LOG_WARN("Midi recording now available yet");
-    return true;
+    // LOG_WARN("Midi recording now available yet");
+    if(_recordTarget != nullptr) {
+        if(!_recordTarget->release(fw)) {
+            LOG_ERROR("Failed to release record target");
+            return false;
+        }
+        delete _recordTarget;
+        _recordTarget = nullptr;
+    }
+    bool ret = false;
+    _recordTarget = new MidiRecord(this);
+    ret = _recordTarget->prepare(fw, 0);
+
+    return ret;
 }
 
 bool Track::releaseRecordTarget(FileWorker * fw) {
@@ -352,6 +382,8 @@ bool Track::releaseRecordTarget(FileWorker * fw) {
 
     return true;
 }
+
+                                            /* Audio Recording */
 
 bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
     // _bufferInUse = AudioBufferManager::acquireRecord();
@@ -379,6 +411,7 @@ bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
 bool Track::AudioRecord::release(FileWorker * fw) {
     if(!_fileUsed) {
         // AudioBufferManager::releaseRecord(_bufferInUse);
+        LOG_INFO("File not used, releasing %s", _recordFile->name().c_str());
         _parent->_bufferManager->releaseAudioRecord(_bufferInUse);
         fw->releaseTmpAudioFile(_recordFile);
     }
@@ -478,6 +511,95 @@ void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file,
     dump.dumpRecordedAudio.trackId = _parent->id();
     RtEngine::addRtResponse(dump);
 
+    _fileUsed = true;
+}
+
+                                        /* Midi Recording */
+
+bool Track::MidiRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
+    _bufferInUse = _parent->_bufferManager->acquireMidiRecord();
+    
+    std::string generated = getDateTime();
+    generated.append(generateRandomName(4));
+    std::string path = SettingsManager::getTmpRecordPath();
+    path.append(generated);
+    path.append(".mid");
+
+    LOG_INFO("Preparing midi file for record %s", path.c_str());
+    _recordFile = fw->acquireTmpMidiFile();
+    _recordFile->createTemporary(path);
+    
+    _fileUsed = false;
+    _dumpOldBuffer = false;
+    return true;
+}
+
+bool Track::MidiRecord::release(FileWorker * fw) {
+    if(!_fileUsed) {
+        LOG_INFO("File not used, releasing %s", _recordFile->name().c_str());
+        _parent->_bufferManager->releaseMidiRecord(_bufferInUse);
+        _bufferInUse = nullptr;
+        fw->releaseTmpMidiFile(_recordFile);
+        _recordFile = nullptr;
+
+    }
+
+    return true;
+}
+
+void Track::MidiRecord::startRecord() {
+
+}
+
+void Track::MidiRecord::stopRecord() {
+
+}
+
+void Track::MidiRecord::incrementCounter(frame_t frames) {
+    if(_dumpOldBuffer) {
+        //send dump command
+    }
+}
+
+void Track::MidiRecord::finalize() {
+
+}
+
+void Track::MidiRecord::writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) {
+    const MidiBuffer &buf = *static_cast<const MidiBuffer*>(data);
+
+    std::size_t currentSize = _bufferInUse->size();
+    std::size_t toWrite = buf.size();
+    if(currentSize+toWrite >= MIDI_BUFFER_RECORD_SIZE) {
+        //get new buffer
+        _oldBuffer = _bufferInUse;
+        _bufferInUse = _parent->_bufferManager->acquireMidiRecord();
+
+        //write as much as we can
+        std::size_t toOld = MIDI_BUFFER_RECORD_SIZE - currentSize;
+        for(std::size_t i=0; i<toOld; ++i) {
+            _oldBuffer->push_back(buf[i]);
+        }
+
+        //write leftovers to new buffer
+        std::size_t toNew = toWrite - toOld;
+        for(std::size_t i=0; i<toNew; ++i) {
+            _bufferInUse->push_back(buf[i+toOld]);
+        }
+
+        //set flag for dump data from buffer
+        _dumpOldBuffer = true;
+    } else {
+        //write to bufferInUse
+        for(std::size_t i=0; i<toWrite; ++i) {
+            _bufferInUse->push_back(buf[i]);
+        }
+    }
+}
+
+void Track::MidiRecord::dumpDataCommand(MidiBuffer *buffer, MidiFile *file, frame_t size, frame_t fileStartPosition) {
+
+    _oldBuffer = nullptr;
     _fileUsed = true;
 }
 

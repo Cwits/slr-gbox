@@ -5,6 +5,8 @@
 #include "ui/display/layoutSizes.h"
 #include "ui/display/defaultColors.h"
 
+#include "core/Events.h"
+
 #include "logger.h"
 
 constexpr int WHITE_KEYS_COUNT = 14;
@@ -64,9 +66,23 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
         k->note = _defaultWhiteNotes[i];        
         k->setCallback([k, this]() {
             LOG_INFO("Key pressed: %d", (k->note + this->octaveModifier()));
+            slr::Events::VirtualMidiKbdAction e = {
+                .note = k->note + this->octaveModifier(),
+                .velocity = 127,
+                .channel = 0,
+                .isPressed = true
+            };
+            slr::EmitEvent(e);
         });
-        k->setTouchUpCallback([k]() {
+        k->setTouchUpCallback([k, this]() {
             k->setColor(WHITE_COLOR);
+            slr::Events::VirtualMidiKbdAction e = {
+                .note = k->note + this->octaveModifier(),
+                .velocity = 127,
+                .channel = 0,
+                .isPressed = false
+            };
+            slr::EmitEvent(e);
         });
 
         _keys.push_back(k);

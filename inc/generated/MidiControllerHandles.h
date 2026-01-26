@@ -1,13 +1,14 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include "core/primitives/MidiEvent.h" //for RtMidiPort
-#include <array>
-#include "core/MidiController.h"
-#include <vector>
 #include "core/RtEngine.h"
+#include <array>
+#include <vector>
 #include <unordered_map>
-#include "logger.h"
+#include "core/MidiController.h"
 #include "Status.h"
+#include "core/primitives/MidiEvent.h"
+#include "logger.h"
 #include "core/ControlEngine.h"
 #include "core/primitives/ControlContext.h"
 
@@ -150,6 +151,21 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
         ctrl.updateMidiMaps.localBuffers = local;
         ControlEngine::emitRtControl(ctrl);
     }
+}
+
+inline void handleEvent(const ControlContext &ctx, const Events::VirtualMidiKbdAction &e) {
+    if(e.note < 1 || e.note > 127) { LOG_ERROR("Wrong note value %d expected >= 1 and <= 127", e.note); return; }
+    if(e.velocity < 0 || e.velocity > 127) { LOG_ERROR("Wrong note velocity %d expected >= 0 and <= 127", e.velocity); return; }
+    if(e.channel < 0 || e.channel > 15) { LOG_ERROR("Wrong note channel %d expected >= 0 and <= 15", e.channel); return; }
+
+    slr::MidiEvent ev;
+    ev.type = e.isPressed ? slr::MidiEventType::NoteOn : slr::MidiEventType::NoteOff;
+    ev.channel = e.channel;
+    ev.note = e.note;
+    ev.velocity = e.velocity;
+    ev.offset = 0;
+
+    ctx.midiController->addVirtualKbdEvent(ev);
 }
 
 } //namespace slr

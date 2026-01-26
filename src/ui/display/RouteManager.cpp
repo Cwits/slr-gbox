@@ -703,7 +703,7 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
             } else {
                 this->_nextInput._extint->setText("EXT");
                 std::vector<std::string> items;
-                const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
+                const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();
                 for(auto &p : activePorts) {
                     if(p->inputOpened())
                         items.push_back(p->_ownerSubdev->_inputName);
@@ -719,7 +719,7 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
     drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
     drop->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
     if(isNew) {
-        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();    
     
         std::vector<std::string> items;
         for(auto &p : activePorts) {
@@ -728,7 +728,7 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
         }
         drop->setItems(items);
     } else {
-        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();    
     
         std::string tmptext = "error";
         if(in._sourceType == slr::MidiRoute::Type::EXT) {
@@ -808,7 +808,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
             } else {
                 this->_nextOutput._extint->setText("EXT");
                 std::vector<std::string> items;
-                const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
+                const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();
                 for(auto &p : activePorts) {
                     if(p->outputOpened())
                         items.push_back(p->_ownerSubdev->_outputName);
@@ -823,7 +823,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
     drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
     drop->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
     if(isNew) {
-        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();    
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();    
     
         std::vector<std::string> items;
         for(auto &p : activePorts) {
@@ -832,7 +832,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
         }
         drop->setItems(items);
     } else {
-        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();  
+        const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();  
         
         std::string tmptext = "error";
         if(out._targetType == slr::MidiRoute::Type::EXT) {
@@ -884,7 +884,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
 }
 
 void RouteManager::MidiTab::newRoute(bool isInput) {
-    const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePortsConst();
+    const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();
     slr::MidiRoute newroute;
     newroute._sourceChannel = 0;
     newroute._targetChannel = 0;
@@ -894,15 +894,17 @@ void RouteManager::MidiTab::newRoute(bool isInput) {
         const std::string io = _nextInput._extint->text();
         if(io.compare("EXT") == 0) {
             slr::ID srcid = 0;
+            bool found = false;
             const std::string name = _nextInput._dropdown->selectedItem();
             for(auto &p : activePorts) {
                 if(name.compare(p->_ownerSubdev->_inputName) == 0) {
                     srcid = p->id();
+                    found = true;
                     break;
                 }
             }
 
-            if(srcid == 0) {
+            if(!found) {
                 LOG_WARN("Failed to find port");
                 return;
             }

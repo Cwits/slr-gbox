@@ -5,6 +5,7 @@
 
 #include "core/primitives/File.h"
 #include "core/primitives/AudioFile.h"
+#include "core/primitives/MidiFile.h"
 #include "core/ControlEngine.h"
 #include "logger.h"
 
@@ -193,6 +194,66 @@ void FileWorker::closeTmpAudioFile(AudioFile * file) {
         LOG_ERROR("Failed to close tmp file %s", file->name().c_str());
     }
 }
+
+MidiFile * FileWorker::acquireTmpMidiFile() {
+    MidiFile * ret = nullptr;
+
+    for(TmpMidi &t : _tmpMidiFiles) {
+        if(!t.inUse) { 
+            ret = t._file.get();
+            t.inUse = true;
+            break;
+        }
+    }
+
+    if(!ret) {
+        std::unique_ptr<MidiFile> fil = std::make_unique<MidiFile>();
+        ret = fil.get();
+        _tmpMidiFiles.push_back({true, std::move(fil)});
+    }
+
+    return ret;
+}
+
+void FileWorker::releaseTmpMidiFile(MidiFile *file) {
+    for(TmpMidi &t : _tmpMidiFiles) {
+        if(t._file.get() == file) {
+            if(!t.inUse) {
+                LOG_ERROR("Midi File not in use already, releasing it for second time!");
+            }
+            t.inUse = false;
+            return;
+        }
+    }
+}
+
+void FileWorker::closeTmpMidiFile(MidiFile *file) {
+    try {
+        file->save();
+        file->close();
+
+        std::size_t idx = 0;
+        bool found = false;
+        for(std::size_t i=0; i<_tmpMidiFiles.size(); ++i) {
+            TmpMidi &t = _tmpMidiFiles.at(i);
+            if(t._file.get() == file) {
+                if(!t.inUse) LOG_ERROR("Closing tmp file that not in use");
+                idx = i;
+                found = true;
+            }
+        }
+
+        if(!found) {
+            LOG_ERROR("Can't find such midi file in tmp files 0x%X", file);
+            return;
+        }
+
+        _tmpMidiFiles.erase(_tmpMidiFiles.begin()+idx);
+    } catch(...) {
+        LOG_ERROR("smth went wrong during closing tmp midi file");
+    }
+}
+
 
 const std::vector<File*> FileWorker::listFiles() {
     std::size_t size = _fileList.size();

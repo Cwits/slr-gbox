@@ -39,7 +39,6 @@ AudioUnit:
                 canLoadFiles handled in UnitUIBase
         [ ] - Make unified logic for drawing files...
 
-[ ] - each module needs to have some function to reconfigure samplerate and blocksize?
         
 Metronome:
 [\] - implement one(must live in rt class)(not tested)
@@ -52,17 +51,17 @@ Refactoring:
 [x?] - instead of local in counters switch to one global id counter for all the entities.
         (not only for track, but for fx, mod engine, mixer, etc...)
 [ ] - move std::string _name from track to audio unit
-[x] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
+[\] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
         (Track separated, mixer left)
+        [ ] - create CMakeLists.txt for each module and add dynamic modules search in ModuleManager
 [ ] - separate defines.h to two files - slr_config.h and common.h
-
-[ ] - big one: Get rid of Flat Response from RtEngine. Ideally RtEngine must not send back anything.
-        The main idea is to fire event from Control Engine to Rt Engine via Flat Event and that's all.
-        For UI Updating - Control Engine stores sent events and check's if it is completed.
-                - like instead of "handle Responses from RT Engine" - "check value updated"
-                  than call UI update.
-                  I guess should be some kind of timeout for that otherwise sent event's that failed to succeed will stay forever?
 [ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
+
+RtEngine:
+[ ] - ideally RtEngine should not know anything about Project. The RenderPlan can be stored in Project as std::unique_ptr, and passed as it happens now
+        but what to do with timeline? should RtEngine own timeline, or Project(and pass together with render plan?)? Feels like first option be better...
+        But if timeline stored in RtEngine than it would make things as prepareToPlay()\record() more difficult?
+
 
 Project:
 [ ] - make save and load system(serialization)
@@ -89,6 +88,18 @@ Modules:
 [ ] - Make a proper CMakeLists.txt template for easier to implement each module and not to edit main CMakeLists in order to add new one
 [ ] - now modules registring in ModuleManager directly -> each module has to compile as dynamically linked libs - 
         .so and ModuleManager has to discover them automatically
+
+Track Recording: 
+[ ] - should prevent changing track record arm state if timeline is recording? or, at least, polish it somehow to make things nicer
+        Thing that concerns me is that it looks bit messy right now? 
+        because:
+        RecordTarget::finalize() is called from two different places - one is when global record is stopped
+                Event -> timeline::stopRecord() -> Project::stopAfterRecord() -> AudioUnit::stopRecording() -> Track::stopRecording() -> RecordTarget::stopRecord() -> RecordTarget::finalize()
+        
+        and another path is when Track's record arm is toggled to off state and finalize called though Track's Event(after record is off in RT):
+                Event -> Track::setRecordArm() -> Response -> if(record == off) Track::releaseRecordTarget() -> RecordTarget::finalize() ...
+        
+        That's doesn't look right, must be reworked somehow
 
 other:
 [\] - introduce using ID = uint32_t(or uint64_t) so ID would be unified thing all across system
@@ -117,6 +128,7 @@ other:
 Route Manager:
 [ ] - channel mapping
 [ ] - removing route
+[ ] - "Omni HW Input" checkbox confuses. What is that - omni midi input or omni audio input?
 
 Browser:
 [ ] - Browser TODO: show selector that will allow to select where we want to drag.

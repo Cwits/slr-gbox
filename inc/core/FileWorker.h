@@ -15,6 +15,7 @@
 namespace slr {
 
 class AudioFile;
+class MidiFile;
 
 class FileWorker {
     public:
@@ -35,19 +36,20 @@ class FileWorker {
 
     void appendFile(std::unique_ptr<File> file);
     bool removeFile(File * file);
+    
+    const std::vector<File*> listFiles();  
+
 
     AudioFile * acquireTmpAudioFile();
     void releaseTmpAudioFile(AudioFile * file);
-    
     void closeTmpAudioFile(AudioFile * file);
-
-    const std::vector<File*> listFiles();  
-
     std::vector<std::unique_ptr<AudioFile>> & tmpAudioFilesList() { 
         return _tmpAudioFiles;
     }
-    //static MidiFile * acquireTmpMidiFile();
-    //static MidiFile * releaseTmpMidiFile(MidiFile * file);
+    
+    MidiFile * acquireTmpMidiFile();
+    void releaseTmpMidiFile(MidiFile *file);
+    void closeTmpMidiFile(MidiFile *file);
 
     private:
     static void run(FileWorker * f);
@@ -56,19 +58,22 @@ class FileWorker {
     std::condition_variable _cond;
     std::queue<std::unique_ptr<Task>> _queue;
     std::thread _thread;
+    std::atomic<bool> _shutdown;
 
     std::vector<std::unique_ptr<File>> _fileList;
 
-    // AudioFile * acquireTmpAudio();
-    // void releaseTmpAudio(AudioFile * file);
     bool expandTmpAudioFile();
     enum class FileAvailability { NotInUse = 0, InUse };
-    std::vector<std::unique_ptr<AudioFile>> _tmpAudioFiles;
+    std::vector<std::unique_ptr<AudioFile>> _tmpAudioFiles; 
     std::vector<FileAvailability> _usedTmpAudioFiles;
     std::size_t _freeTmpFiles;
-    //std::vector<std::unique_ptr<MidiFile>> _tmpMidiFiles;
-    std::atomic<bool> _shutdown;
-
+    
+    struct TmpMidi {
+        bool inUse;
+        std::unique_ptr<MidiFile> _file;
+    };
+    std::vector<TmpMidi> _tmpMidiFiles;
+    
     // friend class FileWorker;
 };
 

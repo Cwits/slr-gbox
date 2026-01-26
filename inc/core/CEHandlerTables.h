@@ -50,6 +50,7 @@ constexpr EventHandlerFn ControlTable[] = {
 	&dispatchHelper<Events::ChangeSigBpm>,
 	&dispatchHelper<Events::LoopPosition>,
 	&dispatchHelper<Events::ToggleMidiDevice>,
+	&dispatchHelper<Events::VirtualMidiKbdAction>,
 	&dispatchHelper<Events::SetParameter>,
 	&dispatchHelper<Events::ToggleMidiThru>,
 	&dispatchHelper<Events::ToggleOmniHwInput>,

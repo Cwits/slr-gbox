@@ -1,0 +1,52 @@
+arguments: /home/portablejoe/slr-gbox/build/slr
+Current dir: /home/portablejoe/slr-gbox
+File verbosity level: 9
+date       time         ( uptime  ) [ thread name/id ]                   file:line     v| 
+2026-01-23 10:54:58.463 (   0.075s) [main thread     ]             loguru.cpp:841   INFO| Logging to 'log.txt', mode: 'w', verbosity: 9
+(   0.075s)                main.cpp:31    INFO| C++ version is 201703
+(   1.132s)       BufferManager.cpp:56    INFO| Buffer manager initialized successfully
+(   1.135s)       ControlEngine.cpp:108   WARN| RT Engine not running!
+(   1.137s)         dummyDriver.cpp:60    INFO| Dummy Start
+(   4.472s)      NewModulePopup.cpp:24    INFO| Create New Track Event
+(   5.739s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
+(   6.848s)          MainWindow.cpp:335   INFO| Using fake gesture Double Tap
+(   7.514s)             TrackUI.cpp:222   INFO| Double Tap on track controls 1
+(   8.270s)          MainWindow.cpp:335   INFO| Using fake gesture Tap
+(  11.065s)             Project.cpp:120   WARN| Routing evaluation not implemented yet
+(  11.065s)          RenderPlan.cpp:216   WARN| Render Order: 
+(  11.065s)          RenderPlan.cpp:221   WARN| End Render order
+(  11.166s)     RenderPlanHandles.h:16    INFO| Render plan swapped successfully
+(  11.166s)        ProjectHandles.h:52    INFO| Route added successfully
+(  11.969s)             Project.cpp:120   WARN| Routing evaluation not implemented yet
+(  11.969s)          RenderPlan.cpp:216   WARN| Render Order: 
+(  11.969s)          RenderPlan.cpp:221   WARN| End Render order
+(  12.070s)     RenderPlanHandles.h:16    INFO| Render plan swapped successfully
+(  12.070s)        ProjectHandles.h:52    INFO| Route added successfully
+(  12.563s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
+(  20.398s)          TrackHandles.h:169   INFO| Track id: 1 record arm toggled, new state On, source Audio
+(  20.399s)          TrackHandles.h:175   INFO| Preparing to record on track id: 1
+(  20.399s)          TrackHandles.h:191   INFO| Total latency compensation for recording is 229
+(  20.399s)               Track.cpp:389   INFO| Preparing audio file for record /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav
+(  20.500s)          TrackHandles.h:33    INFO| Track id: 1, record arm switched, new state: On
+(  21.704s)          TrackHandles.h:60    INFO| Dumping audio data to file 
+(  21.705s)           FileTasks.cpp:78    INFO| Dumping data to file 
+(  21.719s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
+(  22.458s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
+(  22.909s)          TrackHandles.h:60    INFO| Dumping audio data to file 23-01-2026:10-55-18zlz.wav
+(  22.909s)           FileTasks.cpp:78    INFO| Dumping data to file 23-01-2026:10-55-18zlz.wav
+(  22.910s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
+(  24.113s)          TrackHandles.h:60    INFO| Dumping audio data to file 23-01-2026:10-55-18zlz.wav
+(  24.113s)           FileTasks.cpp:78    INFO| Dumping data to file 23-01-2026:10-55-18zlz.wav
+(  24.115s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
+(  24.515s)          TrackHandles.h:169   INFO| Track id: 1 record arm toggled, new state Off, source Audio
+(  24.615s)          TrackHandles.h:33    INFO| Track id: 1, record arm switched, new state: Off
+(  24.615s)          TrackHandles.h:36    INFO| Releasing record target for track id: 1
+(  24.716s)          TrackHandles.h:60    INFO| Dumping audio data to file 23-01-2026:10-55-18zlz.wav
+(  24.716s)           FileTasks.cpp:78    INFO| Dumping data to file 23-01-2026:10-55-18zlz.wav
+(  24.717s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
+(  24.717s)          TrackHandles.h:90    INFO| Finalizing audio file 23-01-2026:10-55-18zlz.wav path /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav
+(  24.817s)      AudioUnitHandles.h:233   INFO| Opening a file /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav
+(  24.833s)      AudioUnitHandles.h:259   INFO| File /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.slrpk loaded to trackid: 1
+(  24.917s)      AudioUnitHandles.h:271   INFO| File /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav opened with id 9, adding to target unit 1
+(  24.917s)      AudioUnitHandles.h:339   INFO| Appending item 9 to unit id: 1
+(  25.018s)      AudioUnitHandles.h:100   INFO| Item 9 appended successfully on unit id: 1

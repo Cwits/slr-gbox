@@ -8,6 +8,9 @@
 #include "logger.h"
 #include "core/primitives/MidiEvent.h"
 #include "core/SettingsManager.h"
+#include "core/ControlEngine.h"
+#include "core/RtEngine.h"
+#include "core/FlatEvents.h"
 
 #include <iostream>
 #include <vector>
@@ -21,23 +24,87 @@ void event(MidiPort *port, const MidiEventType type, const int channel, const un
 void realTimeEvent(MidiPort *port, const MidiEventType type);
 void sysexEvent(const unsigned char *data, const int &len);
 
-ID _midiPortIdCounter = 1;
+ID _midiPortIdCounter = 0;
 
 frame_t _input_constant_delay = 0;
 frame_t _sample_rate = 0;
 frame_t _block_size = 0;
 
+MidiDevice _virtualDev;
+MidiSubdevice _virtualSub;
+std::unique_ptr<MidiPort> _virtualPort;
+
 MidiController::MidiController() {
     _input_constant_delay = SettingsManager::getBlockSize();
     _sample_rate = SettingsManager::getSampleRate();
     _block_size = SettingsManager::getBlockSize();
+    
+    //init virtual midi
+    _virtualDev._name = "Virtual Midi";
+    _virtualDev._card = 0;
+    _virtualDev._check = true;
+    _virtualDev._online = true;
+    _virtualSub._hasInput = true;
+    _virtualSub._hasOutput = false;
+    _virtualSub._path = "";
+    _virtualSub._inputName = "Virtual Midi Input";
+    _virtualSub._outputName = "";
+    _virtualDev._ports.push_back(_virtualSub);
+    _virtualPort = std::make_unique<MidiPort>();
+    _virtualPort->_ownerDev = &_virtualDev;
+    _virtualPort->_ownerSubdev = &_virtualDev._ports.at(0);
+    _virtualPort->_path = "";
+    _virtualPort->_isOpened = true;
+    _virtualPort->_inputOpened = true;
+    _virtualPort->_controller = this;
+
+    MidiPort * port = _virtualPort.get();
+    RtEngine *engine = ControlEngine::rtEngine();
+    _activePorts.push_back(std::move(_virtualPort));
+    {
+        const std::vector<RtMidiBuffer> *midiLocalBuffers = engine->midiLocalBuffers();
+        const std::vector<RtMidiQueue> *midiInMap = engine->midiInMap();
+        const std::vector<RtMidiOutput> *midiOutMap = engine->midiOutMap();
+
+        std::vector<RtMidiBuffer> *local = new std::vector<RtMidiBuffer>(*midiLocalBuffers);
+        std::vector<RtMidiQueue> *inMap = new std::vector<RtMidiQueue>(*midiInMap);
+        std::vector<RtMidiOutput> *outMap = new std::vector<RtMidiOutput>(*midiOutMap); 
+
+        RtMidiQueue inq;
+        inq.id = port->id();
+        inq.queue = port->inQueue();
+        inMap->push_back(inq);
+
+        RtMidiOutput outq(port, port->id());
+        outMap->push_back(outq);
+
+        RtMidiBuffer locq;
+        locq.id = port->id();
+        locq.buffer = port->rtLocalBuffer();
+        local->push_back(locq);
+
+        port->portsAddedToRt();
+
+        FlatEvents::FlatControl ctrl;
+        ctrl.type = FlatEvents::FlatControl::Type::UpdateMidiMaps;
+        ctrl.commandId = ControlEngine::generateCommandId();
+        ctrl.updateMidiMaps.engine = engine;
+        ctrl.updateMidiMaps.inputMap = inMap;
+        ctrl.updateMidiMaps.outputMap = outMap;
+        ctrl.updateMidiMaps.localBuffers = local;
+        ControlEngine::emitRtControl(ctrl);
+    }
 }
 
 MidiController::~MidiController() {
     for(std::unique_ptr<MidiPort> &port : _activePorts) {
-        closeDevice(port.get());
+        if(port->id() != 0) 
+            closeDevice(port.get());
         // delete port;
     }
+
+    //close virtual midi
+
 }
 
 void MidiController::checkDevices() {
@@ -736,5 +803,9 @@ void MidiPort::writeHandle(MidiPort *port) {
     delete[] write_pfds;
 }
 
+void MidiController::addVirtualKbdEvent(const MidiEvent ev) {
+    MidiPort * port = _activePorts.at(0).get();
+    port->pushEvent(ev.type, ev.channel, ev.note, ev.velocity);
+}
 
 }

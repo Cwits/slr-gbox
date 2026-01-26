@@ -82,7 +82,6 @@ struct MidiPort {
     std::atomic<bool> _outputOpened;
     bool _justCreated;
 
-    // std::chrono::time_point<std::chrono::steady_clock> _anchorTimepoint;
     MidiController * _controller; 
 
     std::atomic<bool> _run;
@@ -141,6 +140,11 @@ struct RtMidiBuffer {
     MidiBuffer * buffer;
 };
 
+class ControlContext;
+namespace Events {
+    class VirtualMidiKbdAction;
+}
+
 struct MidiController {
     MidiController();
     ~MidiController();
@@ -150,7 +154,7 @@ struct MidiController {
     std::vector<std::unique_ptr<MidiPort>> & activePorts() { 
         return _activePorts;
     }
-    const std::vector<std::unique_ptr<MidiPort>> & activePortsConst() const { 
+    const std::vector<std::unique_ptr<MidiPort>> & activePorts() const { 
         return _activePorts;
     }
 
@@ -168,6 +172,7 @@ struct MidiController {
     }
     std::chrono::time_point<std::chrono::steady_clock> getAnchor() const { return _midiAnchorTimepoint.load(std::memory_order_acquire); }
     frame_t getLastSample() const { return _lastSample.load(std::memory_order_acquire); }
+
     private:
     std::mutex _mutex;
     std::vector<MidiDevice> _deviceList;
@@ -180,6 +185,8 @@ struct MidiController {
     std::atomic<std::chrono::time_point<std::chrono::steady_clock>> _midiAnchorTimepoint;
     std::atomic<frame_t> _lastSample;
 
+    friend void handleEvent(const ControlContext &ctx, const Events::VirtualMidiKbdAction &e);
+    void addVirtualKbdEvent(const MidiEvent ev);
 };
 
 }

@@ -30,6 +30,7 @@ using Event = std::variant<
 		ChangeSigBpm,
 		LoopPosition,
 		ToggleMidiDevice,
+		VirtualMidiKbdAction,
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,

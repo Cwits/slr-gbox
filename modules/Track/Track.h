@@ -4,7 +4,8 @@
 #pragma once
 
 #include "core/primitives/AudioUnit.h"
-#include "core/primitives/AudioBuffer.h"
+// #include "core/primitives/AudioBuffer.h"
+// #include "core/primitives/MidiBuffer.h"
 #include "core/primitives/FileContainer.h"
 #include "core/FlatEvents.h"
 #include "defines.h"
@@ -15,12 +16,7 @@ namespace slr {
 class ParameterBase;
 class FileWorker;
 class BufferManager;
-
-struct RecordBuffer { 
-    enum class State { Idle, Filling, Full, Processing };
-    AudioBuffer * buf;
-    State state;
-};
+class MidiFile;
 
 class Track : public AudioUnit {
     public:
@@ -61,7 +57,6 @@ class Track : public AudioUnit {
 
     bool _record;
 
-    static constexpr int RECORD_BUFFER_COUNT = 4;
     struct RecordTarget {
         virtual ~RecordTarget() {}
         virtual bool prepare(FileWorker * fw, frame_t latencyToCompensate) = 0;
@@ -79,7 +74,7 @@ class Track : public AudioUnit {
         RT_FUNC const frame_t & fileStartPosition() { return _fileStartPosition; }
 
         bool used() const { return _fileUsed; }
-        Track * parent = nullptr;
+        // Track * parent = nullptr;
         protected:
         bool _fileUsed = false;
         bool _finalizeRequested = false;
@@ -114,20 +109,35 @@ class Track : public AudioUnit {
         void dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition/*, const AudioContext &ctx*/);
     };
 
-    // struct MidiRecord : public RecordTarget {
-    //     void prepare() override;
-    //     void release() override;
-    //     void startReocord() override;
-    //     void stopRecord() override;
-    //     void writeData(void * data, frame_t frames) override;
-    //     //midi file
-    // };
+    struct MidiRecord : public RecordTarget {
+        explicit MidiRecord(Track * parent) : _parent(parent) {}
+        virtual ~MidiRecord() = default;
+        virtual bool prepare(FileWorker * fw, frame_t latencyToCompensate) override;
+        virtual bool release(FileWorker * fw) override;
+
+        RT_FUNC virtual void startRecord() override;
+        RT_FUNC virtual void stopRecord() override;
+        RT_FUNC virtual void incrementCounter(frame_t frames) override;
+        RT_FUNC virtual void finalize() override;
+        RT_FUNC virtual void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) override;
+        
+        private:
+        Track * _parent = nullptr;
+        MidiFile * _recordFile = nullptr;
+
+        MidiBufferRecord * _bufferInUse = nullptr; 
+        MidiBufferRecord * _oldBuffer = nullptr; 
+        bool _dumpOldBuffer = false;
+
+        void dumpDataCommand(MidiBuffer *buffer, MidiFile *file, frame_t size, frame_t fileStartPosition);
+    };
+
+    
 
     //need to forbid to change source while recording == true
     RecordSource _recordSource = RecordSource::Audio;
     RecordTarget * _recordTarget;
 
-    //midibuffer midirecordbuffer;
     //fx chain
     //monitor arm
     //selected input (type and source)
