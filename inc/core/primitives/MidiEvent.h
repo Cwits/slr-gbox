@@ -60,6 +60,15 @@ struct MidiEvent {
     uint8_t note;
     uint8_t velocity;
     frame_t offset; //depends on context - in file = from file start, in rt - from current frame start
+
+    MidiEvent & operator=(const MidiEvent &other) {
+        type = other.type;
+        channel = other.channel;
+        note = other.note;
+        velocity = other.velocity;
+        offset = other.offset;
+        return *this;
+    }
 };
 
 struct MetaEvent {

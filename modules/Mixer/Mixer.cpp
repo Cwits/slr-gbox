@@ -23,7 +23,7 @@ frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs)  {
     clearAudioBuffer((*_outputs)[1], ctx.frames);
 
     // if(ctx.playing) {
-    //     AudioUnit::playbackFiles(ctx, _outputs);
+    //     AudioUnit::playbackFiles(ctx, _outputs, _midiInput);
     // }
 
     for(uint32_t i=0; i<inputs.audioDepsCnt; ++i) {    

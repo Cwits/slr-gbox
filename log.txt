@@ -2,51 +2,45 @@ arguments: /home/portablejoe/slr-gbox/build/slr
 Current dir: /home/portablejoe/slr-gbox
 File verbosity level: 9
 date       time         ( uptime  ) [ thread name/id ]                   file:line     v| 
-2026-01-23 10:54:58.463 (   0.075s) [main thread     ]             loguru.cpp:841   INFO| Logging to 'log.txt', mode: 'w', verbosity: 9
-(   0.075s)                main.cpp:31    INFO| C++ version is 201703
-(   1.132s)       BufferManager.cpp:56    INFO| Buffer manager initialized successfully
-(   1.135s)       ControlEngine.cpp:108   WARN| RT Engine not running!
-(   1.137s)         dummyDriver.cpp:60    INFO| Dummy Start
-(   4.472s)      NewModulePopup.cpp:24    INFO| Create New Track Event
-(   5.739s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
-(   6.848s)          MainWindow.cpp:335   INFO| Using fake gesture Double Tap
-(   7.514s)             TrackUI.cpp:222   INFO| Double Tap on track controls 1
-(   8.270s)          MainWindow.cpp:335   INFO| Using fake gesture Tap
-(  11.065s)             Project.cpp:120   WARN| Routing evaluation not implemented yet
-(  11.065s)          RenderPlan.cpp:216   WARN| Render Order: 
-(  11.065s)          RenderPlan.cpp:221   WARN| End Render order
-(  11.166s)     RenderPlanHandles.h:16    INFO| Render plan swapped successfully
-(  11.166s)        ProjectHandles.h:52    INFO| Route added successfully
-(  11.969s)             Project.cpp:120   WARN| Routing evaluation not implemented yet
-(  11.969s)          RenderPlan.cpp:216   WARN| Render Order: 
-(  11.969s)          RenderPlan.cpp:221   WARN| End Render order
-(  12.070s)     RenderPlanHandles.h:16    INFO| Render plan swapped successfully
-(  12.070s)        ProjectHandles.h:52    INFO| Route added successfully
-(  12.563s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
-(  20.398s)          TrackHandles.h:169   INFO| Track id: 1 record arm toggled, new state On, source Audio
-(  20.399s)          TrackHandles.h:175   INFO| Preparing to record on track id: 1
-(  20.399s)          TrackHandles.h:191   INFO| Total latency compensation for recording is 229
-(  20.399s)               Track.cpp:389   INFO| Preparing audio file for record /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav
-(  20.500s)          TrackHandles.h:33    INFO| Track id: 1, record arm switched, new state: On
-(  21.704s)          TrackHandles.h:60    INFO| Dumping audio data to file 
-(  21.705s)           FileTasks.cpp:78    INFO| Dumping data to file 
-(  21.719s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
-(  22.458s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
-(  22.909s)          TrackHandles.h:60    INFO| Dumping audio data to file 23-01-2026:10-55-18zlz.wav
-(  22.909s)           FileTasks.cpp:78    INFO| Dumping data to file 23-01-2026:10-55-18zlz.wav
-(  22.910s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
-(  24.113s)          TrackHandles.h:60    INFO| Dumping audio data to file 23-01-2026:10-55-18zlz.wav
-(  24.113s)           FileTasks.cpp:78    INFO| Dumping data to file 23-01-2026:10-55-18zlz.wav
-(  24.115s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
-(  24.515s)          TrackHandles.h:169   INFO| Track id: 1 record arm toggled, new state Off, source Audio
-(  24.615s)          TrackHandles.h:33    INFO| Track id: 1, record arm switched, new state: Off
-(  24.615s)          TrackHandles.h:36    INFO| Releasing record target for track id: 1
-(  24.716s)          TrackHandles.h:60    INFO| Dumping audio data to file 23-01-2026:10-55-18zlz.wav
-(  24.716s)           FileTasks.cpp:78    INFO| Dumping data to file 23-01-2026:10-55-18zlz.wav
-(  24.717s)          TrackHandles.h:87    INFO| audio data dumped successfully to file 23-01-2026:10-55-18zlz.wav
-(  24.717s)          TrackHandles.h:90    INFO| Finalizing audio file 23-01-2026:10-55-18zlz.wav path /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav
-(  24.817s)      AudioUnitHandles.h:233   INFO| Opening a file /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav
-(  24.833s)      AudioUnitHandles.h:259   INFO| File /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.slrpk loaded to trackid: 1
-(  24.917s)      AudioUnitHandles.h:271   INFO| File /home/portablejoe/music/recordings/23-01-2026:10-55-18zlz.wav opened with id 9, adding to target unit 1
-(  24.917s)      AudioUnitHandles.h:339   INFO| Appending item 9 to unit id: 1
-(  25.018s)      AudioUnitHandles.h:100   INFO| Item 9 appended successfully on unit id: 1
+2026-01-29 14:38:12.749 (   0.085s) [main thread     ]             loguru.cpp:841   INFO| Logging to 'log.txt', mode: 'w', verbosity: 9
+(   0.085s)                main.cpp:31    INFO| C++ version is 201703
+(   0.923s)       BufferManager.cpp:56    INFO| Buffer manager initialized successfully
+(   0.926s)       ControlEngine.cpp:108   WARN| RT Engine not running!
+(   0.926s)         dummyDriver.cpp:60    INFO| Dummy Start
+(   1.026s) MidiControllerHandles.h:19    INFO| Midi Maps swapped successfully
+(   3.687s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
+(   4.540s)      NewModulePopup.cpp:24    INFO| Create New Track Event
+(   5.341s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
+(   6.190s)          MainWindow.cpp:335   INFO| Using fake gesture Double Tap
+(   6.709s)             TrackUI.cpp:222   INFO| Double Tap on track controls 1
+(   7.306s)          MainWindow.cpp:335   INFO| Using fake gesture Tap
+(   9.540s)             Project.cpp:120   WARN| Routing evaluation not implemented yet
+(   9.540s)          RenderPlan.cpp:216   WARN| Render Order: 
+(   9.540s)          RenderPlan.cpp:221   WARN| End Render order
+(   9.640s)     RenderPlanHandles.h:16    INFO| Render plan swapped successfully
+(   9.640s)        ProjectHandles.h:52    INFO| Route added successfully
+(  10.442s)             Project.cpp:120   WARN| Routing evaluation not implemented yet
+(  10.442s)          RenderPlan.cpp:216   WARN| Render Order: 
+(  10.442s)          RenderPlan.cpp:221   WARN| End Render order
+(  10.542s)     RenderPlanHandles.h:16    INFO| Render plan swapped successfully
+(  10.542s)        ProjectHandles.h:52    INFO| Route added successfully
+(  12.645s)          RenderPlan.cpp:216   WARN| Render Order: 
+(  12.646s)          RenderPlan.cpp:221   WARN| End Render order
+(  12.746s)     RenderPlanHandles.h:16    INFO| Render plan swapped successfully
+(  12.746s)        ProjectHandles.h:97    INFO| Midi Route added successfully
+(  13.668s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
+(  15.451s)          TrackHandles.h:169   INFO| Track id: 1 record arm toggled, new state On, source Audio
+(  15.451s)          TrackHandles.h:175   INFO| Preparing to record on track id: 1
+(  15.452s)          TrackHandles.h:191   INFO| Total latency compensation for recording is 229
+(  15.452s)               Track.cpp:351   INFO| Preparing audio file for record /home/portablejoe/music/recordings/29-01-2026:14-38-28tqu.wav
+(  15.552s)          TrackHandles.h:33    INFO| Track id: 1, record arm switched, new state: On
+(  16.554s)          TrackHandles.h:169   INFO| Track id: 1 record arm toggled, new state On, source Midi
+(  16.554s)          TrackHandles.h:175   INFO| Preparing to record on track id: 1
+(  16.554s)          TrackHandles.h:191   INFO| Total latency compensation for recording is 229
+(  16.554s)               Track.cpp:367   INFO| File not used, releasing 
+(  16.554s)               Track.cpp:481   INFO| Preparing midi file for record /home/portablejoe/music/recordings/29-01-2026:14-38-29peq.mid
+(  16.654s)          TrackHandles.h:33    INFO| Track id: 1, record arm switched, new state: On
+(  21.820s) VirtualMidiKeyboard.cpp:68    INFO| Key pressed: 48
+( 180.194s)          MainWindow.cpp:257   WARN| Hittest target is nullptr in Touch Up gesture
+( 186.135s) VirtualMidiKeyboard.cpp:68    INFO| Key pressed: 48
+( 267.689s) VirtualMidiKeyboard.cpp:68    INFO| Key pressed: 48

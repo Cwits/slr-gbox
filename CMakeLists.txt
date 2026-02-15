@@ -60,8 +60,10 @@ file(GLOB SOURCES
   src/core/primitives/Parameter.cpp
   src/core/primitives/ParameterArray.cpp
   src/core/primitives/RenderPlan.cpp
+  src/core/primitives/MidiPort.cpp
 
   src/core/utility/basicAudioManipulation.cpp
+  src/core/utility/basicMidiManipulation.cpp
 
   #src/core/AudioBufferManager.cpp
   src/core/BufferManager.cpp

@@ -55,6 +55,8 @@ class Track : public AudioUnit {
     AudioBuffer * _postFX;
     AudioBuffer * _postPan;
 
+    MidiBuffer * _midiRecord;
+
     bool _record;
 
     struct RecordTarget {
@@ -132,15 +134,11 @@ class Track : public AudioUnit {
         void dumpDataCommand(MidiBuffer *buffer, MidiFile *file, frame_t size, frame_t fileStartPosition);
     };
 
-    
-
     //need to forbid to change source while recording == true
     RecordSource _recordSource = RecordSource::Audio;
     RecordTarget * _recordTarget;
 
-    //fx chain
     //monitor arm
-    //selected input (type and source)
 };
 
 }

@@ -38,7 +38,6 @@ AudioUnit:
         [\] - Make some config members as bool canLoadFile(type), AudioUnit::playbackFiles() abstraction, and ???
                 canLoadFiles handled in UnitUIBase
         [ ] - Make unified logic for drawing files...
-
         
 Metronome:
 [\] - implement one(must live in rt class)(not tested)
@@ -100,6 +99,8 @@ Track Recording:
                 Event -> Track::setRecordArm() -> Response -> if(record == off) Track::releaseRecordTarget() -> RecordTarget::finalize() ...
         
         That's doesn't look right, must be reworked somehow
+
+[ ] - MIDI recording isn't finished...
 
 other:
 [\] - introduce using ID = uint32_t(or uint64_t) so ID would be unified thing all across system

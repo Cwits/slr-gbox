@@ -73,7 +73,7 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
                 .isPressed = true
             };
             slr::EmitEvent(e);
-        });
+        }); 
         k->setTouchUpCallback([k, this]() {
             k->setColor(WHITE_COLOR);
             slr::Events::VirtualMidiKbdAction e = {

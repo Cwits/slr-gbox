@@ -125,7 +125,9 @@ class AudioUnit {
     //midi learn map
     //automation clips
 
-    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
+    RT_FUNC void applyMidiEvents(MidiBuffer *buf);
+
+    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid);
     ClipContainer _clipContainer;
     
     friend class AudioUnitView;

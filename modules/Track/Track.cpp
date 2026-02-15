@@ -18,6 +18,7 @@
 #include "core/RtEngine.h"
 
 #include "core/utility/basicAudioManipulation.h"
+#include "core/utility/basicMidiManipulation.h"
 #include "core/utility/helper.h"
 
 #include "logger.h"
@@ -60,16 +61,18 @@ bool Track::create(BufferManager *man) {
     _postPan = man->acquireAudioRegular();
     // _bufferManagerPtr = man;
     _bufferManager = man;
+    _midiRecord = man->acquireMidiRegular();
     return true;
 }
 
 bool Track::destroy(BufferManager *man) {
-    AudioUnit::destroy(man);
+    man->releaseMidiRegular(_midiRecord);
     man->releaseAudioRegular(_recInt);
     man->releaseAudioRegular(_recExt);
     man->releaseAudioRegular(_preFX);
     man->releaseAudioRegular(_postFX);
     man->releaseAudioRegular(_postPan);
+    AudioUnit::destroy(man);
     return true;
 }
 
@@ -132,78 +135,27 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
         clearAudioBuffer((*_postPan)[i], ctx.frames);
     }
 #endif
-    
-    /* 
-        get all possible events to one buffer than sort with (Timsort or introsort)?
+    _midiInput->clear();
+    _midiOutput->clear();
+    _midiRecord->clear();
 
-    //process midi inputs
-    for(int i=0; i<inputs->midiCount; ++i) {
-        //grab midi inputs and distribute
-        MidiDependencie * dep = inputs->midiDeps[i];
+    if(_record) {
+        //process midi input
+        for(uint32_t i=0; i<inputs.midiDepsCnt; ++i) {
+            MidiDependencie &mdep = inputs.midi[i];
 
-        const MidiBuffer * buf = dep.external ? ctx.midiInputs[dep.extId];
-        for(int j=0; j<buf->size(); ++j) {
-            const MidiEvent &ev = (*buf)[j];
-            // for(int fx=0; fx<_fxChain.size(); ++fx) {
-            //     _fxChain[fx]->injectMidi(ev);
-            // }
-            _midiInput.push_back(ev);
-
-            // if(_sendThru) {
-            //     _midiOutput.push_back(ev);
-            // }
-        }
-    }
-
-    for(int i=0; i<inputs->audioCount; ++i) {
-        AudioDependencie * dep = inputs->audioDeps[i];
-
-        const AudioBuffer * src = ext.external ? ctx.mainInputs : ext.buffer;
-
-        for(int ch=0; ch<32; ++ch) {
-            if(ext.channelMap[ch] == -1) continue;
-
-            for(frame_t f=0; f<ctx.frames; ++f) {
-                (*_preFX)[ch][f] += (*source)[ext.channelMap[ch]][f];
+            const MidiBuffer *buf = mdep.external ? getMidiBuffer(ctx, mdep.extId) : mdep.buf;
+            std::size_t bufSize = buf->size();
+            for(std::size_t j=0; j<bufSize; ++j) {
+                const MidiEvent &ev = (*buf)[j];
+                _midiRecord->push_back(ev);
             }
         }
 
-        if(_record) {
-            AudioBuffer * target = ext.external ? _recExt : _recInt;
-            for(int ch=0; ch<32; ++ch) {
-                if(ext.channelMap[ch] == -1) continue;
-
-                for(frame_t f=0; f<ctx.frames; ++f) {
-                    (*target)[ch][f] += (*src)[ext.channelMap[ch]][f];
-                }
-            }
-        }
-    }
-
-    if(_record) {
-        if(ctx.playing && ctx.recording) {
-            //record from _recInt && _recExt
-        }
-    }
-
-    if(ctx.playing) {
-        //playfiles(...)?
-    }
-
-    //sort _midiInput
-
-    // if(_sendThru) {
-        // _midiOutput.push_back(ev);
-    // }
-
-    //send to fx
-
-    //apply self midi learned cc?
-    */
-
-    if(_record) {
-        //_preFX += _inputs
+        //sort midi
+        sortEventsInMidiBuffer(_midiRecord);
         
+        //proc audio
         for(int i=0; i<inputs.audioDepsCnt; ++i) {
             const AudioDependencie &ext = inputs.audio[i];
 
@@ -229,6 +181,7 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
             }
         }
 
+        //record
         if(ctx.playing && ctx.recording) {
             if(_recordTarget->isFirstWrite()) {
                 _recordTarget->setFileStartPosition(ctx.elapsed);
@@ -240,28 +193,28 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
                 _recordTarget->writeData(_recExt, ctx.frames, 2, true); //compensate latency
                 _recordTarget->incrementCounter(ctx.frames);
             } else {
-                //_recordTarget->writeData(midi, frames);
+                _recordTarget->writeData(_midiRecord, ctx.elapsed, 0, false);
+                _recordTarget->incrementCounter(ctx.frames);
             }
         } 
     }
 
+    if(_midiRecord->size())
+        copyMidiBuffer(_midiRecord, _midiInput);
+
     if(ctx.playing) {
-        playbackFiles(ctx, _preFX);
+        playbackFiles(ctx, _preFX, _midiInput); //
     }
     
+    sortEventsInMidiBuffer(_midiInput);
+    
+    if(_midiThru)
+        copyMidiBuffer(_midiInput, _midiOutput);
+
+    applyMidiEvents(_midiInput);
+
+
     /* preFX buffers completed */
-    
-    /* process FX chain */
-    /*
-    int size = _FXChain.length();
-    if(size == 0) {
-        copy preFX buffers to postFX buffers
-    } else {
-        process FX chain
-        use _preFX as tmp buffer?
-        at the end there should be _postFX buffer filled with processed audio
-    }
-    */
 
    copyAudioBuffer((*_preFX)[0], (*_postFX)[0], ctx.frames);
    copyAudioBuffer((*_preFX)[1], (*_postFX)[1], ctx.frames);
@@ -565,6 +518,7 @@ void Track::MidiRecord::finalize() {
 
 }
 
+//frames == ctx.elapsed
 void Track::MidiRecord::writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) {
     const MidiBuffer &buf = *static_cast<const MidiBuffer*>(data);
 
@@ -592,7 +546,9 @@ void Track::MidiRecord::writeData(void * data, frame_t frames, uint8_t numChanne
     } else {
         //write to bufferInUse
         for(std::size_t i=0; i<toWrite; ++i) {
-            _bufferInUse->push_back(buf[i]);
+            MidiEvent toRec = buf[i];
+            toRec.offset += frames; //make it to global timing, that will be processed later to relative?
+            _bufferInUse->push_back(toRec);
         }
     }
 }

@@ -118,8 +118,11 @@ Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvent
     return Status::Ok;
 }
 
+void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
 
-void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */) {
+}
+
+void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid) {
     if(!_clipContainer._clips) return; //because container created only when some files is loaded
 
     for(const ClipItem * const item : *(_clipContainer._clips)) {
