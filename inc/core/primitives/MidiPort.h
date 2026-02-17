@@ -47,6 +47,12 @@ struct MidiPort {
     SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE> * inQueue() { return _inQueue.get();}
     SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE> * outQueue() { return _outQueue.get(); }
 
+    void setAlternativeHandles(
+        std::function<void(const MidiEventType)> realTimeHandle,
+        std::function<void(const unsigned char *, const int &)> sysexHandle,
+        std::function<void(const MidiEventType, const int, const unsigned char *)> eventHandle
+    );
+
     private:
     const ID _uniqueId;
 

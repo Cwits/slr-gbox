@@ -1,15 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/primitives/MidiEvent.h" //for RtMidiPort
-#include "core/RtEngine.h"
+#include "Status.h"
 #include <array>
+#include "core/primitives/MidiEvent.h"
+#include "core/MidiController.h"
+#include "core/primitives/MidiEvent.h" //for RtMidiPort
+#include "core/ControlEngine.h"
+#include "logger.h"
 #include <vector>
 #include <unordered_map>
-#include "core/MidiController.h"
-#include "Status.h"
-#include "core/primitives/MidiEvent.h"
-#include "logger.h"
-#include "core/ControlEngine.h"
+#include "core/RtEngine.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -39,11 +39,17 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
     if(!e.device) {
         //no such card
         LOG_ERROR("No such midi device %s to enable", e.device->_name.c_str());
+        
+        if(e.completed)
+            e.completed(1);
         return;
     }
 
     if(!e.device->_online) {
         LOG_ERROR("Midi device %s is offline", e.device->_name.c_str());
+        
+        if(e.completed)
+            e.completed(2);
         return;
     }
 
@@ -57,16 +63,25 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
 
     if(!e.subdev) {
         LOG_ERROR("Card %s doesn't have specified subdevice", e.subdev->_path.c_str());
+        
+        if(e.completed)
+            e.completed(3);
         return;
     }
 
     if(e.port == DevicePort::INPUT && !e.subdev->_hasInput) {
         LOG_ERROR("Card %s input can't be enabled because it doesn't have one", e.subdev->_path.c_str());
+        
+        if(e.completed)
+            e.completed(4);
         return;
     }
 
     if(e.port == DevicePort::OUTPUT && !e.subdev->_hasOutput) {
         LOG_ERROR("Card %s output can't be enabled because it doesn't have one", e.subdev->_path.c_str());
+
+        if(e.completed)
+            e.completed(5);
         return;
     }
 
@@ -95,6 +110,19 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
         port->_ownerSubdev = e.subdev;
     }
 
+    // if(e.port == DevicePort::INPUT) {
+    //     if(e.newState && port->inputOpened()) {
+    //         LOG_WARN("Input for device %s already opened", e.device->_name);
+    //         return;
+    //     }
+    // }
+    // if(e.port == DevicePort::OUTPUT) {
+    //     if(e.newState && port->outputOpened()) {
+    //         LOG_WARN("Output for device %s already opened", e.device->_name);
+    //         return;
+    //     }
+    // }
+
     //enable
     if(e.port == DevicePort::INPUT) {
         ctx.midiController->openDevice(port, e.newState, port->outputOpened());
@@ -109,6 +137,8 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
             (e.newState ? "open" : "close")
         );
 
+        if(e.completed)
+            e.completed(6);
         return;
     }
 
@@ -151,6 +181,9 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
         ctrl.updateMidiMaps.localBuffers = local;
         ControlEngine::emitRtControl(ctrl);
     }
+
+    if(e.completed)
+        e.completed(0);
 }
 
 inline void handleEvent(const ControlContext &ctx, const Events::VirtualMidiKbdAction &e) {

@@ -1,9 +1,15 @@
-/* inspired by https://github.com/lane-s/libpush */
-
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 namespace PushLib {
-    
+/* 
+
+https://github.com/Ableton/push-interface/blob/main/doc/AbletonPush2MIDIDisplayInterface.asc#display-interface
+
+based on and inspired by https://github.com/lane-s/libpush 
+
+*/    
 constexpr int DISPLAY_HEIGHT = 160;
 constexpr int DISPLAY_WIDTH = 960;
 

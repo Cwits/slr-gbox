@@ -116,7 +116,7 @@ void MidiPort::inputHandle(MidiPort *port) {
         if(err == 0) continue;
 
         // buf[127] = '\0';
-        // LOG_INFO("Data!");// %s", &buf[0]);
+        // LOG_INFO("Data! %s", &buf[0]);// %s", &buf[0]);
         // for(int i=0; i<err; ++i) {
         port->parseInput(&buf[0], err);
         // }
@@ -330,8 +330,25 @@ void MidiPort::writeHandle(MidiPort *port) {
     delete[] write_pfds;
 }
 
+void MidiPort::setAlternativeHandles(
+        std::function<void(const MidiEventType)> realTimeHandle,
+        std::function<void(const unsigned char *, const int &)> sysexHandle,
+        std::function<void(const MidiEventType, const int, const unsigned char *)> eventHandle
+    ) 
+{
+    if(!_alternativeEventHandle) {
+        _realTimeHandle = std::move(realTimeHandle);
+        _sysexHandle = std::move(sysexHandle);
+        _eventHandle = std::move(eventHandle);
+        _alternativeEventHandle = true;
+    } else {
+        LOG_ERROR("Alternative handles for port %s already set", _ownerSubdev->_path.c_str());
+    }
+}
+
 
 void event(MidiPort *port, const MidiEventType type, const int channel, const unsigned char *data) {
+    LOG_INFO("Event");
     switch(type) {
         case(MidiEventType::NoteOff): {
             int note = static_cast<int>(data[0]);

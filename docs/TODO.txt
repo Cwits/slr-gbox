@@ -55,6 +55,12 @@ Refactoring:
         [ ] - create CMakeLists.txt for each module and add dynamic modules search in ModuleManager
 [ ] - separate defines.h to two files - slr_config.h and common.h
 [ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
+[ ] - Folder structure need bit of changes:
+        separate RT core from everything else(but than timeline should live in RT and not in project?)
+        RT must become separate compilable entity?
+        eee...
+        PROFIT?!
+
 
 RtEngine:
 [ ] - ideally RtEngine should not know anything about Project. The RenderPlan can be stored in Project as std::unique_ptr, and passed as it happens now

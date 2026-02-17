@@ -210,7 +210,6 @@ bool init() {
     ModuleManagerFactory::init();
 
     _midiController = std::make_unique<MidiController>();
-    _midiDiscoverThread = std::thread(ControlEngine::discoverMidi);
 
     _controlThread = std::thread(ControlEngine::processLoop);
 
@@ -231,6 +230,8 @@ bool init() {
         LOG_ERROR("Failed to start RT Engine");
         return false;
     }
+    
+    _midiDiscoverThread = std::thread(ControlEngine::discoverMidi);
 
     return true;
 }

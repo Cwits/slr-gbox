@@ -1,10 +1,11 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
+#include <functional>
+#include <string>
+#include "defines.h"
+#include "core/MidiController.h"
 #include "Status.h"
 #include <unordered_map>
-#include "core/MidiController.h"
-#include "defines.h"
-#include <string>
 
 namespace slr {
 
@@ -17,6 +18,7 @@ struct ToggleMidiDevice {
     MidiSubdevice * subdev;
     DevicePort port;
     bool newState;
+    std::function<void(int)> completed;
 };
 struct VirtualMidiKbdAction {
     int note;

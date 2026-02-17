@@ -378,7 +378,10 @@ void SettingsPopup::MidiTab::refreshDevices() {
                         .device = (&dev),
                         .subdev = (&sub),
                         .port = slr::DevicePort::INPUT,
-                        .newState = isChecked
+                        .newState = isChecked,
+                        .completed = [](int res) {
+                            LOG_INFO("Midi Device toggled res %d", res);
+                        }
                     };
                     slr::EmitEvent(e);
 
@@ -423,7 +426,10 @@ void SettingsPopup::MidiTab::refreshDevices() {
                         .device = (&dev),
                         .subdev = (&sub),
                         .port = slr::DevicePort::OUTPUT,
-                        .newState = isChecked
+                        .newState = isChecked,
+                        .completed = [](int res) {
+                            LOG_INFO("Midi Device toggled res %d", res);
+                        }
                     };
                     slr::EmitEvent(e);
                 });

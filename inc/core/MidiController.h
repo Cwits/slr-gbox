@@ -35,6 +35,14 @@ struct MidiDevice {
     bool _check;
 
     bool _online; //use this instead of check\presented??
+    MidiDevice() = default;
+    MidiDevice(const MidiDevice &oth) {
+        _name = oth._name; //??
+        _ports = oth._ports; //??
+        _card = oth._card;
+        _check = oth._check;
+        _online = oth._online;
+    }
 };
 
 struct MidiSubdevice {
@@ -110,7 +118,7 @@ struct MidiController {
 
     private:
     std::mutex _mutex;
-    std::vector<MidiDevice> _deviceList;
+    std::vector<std::unique_ptr<MidiDevice>> _deviceList;
     std::vector<std::unique_ptr<MidiPort>> _activePorts;
 
     std::vector<MidiDevice> discoverMidiDevices();

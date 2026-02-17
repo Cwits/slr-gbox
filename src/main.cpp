@@ -30,8 +30,6 @@ int main(int argc, char *argv[]) {
 
     LOG_INFO("C++ version is %li", __cplusplus);
 
-    //init push
-
     initGui();
 
     if(!slr::ControlEngine::init()) {
@@ -40,7 +38,6 @@ int main(int argc, char *argv[]) {
     }
     
     // std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    //start push
 
     runGui();
 

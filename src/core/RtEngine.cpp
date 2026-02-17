@@ -152,7 +152,9 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
                 q.queue->commit_pop(); //just skip this
                 break;
             }
-            //out->sendEvent(*peekptr);
+
+            //simple echo?
+            out->sendEvent(*peekptr);
         }
     }
     

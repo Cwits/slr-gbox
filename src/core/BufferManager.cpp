@@ -119,6 +119,7 @@ bool BufferManager::releaseMidiRegular(MidiBuffer *buf) {
     }
 
     _regularMidiFree.push_back(buf);
+    return true;
 }
 
 MidiBufferRecord* BufferManager::acquireMidiRecord() {

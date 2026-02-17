@@ -5,14 +5,14 @@ set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -fsanitize=address")
 #set(CMAKE_CXX_FLAGS "-g -O0 -Wall -fsanitize=address")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall")
-set(CMAKE_CXX_FLAGS "-g -O0 -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type")
+set(CMAKE_CXX_FLAGS "-g -O0 -Wall -Werror=return-type")
 
 
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall" CACHE STRING "Debug flags" FORCE)
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type" CACHE STRING "Debug flags" FORCE)
 endif()
 
 message("Building ${CMAKE_BUILD_TYPE}")
@@ -29,6 +29,22 @@ find_package(ALSA)
 
 pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack>=0.100.0)
 find_library(JACK_LIBRARY NAMES ${JACK_LIBRARIES} HINTS ${JACK_LIBDIR})
+
+# Find libusb
+find_path(LIBUSB_INCLUDE_DIR
+  NAMES libusb.h
+  PATH_SUFFIXES "include" "libusb" "libusb-1.0")
+find_library(LIBUSB_LIBRARY
+  NAMES usb usb-1.0
+  PATH_SUFFIXES "lib" "lib32" "lib64")
+
+#message(STATUS ${LIBUSB_INCLUDE_DIR})
+#message(STATUS ${LIBUSB_LIBRARY})
+
+if((NOT LIBUSB_INCLUDE_DIR) OR (NOT LIBUSB_LIBRARY))
+  message(FATAL_ERROR "Can't find libusb. Please verify that it is installed")
+endif()
+
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/shared)
@@ -79,6 +95,9 @@ file(GLOB SOURCES
   src/core/Metronome.cpp
   src/core/ModuleManager.cpp
   src/core/MidiController.cpp
+
+  src/push/PushCore.cpp
+  src/push/PushDisplayInterface.cpp
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
@@ -162,7 +181,8 @@ set(LIBRARIES lvgl::lvgl
               PkgConfig::JACK
               loguru::loguru
               GestLib
-              ALSA::ALSA)
+              ALSA::ALSA
+              ${LIBUSB_LIBRARY})
 
 
 target_link_libraries(slrlib ${LIBRARIES})

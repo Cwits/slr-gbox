@@ -1,5 +1,5 @@
 {
-    "Audio Driver": "Jack Driver",
+    "Audio Driver": "Dummy Driver",
     "Sample Rate": 44100,
     "Block Size": 64,
     "Latency Compensation": 37,

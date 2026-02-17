@@ -13,6 +13,8 @@
 #include "core/RtEngine.h"
 #include "core/FlatEvents.h"
 
+#include "push/PushCore.h"
+
 #include <alsa/asoundlib.h>
 #include <iostream>
 #include <vector>
@@ -30,7 +32,7 @@ MidiDevice _virtualDev;
 MidiSubdevice _virtualSub;
 std::unique_ptr<MidiPort> _virtualPort;
 
-// std::unique_ptr<PushCore> _pushDev;
+std::unique_ptr<PushLib::PushCore> _pushDev;
 
 MidiController::MidiController() {
     _input_constant_delay = SettingsManager::getBlockSize();
@@ -95,6 +97,10 @@ MidiController::MidiController() {
 }
 
 MidiController::~MidiController() {
+    if(_pushDev) {
+        _pushDev->disconnect();
+    }
+
     for(std::unique_ptr<MidiPort> &port : _activePorts) {
         if(port->id() != 0) 
             closeDevice(port.get());
@@ -106,46 +112,75 @@ MidiController::~MidiController() {
 }
 
 void MidiController::checkDevices() {
+    //this is separate, independent thread
     std::vector<MidiDevice> list = discoverMidiDevices();
 
     std::lock_guard<std::mutex> l(_mutex);
 
-    for(MidiDevice &exist : _deviceList) {
-        exist._check = false;
+    for(std::unique_ptr<MidiDevice> &exist : _deviceList) {
+        exist->_check = false;
     }
 
     for(MidiDevice &devFound : list) {
-        std::vector<MidiDevice>::iterator it;
+        std::vector<std::unique_ptr<MidiDevice>>::iterator it;
         it = std::find_if(
             _deviceList.begin(), 
             _deviceList.end(),
-            [&](const MidiDevice &exist) {
-                return (exist._card == devFound._card && 
-                        exist._name == devFound._name);
+            [&](const std::unique_ptr<MidiDevice> &exist) {
+                return (exist->_card == devFound._card && 
+                        exist->_name == devFound._name);
             }
         );
 
         if(it != _deviceList.end()) {
-            if(!it->_online) {
+            if(!it->get()->_online) {
                 //device got back
-                it->_online = true;
-                LOG_INFO("Device connected back %d", it->_card);
+                it->get()->_online = true;
+                LOG_INFO("Device connected back %d", it->get()->_card);
             }
-            it->_check = true;
+            it->get()->_check = true;
         } else {
             //new device
             devFound._check = true;
             devFound._online = true;
-            _deviceList.push_back(devFound);
+            std::unique_ptr<MidiDevice> d = std::make_unique<MidiDevice>(devFound);
+            MidiDevice * dev = d.get();
+
+            _deviceList.push_back(std::move(d));
             LOG_INFO("New device %d", devFound._card);
+
+            if(dev->_name.compare("Ableton Push 2") == 0) {
+                //...
+                LOG_INFO("Ableton device found!"); 
+                _pushDev.reset();
+
+                _pushDev = std::make_unique<PushLib::PushCore>();
+                
+                MidiSubdevice * subdevptr = &dev->_ports.at(0);
+
+                std::unique_ptr<MidiPort> pushPort = std::make_unique<MidiPort>();
+                MidiPort *port = pushPort.get();
+                port->_controller = this;
+                port->_ownerDev = dev;
+                port->_ownerSubdev = subdevptr;
+                port->_path = subdevptr->_path;
+
+                _activePorts.push_back(std::move(pushPort));
+                if(!_pushDev->connect(dev, subdevptr, port)) { 
+                    //failed...
+                    LOG_ERROR("Failed to connect Ableton Push 2");
+                    continue;
+                }
+            }
+            
         }
     }
 
-    for(MidiDevice &dev : _deviceList) {
-        if(!dev._check) {
-            if(dev._online) { //already there
-                dev._online = false;
-                LOG_INFO("Device disconnected %i", dev._card);
+    for(std::unique_ptr<MidiDevice> &dev : _deviceList) {
+        if(!dev->_check) {
+            if(dev->_online) { //already there
+                dev->_online = false;
+                LOG_INFO("Device disconnected %i", dev->_card);
             }       
         }
     }
@@ -156,7 +191,11 @@ std::vector<MidiDevice> MidiController::devList() {
     
     {
         std::lock_guard<std::mutex> lock(_mutex);
-        ret = _deviceList;
+        for(auto &dev : _deviceList) {
+            MidiDevice d(*dev.get());
+            ret.push_back(d);
+        }
+        // ret = _deviceList;
     }
 
     return ret;
