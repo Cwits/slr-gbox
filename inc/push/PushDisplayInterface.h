@@ -11,13 +11,16 @@
 
 namespace PushLib {
 
+class Widget;
+class Painter;
+
 struct DisplayInterface {
     enum class DisplaySysex : char {
         SET_BRIGHTNESS = 0x08,
         GET_BRIGHTNESS = 0x09
     };
 
-    DisplayInterface(/*SysexInterface &sysex*/);
+    DisplayInterface(/*SysexInterface &sysex*/Painter & painter);
     ~DisplayInterface();
 
     bool connect();
@@ -31,13 +34,18 @@ struct DisplayInterface {
     char getBrightness();
 
     private:
+    Painter & _painter;
+
     using devHandlePtr = std::unique_ptr<libusb_device_handle,
                             std::function<void(libusb_device_handle *)>>;
 
     /* SysexInterface & sysex; */
     devHandlePtr _displayHandle;
-    std::unique_ptr<unsigned char> _frameBuffer1;
+
+    std::unique_ptr<unsigned char> _usbFrame;
     // std::unique_ptr<unsigned char> _frameBuffer2;
+
+    Widget * _rootWidget;
 };
 
 }

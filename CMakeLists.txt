@@ -96,8 +96,16 @@ file(GLOB SOURCES
   src/core/ModuleManager.cpp
   src/core/MidiController.cpp
 
+  src/push/PushFaker.cpp
   src/push/PushCore.cpp
   src/push/PushDisplayInterface.cpp
+  src/push/PushPainter.cpp
+  src/push/Widget.cpp
+
+  src/ui/push/MainWindow.cpp
+
+  src/ui/pushThread.cpp
+
 
   #snapshots
   src/snapshots/AudioUnitView.cpp

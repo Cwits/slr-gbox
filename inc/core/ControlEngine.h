@@ -33,6 +33,8 @@ void awaitRtResult(const FlatEvents::FlatControl &ctl,
                 std::function<void(const ControlContext&, 
                     const FlatEvents::FlatResponse&)> clb);
 
+bool awaitEventBlocking(const Events::Event &ev, unsigned int msTimeout);
+
 void notify();
 
 // void checkMidiDevices();

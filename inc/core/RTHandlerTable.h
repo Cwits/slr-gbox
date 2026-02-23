@@ -5,10 +5,10 @@
 #pragma once
 
 #include "core/Timeline.h"
-#include "core/primitives/AudioUnit.h"
-#include "modules/Track/Track.h"
 #include "core/Project.h"
 #include "core/RtEngine.h"
+#include "modules/Track/Track.h"
+#include "core/primitives/AudioUnit.h"
 
 #include "core/FlatEvents.h"
 #include "Status.h"
@@ -19,21 +19,21 @@ namespace RTHandlers {
 using RTHandler = Status(*)(const FlatEvents::FlatControl&, FlatEvents::FlatResponse&);
 extern "C" {
 constexpr RTHandler RTTable[] = {
-	&Track::setRecordArm,
-	&Track::reinitRecord,
+	&Project::swapPlan,
 	&Timeline::requestPlayhead,
 	&Timeline::changeTimelineState,
 	&Timeline::toggleLoop,
 	&Timeline::setBpmTimeSig,
 	&Timeline::setLoopPosition,
 	&RtEngine::updateMidiMaps,
-	&Project::swapPlan,
 	&AudioUnit::setParameter,
 	&AudioUnit::toggleMidiThru,
 	&AudioUnit::toggleOmniHwInput,
 	&AudioUnit::appendItem,
 	&AudioUnit::modifyClipItem,
-	&AudioUnit::swapContainer
+	&AudioUnit::swapContainer,
+	&Track::setRecordArm,
+	&Track::reinitRecord
 };
 }
 

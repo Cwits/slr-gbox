@@ -117,8 +117,8 @@ enum class Button {
 };
 
 enum class ButtonEventType {
-    Pressed,
-    Released
+    Released = 0,
+    Pressed = 1
 };
 
 struct ButtonEvent {

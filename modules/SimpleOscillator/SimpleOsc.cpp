@@ -39,6 +39,10 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
         for(int j=0; j<buf->size(); ++j) {
             const MidiEvent &ev = (*buf)[j];
 
+            //TODO: push to midi frame buffer
+            //see TODO.txt:41
+            
+            {
             switch(ev.type) {
                 case(MidiEventType::NoteOn): {
                     if(_activeVoices >= 15) continue;
@@ -56,11 +60,17 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
                         _activeVoices--;
                 } break;
             }
+            }
 
             if(_midiThru) _midiOutput->push_back(ev);
         }
     }
 
+    //TODO: gather from injected
+
+    //TODO sort midi events
+
+    //TODO: pass to midi thru
 
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);

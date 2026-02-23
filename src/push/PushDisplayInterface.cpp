@@ -1,10 +1,18 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "push/PushDisplayInterface.h"
+// #include "push/widgets/Widget.h"
+#include "push/PushPainter.h"
 
 #include "logger.h"
+#include "slr_config.h"
 
 #include <cstring>
+
+#if (USE_FAKE_PUSH == 1)
+#include "push/PushFaker.h"
+extern PushLib::PushFaker _faker;
+#endif
 
 namespace PushLib {
 /* The Push 2 Display shows 160 lines of 960 pixels of 16 bit each. 
@@ -45,9 +53,8 @@ constexpr unsigned char signal_shaping_pattern[signal_shaping_pattern_len] = {
 constexpr unsigned char PUSH2_BULK_EP_OUT = 0x01;
 constexpr unsigned int TRANSFER_TIMEOUT = 500;
 
-uint16_t fb[DISPLAY_HEIGHT][DISPLAY_WIDTH];
-
-DisplayInterface::DisplayInterface(/*SysexInterface &sysex*/) {
+DisplayInterface::DisplayInterface(/*SysexInterface &sysex*/Painter & painter) : _painter(painter)
+{
 
 }
 
@@ -56,6 +63,8 @@ DisplayInterface::~DisplayInterface() {
 }
 
 bool DisplayInterface::connect() {
+    
+#if (USE_FAKE_PUSH == 0)
     if(_displayHandle) return false;
 
     int res = 0;
@@ -77,15 +86,19 @@ bool DisplayInterface::connect() {
         LOG_ERROR("Failed to find or init Push Device");
         return false;
     } else {
-        _frameBuffer1 = std::unique_ptr<unsigned char>(new unsigned char[FRAME_BUFFER_LENGTH]);
+#endif
+        _usbFrame = std::unique_ptr<unsigned char>(new unsigned char[FRAME_BUFFER_LENGTH]);
 
-        if(!_frameBuffer1 /*|| !_frameBuffer2*/) {
+        if(!_usbFrame /*|| !_frameBuffer2*/) {
             LOG_ERROR("Failed to allocate memory for frame buffers");
             return false;//?? TODO: need proper clean up
         }
 
-        std::memset(_frameBuffer1.get(), 0, FRAME_BUFFER_LENGTH*sizeof(unsigned char));
+        std::memset(_usbFrame.get(), 0, FRAME_BUFFER_LENGTH*sizeof(unsigned char));
+        updateFrame();
+#if (USE_FAKE_PUSH == 0)
     }
+#endif
 
     return true;
 }
@@ -102,74 +115,65 @@ bool DisplayInterface::disconnect() {
 }
 
 void DisplayInterface::updateFrame(/* Pixel buffer */) {
+   
+    //do some time calculations...??
+    //...
 
+    //if have nothing to redraw - skip
+    // if(!_rootWidget->isDirty()) return;
+
+    //draw pieces content
+    //...
+
+    
+    //fill tmp
+    Pixel * canvas = _painter.canvas();
+    unsigned char * fbPtr = _usbFrame.get();
+    for(int x=0; x<DISPLAY_WIDTH; ++x) {
+
+        for(int y=0; y<DISPLAY_HEIGHT; ++y) {
+            int pixIdx = y * DISPLAY_WIDTH + x;
+            Pixel px = canvas[pixIdx];
+
+            unsigned char MSB = px >> 8;
+            unsigned char LSB = px & 0x00FF;
+
+            int pattr_index = x * 2;
+
+            LSB ^= signal_shaping_pattern[(pattr_index) % signal_shaping_pattern_len];
+            MSB ^= signal_shaping_pattern[(pattr_index + 1) % signal_shaping_pattern_len];
+
+            int idx = y * ROW_LENGTH + x * 2;
+            fbPtr[idx]     = LSB;
+            fbPtr[idx + 1] = MSB;
+        }
+    }
+
+    // for(int row = 0; row < DISPLAY_HEIGHT; ++row) {
+    //     for(int col = DISPLAY_WIDTH_BYTES; col < ROW_LENGTH; ++col) {
+    //         fbPtr[row * ROW_LENGTH + col] = 0x00;
+    //     }
+    // }
 }
 
 bool DisplayInterface::sendFrame() {
+#if (USE_FAKE_PUSH == 0)
     int result = libusb_bulk_transfer(_displayHandle.get(), PUSH2_BULK_EP_OUT,
                                         frame_header, sizeof(frame_header), NULL,
                                         TRANSFER_TIMEOUT);
-    
+
+
     if(result != 0) return false;
-    
-    static int coloridx = 0;
-    
-    uint16_t color = 0;
-    {
-        int r, g, b;
-        if(coloridx == 0) {
-            r = 255; g = 0; b = 0;
-            coloridx++;
-        } else if(coloridx == 1) {
-            r = 0; g = 255; b = 0;
-            coloridx++;
-        } else if(coloridx == 2) {
-            r = 0; g = 0; b = 255;
-            coloridx = 0;
-        }
-        uint16_t tmpr, tmpg, tmpb;
-        tmpr = tmpg = tmpb = 0;
-
-        if(r>0) tmpr = 0 + (float)((float)(0x001F-0)/(float)(255-0)) * (r - 0);
-        if(g>0) tmpg = 0x001F + (float)((float)(0x07E0 - 0x001F)/(float)(255-0)) * (g - 0);
-        if(b>0) tmpb = 0x07E0 + (float)((float)(0xF800 - 0x07E0)/(float)(255-0)) * (b - 0);
-
-        color = tmpr | tmpg | tmpb;
-    }
-
-    for(int x=0; x<DISPLAY_WIDTH; ++x) {
-        for(int y=0; y<DISPLAY_HEIGHT; ++y) {
-            fb[y][x] = color;
-        }
-    }
-
-    //fill tmp
-    unsigned char * fbPtr = _frameBuffer1.get();
-    for(int i=0; i<DISPLAY_HEIGHT; ++i) {
-        int pattr_index = 0;
-
-        for(int y=0; y<DISPLAY_WIDTH; ++y) {
-            unsigned char MSB = fb[i][y] >> 8;
-            unsigned char LSB = fb[i][y] & 0x00FF;
-
-            LSB ^= signal_shaping_pattern[pattr_index++ % signal_shaping_pattern_len];
-            MSB ^= signal_shaping_pattern[pattr_index++ % signal_shaping_pattern_len];
-
-            int idx = (i * ROW_LENGTH) + y * 2;
-            fbPtr[idx] = LSB;
-            fbPtr[idx + 1] = MSB;
-        }
-
-        for(int col=DISPLAY_WIDTH_BYTES; col<ROW_LENGTH; ++col) {
-            fbPtr[i * ROW_LENGTH + col] = 0x00;
-        }
-    }
-
 
     result = libusb_bulk_transfer(_displayHandle.get(), PUSH2_BULK_EP_OUT, fbPtr,
                                     FRAME_BUFFER_LENGTH, NULL, TRANSFER_TIMEOUT);
 
     if(result != 0) return false;
+#else
+    unsigned char * fbPtr = _usbFrame.get();
+    _faker.sendCmd(PushFaker::FakerCmd::DisplayFrame, fbPtr, FRAME_BUFFER_LENGTH);
+#endif
+    
     return true;
 }
 
@@ -180,8 +184,6 @@ void DisplayInterface::setBrignthess(char brightness) {
 char DisplayInterface::getBrightness() {
     return 0;
 }
-
-
 
 libusb_device_handle * findDevice(unsigned int PRODUCT_ID,
                                                     unsigned int VENDOR_ID) {

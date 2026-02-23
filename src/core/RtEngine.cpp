@@ -116,6 +116,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     }
 
     for(RtMidiQueue &q : *_midiInputMap) {
+        //MidiBuffer valid for current frame only... bad naming here...
         MidiBuffer *buf = nullptr;
         for(RtMidiBuffer &b : *_midiInLocal) {
             if(q.id == b.id) {

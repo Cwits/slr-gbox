@@ -1,11 +1,11 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <functional>
-#include <string>
-#include "defines.h"
-#include "core/MidiController.h"
 #include "Status.h"
+#include <string>
 #include <unordered_map>
+#include "core/MidiController.h"
+#include "defines.h"
+#include <functional>
 
 namespace slr {
 

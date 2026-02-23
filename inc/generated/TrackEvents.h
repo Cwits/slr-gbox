@@ -1,13 +1,13 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "defines.h"
-#include "Status.h"
 #include "core/primitives/AudioBuffer.h"
+#include "Status.h"
+#include "defines.h"
 
 namespace slr {
 
-class AudioFile;
 class Track;
+class AudioFile;
 
 namespace Events {
 

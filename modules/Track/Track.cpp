@@ -152,6 +152,9 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
             }
         }
 
+        //get things from injected midi queue to record buffer?
+        //see TODO.txt:41
+
         //sort midi
         sortEventsInMidiBuffer(_midiRecord);
         

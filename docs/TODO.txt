@@ -38,6 +38,9 @@ AudioUnit:
         [\] - Make some config members as bool canLoadFile(type), AudioUnit::playbackFiles() abstraction, and ???
                 canLoadFiles handled in UnitUIBase
         [ ] - Make unified logic for drawing files...
+[ ] - In order to be able to inject midi events to AudioUnit they need some (current frame MidiBuffer) and small SPSCQueue...
+        Injecting should work same way as MidiPort::pushEvent(...) in terms of frame calculating.
+        (Current frame MidiBuffer - buffer where events for current frame will be stored and manipulated?)
         
 Metronome:
 [\] - implement one(must live in rt class)(not tested)
@@ -157,6 +160,7 @@ CMakeLists and EvGen
 [ ] - modify cmakelists.txt to use strict file sources list for compiling, not recursive serach
 [ ] - after cmake mod - move template files from evgen folder to regular inc/src folders and modify evgen to parse them
 [ ] - EvGen not working properly with <moduleEventsGen.h> files that aren't located in src/core folder
+[ ] - Clear and structurize CMakeFile better :S
 
 Tests:
 [ ] - tests for Control Engine
@@ -172,6 +176,13 @@ Tests:
 
 [ ] - there is several memory leaks in ui...?
 
+
+Push:
+[ ] - don't understand how reconnect suppose to work...
+        at some time point all of midi in/midi out/display will return false
+        meaning that device is disconnected... -> ??
+        how to reconnect??
+        Relates to generic midi as well???
 
 
 /* Notes */

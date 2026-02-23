@@ -13,7 +13,11 @@
 #include "core/RtEngine.h"
 #include "core/FlatEvents.h"
 
-#include "push/PushCore.h"
+#if (USE_PUSH == 1)
+// #include "push/PushCore.h"
+#include "ui/pushThread.h"
+// #include "ui/push/MainWindow.h" //does not belong here...
+#endif
 
 #include <alsa/asoundlib.h>
 #include <iostream>
@@ -32,7 +36,12 @@ MidiDevice _virtualDev;
 MidiSubdevice _virtualSub;
 std::unique_ptr<MidiPort> _virtualPort;
 
-std::unique_ptr<PushLib::PushCore> _pushDev;
+
+#if (USE_PUSH == 1)
+#include "ui/pushThread.h"
+// std::unique_ptr<PushLib::PushCore> _pushDev;
+// std::unique_ptr<PushUI::MainWindow> _pushMainWindow;
+#endif
 
 MidiController::MidiController() {
     _input_constant_delay = SettingsManager::getBlockSize();
@@ -94,12 +103,17 @@ MidiController::MidiController() {
         ctrl.updateMidiMaps.localBuffers = local;
         ControlEngine::emitRtControl(ctrl);
     }
+
+#if (USE_PUSH == 1 && USE_FAKE_PUSH == 1)
+    LOG_WARN("FAKING PUSH, DISABLE ON RASPBERRY");
+    PushThread::start(nullptr);
+#endif            
 }
 
 MidiController::~MidiController() {
-    if(_pushDev) {
-        _pushDev->disconnect();
-    }
+#if (USE_PUSH == 1)
+    PushThread::shutdown();
+#endif
 
     for(std::unique_ptr<MidiPort> &port : _activePorts) {
         if(port->id() != 0) 
@@ -148,15 +162,13 @@ void MidiController::checkDevices() {
 
             _deviceList.push_back(std::move(d));
             LOG_INFO("New device %d", devFound._card);
-
+#if (USE_PUSH == 1)
             if(dev->_name.compare("Ableton Push 2") == 0) {
                 //...
+                //need to get everything from here to similar an for GUI - pushThread.cpp with only start() func?
                 LOG_INFO("Ableton device found!"); 
-                _pushDev.reset();
 
-                _pushDev = std::make_unique<PushLib::PushCore>();
-                
-                MidiSubdevice * subdevptr = &dev->_ports.at(0);
+                MidiSubdevice * subdevptr = &dev->_ports.at(0); //get the Live port not User
 
                 std::unique_ptr<MidiPort> pushPort = std::make_unique<MidiPort>();
                 MidiPort *port = pushPort.get();
@@ -166,12 +178,9 @@ void MidiController::checkDevices() {
                 port->_path = subdevptr->_path;
 
                 _activePorts.push_back(std::move(pushPort));
-                if(!_pushDev->connect(dev, subdevptr, port)) { 
-                    //failed...
-                    LOG_ERROR("Failed to connect Ableton Push 2");
-                    continue;
-                }
+                PushThread::start(port);
             }
+#endif
             
         }
     }

@@ -261,6 +261,8 @@ bool shutdown() {
 
     _bufferManager->shutdown();
 
+    _midiController.reset();
+
     _controlThread.join();
     _midiDiscoverThread.join();
 
@@ -300,6 +302,15 @@ void awaitRtResult(const FlatEvents::FlatControl &ctl,
 
     _awaitEvents.push_back(ev);
     emitRtControl(ctl);
+}
+
+/* 
+    Blocks the execution until timeout reached or got any kind of response
+    return true on success, false on fail.
+*/
+bool awaitEventBlocking(const Events::Event &ev, unsigned int msTimeout) {
+    LOG_WARN("Not implemented"); // :D
+    return false;
 }
 
 void notify() {
