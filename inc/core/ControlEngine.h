@@ -26,14 +26,13 @@ void emergencyStop();
 
 const ID generateCommandId();
 void EmitEvent(const Events::Event &e);
-void emitRtControl(const FlatEvents::FlatControl &ctl);
+// bool EmitEventBlocking(const Events::Event &e, int msTimeout);
+void emitRtControl(FlatEvents::FlatControl &ctl);
 void emitRtResponse(const FlatEvents::FlatResponse &resp);
 
 void awaitRtResult(const FlatEvents::FlatControl &ctl,
                 std::function<void(const ControlContext&, 
                     const FlatEvents::FlatResponse&)> clb);
-
-bool awaitEventBlocking(const Events::Event &ev, unsigned int msTimeout);
 
 void notify();
 

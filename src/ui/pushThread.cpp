@@ -7,6 +7,7 @@
 #include "core/Events.h"
 
 #include "push/PushCore.h"
+#include "push/PushContext.h"
 #include "ui/push/MainWindow.h" //does not belong here...
 
 #include "slr_config.h"
@@ -54,75 +55,13 @@ void threadLoop(slr::MidiPort *port) {
     _pushMainWindow.reset();
 
     _pushDev = std::make_unique<PushLib::PushCore>();
-    _pushMainWindow = std::make_unique<PushUI::MainWindow>();
+    PushLib::PushContext *pctx = _pushDev->context();
+    _pushMainWindow = std::make_unique<PushUI::MainWindow>(pctx);
 
     _pushDev->setMainWidget(_pushMainWindow.get());
 
-#if (USE_FAKE_PUSH == 0)
-    //... some preps
-    port->setAlternativeHandles(
-        [push = _pushDev.get()](const slr::MidiEventType t){
-            push->handleRealTimeEvent(t);
-        },
-        [push = _pushDev.get()](const unsigned char *data, const int &len){
-            push->handleSysexEvent(data, len);
-        },
-        [push = _pushDev.get()](const slr::MidiEventType t, const int ch, const unsigned char *data){
-            push->handleEvent(t, ch, data);
-        }
-    );
-
-    /*
-        ugh... this so terrible... 
-    */
-    std::atomic<bool> trigg1 = false;
-    std::atomic<bool> trigg2 = false;
-    int result = 0;
-    int result2 = 0;
-
-    slr::Events::ToggleMidiDevice e = {
-        .device = port->_dev,
-        .subdev = port->_subdev,
-        .port = slr::DevicePort::INPUT,
-        .newState = true,
-        .completed = [bptr = &trigg1, result](int res) mutable {
-                        LOG_INFO("Midi Device toggled res %d", res);
-                        result = res;
-                        bptr->store(true);
-                    }
-    };
-    slr::EmitEvent(e);
-
-    // if(!slr::ControlEngine::awaitEventBlocking(e, 1000*5)) {
-    //     LOG_ERROR("Failed to enable Input midi port for push");
-    //     return;
-    // }
-    
-    e.port = slr::DevicePort::OUTPUT;
-    e.completed = [bptr = &trigg2, result2](int res) mutable {
-        LOG_INFO("Midi Device toggled res %d", res);
-        result2 = res;
-        bptr->store(true);
-    };
-    slr::EmitEvent(e);
-
-    // if(!slr::ControlEngine::awaitEventBlocking(e, 1000*5)) {
-    //     LOG_ERROR("Failed to enable Output midi port for push");
-    //     return; 
-    // }
-
-    while(!trigg1 && !trigg2) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-
-    if(result != 0 && result2 != 0) {
-        LOG_ERROR("Failed to init Push Midi communication");
-        return;
-    }
-#endif
-
     if(!_pushDev->connect(port)) {
-        LOG_ERROR("Failed to connect Push display");
+        LOG_ERROR("Failed to connect Push");
         return;
     }
 

@@ -4,16 +4,15 @@
 
 #include "push/Color.h"
 #include "push/PushLib.h"
+#include "push/PushPainter.h"
+#include "push/PushContext.h"
 
 #include <vector>
 
 namespace PushLib {
 
-class Display;
-class Painter;
-
 struct Widget {
-    Widget(Widget * parent);
+    Widget(Widget * parent, PushContext * const pctx);
     virtual ~Widget();
 
     void addChild(Widget * child) {
@@ -32,6 +31,7 @@ struct Widget {
     virtual bool handleButton(PushLib::ButtonEvent &ev) = 0;
 
     public:
+    PushContext * const _pctx;
     std::vector<Widget*> _childrens;
     bool _dirty;
 

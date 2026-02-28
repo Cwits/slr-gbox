@@ -1,9 +1,9 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <string>
-#include "core/primitives/MidiRoute.h"
 #include "defines.h"
 #include "core/primitives/AudioRoute.h"
+#include "core/primitives/MidiRoute.h"
+#include <string>
 
 namespace slr {
 

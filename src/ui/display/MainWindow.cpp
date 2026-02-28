@@ -368,6 +368,7 @@ View * MainWindow::getSwitchViewTarget(MainView & view) {
 
 void MainWindow::playheadUpdateCb(lv_timer_t * timer) {
     slr::Events::RequestPlayhead e;
+    // e.commandId = slr::Events::GenerateEventId();
     slr::EmitEvent(e);
     // lv_timer_reset(timer);
 }

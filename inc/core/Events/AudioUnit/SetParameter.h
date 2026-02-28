@@ -39,7 +39,6 @@ void handleEvent(const ControlContext &ctx, const Events::SetParameter &e) {
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SetParameter;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.setParameter.unit = unit;
     ctl.setParameter.parameterId = e.parameterId;
     ctl.setParameter.value = e.value;

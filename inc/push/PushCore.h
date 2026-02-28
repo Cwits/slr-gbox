@@ -2,15 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "core/primitives/MidiEvent.h"
-#include "push/PushDisplayInterface.h"
+#include "push/PushDisplay.h"
 #include "push/PushPainter.h"
+#include "push/PushContext.h"
+#include "push/PushMidi.h"
+#include "push/PushSysex.h"
+#include "push/PushLeds.h"
+#include "push/PushPads.h"
 #include "push/PushLib.h"
-
-#include <queue>
-#include <mutex>
-#include <thread>
-#include <atomic>
 
 namespace slr {
     class MidiPort;
@@ -29,28 +28,28 @@ struct PushCore {
     void disconnect();
     bool connected() const { return _connected; }
 
+    PushContext * context() { return &_context; }
+
     void setMainWidget(Widget * w) { _mainWidget = w; _manualRedraw = true; }
     void tick(int dt);
 
-    void handleRealTimeEvent(const slr::MidiEventType type);
-    void handleSysexEvent(const unsigned char *data, const int &len);
-    void handleEvent(const slr::MidiEventType type, const int channel, const unsigned char *data);
+    void redraw() { _manualRedraw = true; }
 
     private:
     bool _connected;
-    slr::MidiPort * _port;
 
+    PushMidi _midi;
+    PushSysex _sysex;
     Painter _painter;
-    DisplayInterface _display;
-
-    bool dispatchEvents(); 
-
-    std::mutex _pushMutex;
-    std::queue<ButtonEvent> _buttonQueue;
-    std::queue<ButtonEvent> _localButtonQueue;
+    PushDisplay _display;
+    PushLeds _leds;
+    PushPads _pads;
+    PushContext _context;
 
     bool _manualRedraw;
     Widget * _mainWidget;
+
+    friend class PushMidi;
 };
 
 }

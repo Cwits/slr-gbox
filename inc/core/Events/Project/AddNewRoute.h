@@ -38,7 +38,6 @@ void handleEvent(const ControlContext &ctx, const Events::AddNewRoute &e) {
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
      
     ControlEngine::awaitRtResult(ctl, [](const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
         if(resp.status == Status::Ok) {

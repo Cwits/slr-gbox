@@ -1,16 +1,16 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/ControlEngine.h"
-#include "Status.h"
-#include "ui/uiControls.h"
-#include "snapshots/ProjectView.h"
-#include "logger.h"
 #include "core/Project.h"
 #include "core/primitives/AudioUnit.h"
-#include "core/primitives/FileContainer.h"
-#include "snapshots/AudioUnitView.h"
-#include "core/primitives/RenderPlan.h"
+#include "core/ControlEngine.h"
+#include "snapshots/ProjectView.h"
 #include "core/ModuleManager.h"
+#include "Status.h"
+#include "snapshots/AudioUnitView.h"
+#include "core/primitives/FileContainer.h"
+#include "ui/uiControls.h"
+#include "logger.h"
+#include "core/primitives/RenderPlan.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -38,7 +38,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::AddNewRoute &e)
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
      
     ControlEngine::awaitRtResult(ctl, [](const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
         if(resp.status == Status::Ok) {
@@ -65,7 +64,7 @@ inline void handleEvent(const ControlContext &ctx, const Events::AddNewMidiRoute
     //     UIControls::floatingWarning("Invalid route");
     //     LOG_ERROR("Invalid route");
     //     return;
-    // }
+    // } 
     
     ctx.project->addRoute(e.route);
 
@@ -83,7 +82,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::AddNewMidiRoute
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
      
     ControlEngine::awaitRtResult(ctl, [](const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
         if(resp.status == Status::Ok) {
@@ -118,7 +116,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
     
     ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
         if(resp.status != Status::Ok) {

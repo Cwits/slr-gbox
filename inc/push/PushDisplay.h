@@ -3,7 +3,6 @@
 #pragma once
 
 #include "push/PushLib.h"
-// #include "libusb.h"
 #include <libusb-1.0/libusb.h>
 
 #include <functional>
@@ -13,15 +12,11 @@ namespace PushLib {
 
 class Widget;
 class Painter;
+class PushSysex;
 
-struct DisplayInterface {
-    enum class DisplaySysex : char {
-        SET_BRIGHTNESS = 0x08,
-        GET_BRIGHTNESS = 0x09
-    };
-
-    DisplayInterface(/*SysexInterface &sysex*/Painter & painter);
-    ~DisplayInterface();
+struct PushDisplay {
+    PushDisplay(PushSysex &sysex, Painter & painter);
+    ~PushDisplay();
 
     bool connect();
     bool reconnect();
@@ -34,6 +29,7 @@ struct DisplayInterface {
     char getBrightness();
 
     private:
+    PushSysex &_sysex;
     Painter & _painter;
 
     using devHandlePtr = std::unique_ptr<libusb_device_handle,

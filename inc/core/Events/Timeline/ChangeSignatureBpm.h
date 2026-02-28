@@ -26,7 +26,6 @@ void handleEvent(const ControlContext &ctx, const Events::ChangeSigBpm &e) {
     LOG_INFO("Change time signature and bpm. Sig: %u/%u, bpm: %f", e.sig._numerator, e.sig._denominator, e.bpm);
     FlatEvents::FlatControl sig;
     sig.type = FlatEvents::FlatControl::Type::ChangeSigBpm;
-    sig.commandId = ControlEngine::generateCommandId();
     sig.changeSigBpm.tl = &ctx.project->timeline();
     sig.changeSigBpm.bpm = e.bpm;
     sig.changeSigBpm.sig = e.sig;

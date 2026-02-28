@@ -98,8 +98,15 @@ file(GLOB SOURCES
 
   src/push/PushFaker.cpp
   src/push/PushCore.cpp
-  src/push/PushDisplayInterface.cpp
+  src/push/PushDisplay.cpp
+  src/push/PushMidi.cpp
+  src/push/PushSysex.cpp
+  src/push/PushLeds.cpp
+  src/push/PushPads.cpp
+  src/push/PushPadLayout.cpp
   src/push/PushPainter.cpp
+  src/push/PushFonts.cpp
+  src/push/PushContext.cpp
   src/push/Widget.cpp
 
   src/ui/push/MainWindow.cpp

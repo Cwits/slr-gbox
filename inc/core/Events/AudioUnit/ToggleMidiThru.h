@@ -33,7 +33,6 @@ void handleEvent(const ControlContext &ctx, const Events::ToggleMidiThru &e) {
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::ToggleMidiThru;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.toggleMidiThru.unit = u;
     ctl.toggleMidiThru.newState = e.newState;
     ControlEngine::emitRtControl(ctl);

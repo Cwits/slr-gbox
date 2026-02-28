@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "push/PushDisplayInterface.h"
+#include "push/PushDisplay.h"
 // #include "push/widgets/Widget.h"
 #include "push/PushPainter.h"
+#include "push/PushSysex.h"
 
 #include "logger.h"
 #include "slr_config.h"
@@ -31,8 +32,6 @@ constexpr int ROW_LENGTH = DISPLAY_WIDTH_BYTES + DISPLAY_PADDING_BYTES;
 //why *2??
 constexpr int FRAME_BUFFER_LENGTH = (ROW_LENGTH * (DISPLAY_HEIGHT/**2*/));
 
-// using Pixel = DisplayInterface::Pixel;
-// using devHandlePtr = DisplayInterface::devHandlePtr;
 using devListPtr = std::unique_ptr<libusb_device *, std::function<void(libusb_device **)>>;
 
 libusb_device_handle * findDevice(unsigned int PRODUCT_ID, 
@@ -42,7 +41,7 @@ libusb_device ** getDeviceList();
 constexpr unsigned int ALBETON_VENDOR_ID = 0x2982;
 constexpr unsigned int ABLETON_PRODUCT_ID = 0x1967;
 
-unsigned char frame_header[16] = { 0xFF, 0xCC, 0xAA, 0x88, 0x00, 0x00,
+constexpr unsigned char frame_header[16] = { 0xFF, 0xCC, 0xAA, 0x88, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00 };
 
@@ -53,16 +52,22 @@ constexpr unsigned char signal_shaping_pattern[signal_shaping_pattern_len] = {
 constexpr unsigned char PUSH2_BULK_EP_OUT = 0x01;
 constexpr unsigned int TRANSFER_TIMEOUT = 500;
 
-DisplayInterface::DisplayInterface(/*SysexInterface &sysex*/Painter & painter) : _painter(painter)
+enum DisplaySysex : unsigned char {
+    SET_BRIGHTNESS = 0x08,
+    GET_BRIGHTNESS = 0x09
+};
+
+PushDisplay::PushDisplay(PushSysex &sysex, Painter & painter) : _sysex(sysex), _painter(painter)
 {
+    _sysex.registerCmdWithReply(SET_BRIGHTNESS);
+    _sysex.registerCmdWithReply(GET_BRIGHTNESS);
+}
+
+PushDisplay::~PushDisplay() {
 
 }
 
-DisplayInterface::~DisplayInterface() {
-
-}
-
-bool DisplayInterface::connect() {
+bool PushDisplay::connect() {
     
 #if (USE_FAKE_PUSH == 0)
     if(_displayHandle) return false;
@@ -103,18 +108,18 @@ bool DisplayInterface::connect() {
     return true;
 }
 
-bool DisplayInterface::reconnect() {
+bool PushDisplay::reconnect() {
     return true;
 }
 
-bool DisplayInterface::disconnect() {
+bool PushDisplay::disconnect() {
     if(_displayHandle) {
         _displayHandle.reset(nullptr);
     }
     return true;
 }
 
-void DisplayInterface::updateFrame(/* Pixel buffer */) {
+void PushDisplay::updateFrame(/* Pixel buffer */) {
    
     //do some time calculations...??
     //...
@@ -127,7 +132,7 @@ void DisplayInterface::updateFrame(/* Pixel buffer */) {
 
     
     //fill tmp
-    Pixel * canvas = _painter.canvas();
+    const Pixel * canvas = _painter.canvas();
     unsigned char * fbPtr = _usbFrame.get();
     for(int x=0; x<DISPLAY_WIDTH; ++x) {
 
@@ -156,7 +161,7 @@ void DisplayInterface::updateFrame(/* Pixel buffer */) {
     // }
 }
 
-bool DisplayInterface::sendFrame() {
+bool PushDisplay::sendFrame() {
 #if (USE_FAKE_PUSH == 0)
     int result = libusb_bulk_transfer(_displayHandle.get(), PUSH2_BULK_EP_OUT,
                                         frame_header, sizeof(frame_header), NULL,
@@ -165,6 +170,7 @@ bool DisplayInterface::sendFrame() {
 
     if(result != 0) return false;
 
+    unsigned char * fbPtr = _usbFrame.get();
     result = libusb_bulk_transfer(_displayHandle.get(), PUSH2_BULK_EP_OUT, fbPtr,
                                     FRAME_BUFFER_LENGTH, NULL, TRANSFER_TIMEOUT);
 
@@ -177,11 +183,11 @@ bool DisplayInterface::sendFrame() {
     return true;
 }
 
-void DisplayInterface::setBrignthess(char brightness) {
+void PushDisplay::setBrignthess(char brightness) {
 
 }
 
-char DisplayInterface::getBrightness() {
+char PushDisplay::getBrightness() {
     return 0;
 }
 

@@ -39,8 +39,12 @@ std::unique_ptr<MidiPort> _virtualPort;
 
 #if (USE_PUSH == 1)
 #include "ui/pushThread.h"
-// std::unique_ptr<PushLib::PushCore> _pushDev;
-// std::unique_ptr<PushUI::MainWindow> _pushMainWindow;
+
+    #if (USE_FAKE_PUSH == 1)
+    std::unique_ptr<MidiDevice> _pdev;
+    std::unique_ptr<MidiPort> pushPort;
+    #endif
+
 #endif
 
 MidiController::MidiController() {
@@ -106,7 +110,31 @@ MidiController::MidiController() {
 
 #if (USE_PUSH == 1 && USE_FAKE_PUSH == 1)
     LOG_WARN("FAKING PUSH, DISABLE ON RASPBERRY");
-    PushThread::start(nullptr);
+    
+    MidiSubdevice psdev;
+    psdev._hasInput = true;
+    psdev._hasOutput = true;
+    psdev._inputName = "AFake";
+    psdev._outputName = "AFake out";
+    psdev._path = "";
+    
+    _pdev.reset();
+    _pdev = std::make_unique<MidiDevice>();
+    _pdev->_card = -1;
+    _pdev->_name = "Ableton Fake";
+    _pdev->_online = true;
+    _pdev->_ports.push_back(psdev);
+
+    pushPort.reset();
+    pushPort = std::make_unique<MidiPort>();
+    MidiPort *aport = pushPort.get();
+    aport->_controller = this;
+    aport->_ownerDev = _pdev.get();
+    aport->_ownerSubdev = &_pdev->_ports.at(0);
+    aport->_path = "";
+    _activePorts.push_back(std::move(pushPort));
+                
+    PushThread::start(aport);
 #endif            
 }
 

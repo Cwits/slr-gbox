@@ -78,7 +78,6 @@ void handleEvent(const ControlContext &ctx, const Events::RecordArm &e) {
 
     FlatEvents::FlatControl rec;
     rec.type = FlatEvents::FlatControl::Type::RecordArm;
-    rec.commandId = ControlEngine::generateCommandId();
     rec.recordArm.track = trg;
     rec.recordArm.recordState = e.recordState;
     rec.recordArm.recordSource = e.recordSource;

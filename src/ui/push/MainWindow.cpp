@@ -7,8 +7,13 @@
 
 namespace PushUI {
 
-MainWindow::MainWindow() :
-    PushLib::Widget(nullptr)
+int clrRoot = 50;
+int clrIn = 20;
+int clrOut = 30;
+int clrPress = 10;
+
+MainWindow::MainWindow(PushLib::PushContext * const pctx) :
+    PushLib::Widget(nullptr, pctx)
 {
 }
 
@@ -21,9 +26,9 @@ void MainWindow::paint(PushLib::Painter &paint) {
     // paint.clear();
     paint.fill(0);
 
-    paint.Rectangle(RectX, 50+RectY, 50, 50, static_cast<PushLib::Color>(PushLib::COLORS::Red));
-    paint.EmptyRectangle(70+RectX, 50+RectY, 50, 50, 1, static_cast<PushLib::Color>(PushLib::COLORS::Green));
-    paint.Rectangle(140+RectX, 50+RectY, 50, 50, PushLib::rgb(255, 100, 100));
+    paint.filledRectangle(RectX, 50+RectY, 50, 50, COLORS::Red);
+    paint.Rectangle(70+RectX, 50+RectY, 50, 50, 1, COLORS::Green);
+    paint.filledRectangle(140+RectX, 50+RectY, 50, 50, rgb(255, 100, 100));
     uint16_t color = 0;
     if(RectColor == 0) color = rgb(255, 0, 0);
     else if(RectColor == 1) color = rgb(0, 255, 0);
@@ -33,7 +38,8 @@ void MainWindow::paint(PushLib::Painter &paint) {
     else if(RectColor == 5) color = rgb(0, 255, 255);
     else if(RectColor == 6) color = rgb(100, 100, 100);
     else if(RectColor == 7) color = rgb(255, 255, 255);
-    paint.EmptyRectangle(500+RectX, 50+RectY, 50, 50, 1, color);
+    paint.Rectangle(500+RectX, 50+RectY, 50, 50, 1, color);
+    paint.writeString(10, 120, "Hello wirdl", Font_16x26, COLORS::White);
 }
 
 bool MainWindow::handleButton(PushLib::ButtonEvent &ev) {
@@ -78,6 +84,36 @@ bool MainWindow::handleButton(PushLib::ButtonEvent &ev) {
         } else if(ev.button == Button::DisplayBottom8) {
             if(ev.type == ButtonEventType::Pressed)
                 RectColor = 7;
+        } else if(ev.button == Button::Accent) {
+            if(ev.type == ButtonEventType::Pressed) {
+                _pctx->setPadsColors(clrRoot, clrIn, clrOut, clrPress);
+                clrRoot++;
+                if(clrRoot > 127) clrRoot = 0;
+                clrIn++;
+                if(clrIn > 127) clrIn = 0;
+                clrOut++;
+                if(clrOut > 127) clrOut = 0;
+                clrPress++;
+                if(clrPress > 127) clrPress = 0;
+            }
+        } else if(ev.button == Button::AddDevice) {
+            if(ev.type == ButtonEventType::Pressed) {
+                _pctx->setPadsChromatic(!_pctx->isPadsChromatic());
+            }
+        } else if(ev.button == Button::Browser) {
+            if(ev.type == ButtonEventType::Pressed) {
+                static int tmp = 0;
+                _pctx->setPadsScale(static_cast<Scales>(tmp));
+                tmp++;
+                if(tmp >= static_cast<int>(Scales::LAST)) tmp = 0;
+            }
+        } else if(ev.button == Button::Device) {
+            if(ev.type == ButtonEventType::Pressed) {
+                static int tmp2 = 0;
+                _pctx->setPadsLayout(static_cast<LayoutStyle>(tmp2));
+                if(tmp2 == 0) tmp2 = 1;
+                else if(tmp2 == 1) tmp2 = 0;
+            }
         }
     return true;
 }

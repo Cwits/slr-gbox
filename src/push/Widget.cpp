@@ -4,7 +4,9 @@
 
 namespace PushLib {
 
-Widget::Widget(Widget * parent) {
+Widget::Widget(Widget * parent, PushContext * const pctx) :
+    _pctx(pctx)
+{
 
 }
 

@@ -42,6 +42,7 @@
 #include <optional>
 #include <condition_variable>
 #include <unordered_map>
+#include <future>
 
 #define QUEUE_INITIAL_SIZE 128
 
@@ -282,7 +283,15 @@ void EmitEvent(const Events::Event &e) {
     // _controlEventQueue.push(e);
 }
 
-void emitRtControl(const FlatEvents::FlatControl &ctl) {
+// bool EmitEventBlocking(const Events::Event &e, int msTimeout) {
+//     std::promise<bool> prom;
+//     std::future<bool> f = prom.get_future();
+
+
+// }
+
+void emitRtControl(FlatEvents::FlatControl &ctl) {
+    ctl.commandId = ControlEngine::generateCommandId();
     _engine->FlatControlEvent(ctl);
     // _pendingAck.push_back({ctl, false});
 }
@@ -301,16 +310,7 @@ void awaitRtResult(const FlatEvents::FlatControl &ctl,
     ev.deleteEvent = false;
 
     _awaitEvents.push_back(ev);
-    emitRtControl(ctl);
-}
-
-/* 
-    Blocks the execution until timeout reached or got any kind of response
-    return true on success, false on fail.
-*/
-bool awaitEventBlocking(const Events::Event &ev, unsigned int msTimeout) {
-    LOG_WARN("Not implemented"); // :D
-    return false;
+    emitRtControl(ev.ctl);
 }
 
 void notify() {

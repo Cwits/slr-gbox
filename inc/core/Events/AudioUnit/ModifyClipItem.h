@@ -60,7 +60,6 @@ void handleEvent(const ControlContext &ctx, const Events::ModClipItem &e) {
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::ModClipItem;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.modClipItem.unit = unit;
     ctl.modClipItem.item = item;
     ctl.modClipItem.startPosition = e.startPosition;

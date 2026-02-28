@@ -29,7 +29,6 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
     
     ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
         if(resp.status != Status::Ok) {

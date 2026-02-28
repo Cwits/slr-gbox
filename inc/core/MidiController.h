@@ -64,14 +64,15 @@ struct RtMidiOutput {
     RtMidiOutput(MidiPort *port, ID id) : id(id), port(port) {}
     const ID id;
     void sendEvent(const MidiEvent &ev) {
-        if(!port->outputOpened()) return;
+        port->sendMidi(ev);
+        // if(!port->outputOpened()) return;
 
-        bool wasEmpty = port->outQueue()->empty();
-        port->outQueue()->push(ev);
-        if(wasEmpty) {
-            uint64_t one = 1;
-            write(port->_efd, &one, sizeof(one));
-        }
+        // bool wasEmpty = port->outQueue()->empty();
+        // port->outQueue()->push(ev);
+        // if(wasEmpty) {
+        //     uint64_t one = 1;
+        //     write(port->_efd, &one, sizeof(one));
+        // }
     }
 
     private:

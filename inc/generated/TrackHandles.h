@@ -1,28 +1,28 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "ui/uiControls.h"
-#include "snapshots/ProjectView.h"
 #include "core/Project.h"
-#include "core/primitives/AudioBuffer.h"
-#include "core/FileTasks.h"
-#include "core/FileWorker.h"
-#include <cmath>
-#include "defines.h"
-#include "core/SettingsManager.h"
-#include "core/FlatEvents.h"
-#include "core/drivers/AudioDriver.h"
-#include "modules/Track/Track.h"
-#include "core/primitives/File.h"
-#include "core/ControlEngine.h"
-#include "logger.h"
-#include "modules/Track/TrackView.h"
-#include "core/primitives/AudioUnit.h"
 #include "core/RtEngine.h"
-#include "core/utility/helper.h"
-#include "snapshots/AudioUnitView.h"
-#include "core/utility/basicAudioManipulation.h"
 #include "core/primitives/AudioFile.h"
+#include "defines.h"
+#include "core/primitives/AudioUnit.h"
+#include "core/primitives/File.h"
+#include "core/utility/basicAudioManipulation.h"
+#include "modules/Track/TrackView.h"
 #include <string>
+#include "core/ControlEngine.h"
+#include "snapshots/ProjectView.h"
+#include "modules/Track/Track.h"
+#include "core/FileTasks.h"
+#include "core/utility/helper.h"
+#include "ui/uiControls.h"
+#include "core/primitives/AudioBuffer.h"
+#include "logger.h"
+#include "core/SettingsManager.h"
+#include <cmath>
+#include "core/FileWorker.h"
+#include "snapshots/AudioUnitView.h"
+#include "core/drivers/AudioDriver.h"
+#include "core/FlatEvents.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -150,7 +150,6 @@ inline void handleReinitTrackRecord(const ControlContext &ctx, const FlatEvents:
 
     FlatEvents::FlatControl reinit;
     reinit.type = FlatEvents::FlatControl::Type::ReinitTrackRecord;
-    reinit.commandId = ControlEngine::generateCommandId();
     reinit.reinitTrackRecord.track = track;
     reinit.reinitTrackRecord.status = Status::Ok;
     ControlEngine::emitRtControl(reinit);
@@ -204,7 +203,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::RecordArm &e) {
 
     FlatEvents::FlatControl rec;
     rec.type = FlatEvents::FlatControl::Type::RecordArm;
-    rec.commandId = ControlEngine::generateCommandId();
     rec.recordArm.track = trg;
     rec.recordArm.recordState = e.recordState;
     rec.recordArm.recordSource = e.recordSource;

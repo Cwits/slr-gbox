@@ -196,7 +196,6 @@ void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevice &e) {
 
         FlatEvents::FlatControl ctrl;
         ctrl.type = FlatEvents::FlatControl::Type::UpdateMidiMaps;
-        ctrl.commandId = ControlEngine::generateCommandId();
         ctrl.updateMidiMaps.engine = ctx.engine;
         ctrl.updateMidiMaps.inputMap = inMap;
         ctrl.updateMidiMaps.outputMap = outMap;

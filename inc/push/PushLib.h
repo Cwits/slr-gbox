@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include <vector>
+
 namespace PushLib {
 /* 
 
@@ -235,6 +237,32 @@ struct PushStatus {
     int uptime;
 };
 
+using Layout = std::vector<unsigned char>;
+using Scale = std::vector<unsigned char>;
+
+enum class LayoutStyle {
+    Default = 0,
+    Layout4 = 1
+};
+
+enum class Scales {
+    NaturalMajor     = 0, 
+    MajorHarmonic    = 1, 
+    Minor            = 2, 
+    MinorHarmonic    = 3, 
+    MinorMelodic     = 4, 
+    Dorian           = 5, 
+    Phrygian         = 6, 
+    Lydian           = 7, 
+    Mixolydian       = 8, 
+    Aeolian          = 9, 
+    Locrian          = 10, 
+    MajorPentatonic  = 11, 
+    MajorBlues       = 12, 
+    MinorPentatonic  = 13, 
+    Blues            = 14, 
+    LAST
+};
 
 
 }

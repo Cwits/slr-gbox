@@ -43,6 +43,12 @@ struct MidiPort {
     bool justCreated() const { return _justCreated; }
     void portsAddedToRt() { _justCreated = false; }
 
+    //from device to input queue
+    void pushEvent(const MidiEventType type, const int channel, const int note, const int velocity);
+
+    //from output queue to device
+    void sendMidi(const MidiEvent &ev);
+
     MidiBuffer * rtLocalBuffer() { return _rtLocalBuffer.get(); }
     SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE> * inQueue() { return _inQueue.get();}
     SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE> * outQueue() { return _outQueue.get(); }
@@ -88,8 +94,7 @@ struct MidiPort {
     int _dataBytesReaded;
     unsigned char _rawData[128];
     void parseInput(unsigned char *raw, const int &size);
-    void pushEvent(const MidiEventType type, const int channel, const int note, const int velocity);
-
+    
     friend class MidiController;
     friend void event(MidiPort *port, const MidiEventType type, const int channel, const unsigned char *data);
     friend void realTimeEvent(MidiPort *port, const MidiEventType type);

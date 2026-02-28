@@ -13,7 +13,7 @@ namespace PushLib {
 namespace PushUI {
 
 struct MainWindow : public PushLib::Widget {
-    MainWindow();
+    MainWindow(PushLib::PushContext * const pctx);
     ~MainWindow();
 
     void paint(PushLib::Painter &paint);

@@ -61,7 +61,6 @@ void handleReinitTrackRecord(const ControlContext &ctx, const FlatEvents::FlatRe
 
     FlatEvents::FlatControl reinit;
     reinit.type = FlatEvents::FlatControl::Type::ReinitTrackRecord;
-    reinit.commandId = ControlEngine::generateCommandId();
     reinit.reinitTrackRecord.track = track;
     reinit.reinitTrackRecord.status = Status::Ok;
     ControlEngine::emitRtControl(reinit);

@@ -1,15 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <vector>
-#include "core/ControlEngine.h"
+#include <unordered_map>
 #include "core/primitives/MidiEvent.h" //for RtMidiPort
+#include "core/ControlEngine.h"
+#include "core/RtEngine.h"
+#include "core/MidiController.h"
 #include <array>
 #include "Status.h"
-#include "logger.h"
 #include "core/primitives/MidiEvent.h"
-#include "core/RtEngine.h"
-#include <unordered_map>
-#include "core/MidiController.h"
+#include "logger.h"
+#include <vector>
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -174,7 +174,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
 
         FlatEvents::FlatControl ctrl;
         ctrl.type = FlatEvents::FlatControl::Type::UpdateMidiMaps;
-        ctrl.commandId = ControlEngine::generateCommandId();
         ctrl.updateMidiMaps.engine = ctx.engine;
         ctrl.updateMidiMaps.inputMap = inMap;
         ctrl.updateMidiMaps.outputMap = outMap;

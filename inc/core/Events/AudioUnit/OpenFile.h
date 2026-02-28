@@ -136,7 +136,6 @@ void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
 
 		FlatEvents::FlatControl ctrl;
 		ctrl.type = FlatEvents::FlatControl::Type::SwapContainer;
-		ctrl.commandId = ControlEngine::generateCommandId();
 		ctrl.swapContainer.unit = unit;
 		ctrl.swapContainer.container = workable;
    
@@ -153,7 +152,6 @@ void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
 		LOG_INFO("Appending item %u to unit id: %u", appendable->_uniqueId, e.unitId);
 		FlatEvents::FlatControl ctrl;
 		ctrl.type = FlatEvents::FlatControl::Type::AppendItem;
-		ctrl.commandId = ControlEngine::generateCommandId();
 		ctrl.appendItem.unit = unit;
 		ctrl.appendItem.item = appendable;
 		ControlEngine::emitRtControl(ctrl);

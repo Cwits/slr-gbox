@@ -11,7 +11,10 @@ Control Engine:
 [ ] - make a loopback latency test function that will be called from settings.
         (call a function -> warning("make a loopback from output to input" OK/Cancle) -> test completing -> 
         popup with result -> "Result measured X samples latency" Apply/Cancle)
-
+[x] - bit of rework for Events - have to make them get their own command id every time event fired(e.g. in EmitEvent())
+        ...emmm... problem: RequestPlayheadPosition event from UI::MainWindow.cpp:372 backfires because of same commandId of flat event
+        Done? now there is no need to assign ID manually - all is done in emitRtEvent(clt); function
+        
 Parameters: 
 [\] - lil bit of rework. use std::vector instead of array, (use bool, int instead of using float everywhere... eeee...hz), (check in google drive)
         as soon as all the parameters are prepared in NRT and doesn't change dynamically - should be no problems
@@ -59,11 +62,11 @@ Refactoring:
 [ ] - separate defines.h to two files - slr_config.h and common.h
 [ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
 [ ] - Folder structure need bit of changes:
-        separate RT core from everything else(but than timeline should live in RT and not in project?)
-        RT must become separate compilable entity?
-        eee...
-        PROFIT?!
-
+        [ ] - separate RT core from everything else(but than timeline should live in RT and not in project?)
+                RT must become separate compilable entity?
+                eee...
+                PROFIT?!
+        [ ] - primitives folder needs to be in inc/ but not in inc/core/ (1 layer higher)
 
 RtEngine:
 [ ] - ideally RtEngine should not know anything about Project. The RenderPlan can be stored in Project as std::unique_ptr, and passed as it happens now
@@ -183,6 +186,9 @@ Push:
         meaning that device is disconnected... -> ??
         how to reconnect??
         Relates to generic midi as well???
+
+[ ] - MidiInterface::handleEvent...
+        //TODO: the other's important CC will be here as well - e.g. sustain pedal... smth else?
 
 
 /* Notes */

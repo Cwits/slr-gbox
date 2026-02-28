@@ -18,6 +18,7 @@ using Event = std::variant<
 } //namespace Events
 
 void EmitEvent(const Events::Event & e);
+// bool EmitEventBlocking(const Events::Event &e, int msTimeout); //return false on event failed or timeout(ms)
 class ProjectView;
 ProjectView * getLastSnapshot();
 

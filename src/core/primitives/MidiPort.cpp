@@ -243,6 +243,17 @@ void MidiPort::pushEvent(const MidiEventType type, const int channel, const int 
     _inQueue->push(ev);
 }
 
+void MidiPort::sendMidi(const MidiEvent &ev) {
+    if(!outputOpened()) return;
+
+    bool wasEmpty = outQueue()->empty();
+    outQueue()->push(ev);
+    if(wasEmpty) {
+        uint64_t one = 1;
+        write(_efd, &one, sizeof(one));
+    }
+}
+
 /* some LLM stuff, need testing. don't want to dive deep into alsa right now */
 void MidiPort::writeHandle(MidiPort *port) {
     snd_rawmidi_t *out = port->_outputHandle;

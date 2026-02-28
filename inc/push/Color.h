@@ -3,19 +3,21 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 namespace PushLib {
 
 using Color = uint16_t;
 using Pixel = uint16_t;
 
-enum class COLORS {
-    Black   = 0x0000,
-    Red     = 0x001F, // 
-    Green   = 0x07E0, //
-    Blue    = 0xFFE0, //...
-    White   = 0xFFFF
-};
+namespace COLORS {
+    constexpr Color Black   = 0x0000;
+    constexpr Color Red     = 0x001F;
+    constexpr Color Green   = 0x07E0;
+    constexpr Color Blue    = 0xFFE0;
+    constexpr Color White   = 0xFFFF;
+}
 
 inline Color rgb(int r, int g, int b) {
     uint16_t tmpr, tmpg, tmpb;
@@ -27,5 +29,13 @@ inline Color rgb(int r, int g, int b) {
 
     return tmpr | tmpg | tmpb;
 }
+
+inline Color invert(Color color) { return (color ^ 0xFFFF); }
+
+inline Color random() {
+    return rgb(rand()%255, rand()%255, rand()%255);
+}
+
+using SysexMsg = std::vector<unsigned char>;
 
 }
