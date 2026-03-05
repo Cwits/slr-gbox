@@ -148,8 +148,9 @@ void PushLeds::setPadColor(const Pad &pad) {
     ev.type = slr::MidiEventType::NoteOn; ////TODO: +LedAnimation
     ev.note = static_cast<uint8_t>(pad.num);
     ev.velocity = static_cast<uint8_t>(pad.color);
-    ev.channel = 0;
+    ev.channel = 0; //put animation here?
     ev.offset = 0;
+    LOG_INFO("%x %x %x %x %x", (int)ev.type, (int)ev.note, (int)ev.velocity, (int)ev.channel, (int)ev.offset);
     _midi.sendSingle(ev);
 }
 

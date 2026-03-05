@@ -39,14 +39,14 @@ bool PushMidi::connect(slr::MidiPort * port) {
 #if (USE_FAKE_PUSH == 0)
     //... some preps
     port->setAlternativeHandles(
-        [push = _pushDev.get()](const slr::MidiEventType t){
-            push->handleRealTimeEvent(t);
+        [this](const slr::MidiEventType t){
+            this->handleRealTimeEvent(t);
         },
-        [push = _pushDev.get()](const unsigned char *data, const int &len){
-            push->handleSysexEvent(data, len);
+        [this](const unsigned char *data, const int &len){
+            this->handleSysexEvent(data, len);
         },
-        [push = _pushDev.get()](const slr::MidiEventType t, const int ch, const unsigned char *data){
-            push->handleEvent(t, ch, data);
+        [this](const slr::MidiEventType t, const int ch, const unsigned char *data){
+            this->handleEvent(t, ch, data);
         }
     );
 

@@ -1,15 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <unordered_map>
-#include "core/primitives/MidiEvent.h" //for RtMidiPort
-#include "core/ControlEngine.h"
-#include "core/RtEngine.h"
-#include "core/MidiController.h"
-#include <array>
-#include "Status.h"
 #include "core/primitives/MidiEvent.h"
-#include "logger.h"
+#include "core/ControlEngine.h"
+#include <unordered_map>
+#include <array>
 #include <vector>
+#include "logger.h"
+#include "core/primitives/MidiEvent.h" //for RtMidiPort
+#include "Status.h"
+#include "core/MidiController.h"
+#include "core/RtEngine.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {

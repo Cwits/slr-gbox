@@ -1,8 +1,8 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include "defines.h"
-#include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
+#include "core/primitives/AudioRoute.h"
 #include <string>
 
 namespace slr {

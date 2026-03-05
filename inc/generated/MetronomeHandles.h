@@ -1,8 +1,8 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/Project.h"
 #include "core/ControlEngine.h"
 #include "core/Metronome.h"
+#include "core/Project.h"
 #include "core/FlatEvents.h"
 #include "core/utility/helper.h"
 #include "core/primitives/ControlContext.h"

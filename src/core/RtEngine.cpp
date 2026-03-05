@@ -155,7 +155,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
             }
 
             //simple echo?
-            out->sendEvent(*peekptr);
+            // out->sendEvent(*peekptr);
         }
     }
     

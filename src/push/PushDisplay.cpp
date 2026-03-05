@@ -41,7 +41,7 @@ libusb_device ** getDeviceList();
 constexpr unsigned int ALBETON_VENDOR_ID = 0x2982;
 constexpr unsigned int ABLETON_PRODUCT_ID = 0x1967;
 
-constexpr unsigned char frame_header[16] = { 0xFF, 0xCC, 0xAA, 0x88, 0x00, 0x00,
+unsigned char frame_header[16] = { 0xFF, 0xCC, 0xAA, 0x88, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00 };
 
@@ -168,6 +168,7 @@ void PushDisplay::updateFrame(BoundingBox &boxToUpdate) {
 
 bool PushDisplay::sendFrame() {
 #if (USE_FAKE_PUSH == 0)
+    // unsigned char * headerPtr = &frame_header[0];
     int result = libusb_bulk_transfer(_displayHandle.get(), PUSH2_BULK_EP_OUT,
                                         frame_header, sizeof(frame_header), NULL,
                                         TRANSFER_TIMEOUT);
