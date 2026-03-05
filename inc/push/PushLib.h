@@ -22,6 +22,42 @@ constexpr int TOUCH_STRIP_LEDS = 30;
 
 enum class PushPort { Live, User };
 
+struct LedColor {
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char w;
+};
+
+enum class LedAnimationType {
+    NoTransition = 0,
+    OneShot = 1,
+    Pulse = 6,
+    Blink = 11
+};
+
+enum class LedAnimationDuration {
+    d24th = 0,
+    sixt = 1,
+    eight = 2,
+    quater = 3,
+    half = 4
+};
+
+struct LedAnimation {
+    LedAnimationType type;
+    LedAnimationDuration duration;
+};
+
+using PadNum = unsigned char;
+using PadColor = unsigned char;
+
+struct Pad {
+    PadNum num;
+    PadColor color;
+    LedAnimation anim;
+};
+
 enum class PadEventType { 
     PadPressed = 0,
     PadReleased,
@@ -129,9 +165,9 @@ struct ButtonEvent {
 };
 
 enum class EncoderEventType {
-    Touched,
-    Moved,
-    Released
+    Touched = 0,
+    Moved = 1,
+    Released = 2
 };
 
 enum class Encoder {
@@ -194,33 +230,6 @@ struct PedalSampleData {
     unsigned short Pedal2Tip;
 };
 
-struct LedColor {
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-    unsigned char w;
-};
-
-enum class LedAnimationType {
-    NoTransition = 0,
-    OneShot = 1,
-    Pulse = 6,
-    Blink = 11
-};
-
-enum class LedAnimationDuration {
-    d24th = 0,
-    sixt = 1,
-    eight = 2,
-    quater = 3,
-    half = 4
-};
-
-struct LedAnimation {
-    LedAnimationType type;
-    LedAnimationDuration duration;
-};
-
 enum class MidiMode {
     LiveMode = 0,
     UserMode = 1,
@@ -236,33 +245,5 @@ struct PushStatus {
     PowerSupplyStatus powerSupplyStatus;
     int uptime;
 };
-
-using Layout = std::vector<unsigned char>;
-using Scale = std::vector<unsigned char>;
-
-enum class LayoutStyle {
-    Default = 0,
-    Layout4 = 1
-};
-
-enum class Scales {
-    NaturalMajor     = 0, 
-    MajorHarmonic    = 1, 
-    Minor            = 2, 
-    MinorHarmonic    = 3, 
-    MinorMelodic     = 4, 
-    Dorian           = 5, 
-    Phrygian         = 6, 
-    Lydian           = 7, 
-    Mixolydian       = 8, 
-    Aeolian          = 9, 
-    Locrian          = 10, 
-    MajorPentatonic  = 11, 
-    MajorBlues       = 12, 
-    MinorPentatonic  = 13, 
-    Blues            = 14, 
-    LAST
-};
-
 
 }

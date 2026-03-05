@@ -180,7 +180,8 @@ void PushMidi::handleEvent(const slr::MidiEventType type, const int channel, con
             //pad pressed
             // LOG_WARN("Not supported yet");
             const slr::MidiEvent ev = _core._pads.handle(type, channel, data);
-            _port->pushEvent(ev.type, ev.channel, ev.note, ev.velocity);
+            if(ev.type != slr::MidiEventType::InvalidType)
+                _port->pushEvent(ev.type, ev.channel, ev.note, ev.velocity);
         } break;
         case(slr::MidiEventType::PitchBend): {
             //
@@ -200,12 +201,12 @@ void PushMidi::handleEvent(const slr::MidiEventType type, const int channel, con
                 e.encoder = static_cast<Encoder>(id);
                 e.delta = value;
                 e.raw = 0;
+                _encoderQueue.push(e);
             } else {
                 //button
                 ButtonEvent b;
                 b.button = static_cast<Button>(id);
-                b.type = value ? ButtonEventType::Pressed : ButtonEventType::Released; //static_cast<ButtonEventType>(value);
-                // std::lock_guard<std::mutex> l(_pushMutex);
+                b.type = value ? ButtonEventType::Pressed : ButtonEventType::Released; 
                 _buttonQueue.push(b);
             }
 
@@ -263,9 +264,12 @@ bool PushMidi::dispatchEvents() {
 
         if(_core._mainWidget)
             ret = _core._mainWidget->handleButton(ev);
+    }
 
-        // if(ev.type == ButtonEventType::Pressed)
-        //     _core._leds.setLedColor(static_cast<unsigned char>(ev.button), LedAnimation(), 50);
+    EncoderEvent enc;
+    while(_encoderQueue.pop(enc)) {
+        if(_core._mainWidget)
+            ret = _core._mainWidget->handleEncoder(enc);
     }
 
     return ret;

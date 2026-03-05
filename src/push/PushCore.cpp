@@ -77,11 +77,15 @@ void PushCore::tick(int dt) {
     //view can do that by himself?
     
     if(needRedraw || _manualRedraw) {
+        if(!_mainWidget) { 
+            LOG_ERROR("Main Widget is not set");
+            return;
+        }
+
+        BoundingBox box = _mainWidget->invalidate();
+        _mainWidget->paint(_painter);
+        _display.updateFrame(box);
         _manualRedraw = false;
-        if(_mainWidget) _mainWidget->paint(_painter);
-        else LOG_WARN("Main Widget is not set");
-        // _painter.paint();
-        _display.updateFrame();
     }
 
     if(!_display.sendFrame()) 

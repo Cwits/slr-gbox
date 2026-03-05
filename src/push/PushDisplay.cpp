@@ -100,7 +100,12 @@ bool PushDisplay::connect() {
         }
 
         std::memset(_usbFrame.get(), 0, FRAME_BUFFER_LENGTH*sizeof(unsigned char));
-        updateFrame();
+        BoundingBox b;
+        b.x = 0;
+        b.y = 0;
+        b.w = DISPLAY_WIDTH;
+        b.h = DISPLAY_HEIGHT;
+        updateFrame(b);
 #if (USE_FAKE_PUSH == 0)
     }
 #endif
@@ -119,7 +124,7 @@ bool PushDisplay::disconnect() {
     return true;
 }
 
-void PushDisplay::updateFrame(/* Pixel buffer */) {
+void PushDisplay::updateFrame(BoundingBox &boxToUpdate) {
    
     //do some time calculations...??
     //...

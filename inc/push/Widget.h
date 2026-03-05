@@ -15,22 +15,23 @@ struct Widget {
     Widget(Widget * parent, PushContext * const pctx);
     virtual ~Widget();
 
-    void addChild(Widget * child) {
-        _childrens.push_back(child);
-    }
-    void removeChild(Widget *child);
+    void addChild(Widget * child);
+    void removeChild(const Widget *child);
 
     std::vector<Widget*> & childs() { return _childrens; }
     
     void markDirty() { _dirty = false; }
     bool isDirty() const { return _dirty; }
 
+    virtual BoundingBox invalidate() = 0;
     virtual void paint(Painter & painter) = 0;
 
     //in order to mark that redraw is necessary - return true?
     virtual bool handleButton(PushLib::ButtonEvent &ev) = 0;
+    virtual bool handleEncoder(PushLib::EncoderEvent &ev) = 0;
 
-    public:
+    protected:
+    Widget * _parent;
     PushContext * const _pctx;
     std::vector<Widget*> _childrens;
     bool _dirty;

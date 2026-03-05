@@ -156,6 +156,15 @@ void Painter::writeString(int x, int y, std::string *str, FontDef &font, Color c
     writeStringImpl(x, y, *str, font, color);
 }
 
+void Painter::writeString(int x, int y, const std::string_view *str, FontDef &font, Color color) {
+    if(!str) return;
+    writeStringViewImpl(x, y, *str, font, color);
+}
+
+void Painter::writeString(int x, int y, const std::string_view &str, FontDef &font, Color color) {
+    writeStringViewImpl(x, y, str, font, color);
+}
+
 void Painter::writeStringLimited(int x, int y, int lim, std::string str, FontDef &font, Color color) {
     LOG_WARN("Not implemented yet");
 }
@@ -179,7 +188,7 @@ const Pixel * Painter::canvas() {
 }
 
 
-void Painter::writeStringImpl(int x, int y, const std::string &str, FontDef &font, Color color) {
+void Painter::writeStringImpl(int x, int y, const std::string &str, FontDef &font, Color &color) {
     int tmpx = 0;
     std::size_t len = str.length();
 
@@ -189,6 +198,18 @@ void Painter::writeStringImpl(int x, int y, const std::string &str, FontDef &fon
         tmpx += font.FontWidth;
     }
 }
+
+void Painter::writeStringViewImpl(int x, int y, const std::string_view &str, FontDef &font, Color &color) {
+    int tmpx = 0;
+    std::size_t len = str.length();
+
+    for(std::size_t i=0; i<len; ++i) {
+        char c = str[i];
+        writeChar(x+tmpx, y, c, font, color);
+        tmpx += font.FontWidth;
+    }
+}
+
 
 
 

@@ -103,13 +103,16 @@ file(GLOB SOURCES
   src/push/PushSysex.cpp
   src/push/PushLeds.cpp
   src/push/PushPads.cpp
-  src/push/PushPadLayout.cpp
+  #src/push/PushPadLayout.cpp
   src/push/PushPainter.cpp
   src/push/PushFonts.cpp
   src/push/PushContext.cpp
   src/push/Widget.cpp
 
-  src/ui/push/MainWindow.cpp
+  src/ui/push/PadLayoutSelector.cpp
+  src/ui/push/PadNoteLayout.cpp
+  src/ui/push/PadLayout.cpp
+  src/ui/push/MainWidget.cpp
 
   src/ui/pushThread.cpp
 

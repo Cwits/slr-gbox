@@ -224,4 +224,6 @@ inline slr::frame_t pixelToFrame(int pixel, float horizontalZoom) {
     return pixel/notFramesPerPixel;
 }
 
+
+const std::string_view ErrorString = "Error String";
 }

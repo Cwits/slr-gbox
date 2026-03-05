@@ -8,7 +8,7 @@
 
 #include "push/PushCore.h"
 #include "push/PushContext.h"
-#include "ui/push/MainWindow.h" //does not belong here...
+#include "ui/push/MainWidget.h" //does not belong here...
 
 #include "slr_config.h"
 #include "logger.h"
@@ -21,7 +21,7 @@
 namespace PushThread {
 
 std::unique_ptr<PushLib::PushCore> _pushDev;
-std::unique_ptr<PushUI::MainWindow> _pushMainWindow;
+std::unique_ptr<PushUI::MainWidget> _pushMainWidget;
 
 std::thread _pushRunner;
 std::atomic<bool> _threadRunning;
@@ -52,13 +52,13 @@ bool isRunning() {
 
 void threadLoop(slr::MidiPort *port) {
     _pushDev.reset();
-    _pushMainWindow.reset();
+    _pushMainWidget.reset();
 
     _pushDev = std::make_unique<PushLib::PushCore>();
     PushLib::PushContext *pctx = _pushDev->context();
-    _pushMainWindow = std::make_unique<PushUI::MainWindow>(pctx);
+    _pushMainWidget = std::make_unique<PushUI::MainWidget>(pctx);
 
-    _pushDev->setMainWidget(_pushMainWindow.get());
+    _pushDev->setMainWidget(_pushMainWidget.get());
 
     if(!_pushDev->connect(port)) {
         LOG_ERROR("Failed to connect Push");

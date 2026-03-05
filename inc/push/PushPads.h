@@ -3,7 +3,7 @@
 #pragma once
 
 #include "push/PushLib.h"
-#include "push/PushPadLayout.h"
+#include "push/PushPadLayoutBase.h"
 
 #include "core/primitives/MidiEvent.h"
 
@@ -35,7 +35,8 @@ struct PushPads {
     void updated() { _needUpdate = false; }
     void updateRequest() { _needUpdate = true; }
 
-    PushPadLayout _layout;
+    void setLayout(PushPadLayout * layout) { _layout.store(layout, std::memory_order_relaxed); }
+    PushPadLayout * currentLayout() { return _layout; }
 
     private:
     PushMidi &_midi;
@@ -43,6 +44,7 @@ struct PushPads {
     PushLeds &_leds;
 
     std::atomic<bool> _needUpdate;
+    std::atomic<PushPadLayout*> _layout;
 
 };
 

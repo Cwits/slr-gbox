@@ -1,16 +1,18 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
+#include "ui/push/PadNoteLayout.h"
 
-#include "push/PushPadLayout.h"
+#include "push/PushContext.h"
 #include "push/PushLeds.h"
-#include "push/PushMidi.h"
+#include "ui/uiutility.h"
 
 #include "logger.h"
 
 #include <vector>
 #include <string>
 
-namespace PushLib {
+namespace PushUI {
+
 
 const Layout _originalLayout = 
 {
@@ -78,13 +80,11 @@ const std::vector<std::string_view> _scalesTexts = {
     "Blues"
 };
 
-
-PushPadLayout::PushPadLayout(PushMidi &midi, PushLeds &leds) :
-    _leds(leds),
-    _midi(midi),
+PadNoteLayout::PadNoteLayout(PushLib::PushContext * const pctx) :
+    _pctx(pctx),
     _chromatic(true),
     _rootNote(36), //C2
-    _octave(12),
+    _octave(0),
     _scale(Scales::NaturalMajor),
     _layout(LayoutStyle::Layout4),
     _rootPadColor(99),
@@ -95,15 +95,19 @@ PushPadLayout::PushPadLayout(PushMidi &midi, PushLeds &leds) :
 
 }
 
-PushPadLayout::~PushPadLayout() {
+PadNoteLayout::~PadNoteLayout() {
 
 }
 
-const Layout & PushPadLayoutlayout(const LayoutStyle style) {
-    return _layouts[static_cast<unsigned char>(style)];
+const unsigned char PadNoteLayout::getNote(const unsigned char &pad) {
+    unsigned char note = getNoteInt(pad);
+    unsigned char octave = pad / 12;
+    unsigned char recreated = (note-1) + (octave*12) + _octave;
+
+    return recreated;
 }
 
-const unsigned char PushPadLayout::getNote(const unsigned char &pad) {
+unsigned char PadNoteLayout::getNoteInt(const unsigned char &pad) {
     const unsigned char currentLayoutNum = static_cast<unsigned char>(_layout.load(std::memory_order_acquire));
     const Layout &currentLayout = _layouts[currentLayoutNum];
 
@@ -126,53 +130,50 @@ const unsigned char PushPadLayout::getNote(const unsigned char &pad) {
     return note;
 }
 
-void PushPadLayout::renderPads() {
-    
-    std::vector<slr::MidiEvent> batch;
+void PadNoteLayout::renderPads(PushLib::PushLeds &leds) {
+    std::vector<PushLib::Pad> batch;
     batch.reserve(64);
     
-    for(int i=36; i<99; ++i) {
-        const unsigned char note = getNote(i);
-
-        slr::MidiEvent ev;
-        ev.type = slr::MidiEventType::NoteOn;
-        ev.note = i;
-        ev.channel = 0;
+    for(int i=36; i<=99; ++i) {
+        const unsigned char note = getNoteInt(i);
+        PushLib::Pad p;
+        p.num = i;
+        p.anim = PushLib::LedAnimation();
+        
         if(inScale(note)) {
-            if(note == 1) ev.velocity = _rootPadColor;
-            else ev.velocity = _inScalePadColor;
+            if(note == 1) p.color = _rootPadColor;
+            else p.color = _inScalePadColor;
         } else {
-            ev.velocity = _offScalePadColor;
+            p.color = _offScalePadColor;
         }
-        batch.push_back(ev);
+        batch.push_back(p);
     }
 
-    _midi.sendBatch(batch);
+    leds.setPadsColor(batch);
 }
 
-void PushPadLayout::renderPad(const unsigned char &pad, const slr::MidiEventType &type) {
+void PadNoteLayout::renderPad(PushLib::PushLeds &leds, const unsigned char &pad, const slr::MidiEventType &type) {
     const LayoutStyle &currentLayoutStyle = _layout.load(std::memory_order_acquire);
 
     switch(currentLayoutStyle) {
         case(LayoutStyle::Default): {
             //always one color
-            slr::MidiEvent ev;
-            ev.channel = 0;
-            ev.type = type;
-            ev.note = pad;
+            PushLib::Pad p;
+            p.num = pad;
+            p.anim = PushLib::LedAnimation();
+            
             if(type == slr::MidiEventType::NoteOn) {
-                // _leds.setLedColor(pad, LedAnimation(), _padPressedColor);
-                ev.velocity = _padPressedColor;
+                p.color = _padPressedColor;
             } else if(type == slr::MidiEventType::NoteOff) {
-                const unsigned char note = getNote(pad);
+                const unsigned char note = getNoteInt(pad);
                 if(inScale(note)) {
-                    if(note == 1) ev.velocity = _rootPadColor; /*_leds.setLedColor(pad, LedAnimation(), _rootPadColor);*/
-                    else ev.velocity = _inScalePadColor; /*_leds.setLedColor(pad, LedAnimation(), _inScalePadColor);*/
+                    if(note == 1) p.color = _rootPadColor; 
+                    else p.color = _inScalePadColor; 
                 } else {
-                   ev.velocity = _offScalePadColor; /* _leds.setLedColor(pad, LedAnimation(), _offScalePadColor);*/
+                   p.color = _offScalePadColor; 
                 }
             }
-            _midi.sendSingle(ev);
+            leds.setPadColor(p);
         } break;
         case(LayoutStyle::Layout4): {
             const unsigned char currentLayoutNum = static_cast<unsigned char>(_layout.load(std::memory_order_acquire));
@@ -187,30 +188,33 @@ void PushPadLayout::renderPad(const unsigned char &pad, const slr::MidiEventType
             }
 
             for(int i=0; i<pads.size(); ++i) {
-                slr::MidiEvent ev;
                 const unsigned char pd = pads.at(i);
-                ev.channel = 0;
-                ev.type = type;
-                ev.note = pd;
+                PushLib::Pad p;
+                p.anim = PushLib::LedAnimation();
+                p.num = pd;
                 if(type == slr::MidiEventType::NoteOn) {
-                    ev.velocity = _padPressedColor;
+                    p.color = _padPressedColor;
                 } else {
-                    const unsigned char note = getNote(pd);
+                    const unsigned char note = getNoteInt(pd);
                     if(inScale(note)) {
-                        if(note == 1) ev.velocity = _rootPadColor; /*_leds.setLedColor(pd, LedAnimation(), _rootPadColor);*/
-                        else ev.velocity = _inScalePadColor; /*_leds.setLedColor(pd, LedAnimation(), _inScalePadColor);*/
+                        if(note == 1) p.color = _rootPadColor;
+                        else p.color = _inScalePadColor;
                     } else {
-                        ev.velocity = _offScalePadColor; /*_leds.setLedColor(pd, LedAnimation(), _offScalePadColor);*/
+                        p.color = _offScalePadColor;
                     }
                 }
-                _midi.sendSingle(ev);
+                leds.setPadColor(p);
             }
         } break;
     }
     
 }
 
-bool PushPadLayout::inScale(const unsigned char &note) {
+const Layout & PadNoteLayout::layout(const LayoutStyle style) {
+    return _layouts[static_cast<unsigned char>(style)];
+}
+
+bool PadNoteLayout::inScale(const unsigned char &note) {
     const unsigned char currentScale = static_cast<unsigned char>(_scale.load(std::memory_order_acquire));
     const Scale &sk = _scales[currentScale];
     std::size_t size = sk.size();
@@ -224,6 +228,36 @@ bool PushPadLayout::inScale(const unsigned char &note) {
     }
 
     return ret;
+}
+
+const std::string_view & PadNoteLayout::scaleName(const Scales scale) {
+    if(scale >= Scales::LAST) return UIUtility::ErrorString;
+
+    return _scalesTexts[static_cast<std::size_t>(scale)];
+}
+
+void PadNoteLayout::setChromatic(const bool chromatic) { 
+    _chromatic.store(chromatic, std::memory_order_relaxed); 
+    _pctx->updatePadsColors();    
+}
+
+
+void PadNoteLayout::setColors(unsigned char root, unsigned char inScale, unsigned char offScale, unsigned char pressed) {
+    _rootPadColor = root;
+    _offScalePadColor = offScale;
+    _inScalePadColor = inScale;
+    _padPressedColor = pressed;
+    _pctx->updatePadsColors();
+}
+
+void PadNoteLayout::setScale(const Scales scale) { 
+    _scale.store(scale, std::memory_order_relaxed); 
+    _pctx->updatePadsColors();
+}
+
+void PadNoteLayout::setLayout(const LayoutStyle layout) { 
+    _layout.store(layout, std::memory_order_relaxed); 
+    _pctx->updatePadsColors();
 }
 
 

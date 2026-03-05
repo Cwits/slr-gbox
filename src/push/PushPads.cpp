@@ -5,7 +5,6 @@
 #include "push/PushMidi.h"
 #include "push/PushSysex.h"
 #include "push/PushLeds.h"
-#include "push/PushPadLayout.h"
 
 #include "logger.h"
 
@@ -27,8 +26,7 @@ PushPads::PushPads(PushMidi &midi, PushSysex &sysex, PushLeds &leds) :
     _midi(midi),
     _sysex(sysex),
     _leds(leds),
-    _layout(midi, leds),
-    _needUpdate(true)
+    _needUpdate(false)
 {
     _sysex.registerCmdWithReply(GET_AFTERTOUCH_MODE);
     _sysex.registerCmdWithReply(GET_SELECTED_PAD_SETTINGS);
@@ -44,24 +42,25 @@ const slr::MidiEvent PushPads::handle(const slr::MidiEventType &type, const int 
     /*
      Warning! We still in MidiPort::inputHandle thread!!!
     */
-    
     slr::MidiEvent ret;
-
+    ret.type = slr::MidiEventType::InvalidType;
+    if(!_layout) return ret;
+    PushPadLayout * lay = _layout.load(std::memory_order_acquire);
+    
     switch(type) {
         case(slr::MidiEventType::NoteOn):
         case(slr::MidiEventType::NoteOff):
         case(slr::MidiEventType::Aftertouch): {
-            unsigned char note = data[0];
+            unsigned char pad = data[0];
             unsigned char velocity = data[1];
             
-            //midi event note according to current layout
-            int layoutNote = _layout.getNote(note);
+            const unsigned char layoutNote = lay->getNote(pad); 
             
             ret.type = type;
             ret.note = layoutNote;
             ret.velocity = velocity;
-
-            _layout.renderPad(note, type);
+            // LOG_INFO("Note played: %d", static_cast<int>(layoutNote));
+            lay->renderPad(_leds, pad, type);
         } break;
         case(slr::MidiEventType::ChannelPressure): {
             int pressure = static_cast<int>(data[0]);
@@ -94,8 +93,11 @@ const slr::MidiEvent PushPads::handle(const slr::MidiEventType &type, const int 
 
 void PushPads::update() {
     //better move this to PushPadLayout
+    if(!_layout) return;
+    if(!_needUpdate) return;
+
     _needUpdate = false;
-    _layout.renderPads();
+    _layout.load(std::memory_order_acquire)->renderPads(_leds);
 }
 
 }

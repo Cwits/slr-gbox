@@ -142,10 +142,15 @@ void PushFaker::onPacket(command &cmd, const std::vector<unsigned char>& payload
         eventHandle(payload[1] ? 0x90 : 0x80, 0, &data[0]);
     } else if(cmd.cmd == static_cast<unsigned char>(PushFaker::FakerCmd::Encoder)) {
         //some encoder data
+        
+        // payload[0] = id;    //enc id
+        // payload[1] = delta; //value
+        // payload[2] = state; //touched 1-moved 2-released 3
         unsigned char data[2];
         data[0] = payload[0]; //encoder num
-        data[1] = payload[1] > 0 ? 1 : 255; //1 clockwise, 255 counter clockwise
-        int EventType = payload[2];
+        data[1] = (payload[1] > 0 && payload[1] < 30) ? 1 : 0xFF; //1 clockwise, 255 counter clockwise value
+        int EventType = payload[2]; //state
+        // LOG_INFO("%d %d %d", payload[0], payload[1], payload[2]);
         eventHandle(0xB0, EventType, &data[0]);
     } else if(cmd.cmd == static_cast<unsigned char>(PushFaker::FakerCmd::System)) {
         if(payload[0] == 1) {

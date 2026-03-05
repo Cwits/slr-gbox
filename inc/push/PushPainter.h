@@ -5,9 +5,17 @@
 #include "push/Color.h"
 #include "push/PushFonts.h"
 
+#include <string>
 #include <memory>
 
 namespace PushLib {
+
+struct BoundingBox {
+    int x;
+    int y;
+    int w;
+    int h;
+};
 
 struct Painter {
     Painter();
@@ -27,6 +35,8 @@ struct Painter {
     void writeString(int x, int y, std::string str, FontDef &font, Color color);
     void writeString(int x, int y, std::string &str, FontDef &font, Color color);
     void writeString(int x, int y, std::string *str, FontDef &font, Color color);
+    void writeString(int x, int y, const std::string_view *str, FontDef &font, Color color);
+    void writeString(int x, int y, const std::string_view &str, FontDef &font, Color color);
     
     //limit in symbols???
     void writeStringLimited(int x, int y, int lim, std::string str, FontDef &font, Color color);
@@ -38,7 +48,9 @@ struct Painter {
     private:
     std::unique_ptr<Pixel> _displayCanvas;
 
-    void writeStringImpl(int x, int y, const std::string &str, FontDef &font, Color color);
+    void writeStringImpl(int x, int y, const std::string &str, FontDef &font, Color &color);
+    void writeStringViewImpl(int x, int y, const std::string_view &str, FontDef &font, Color &color);
+    
 };
 
 }

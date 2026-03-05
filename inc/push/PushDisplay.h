@@ -13,6 +13,7 @@ namespace PushLib {
 class Widget;
 class Painter;
 class PushSysex;
+class BoundingBox;
 
 struct PushDisplay {
     PushDisplay(PushSysex &sysex, Painter & painter);
@@ -22,7 +23,7 @@ struct PushDisplay {
     bool reconnect();
     bool disconnect();
 
-    void updateFrame(/* Pixel buffer */);
+    void updateFrame(BoundingBox &boxToUpdate);
     bool sendFrame();
 
     void setBrignthess(char brightness);
