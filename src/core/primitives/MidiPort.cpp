@@ -249,8 +249,8 @@ void MidiPort::sendMidi(const MidiEvent &ev) {
     // bool wasEmpty = outQueue()->empty();
     LOG_INFO("%x %x %x %x %x", (int)ev.type, (int)ev.note, (int)ev.velocity, (int)ev.channel, (int)ev.offset);
     outQueue()->push(ev);
-    // if(wasEmpty) {
-    uint64_t one = 1;
+    // if(wasEmpty) { 
+    uint64_t one = 1; //always write to fd, otherwise we will get dead sleep. When writer got in poll() but queue wasn't empty
     write(_efd, &one, sizeof(one));
     // }
 }
