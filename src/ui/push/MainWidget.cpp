@@ -99,7 +99,7 @@ bool MainWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     if(ev.type == PushLib::EncoderEventType::Touched) text = "Touched";
     else if(ev.type == PushLib::EncoderEventType::Moved) text = "Moved";
     else if(ev.type == PushLib::EncoderEventType::Released) text = "Released";
-    LOG_WARN("Encoder Event: %s %d %f", text.c_str(), static_cast<int>(ev.encoder), ev.delta);
+    LOG_WARN("Encoder Event: %s %d %d", text.c_str(), static_cast<int>(ev.encoder), ev.delta);
 
     return true;
 }

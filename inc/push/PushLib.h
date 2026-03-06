@@ -187,7 +187,7 @@ enum class Encoder {
 struct EncoderEvent {
     EncoderEventType type;
     Encoder encoder;
-    double delta;
+    int delta;
     int raw;
 };
 

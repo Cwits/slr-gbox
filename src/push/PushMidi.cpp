@@ -173,7 +173,27 @@ void PushMidi::handleEvent(const slr::MidiEventType type, const int channel, con
     so use same thing as in MidiPort::pushEvent, but for injecting... 
     */
     switch(type) {
-        case(slr::MidiEventType::NoteOn):
+        case(slr::MidiEventType::NoteOn): {
+            int value = data[0];
+            if(value >= 0 && value <= 10) {
+                //encoder touched/released
+                int event = data[1];
+                EncoderEvent e;
+                e.type = event == 127 ? EncoderEventType::Touched : EncoderEventType::Released;
+                e.delta = 0;
+                e.raw = 0;
+                if(value <=8) {
+                    e.encoder = static_cast<Encoder>(value+71);
+                } else if(value == 9) e.encoder = Encoder::Metronome;
+                else if(value == 10) e.encoder = Encoder::Tempo;
+                _encoderQueue.push(e);
+            } else {
+                //pad
+                const slr::MidiEvent ev = _core._pads.handle(type, channel, data);
+                if(ev.type != slr::MidiEventType::InvalidType)
+                    _port->pushEvent(ev.type, ev.channel, ev.note, ev.velocity);
+            }
+        } break;
         case(slr::MidiEventType::NoteOff): 
         case(slr::MidiEventType::Aftertouch):
         case(slr::MidiEventType::ChannelPressure): {
@@ -199,8 +219,12 @@ void PushMidi::handleEvent(const slr::MidiEventType type, const int channel, con
                 EncoderEvent e;
                 e.type = static_cast<EncoderEventType>(channel);
                 e.encoder = static_cast<Encoder>(id);
-                e.delta = value;
-                e.raw = 0;
+                e.raw = value;
+                if(value > 50) {
+                    e.delta = -(128-value);
+                } else {
+                    e.delta = value;
+                }
                 _encoderQueue.push(e);
             } else {
                 //button
