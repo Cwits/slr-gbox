@@ -55,15 +55,15 @@ void threadLoop(slr::MidiPort *port) {
     _pushMainWidget.reset();
 
     _pushDev = std::make_unique<PushLib::PushCore>();
-    PushLib::PushContext *pctx = _pushDev->context();
-    _pushMainWidget = std::make_unique<PushUI::MainWidget>(pctx);
-
-    _pushDev->setMainWidget(_pushMainWidget.get());
 
     if(!_pushDev->connect(port)) {
         LOG_ERROR("Failed to connect Push");
         return;
     }
+
+    PushLib::PushContext *pctx = _pushDev->context();
+    _pushMainWidget = std::make_unique<PushUI::MainWidget>(pctx);
+    _pushDev->setMainWidget(_pushMainWidget.get());
 
     LOG_INFO("Push Inited successfully");
     _threadRunning = true;

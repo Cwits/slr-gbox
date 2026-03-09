@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "push/PushCore.h"
 
+#include "core/primitives/MidiEvent.h"
 #include "core/primitives/MidiPort.h"
 #include "core/MidiController.h"
 #include "core/Events.h"
 
 #include "push/Widget.h"
+#include "push/PushMidi.h"
 
 #include "logger.h"
 #include "slr_config.h"
@@ -34,6 +36,7 @@ PushCore::PushCore() :
     _mainWidget(nullptr),
     _manualRedraw(false)
 {
+    _context._core = this;
     _context._leds = &_leds;
     _context._pads = &_pads;
 }
@@ -72,9 +75,6 @@ void PushCore::tick(int dt) {
     if(_pads.needUpdate()) {
         _pads.update();
     }
-
-    //do i need to update buttons colors corresponding to current view here? or 
-    //view can do that by himself?
     
     if(needRedraw || _manualRedraw) {
         if(!_mainWidget) { 

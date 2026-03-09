@@ -7,30 +7,25 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace PushLib {
 
-struct PadLayout {
-    Color pad[64];
-};
+// struct PadLayout {
+//     Color pad[64];
+// };
 
 class PushCore;
 class PushLeds;
 class PushPads;
 class PushPadLayout;
+class PushButtonLayout;
 
 struct PushContext {
-    // void setButtonColor(Button btn, Color clr);
-    //void updateButtons(std::unordered_map<Button, color> &map);
+    void setButtonColor(ButtonColor &clr);
+    void setButtonsColors(std::vector<ButtonColor> &clrs);
+    void clearButtonColors();
 
-    // void setPadsNotes();
-    // void setPadsColors(unsigned char root, unsigned char inScale, unsigned char offScale, unsigned char pressed);
-    // void setPadsChromatic(const bool chromatic);
-    // const bool isPadsChromatic();
-    // void setPadsScale(const Scales scale);
-    // void setPadsLayout(const LayoutStyle layout);
-
-    // void setPadsCustom();
     void setPadsLayout(PushPadLayout * layout);
     PushPadLayout const * currentPadLayout() const;
     void updatePadsColors();
@@ -41,6 +36,7 @@ struct PushContext {
     // void floatingText(std::string text);
 
     private:
+    PushCore *_core;
     PushLeds *_leds;
     PushPads *_pads;
 

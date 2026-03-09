@@ -19,8 +19,8 @@ struct PushLeds {
     // void setLedColors(std::vector<unsigned char> &lednums, LedAnimation anim, unsigned char clr);
     // void clearAllLeds();
 
-    void setButtonColor(Button &btn, unsigned char &color);
-    void setButtonsColor(std::vector<std::pair<Button, unsigned char>> &btns);
+    void setButtonColor(ButtonColor &btn);
+    void setButtonsColor(std::vector<ButtonColor> &btns);
     void clearAllButtons();
 
     void setPadColor(const Pad &pad);

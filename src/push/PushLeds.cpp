@@ -3,6 +3,7 @@
 #include "push/PushLeds.h"
 #include "push/PushSysex.h"
 #include "push/PushMidi.h"
+#include "push/helper.h"
 
 #include "logger.h"
 
@@ -88,29 +89,20 @@ void PushLeds::clearAllLeds() {
 
 }*/
 
-void PushLeds::setButtonColor(Button &btn, unsigned char &color) {
-    slr::MidiEvent ev;
-    ev.type = slr::MidiEventType::CC;
-    ev.note = static_cast<uint8_t>(btn);
-    ev.velocity = static_cast<uint8_t>(color);
-    ev.channel = 0;
-    ev.offset = 0;
+void PushLeds::setButtonColor(ButtonColor &btn) {
+    slr::MidiEvent ev = PushHelper::buttonColorToEvent(btn);
     _midi.sendSingle(ev);
 }
 
-void PushLeds::setButtonsColor(std::vector<std::pair<Button, unsigned char>> &btns) {
+void PushLeds::setButtonsColor(std::vector<ButtonColor> &btns) {
     std::vector<slr::MidiEvent> batch;
     std::size_t size = btns.size();
     batch.reserve(size);
 
     for(std::size_t b=0; b<size; ++b) {
-        std::pair<Button, unsigned char> &btn = btns[b];
-        slr::MidiEvent ev;
-        ev.type = slr::MidiEventType::CC; //TODO: Add LedAnimation
-        ev.note = static_cast<uint8_t>(btn.first);
-        ev.velocity = static_cast<uint8_t>(btn.second);
-        ev.channel = 0;
-        ev.offset = 0;
+        ButtonColor &btn = btns[b];
+        slr::MidiEvent ev = PushHelper::buttonColorToEvent(btn);
+        batch.push_back(ev);
     }
 
     _midi.sendBatch(batch);
@@ -121,13 +113,14 @@ void PushLeds::clearAllButtons() {
     std::size_t size = _allButtons.size();
     batch.reserve(size);
 
+    ButtonColor clr;
+    clr.anim = LedAnimation{ .type = LedAnimationType::NoTransition, .duration = LedAnimationDuration::d24th };
+    clr.color = 0;
+
+    slr::MidiEvent ev = PushHelper::buttonColorToEvent(clr);
     for(std::size_t b=0; b<size; ++b) {
-        slr::MidiEvent ev;
-        ev.type = slr::MidiEventType::CC; //TODO: add LedAnimation
         ev.note = static_cast<uint8_t>(_allButtons[b]);
-        ev.velocity = 0;
-        ev.channel = 0;
-        ev.offset = 0;
+        batch.push_back(ev);
     }
 
     _midi.sendBatch(batch);

@@ -11,6 +11,8 @@
 #include "push/PushPads.h"
 #include "push/PushLib.h"
 
+#include <atomic>
+
 namespace slr {
     class MidiPort;
 }

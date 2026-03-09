@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
 namespace PushLib {
 /* 
@@ -152,6 +153,7 @@ enum class Button {
     DoubleLoop      = 117,
     Delete          = 118,
     Undo            = 119,
+    Count           = 120
 };
 
 enum class ButtonEventType {
@@ -162,6 +164,12 @@ enum class ButtonEventType {
 struct ButtonEvent {
     ButtonEventType type;
     Button button;
+};
+
+struct ButtonColor {
+    Button btn;
+    LedAnimation anim;
+    unsigned char color;
 };
 
 enum class EncoderEventType {
@@ -245,5 +253,8 @@ struct PushStatus {
     PowerSupplyStatus powerSupplyStatus;
     int uptime;
 };
+
+template<typename T>
+using ButtonCallbackMap = std::map<PushLib::Button, bool(T::*)(PushLib::ButtonEvent&)>;
 
 }

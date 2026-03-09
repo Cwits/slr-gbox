@@ -8,6 +8,7 @@
 #include "push/PushContext.h"
 
 #include <vector>
+#include <map>
 
 namespace PushLib {
 

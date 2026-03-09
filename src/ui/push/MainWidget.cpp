@@ -5,9 +5,23 @@
 #include "ui/push/PadLayoutSelector.h"
 
 #include "push/PushPainter.h"
+#include "push/helper.h"
+
 #include "logger.h"
 
 namespace PushUI {
+
+const PushLib::ButtonCallbackMap<MainWidget> MainWidget::_mainButtonsCallback = {
+    {PushLib::Button::Automate, &MainWidget::testClb},
+    // {PushLib::Button::Mute, nullptr},
+    // {PushLib::Button::New, nullptr},
+    // {PushLib::Button::Setup, nullptr},
+    {PushLib::Button::Play, &MainWidget::playButtonClb},
+    // {PushLib::Button::Record, nullptr},
+    {PushLib::Button::Scale, &MainWidget::scaleSelector},
+    {PushLib::Button::Layout, &MainWidget::layoutSelector},
+};
+
 
 int clrRoot = 50;
 int clrIn = 20;
@@ -16,9 +30,21 @@ int clrPress = 10;
 
 MainWidget::MainWidget(PushLib::PushContext * const pctx) :
     PushLib::Widget(nullptr, pctx),
-    _currentView(View::Grid)
+    _currentView(PushView::Grid)
 {
     _padLayoutSelector = std::make_unique<PadLayoutSelector>(this, pctx);
+    
+    pctx->clearButtonColors();
+    std::vector<PushLib::ButtonColor> map = PushHelper::buttonColorsFromMap<MainWidget>(MainWidget::_mainButtonsCallback);
+    pctx->setButtonsColors(map);
+    
+    playColor = 1;
+    PushLib::ButtonColor play;
+    play.btn = PushLib::Button::Play;
+    play.color = playColor;
+    play.anim = PushLib::LedAnimation();
+    pctx->setButtonColor(play);
+
 }
 
 MainWidget::~MainWidget() {
@@ -52,7 +78,7 @@ void MainWidget::paint(PushLib::Painter &painter) {
 
     using namespace PushLib;
 
-    if(_currentView == View::PadLayoutSelector) {
+    if(_currentView == PushView::PadLayoutSelector) {
         _padLayoutSelector->paint(painter);
     } else {
         painter.clear();
@@ -78,16 +104,21 @@ bool MainWidget::handleButton(PushLib::ButtonEvent &ev) {
     LOG_INFO("Button %d %s event", static_cast<int>(ev.button), 
                 (static_cast<int>(ev.type) ? "pressed" : "released"));
 
-    if(_currentView == View::PadLayoutSelector) {
+    if(_currentView == PushView::PadLayoutSelector) {
         return _padLayoutSelector->handleButton(ev);
     } else {
         //use switch later...
+        const auto res = _mainButtonsCallback.find(ev.button);
+        if(res != _mainButtonsCallback.end()) {
+            const auto cb = res->second;
+            (this->*cb)(ev);
+        }
     }
 
     if(ev.button == Button::Scale) {
         if(ev.type != ButtonEventType::Pressed) return false;
 
-        _currentView = View::PadLayoutSelector; 
+        _currentView = PushView::PadLayoutSelector; 
         _layoutSwitched = true;
     }
 
@@ -104,4 +135,80 @@ bool MainWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     return true;
 }
 
+void MainWidget::switchToView(PushView view) {
+    // _padLayoutSelector->hide();
+
+    _currentView = view;
+
+    switch(_currentView) {
+        case(PushView::Grid): break;
+        case(PushView::AudioUnit): break;
+        case(PushView::Browser): break;
+        case(PushView::Editor): break;
+        case(PushView::Patch): break;
+        case(PushView::ScaleSelector): break;
+        case(PushView::PadLayoutSelector): break;
+    }
+
+    // _pctx->setButtonLayout(_padLayoutSelector->_buttonCallbackMap);
 }
+
+bool MainWidget::testClb(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+    
+    LOG_INFO("test success");
+    playColor++;
+    PushLib::ButtonColor play;
+    play.btn = PushLib::Button::Play;
+    play.color = playColor;
+    play.anim = PushLib::LedAnimation();
+    _pctx->setButtonColor(play);
+
+    return true;
+}
+
+bool MainWidget::scaleSelector(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+    
+    LOG_INFO("switch to scale selector view");
+    playColor++;
+    PushLib::ButtonColor play;
+    play.btn = PushLib::Button::Play;
+    play.color = playColor;
+    play.anim = PushLib::LedAnimation();
+    _pctx->setButtonColor(play);
+
+    // switchToView(PushView::ScaleSelector);
+    return true;
+}
+
+bool MainWidget::layoutSelector(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+    
+    LOG_INFO("switch to layout selector view");
+    playColor++;
+    PushLib::ButtonColor play;
+    play.btn = PushLib::Button::Play;
+    play.color = playColor;
+    play.anim = PushLib::LedAnimation();
+    _pctx->setButtonColor(play);
+
+    // switchToView(PushView::PadLayoutSelector);
+    return true;
+}
+
+bool MainWidget::playButtonClb(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+    
+    LOG_INFO("test Play btn");
+    playColor++;
+    PushLib::ButtonColor play;
+    play.btn = PushLib::Button::Play;
+    play.color = playColor;
+    play.anim = PushLib::LedAnimation();
+    _pctx->setButtonColor(play);
+
+    return true;
+}
+
+} //namespace PushUI

@@ -5,6 +5,7 @@
 #include "push/Widget.h"
 
 #include <memory>
+#include <map>
 
 namespace PushLib {
     class Painter;
@@ -20,13 +21,14 @@ class PadLayoutSelector;
 // class Browser;
 // class Settings;
 
-enum class View {
+enum class PushView {
     Grid, //
     AudioUnit, //track/mixer/osc/whatever
     Browser,    //file browser
     Editor, //midi, audio or automation editor
-    PadLayoutSelector,
     Patch,
+    ScaleSelector,
+    PadLayoutSelector,
 };
 
 struct MainWidget : public PushLib::Widget {
@@ -39,17 +41,25 @@ struct MainWidget : public PushLib::Widget {
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
 
-    // void setView()
-    
+    void switchToView(PushView view);
+
     private:
     std::unique_ptr<PadLayoutSelector> _padLayoutSelector;
 
-    View _currentView;
+    PushView _currentView;
     bool _layoutSwitched;
 
     int RectX;
     int RectY;
     int RectColor;
+    int playColor;
+    
+    static const PushLib::ButtonCallbackMap<MainWidget> _mainButtonsCallback;
+
+    bool testClb(PushLib::ButtonEvent &ev);
+    bool scaleSelector(PushLib::ButtonEvent &ev);
+    bool layoutSelector(PushLib::ButtonEvent &ev);
+    bool playButtonClb(PushLib::ButtonEvent &ev);
 };
 
 }
