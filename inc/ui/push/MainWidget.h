@@ -3,6 +3,7 @@
 #pragma once
 
 #include "push/Widget.h"
+#include "ui/push/PushUIContext.h"
 
 #include <memory>
 #include <map>
@@ -13,23 +14,11 @@ namespace PushLib {
 
 namespace PushUI {
 
-class PadNoteLayout;
 class PadLayoutSelector;
-// class PadLayout;
-// class GridView;
-// class ModuleView;
-// class Browser;
+class GridWidget;
+class ModuleWidget;
+class BrowserWidget;
 // class Settings;
-
-enum class PushView {
-    Grid, //
-    AudioUnit, //track/mixer/osc/whatever
-    Browser,    //file browser
-    Editor, //midi, audio or automation editor
-    Patch,
-    ScaleSelector,
-    PadLayoutSelector,
-};
 
 struct MainWidget : public PushLib::Widget {
     MainWidget(PushLib::PushContext * const pctx);
@@ -42,24 +31,40 @@ struct MainWidget : public PushLib::Widget {
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
 
     void switchToView(PushView view);
+    void goToPreviousView();
+    const PushView previousView() const;
+    const PushView currentView() const;
 
+    bool handleDefaultButton(PushLib::ButtonEvent &ev);
+    bool handleDefaultEncoder(PushLib::EncoderEvent &ev);
+
+    std::vector<PushLib::ButtonColor> buttonsColors() override;
     private:
+    PushUIContext _puictx;
+
     std::unique_ptr<PadLayoutSelector> _padLayoutSelector;
+    std::unique_ptr<GridWidget> _gridWidget;
+    std::unique_ptr<ModuleWidget> _moduleWidget;
+    std::unique_ptr<BrowserWidget> _browserWidget;
 
-    PushView _currentView;
-    bool _layoutSwitched;
+    PushLib::Widget * widgetFromView(PushView view);
 
-    int RectX;
-    int RectY;
-    int RectColor;
-    int playColor;
+    PushView _currentView = PushView::ERROR;
+    PushView _previousView = PushView::ERROR;
+    bool _viewSwitched;
     
-    static const PushLib::ButtonCallbackMap<MainWidget> _mainButtonsCallback;
+    void colorButtons();
+    static const PushLib::ButtonCallbackMap<MainWidget> _buttonsCallback;
 
-    bool testClb(PushLib::ButtonEvent &ev);
+    bool userBtnClb(PushLib::ButtonEvent &ev);
+    bool deviceBtnClb(PushLib::ButtonEvent &ev);
+    bool browserBtnClb(PushLib::ButtonEvent &ev);
+
     bool scaleSelector(PushLib::ButtonEvent &ev);
     bool layoutSelector(PushLib::ButtonEvent &ev);
+
     bool playButtonClb(PushLib::ButtonEvent &ev);
+    bool recordButtonClb(PushLib::ButtonEvent &ev);
 };
 
 }

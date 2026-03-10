@@ -5,15 +5,15 @@
 
 namespace PushLib {
 
-Widget::Widget(Widget * parent, PushContext * const pctx) :
-    _parent(parent),
-    _pctx(pctx)
+Widget::Widget(Widget * parent) :
+    _parent(parent)
 {
-
+    if(_parent)
+        _parent->addChild(this);
 }
 
 Widget::~Widget() {
-
+    if(_parent) _parent->removeChild(this);
 }
 
 void Widget::addChild(Widget * child) {

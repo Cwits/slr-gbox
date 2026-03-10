@@ -3,7 +3,6 @@
 #pragma once
 
 #include "push/Widget.h"
-
 #include <memory>
 
 namespace PushLib {
@@ -12,12 +11,11 @@ namespace PushLib {
 
 namespace PushUI {
 
-class PadNoteLayout;
 class PushUIContext;
 
-struct PadLayoutSelector : public PushLib::Widget {
-    PadLayoutSelector(PushLib::Widget *parent, PushUIContext * const puictx);
-    ~PadLayoutSelector();
+struct EditorWidget : public PushLib::Widget {
+    EditorWidget(PushLib::Widget *parent, PushUIContext * const puictx);
+    ~EditorWidget();
 
     PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
@@ -30,18 +28,6 @@ struct PadLayoutSelector : public PushLib::Widget {
     private:
     PushUIContext * const _pUIctx;
     
-    std::unique_ptr<PadNoteLayout> _padNotes;
-
-    int _pointerX;
-    int _pointerY;
-    
-    int _pointerXold;
-    int _pointerYold;
-
-    int _pointerPos;
-    int _pointerOldPos;
-    
-    bool _redrawPointer;
 };
 
 }

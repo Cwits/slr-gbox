@@ -5,7 +5,6 @@
 #include "push/Color.h"
 #include "push/PushLib.h"
 #include "push/PushPainter.h"
-#include "push/PushContext.h"
 
 #include <vector>
 #include <map>
@@ -13,7 +12,7 @@
 namespace PushLib {
 
 struct Widget {
-    Widget(Widget * parent, PushContext * const pctx);
+    Widget(Widget * parent);
     virtual ~Widget();
 
     void addChild(Widget * child);
@@ -31,9 +30,10 @@ struct Widget {
     virtual bool handleButton(PushLib::ButtonEvent &ev) = 0;
     virtual bool handleEncoder(PushLib::EncoderEvent &ev) = 0;
 
+    virtual std::vector<PushLib::ButtonColor> buttonsColors() = 0;
+
     protected:
     Widget * _parent;
-    PushContext * const _pctx;
     std::vector<Widget*> _childrens;
     bool _dirty;
 

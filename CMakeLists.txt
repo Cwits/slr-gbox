@@ -81,7 +81,6 @@ file(GLOB SOURCES
   src/core/utility/basicAudioManipulation.cpp
   src/core/utility/basicMidiManipulation.cpp
 
-  #src/core/AudioBufferManager.cpp
   src/core/BufferManager.cpp
   src/core/AudioPeakBuilder.cpp
   src/core/ControlEngine.cpp
@@ -95,27 +94,6 @@ file(GLOB SOURCES
   src/core/Metronome.cpp
   src/core/ModuleManager.cpp
   src/core/MidiController.cpp
-
-  src/push/PushFaker.cpp
-  src/push/PushCore.cpp
-  src/push/PushDisplay.cpp
-  src/push/PushMidi.cpp
-  src/push/PushSysex.cpp
-  src/push/PushLeds.cpp
-  src/push/PushPads.cpp
-  #src/push/PushPadLayout.cpp
-  src/push/PushPainter.cpp
-  src/push/PushFonts.cpp
-  src/push/PushContext.cpp
-  src/push/Widget.cpp
-
-  src/ui/push/PadLayoutSelector.cpp
-  src/ui/push/PadNoteLayout.cpp
-  src/ui/push/PadLayout.cpp
-  src/ui/push/MainWidget.cpp
-
-  src/ui/pushThread.cpp
-
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
@@ -177,6 +155,34 @@ file(GLOB SOURCES
   src/ui/FakeGestures.cpp
   src/ui/uiControls.cpp
   src/ui/guiThread.cpp
+
+  #push core
+  src/push/PushFaker.cpp
+  src/push/PushCore.cpp
+  src/push/PushDisplay.cpp
+  src/push/PushMidi.cpp
+  src/push/PushSysex.cpp
+  src/push/PushLeds.cpp
+  src/push/PushPads.cpp
+  src/push/PushPainter.cpp
+  src/push/PushFonts.cpp
+  src/push/PushContext.cpp
+  src/push/Widget.cpp
+
+  #push ui
+  src/ui/push/PushUIContext.cpp
+  src/ui/push/MainWidget.cpp
+  src/ui/push/GridWidget.cpp
+  src/ui/push/ModuleWidget.cpp
+  src/ui/push/BrowserWidget.cpp
+  
+  src/ui/push/PadLayoutSelector.cpp
+  src/ui/push/PadNoteLayout.cpp
+  src/ui/push/PadLayout.cpp
+  
+
+  src/ui/pushThread.cpp
+
 
   #other
   src/defines.cpp

@@ -26,6 +26,10 @@ void Painter::clear() {
     fill(COLORS::Black);
 }
 
+void Painter::clearRegion(int x, int y, int w, int h) {
+    filledRectangle(x, y, w, h, COLORS::Black);
+}
+
 void Painter::drawPixel(int x, int y, Color color) {
     if(x < 0 || x > DISPLAY_WIDTH) return;
     if(y < 0 || y > DISPLAY_HEIGHT) return;

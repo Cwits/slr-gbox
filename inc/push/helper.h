@@ -42,4 +42,12 @@ inline bool isBtnPressed(const PushLib::ButtonEvent &ev) {
     return ev.type == PushLib::ButtonEventType::Pressed;
 }
 
+inline bool slowdown(char max) {
+    static char slowdown = 0;
+    slowdown++;
+    if(slowdown < max) return false;
+    slowdown = 0;
+    return true;
+}
+
 }

@@ -9,10 +9,11 @@
 
 namespace PushLib {
     class PushLeds;
-    class PushContext;
 }
 
 namespace PushUI {
+
+class PushUIContext;
 
 using Layout = std::vector<unsigned char>;
 using Scale = std::vector<unsigned char>;
@@ -42,7 +43,7 @@ enum class Scales {
 };
 
 struct PadNoteLayout : public PushLib::PushPadLayout {
-    PadNoteLayout(PushLib::PushContext * const pctx);
+    PadNoteLayout(PushUIContext * const pctx);
     ~PadNoteLayout();
 
     const unsigned char getNote(const unsigned char &pad) override;
@@ -71,7 +72,7 @@ struct PadNoteLayout : public PushLib::PushPadLayout {
     static const std::string_view & scaleName(const Scales scale);
 
     private:
-    PushLib::PushContext * const _pctx;
+    PushUIContext * const _pctx;
 
     std::atomic<bool> _chromatic;
     std::atomic<unsigned char> _rootNote;

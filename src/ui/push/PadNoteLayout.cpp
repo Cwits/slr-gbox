@@ -4,6 +4,8 @@
 
 #include "push/PushContext.h"
 #include "push/PushLeds.h"
+
+#include "ui/push/PushUIContext.h"
 #include "ui/uiutility.h"
 
 #include "logger.h"
@@ -80,7 +82,7 @@ const std::vector<std::string_view> _scalesTexts = {
     "Blues"
 };
 
-PadNoteLayout::PadNoteLayout(PushLib::PushContext * const pctx) :
+PadNoteLayout::PadNoteLayout(PushUIContext * const pctx) :
     _pctx(pctx),
     _chromatic(true),
     _rootNote(36), //C2
@@ -238,7 +240,7 @@ const std::string_view & PadNoteLayout::scaleName(const Scales scale) {
 
 void PadNoteLayout::setChromatic(const bool chromatic) { 
     _chromatic.store(chromatic, std::memory_order_relaxed); 
-    _pctx->updatePadsColors();    
+    _pctx->pctx()->updatePadsColors();    
 }
 
 
@@ -247,17 +249,17 @@ void PadNoteLayout::setColors(unsigned char root, unsigned char inScale, unsigne
     _offScalePadColor = offScale;
     _inScalePadColor = inScale;
     _padPressedColor = pressed;
-    _pctx->updatePadsColors();
+    _pctx->pctx()->updatePadsColors();
 }
 
 void PadNoteLayout::setScale(const Scales scale) { 
     _scale.store(scale, std::memory_order_relaxed); 
-    _pctx->updatePadsColors();
+    _pctx->pctx()->updatePadsColors();
 }
 
 void PadNoteLayout::setLayout(const LayoutStyle layout) { 
     _layout.store(layout, std::memory_order_relaxed); 
-    _pctx->updatePadsColors();
+    _pctx->pctx()->updatePadsColors();
 }
 
 

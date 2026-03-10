@@ -22,6 +22,7 @@ struct Painter {
     ~Painter();
 
     void clear();
+    void clearRegion(int x, int y, int w, int h);
     void drawPixel(int x, int y, Color color);
     
     void fill(Color color);
