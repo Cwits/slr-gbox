@@ -274,26 +274,17 @@ void PushMidi::handleSysexEvent(const unsigned char *data, const int &len) {
 
 
 bool PushMidi::dispatchEvents() {
-    {
-        ButtonEvent b;
-        while(_buttonQueue.pop(b)) {
-            _localButtonQueue.push(b);
-        }
-    }
-
     bool ret = false;
-    while(!_localButtonQueue.empty()) {
-        ButtonEvent ev = _localButtonQueue.front();
-        _localButtonQueue.pop();
-
+    ButtonEvent btn;
+    while(_buttonQueue.pop(btn)) {
         if(_core._mainWidget)
-            ret = _core._mainWidget->handleButton(ev);
+            ret |= _core._mainWidget->handleButton(btn);
     }
 
     EncoderEvent enc;
     while(_encoderQueue.pop(enc)) {
         if(_core._mainWidget)
-            ret = _core._mainWidget->handleEncoder(enc);
+            ret |= _core._mainWidget->handleEncoder(enc);
     }
 
     return ret;

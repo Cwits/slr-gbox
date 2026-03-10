@@ -8,6 +8,8 @@
 
 #include "ui/push/PushUIContext.h"
 
+#include "core/Events.h"
+
 #include "logger.h"
 
 namespace PushUI {
@@ -24,6 +26,9 @@ GridWidget::GridWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
     _pUIctx(puictx)
 {
 
+    RectX = 50;
+    RectY = 50;
+    RectColor = 50;
 }
 
 GridWidget::~GridWidget() {
@@ -79,6 +84,12 @@ std::vector<PushLib::ButtonColor> GridWidget::buttonsColors() {
 bool GridWidget::upBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     LOG_INFO("Up");
+
+    slr::Events::CreateModule e = {
+        .name = "Track"
+    };
+    slr::EmitEvent(e); 
+    
     return false;
 }
 

@@ -89,8 +89,12 @@ struct PadCalibration {
 };
 
 enum class Button {
+    _DUMMY0 = 0, _DUMMY1 = 1, _DUMMY2 = 2,
     TapTempo        = 3,
+    _DUMMY4 = 4, _DUMMY5 = 5, _DUMMY6 = 6, _DUMMY7 = 7, _DUMMY8 = 8,
     Metrnonme       = 9,
+    _DUMMY10 = 10, _DUMMY11 = 11, _DUMMY12 = 12, _DUMMY13 = 13, _DUMMY14 = 14, 
+    _DUMMY15 = 15, _DUMMY16 = 16, _DUMMY17 = 17, _DUMMY18 = 18, _DUMMY19 = 19,
     DisplayBottom1  = 20,
     DisplayBottom2  = 21,
     DisplayBottom3  = 22,
@@ -103,6 +107,7 @@ enum class Button {
     StopClip        = 29,
     Setup           = 30,
     Layout          = 31,
+    _DUMMY32 = 32, _DUMMY33 = 33, _DUMMY34 = 34,
     Convert         = 35,
     Scene14         = 36,
     Scene14t        = 37,
@@ -132,16 +137,25 @@ enum class Button {
     Solo            = 61,
     PageLeft        = 62,
     PageRight       = 63,
+    _DUMMY64 = 64, _DUMMY65 = 65, _DUMMY66 = 66, _DUMMY67 = 67, 
+    _DUMMY68 = 68, _DUMMY69 = 69, _DUMMY70 = 70, _DUMMY71 = 71, 
+    _DUMMY72 = 72, _DUMMY73 = 73, _DUMMY74 = 74, _DUMMY75 = 75, 
+    _DUMMY76 = 76, _DUMMY77 = 77, _DUMMY78 = 78, _DUMMY79 = 79, 
+    _DUMMY80 = 80, _DUMMY81 = 81, _DUMMY82 = 82, _DUMMY83 = 83, _DUMMY84 = 84, 
     Play            = 85,
     Record          = 86,
     New             = 87,
     Duplicate       = 88,
     Automate        = 89,
     FixedLength     = 90,
+    _DUMMY90 = 90, _DUMMY91 = 91, _DUMMY92 = 92, _DUMMY93 = 93, 
+    _DUMMY94 = 94, _DUMMY95 = 95, _DUMMY96 = 96, _DUMMY97 = 97, 
+    _DUMMY98 = 98, _DUMMY99 = 99, _DUMMY100 = 100, _DUMMY101 = 101,
     DisplayTop1     = 102,
     DisplayTop2     = 103,
     DisplayTop3     = 104,
     DisplayTop4     = 105,
+    DisplayTop5     = 106,
     DisplayTop6     = 107,
     DisplayTop7     = 108,
     DisplayTop8     = 109,
@@ -149,11 +163,12 @@ enum class Button {
     Browser         = 111,
     Mix             = 112,
     Clip            = 113,
+    _DUMMY114 = 114, _DUMMY115 = 115,
     Quantize        = 116,
     DoubleLoop      = 117,
     Delete          = 118,
     Undo            = 119,
-    Count           = 120
+    _COUNT           = 120
 };
 
 enum class ButtonEventType {
@@ -256,5 +271,14 @@ struct PushStatus {
 
 template<typename T>
 using ButtonCallbackMap = std::map<PushLib::Button, bool(T::*)(PushLib::ButtonEvent&)>;
+
+template<typename T>
+struct ButtonCallback {
+    PushLib::Button btn;
+    bool (T::*clb)(PushLib::ButtonEvent&);
+};
+
+template<typename T>
+using BtnCallbackMap = std::array<ButtonCallback<T>, static_cast<int>(Button::_COUNT)>;
 
 }

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ui/push/PadLayoutSelector.h"
+#include "ui/push/PadLayoutWidget.h"
 
 #include "push/PushPainter.h"
 #include "push/PushContext.h"
@@ -44,24 +44,39 @@ void intToXY(int &x, int &y, int i) {
     }
 }
 
-PadLayoutSelector::PadLayoutSelector(PushLib::Widget *parent, PushUIContext * const puictx) :
+const PushLib::ButtonCallbackMap<PadLayoutWidget> PadLayoutWidget::_buttonsCallback = {
+    {PushLib::Button::DisplayBottom1, &PadLayoutWidget::toggleChromatic},
+    {PushLib::Button::DisplayBottom2, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayBottom3, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayBottom5, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayBottom6, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayBottom7, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayTop2, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayTop3, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayTop4, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayTop5, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayTop6, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayTop7, &PadLayoutWidget::setRootNote},
+    {PushLib::Button::DisplayTop8, &PadLayoutWidget::setRootNote},
+};
+
+PadLayoutWidget::PadLayoutWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
     Widget(parent),
     _pUIctx(puictx)
 {
     _padNotes = std::make_unique<PadNoteLayout>(puictx);
     puictx->pctx()->setPadsLayout(_padNotes.get());
     
-    _pointerX = 5;
-    _pointerY = 22;
     _pointerPos = 1;
     _pointerOldPos = 1;
+    _redrawPointer = false;
 }
 
-PadLayoutSelector::~PadLayoutSelector() {
+PadLayoutWidget::~PadLayoutWidget() {
 
 }
 
-PushLib::BoundingBox PadLayoutSelector::invalidate() {
+PushLib::BoundingBox PadLayoutWidget::invalidate() {
     PushLib::BoundingBox box;
     if(_redrawPointer) {
         //return bounding box between old pointer position and new
@@ -80,12 +95,12 @@ PushLib::BoundingBox PadLayoutSelector::invalidate() {
         box.w = PushLib::DISPLAY_WIDTH;
         box.h = PushLib::DISPLAY_HEIGHT;
     }
-
+    
     //return full display bounding box?
     return box; 
 }
 
-void PadLayoutSelector::paint(PushLib::Painter &painter) {
+void PadLayoutWidget::paint(PushLib::Painter &painter) {
     if(_redrawPointer) {
         int xold;
         int yold;
@@ -149,21 +164,24 @@ void PadLayoutSelector::paint(PushLib::Painter &painter) {
         }
     }
 
-    painter.writeChar(_pointerX, _pointerY, '>', PushLib::Font_11x18, PushLib::COLORS::White);
+    intToXY(x, y, _pointerPos);
+    painter.writeChar(x, y, '>', PushLib::Font_11x18, PushLib::COLORS::White);
+    _pointerOldPos = _pointerPos;
 }
 
-bool PadLayoutSelector::handleButton(PushLib::ButtonEvent &ev) {
+bool PadLayoutWidget::handleButton(PushLib::ButtonEvent &ev) {
     if( (ev.button >= PushLib::Button::DisplayBottom1 && ev.button <= PushLib::Button::DisplayBottom8) ||
         (ev.button >= PushLib::Button::DisplayTop1 && ev.button <= PushLib::Button::DisplayTop8) )
     {
         LOG_INFO("Handle me layout pads");
+
         return true;
     } else {
         return _pUIctx->tryHandleButtonDefault(ev);
     }
 }
 
-bool PadLayoutSelector::handleEncoder(PushLib::EncoderEvent &ev) {
+bool PadLayoutWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     if(ev.encoder < PushLib::Encoder::Encoder1 && ev.encoder > PushLib::Encoder::Encoder8) {
         return _pUIctx->tryHandleEncoderDefault(ev);
     }
@@ -189,10 +207,38 @@ bool PadLayoutSelector::handleEncoder(PushLib::EncoderEvent &ev) {
     
         Scales sk = static_cast<Scales>(_pointerPos-1);
         _padNotes->setScale(sk);
-        _pUIctx->pctx()->updatePadsColors();
+        // _pUIctx->pctx()->updatePadsColors();
     }
     
     return true;
 }
+
+bool PadLayoutWidget::toggleChromatic(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+
+    _padNotes->setChromatic(!_padNotes->chromatic());
+    // _pUIctx->pctx()->updatePadsColors();
+    return true;
+}
+
+bool PadLayoutWidget::setRootNote(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+
+    if(ev.button == PushLib::Button::DisplayTop2) _padNotes->setRootNote(36);
+    else if(ev.button == PushLib::Button::DisplayBottom2) _padNotes->setRootNote(37);
+    else if(ev.button == PushLib::Button::DisplayTop3) _padNotes->setRootNote(38);
+    else if(ev.button == PushLib::Button::DisplayBottom3) _padNotes->setRootNote(39);
+    else if(ev.button == PushLib::Button::DisplayTop4) _padNotes->setRootNote(40);
+    else if(ev.button == PushLib::Button::DisplayTop5) _padNotes->setRootNote(41);
+    else if(ev.button == PushLib::Button::DisplayBottom5) _padNotes->setRootNote(42);
+    else if(ev.button == PushLib::Button::DisplayTop6) _padNotes->setRootNote(43);
+    else if(ev.button == PushLib::Button::DisplayBottom6) _padNotes->setRootNote(44);
+    else if(ev.button == PushLib::Button::DisplayTop7) _padNotes->setRootNote(45);
+    else if(ev.button == PushLib::Button::DisplayBottom7) _padNotes->setRootNote(46);
+    else if(ev.button == PushLib::Button::DisplayTop8) _padNotes->setRootNote(47);
+
+    return true;
+}
+
 
 }

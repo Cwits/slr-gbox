@@ -14,7 +14,7 @@ namespace PushLib {
 
 namespace PushUI {
 
-class PadLayoutSelector;
+class PadLayoutWidget;
 class GridWidget;
 class ModuleWidget;
 class BrowserWidget;
@@ -42,7 +42,7 @@ struct MainWidget : public PushLib::Widget {
     private:
     PushUIContext _puictx;
 
-    std::unique_ptr<PadLayoutSelector> _padLayoutSelector;
+    std::unique_ptr<PadLayoutWidget> _padLayoutWidget;
     std::unique_ptr<GridWidget> _gridWidget;
     std::unique_ptr<ModuleWidget> _moduleWidget;
     std::unique_ptr<BrowserWidget> _browserWidget;

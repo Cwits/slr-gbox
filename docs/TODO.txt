@@ -190,6 +190,7 @@ Push:
 [ ] - MidiInterface::handleEvent...
         //TODO: the other's important CC will be here as well - e.g. sustain pedal... smth else?
 
+[ ] - you want to somehow make _buttonCallbackMap of widgets not an std::map, but std::array<> or smth... to make search time less consuming...
 
 /* Notes */
  - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 

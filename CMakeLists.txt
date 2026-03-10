@@ -176,7 +176,7 @@ file(GLOB SOURCES
   src/ui/push/ModuleWidget.cpp
   src/ui/push/BrowserWidget.cpp
   
-  src/ui/push/PadLayoutSelector.cpp
+  src/ui/push/PadLayoutWidget.cpp
   src/ui/push/PadNoteLayout.cpp
   src/ui/push/PadLayout.cpp
   

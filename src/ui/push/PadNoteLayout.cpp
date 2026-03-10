@@ -262,5 +262,10 @@ void PadNoteLayout::setLayout(const LayoutStyle layout) {
     _pctx->pctx()->updatePadsColors();
 }
 
+void PadNoteLayout::setRootNote(unsigned char root) {
+    _rootNote.store(root, std::memory_order_relaxed);
+    _pctx->pctx()->updatePadsColors();
+}
+
 
 }

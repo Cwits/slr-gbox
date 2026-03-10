@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ui/push/MainWidget.h"
 
-#include "ui/push/PadLayoutSelector.h"
+#include "ui/push/PadLayoutWidget.h"
 #include "ui/push/GridWidget.h"
 #include "ui/push/ModuleWidget.h"
 #include "ui/push/BrowserWidget.h"
@@ -15,39 +15,49 @@
 
 namespace PushUI {
 
+#define CLBS(x) \
+    X(User, userBtnClb) \
+    X(Device, deviceBtnClb) \
+    X(Browser, browserBtnClb) \
+    X(Play, playButtonClb) \
+    X(Record, recordButtonClb) \
+    X(Scale, scaleSelector) \
+    X(Layout, layoutSelector)
+
 const PushLib::ButtonCallbackMap<MainWidget> MainWidget::_buttonsCallback = {
-    {PushLib::Button::User, &MainWidget::userBtnClb},
-    {PushLib::Button::Device, &MainWidget::deviceBtnClb},
-    {PushLib::Button::Browser, &MainWidget::browserBtnClb},
-    {PushLib::Button::Play, &MainWidget::playButtonClb},
-    {PushLib::Button::Record, &MainWidget::recordButtonClb},
-    {PushLib::Button::Scale, &MainWidget::scaleSelector},
-    {PushLib::Button::Layout, &MainWidget::layoutSelector},
+#define X(btn, clb) {PushLib::Button::btn, &MainWidget::clb},
+    CLBS(X)
+#undef X
+};
+
+const std::vector<PushLib::ButtonColor> _colors = {
+#define X(btn, clb) { PushLib::Button::btn, PushLib::LedAnimation(), 127 },
+    CLBS(X)
+#undef X
 };
 
 static int playColor = 1;
 
 MainWidget::MainWidget(PushLib::PushContext * const pctx) :
-    PushLib::Widget(nullptr)
-    // _currentView(PushView::Grid)
+    PushLib::Widget(nullptr),
+    _currentView(PushView::ERROR)
 {
     _puictx._pctx = pctx;
     _puictx._mainWidget = this;
 
-    _padLayoutSelector = std::make_unique<PadLayoutSelector>(this, &_puictx);
+    _padLayoutWidget = std::make_unique<PadLayoutWidget>(this, &_puictx);
     _gridWidget = std::make_unique<GridWidget>(this, &_puictx);
     _moduleWidget = std::make_unique<ModuleWidget>(this, &_puictx);
     _browserWidget = std::make_unique<BrowserWidget>(this, &_puictx);
 
-    // colorButtons();
-    
+    switchToView(PushView::Grid);
+
     PushLib::ButtonColor play;
     play.btn = PushLib::Button::Play;
     play.color = playColor;
     play.anim = PushLib::LedAnimation();
     pctx->setButtonColor(play);
 
-    switchToView(PushView::Grid);
 }
 
 MainWidget::~MainWidget() {
@@ -81,6 +91,19 @@ void MainWidget::paint(PushLib::Painter &painter) {
     */
 
     widgetFromView(_currentView)->paint(painter);
+    // switch(_currentView) {
+    //     case(PushView::Grid): LOG_INFO("Grid"); break;
+    //     case(PushView::Module): LOG_INFO("Module"); break;
+    //     case(PushView::Editor): break;
+    //     case(PushView::Patch): break;
+    //     case(PushView::StepSequencer): break;
+    //     case(PushView::ModMatrix): break;
+    //     case(PushView::Browser): LOG_INFO("Browser"); break;
+    //     case(PushView::Metronome): break;
+    //     case(PushView::ScaleSelector): LOG_INFO("Scale"); break;
+    //     case(PushView::PushInternalSettings): break;
+    //     case(PushView::SLRSettings): break;
+    // }
 }
 
 bool MainWidget::handleButton(PushLib::ButtonEvent &ev) {
@@ -107,7 +130,7 @@ PushLib::Widget * MainWidget::widgetFromView(PushView view) {
         case(PushView::ModMatrix): break;
         case(PushView::Browser): ret = _browserWidget.get(); break;
         case(PushView::Metronome): break;
-        case(PushView::ScaleSelector): ret = _padLayoutSelector.get(); break;
+        case(PushView::ScaleSelector): ret = _padLayoutWidget.get(); break;
         case(PushView::PushInternalSettings): break;
         case(PushView::SLRSettings): break;
     }
@@ -169,7 +192,14 @@ void MainWidget::colorButtons() {
     //  rest is from main
 
     std::vector<PushLib::ButtonColor> viewMap = widgetFromView(currentView())->buttonsColors();
-    std::vector<PushLib::ButtonColor> defaultMap = buttonsColors();
+    std::vector<PushLib::ButtonColor> defaultMap = _colors;
+
+    for(auto &v : defaultMap) {
+        if(v.btn != PushLib::Button::Play) continue;
+
+        v.color = 15;
+        break;
+    }
 
     std::vector<PushLib::ButtonColor> result;
     result.reserve(viewMap.size() + defaultMap.size());

@@ -47,7 +47,6 @@ struct PushMidi {
     std::mutex _pushMutex;
     // std::queue<ButtonEvent> _buttonQueue;
     slr::SPSCQueue<ButtonEvent, 32> _buttonQueue;
-    std::queue<ButtonEvent> _localButtonQueue;
     slr::SPSCQueue<EncoderEvent, 128> _encoderQueue;
     // std::queue<SysexMsg> _sysexQueue;
 

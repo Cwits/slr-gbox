@@ -15,9 +15,9 @@ namespace PushUI {
 class PadNoteLayout;
 class PushUIContext;
 
-struct PadLayoutSelector : public PushLib::Widget {
-    PadLayoutSelector(PushLib::Widget *parent, PushUIContext * const puictx);
-    ~PadLayoutSelector();
+struct PadLayoutWidget : public PushLib::Widget {
+    PadLayoutWidget(PushLib::Widget *parent, PushUIContext * const puictx);
+    ~PadLayoutWidget();
 
     PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
@@ -32,16 +32,15 @@ struct PadLayoutSelector : public PushLib::Widget {
     
     std::unique_ptr<PadNoteLayout> _padNotes;
 
-    int _pointerX;
-    int _pointerY;
-    
-    int _pointerXold;
-    int _pointerYold;
+    static const PushLib::ButtonCallbackMap<PadLayoutWidget> _buttonsCallback;
 
     int _pointerPos;
     int _pointerOldPos;
     
     bool _redrawPointer;
+
+    bool toggleChromatic(PushLib::ButtonEvent &ev);
+    bool setRootNote(PushLib::ButtonEvent &ev);
 };
 
 }

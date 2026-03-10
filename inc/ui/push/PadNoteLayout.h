@@ -69,6 +69,8 @@ struct PadNoteLayout : public PushLib::PushPadLayout {
     void setScale(const Scales scale);
     void setLayout(const LayoutStyle layout);
 
+    void setRootNote(unsigned char root);
+
     static const std::string_view & scaleName(const Scales scale);
 
     private:
