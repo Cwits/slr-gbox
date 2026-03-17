@@ -37,7 +37,7 @@ void Canvas::update() {
     gray = PushLib::rgb2(255, 0, 0);
     int half = _height/2;
     for(int i=0; i<_width; ++i) { 
-        int amp = half + (60*std::sin(2*M_PI*20*((float)i/(float)_width)));
+        int amp = half + ((half/2)*std::sin(2*M_PI*20*((float)i/(float)_width)));
         // painter.drawPixel(i, amp, PushLib::COLORS::Red);
         cnv[(amp*_width)+i] = gray;
     }
