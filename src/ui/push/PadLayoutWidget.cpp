@@ -183,14 +183,19 @@ bool PadLayoutWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     } else {
         //scale switch
         // _redrawPointer = true;
-        // if(ev.delta > 0) {
-        //     if(_pointerPos < static_cast<int>(Scales::LAST)) _pointerPos++;
-        // } else if(ev.delta < 0) {
-        //     if(_pointerPos > 1) _pointerPos--;
-        // }
+        if(ev.delta > 0) {
+            if(_pointerPos < static_cast<int>(Scales::LAST)) _pointerPos++;
+        } else if(ev.delta < 0) {
+            if(_pointerPos > 1) _pointerPos--;
+        }
         
-        // Scales sk = static_cast<Scales>(_pointerPos-1);
-        // _padNotes->setScale(sk);
+        
+        int x,y;
+        intToXY(x, y, _pointerPos);
+        _pointer->position(x, y);
+        
+        Scales sk = static_cast<Scales>(_pointerPos-1);
+        _padNotes->setScale(sk);
     }
     
     return true;
