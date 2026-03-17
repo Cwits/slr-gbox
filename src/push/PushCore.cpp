@@ -8,6 +8,7 @@
 #include "core/Events.h"
 
 #include "push/Widget.h"
+#include "push/BoundingBox.h"
 #include "push/PushMidi.h"
 
 #include "logger.h"
@@ -18,6 +19,7 @@
 #include <future>
 #include <chrono>
 #include <cmath>
+#include <vector>
 
 #if (USE_FAKE_PUSH == 1)
 #include "push/PushFaker.h"
@@ -33,7 +35,7 @@ PushCore::PushCore() :
     _display(_sysex, _painter),
     _leds(_midi, _sysex),
     _pads(_midi, _sysex, _leds),
-    _mainWidget(nullptr),
+    _rootWidget(nullptr),
     _manualRedraw(false)
 {
     _context._core = this;
@@ -77,14 +79,15 @@ void PushCore::tick(int dt) {
     }
     
     if(needRedraw || _manualRedraw) {
-        if(!_mainWidget) { 
-            LOG_ERROR("Main Widget is not set");
+        if(!_rootWidget) { 
+            LOG_ERROR("Root Widget is not set");
             return;
         }
 
-        BoundingBox box = _mainWidget->invalidate();
-        _mainWidget->paint(_painter);
-        _display.updateFrame(box);
+        BoundingBox dirtyRegion = _rootWidget->bounds();
+        _rootWidget->paint(_painter);
+        
+        _display.updateFrame(dirtyRegion);
         _manualRedraw = false;
     }
 

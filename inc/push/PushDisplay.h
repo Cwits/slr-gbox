@@ -3,6 +3,7 @@
 #pragma once
 
 #include "push/PushLib.h"
+
 #include <libusb-1.0/libusb.h>
 
 #include <functional>

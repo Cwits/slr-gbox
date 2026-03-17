@@ -7,7 +7,7 @@
 
 namespace PushUIDefines {
 
-PushLib::FontDef DefaultFont = PushLib::Font_7x10; 
+PushLib::Font DefaultFont = PushLib::Font_7x10; 
 constexpr int DefaultMargin = 5;
 constexpr int DisplayButtonWidth = PushLib::DISPLAY_WIDTH/8;
 

@@ -277,14 +277,14 @@ bool PushMidi::dispatchEvents() {
     bool ret = false;
     ButtonEvent btn;
     while(_buttonQueue.pop(btn)) {
-        if(_core._mainWidget)
-            ret |= _core._mainWidget->handleButton(btn);
+        if(_core._rootWidget)
+            ret |= _core._rootWidget->handleButton(btn);
     }
 
     EncoderEvent enc;
     while(_encoderQueue.pop(enc)) {
-        if(_core._mainWidget)
-            ret |= _core._mainWidget->handleEncoder(enc);
+        if(_core._rootWidget)
+            ret |= _core._rootWidget->handleEncoder(enc);
     }
 
     return ret;

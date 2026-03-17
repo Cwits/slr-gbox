@@ -13,15 +13,12 @@ BrowserWidget::BrowserWidget(PushLib::Widget *parent, PushUIContext * const puic
     Widget(parent),
     _pUIctx(puictx)
 {
-
+    position(0, 0);
+    size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
 }
 
 BrowserWidget::~BrowserWidget() {
 
-}
-
-PushLib::BoundingBox BrowserWidget::invalidate() {
-    return PushLib::BoundingBox();
 }
 
 void BrowserWidget::paint(PushLib::Painter &painter) {

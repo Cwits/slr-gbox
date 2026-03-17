@@ -8,7 +8,8 @@
 
 #include "push/PushCore.h"
 #include "push/PushContext.h"
-#include "ui/push/MainWidget.h" //does not belong here...
+
+#include "ui/push/RootWidget.h" //does not belong here...
 
 #include "slr_config.h"
 #include "logger.h"
@@ -21,7 +22,7 @@
 namespace PushThread {
 
 std::unique_ptr<PushLib::PushCore> _pushDev;
-std::unique_ptr<PushUI::MainWidget> _pushMainWidget;
+std::unique_ptr<PushUI::RootWidget> _pushMainWidget;
 
 std::thread _pushRunner;
 std::atomic<bool> _threadRunning;
@@ -62,8 +63,8 @@ void threadLoop(slr::MidiPort *port) {
     }
 
     PushLib::PushContext *pctx = _pushDev->context();
-    _pushMainWidget = std::make_unique<PushUI::MainWidget>(pctx);
-    _pushDev->setMainWidget(_pushMainWidget.get());
+    _pushMainWidget = std::make_unique<PushUI::RootWidget>(pctx);
+    _pushDev->setRootWidget(_pushMainWidget.get());
 
     LOG_INFO("Push Inited successfully");
     _threadRunning = true;

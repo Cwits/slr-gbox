@@ -17,7 +17,6 @@ struct BrowserWidget : public PushLib::Widget {
     BrowserWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~BrowserWidget();
 
-    PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;

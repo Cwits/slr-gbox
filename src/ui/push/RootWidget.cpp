@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "ui/push/MainWidget.h"
+#include "ui/push/RootWidget.h"
 
 #include "ui/push/PadLayoutWidget.h"
 #include "ui/push/GridWidget.h"
@@ -24,8 +24,8 @@ namespace PushUI {
     X(Scale, scaleSelector) \
     X(Layout, layoutSelector)
 
-const PushLib::ButtonCallbackMap<MainWidget> MainWidget::_buttonsCallback = {
-#define X(btn, clb) {PushLib::Button::btn, &MainWidget::clb},
+const PushLib::ButtonCallbackMap<RootWidget> RootWidget::_buttonsCallback = {
+#define X(btn, clb) {PushLib::Button::btn, &RootWidget::clb},
     CLBS(X)
 #undef X
 };
@@ -38,12 +38,62 @@ const std::vector<PushLib::ButtonColor> _colors = {
 
 static int playColor = 1;
 
-MainWidget::MainWidget(PushLib::PushContext * const pctx) :
+
+std::vector<PushLib::BoundingBox> _dirtyRegions;
+
+void collectDirty(PushLib::Widget *w, std::vector<PushLib::BoundingBox> &list) {
+    if(!w->visible()) return; 
+
+    if(w->dirty()) {
+        PushLib::BoundingBox b = w->lastBounds();
+        if(!b.empty())
+            list.push_back(b);
+        
+        b = w->bounds();
+        if(!b.empty())
+            list.push_back(b);
+    }
+    for(PushLib::Widget *c : w->childs())
+        collectDirty(c, list);
+};
+
+void traverse(PushLib::Widget *w, PushLib::Painter &p, const PushLib::BoundingBox &clip) {
+    if(!w->visible()) return;
+
+    if(!w->bounds().intersects(clip)) return;
+
+    PushLib::BoundingBox newClip = w->bounds().intersect(clip);
+    if(newClip.empty()) return;
+
+    p.pushClip(newClip);
+
+    w->sortChildsByZ();
+
+    w->paint(p);
+
+    for(PushLib::Widget *c : w->childs()) 
+        traverse(c, p, newClip);
+
+    p.popClip();
+};
+
+void finalize(PushLib::Widget *w) {
+    w->clearDirty();
+    w->updateBounds();
+
+    for(PushLib::Widget *c : w->childs())
+        finalize(c);
+}
+
+RootWidget::RootWidget(PushLib::PushContext * const pctx) :
     PushLib::Widget(nullptr),
     _currentView(PushView::ERROR)
 {
+    _x = 0; _y = 0; _width = 0; _height = 0;
+    // position(0, 0);
+    // size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
     _puictx._pctx = pctx;
-    _puictx._mainWidget = this;
+    _puictx._rootWidget = this;
 
     _padLayoutWidget = std::make_unique<PadLayoutWidget>(this, &_puictx);
     _gridWidget = std::make_unique<GridWidget>(this, &_puictx);
@@ -60,57 +110,49 @@ MainWidget::MainWidget(PushLib::PushContext * const pctx) :
 
 }
 
-MainWidget::~MainWidget() {
+RootWidget::~RootWidget() {
 
 }
 
-PushLib::BoundingBox MainWidget::invalidate() { //return BoundingBox of area that has to be redrawn
-    PushLib::BoundingBox ret;
+PushLib::BoundingBox RootWidget::bounds() { //return BoundingBox of area that has to be redrawn
+    PushLib::BoundingBox b;
     if(_viewSwitched) {
-        ret.x = 0;
-        ret.y = 0;
-        ret.h = PushLib::DISPLAY_HEIGHT;
-        ret.w = PushLib::DISPLAY_WIDTH;
+        b.x = 0;
+        b.y = 0;
+        b.h = PushLib::DISPLAY_HEIGHT;
+        b.w = PushLib::DISPLAY_WIDTH;
         _viewSwitched = false;
     } else {
         //invalidate?
-        ret = widgetFromView(_currentView)->invalidate();
+        // b = widgetFromView(_currentView)->bounds();
+        _dirtyRegions.clear();
+        collectDirty(widgetFromView(currentView()), _dirtyRegions);
+        for(auto &r : _dirtyRegions)
+            b.unionWith(r);
     }
-    return ret;
+    return b;
 }
 
-void MainWidget::paint(PushLib::Painter &painter) {
-    /* 
-        best case scenario - invalidate which objects are dirty and redraw only that specific area, but not whole thing...
-        plus... somehow need to tell push core where bounding box changed in order for him not to recode whole screen?
-        step 1:
-            make invalidating of elements in drawable space
-        
-        step 2:
-            make invalidating before preparing sendable batch in PushDisplay::updateFrame
-    */
+void RootWidget::paint(PushLib::Painter &painter) {
+    _dirtyRegions.clear();
+            
+    PushLib::Widget * toUpdate = widgetFromView(currentView());
+    collectDirty(toUpdate, _dirtyRegions);
 
-    widgetFromView(_currentView)->paint(painter);
-    // switch(_currentView) {
-    //     case(PushView::Grid): LOG_INFO("Grid"); break;
-    //     case(PushView::Module): LOG_INFO("Module"); break;
-    //     case(PushView::Editor): break;
-    //     case(PushView::Patch): break;
-    //     case(PushView::StepSequencer): break;
-    //     case(PushView::ModMatrix): break;
-    //     case(PushView::Browser): LOG_INFO("Browser"); break;
-    //     case(PushView::Metronome): break;
-    //     case(PushView::ScaleSelector): LOG_INFO("Scale"); break;
-    //     case(PushView::PushInternalSettings): break;
-    //     case(PushView::SLRSettings): break;
-    // }
+    if(_dirtyRegions.empty()) return;
+
+    for(const PushLib::BoundingBox &b : _dirtyRegions) {
+        traverse(toUpdate, painter, b);
+    }
+
+    finalize(toUpdate);
 }
 
-bool MainWidget::handleButton(PushLib::ButtonEvent &ev) {
-    return widgetFromView(_currentView)->handleButton(ev);
+bool RootWidget::handleButton(PushLib::ButtonEvent &ev) {
+    return widgetFromView(currentView())->handleButton(ev);
 }
 
-bool MainWidget::handleEncoder(PushLib::EncoderEvent &ev) {
+bool RootWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     // std::string text;
     // if(ev.type == PushLib::EncoderEventType::Touched) text = "Touched";
     // else if(ev.type == PushLib::EncoderEventType::Moved) text = "Moved";
@@ -119,9 +161,10 @@ bool MainWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     return widgetFromView(_currentView)->handleEncoder(ev);
 }
 
-PushLib::Widget * MainWidget::widgetFromView(PushView view) {
+PushLib::Widget * RootWidget::widgetFromView(const PushView view) {
     Widget * ret = nullptr;
     switch(view) {
+        case(PushView::ERROR): LOG_ERROR("ooops, error"); break;
         case(PushView::Grid): ret = _gridWidget.get(); break;
         case(PushView::Module): ret = _moduleWidget.get(); break;
         case(PushView::Editor): break;
@@ -134,11 +177,11 @@ PushLib::Widget * MainWidget::widgetFromView(PushView view) {
         case(PushView::PushInternalSettings): break;
         case(PushView::SLRSettings): break;
     }
-
+ 
     return ret;
 }
 
-void MainWidget::switchToView(PushView view) {
+void RootWidget::switchToView(PushView view) {
     if(view == _currentView) {
         switchToView(_previousView);
         return;
@@ -147,22 +190,23 @@ void MainWidget::switchToView(PushView view) {
     _previousView = _currentView;
     _currentView = view;
     _viewSwitched = true;
+    widgetFromView(view)->markAllDirty();
     colorButtons();
 }
 
-void MainWidget::goToPreviousView() {
+void RootWidget::goToPreviousView() {
     switchToView(_previousView);
 }
 
-const PushView MainWidget::previousView() const {
+const PushView RootWidget::previousView() const {
     return _previousView;
 }
 
-const PushView MainWidget::currentView() const {
+const PushView RootWidget::currentView() const {
     return _currentView;
 }
 
-bool MainWidget::handleDefaultButton(PushLib::ButtonEvent &ev) {
+bool RootWidget::handleDefaultButton(PushLib::ButtonEvent &ev) {
     //use switch later...
     const auto res = _buttonsCallback.find(ev.button);
     if(res != _buttonsCallback.end()) {
@@ -173,17 +217,17 @@ bool MainWidget::handleDefaultButton(PushLib::ButtonEvent &ev) {
     return false;
 }
 
-bool MainWidget::handleDefaultEncoder(PushLib::EncoderEvent &ev) {
+bool RootWidget::handleDefaultEncoder(PushLib::EncoderEvent &ev) {
     return false;
 }
 
-std::vector<PushLib::ButtonColor> MainWidget::buttonsColors() {
-    return PushHelper::buttonColorsFromMap<MainWidget>(MainWidget::_buttonsCallback);
+std::vector<PushLib::ButtonColor> RootWidget::buttonsColors() {
+    return PushHelper::buttonColorsFromMap<RootWidget>(RootWidget::_buttonsCallback);
 }
 
-void MainWidget::colorButtons() {
+void RootWidget::colorButtons() {
     // _puictx.pctx()->clearButtonColors();
-    // std::vector<PushLib::ButtonColor> map = PushHelper::buttonColorsFromMap<MainWidget>(MainWidget::_buttonsCallback);
+    // std::vector<PushLib::ButtonColor> map = PushHelper::buttonColorsFromMap<RootWidget>(RootWidget::_buttonsCallback);
     // _puictx.pctx()->setButtonsColors(map);
     //1. get from current view
     //2. get main
@@ -228,42 +272,42 @@ void MainWidget::colorButtons() {
 
 /* --------------------    HANDLES    ------------------- */
 
-bool MainWidget::userBtnClb(PushLib::ButtonEvent &ev) {
+bool RootWidget::userBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
     switchToView(PushView::Grid);
     return true;
 }
 
-bool MainWidget::deviceBtnClb(PushLib::ButtonEvent &ev) {
+bool RootWidget::deviceBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
     switchToView(PushView::Module);
     return true;
 }
 
-bool MainWidget::browserBtnClb(PushLib::ButtonEvent &ev) {
+bool RootWidget::browserBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
     switchToView(PushView::Browser);
     return true;
 }
 
-bool MainWidget::scaleSelector(PushLib::ButtonEvent &ev) {
+bool RootWidget::scaleSelector(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
     switchToView(PushView::ScaleSelector);
     return true;
 }
 
-bool MainWidget::layoutSelector(PushLib::ButtonEvent &ev) {
+bool RootWidget::layoutSelector(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
     switchToView(PushView::ScaleSelector);
     return true;
 }
 
-bool MainWidget::playButtonClb(PushLib::ButtonEvent &ev) {
+bool RootWidget::playButtonClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
     LOG_INFO("test Play btn");
@@ -277,7 +321,7 @@ bool MainWidget::playButtonClb(PushLib::ButtonEvent &ev) {
     return true;
 }
 
-bool MainWidget::recordButtonClb(PushLib::ButtonEvent &ev) {
+bool RootWidget::recordButtonClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
     LOG_INFO("test success");

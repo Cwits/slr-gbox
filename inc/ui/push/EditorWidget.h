@@ -17,7 +17,6 @@ struct EditorWidget : public PushLib::Widget {
     EditorWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~EditorWidget();
 
-    PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;

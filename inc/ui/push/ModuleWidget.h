@@ -12,22 +12,29 @@ namespace PushLib {
 namespace PushUI {
 
 class PushUIContext;
+class Canvas;
+class Rectangle;
 
 struct ModuleWidget : public PushLib::Widget {
     ModuleWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~ModuleWidget();
 
-    PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
 
-    std::vector<PushLib::ButtonColor> buttonsColors() override { return std::vector<PushLib::ButtonColor>();}
+    std::vector<PushLib::ButtonColor> buttonsColors() override;
 
     private:
     PushUIContext * const _pUIctx;
+
+    std::unique_ptr<Canvas> _canvas;
+    std::unique_ptr<Rectangle> _rect;
     
+    static const PushLib::ButtonCallbackMap<ModuleWidget> _buttonsCallback;
+    bool leftCallback(PushLib::ButtonEvent &ev);
+    bool rightCallback(PushLib::ButtonEvent &ev);
 };
 
 }

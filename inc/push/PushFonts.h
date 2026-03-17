@@ -6,23 +6,31 @@
 
 namespace PushLib {
 
-struct FontDef {
+struct Font {
     int FontWidth;
     int FontHeight;
     const uint16_t * data;
 
-    FontDef & operator=(const FontDef &other) {
+    Font & operator=(const Font &other) {
         FontWidth = other.FontWidth;
         FontHeight = other.FontHeight;
         data = other.data;
         return *this;
     }
+
+    bool operator==(const Font &other) {
+        return (FontWidth == other.FontWidth && FontHeight == other.FontHeight);
+    }
+
+    bool operator!=(const Font &other) {
+        return (FontWidth != other.FontWidth || FontHeight != other.FontHeight);
+    }
 };
 
 
-extern FontDef Font_6x8;
-extern FontDef Font_7x10;
-extern FontDef Font_11x18;
-extern FontDef Font_16x26;
+extern Font Font_6x8;
+extern Font Font_7x10;
+extern Font Font_11x18;
+extern Font Font_16x26;
 
 }

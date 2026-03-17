@@ -396,9 +396,9 @@ static const uint16_t Font16x26 [] = {
 0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x3F07,0x7FC7,0x73E7,0xF1FF,0xF07E,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000, // Ascii = [~]
 };
 
-FontDef Font_6x8 = {6,8,Font6x8};
-FontDef Font_7x10 = {7,10,Font7x10};
-FontDef Font_11x18 = {11,18,Font11x18};
-FontDef Font_16x26 = {16,26, Font16x26};
+Font Font_6x8 = {6,8,Font6x8};
+Font Font_7x10 = {7,10,Font7x10};
+Font Font_11x18 = {11,18,Font11x18};
+Font Font_16x26 = {16,26, Font16x26};
 
 }

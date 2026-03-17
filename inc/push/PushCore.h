@@ -32,7 +32,7 @@ struct PushCore {
 
     PushContext * context() { return &_context; }
 
-    void setMainWidget(Widget * w) { _mainWidget = w; _manualRedraw = true; }
+    void setRootWidget(Widget * w) { _rootWidget = w; _manualRedraw = true; }
     void tick(int dt);
 
     void redraw() { _manualRedraw = true; }
@@ -49,7 +49,7 @@ struct PushCore {
     PushContext _context;
 
     bool _manualRedraw;
-    Widget * _mainWidget;
+    Widget * _rootWidget;
 
     friend class PushMidi;
 };

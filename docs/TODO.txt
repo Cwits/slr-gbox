@@ -68,6 +68,9 @@ Refactoring:
                 PROFIT?!
         [ ] - primitives folder needs to be in inc/ but not in inc/core/ (1 layer higher)
 
+[ ] - rewrite snapshots to some kind of subscribe model.??
+        when some parameter changed and snapshots updated - call functions...?? 
+
 RtEngine:
 [ ] - ideally RtEngine should not know anything about Project. The RenderPlan can be stored in Project as std::unique_ptr, and passed as it happens now
         but what to do with timeline? should RtEngine own timeline, or Project(and pass together with render plan?)? Feels like first option be better...
@@ -191,6 +194,8 @@ Push:
         //TODO: the other's important CC will be here as well - e.g. sustain pedal... smth else?
 
 [ ] - you want to somehow make _buttonCallbackMap of widgets not an std::map, but std::array<> or smth... to make search time less consuming...
+[ ] - BIG REWORK-UPDATE: need some proper retained UI logic... (similar to lvgl?) to redraw only affected areas and save some cpu...
+
 
 /* Notes */
  - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 

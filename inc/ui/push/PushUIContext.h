@@ -28,7 +28,7 @@ enum class PushView {
     SLRSettings,
 };
 
-class MainWidget;
+class RootWidget;
 struct PushUIContext {
     PushUIContext();
 
@@ -45,9 +45,9 @@ struct PushUIContext {
 
     private:
     PushLib::PushContext * _pctx;
-    MainWidget *_mainWidget;
+    RootWidget *_rootWidget;
 
-    friend class MainWidget;
+    friend class RootWidget;
 };
 
 }

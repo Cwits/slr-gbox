@@ -30,6 +30,16 @@ inline Color rgb(int r, int g, int b) {
     return tmpr | tmpg | tmpb;
 }
 
+inline Color rgb2(int r, int g, int b) {
+    uint16_t tmpr, tmpg, tmpb;
+
+    tmpr = (r * 31 / 255) & 0x1F;
+    tmpg = (g * 63 / 255) & 0x3F;
+    tmpb = (b * 31 / 255) & 0x1F;
+
+    return (tmpb << 11) | (tmpg << 5) | tmpr;
+}
+
 inline Color invert(Color color) { return (color ^ 0xFFFF); }
 
 inline Color random() {

@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "push/PushDisplay.h"
-// #include "push/widgets/Widget.h"
+#include "push/Widget.h"
 #include "push/PushPainter.h"
 #include "push/PushSysex.h"
+#include "push/BoundingBox.h"
 
 #include "logger.h"
 #include "slr_config.h"

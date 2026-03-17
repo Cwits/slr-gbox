@@ -9,7 +9,7 @@ namespace slr {
 #define MIDI_TRACE 0
 
 #define USE_PUSH 1
-#define USE_FAKE_PUSH 0
+#define USE_FAKE_PUSH 1
 
 /* Audio Buffer Manager */
 #define DEFAULT_BUFFER_COUNT 1024

@@ -20,15 +20,17 @@ class ModuleWidget;
 class BrowserWidget;
 // class Settings;
 
-struct MainWidget : public PushLib::Widget {
-    MainWidget(PushLib::PushContext * const pctx);
-    ~MainWidget();
+struct RootWidget : public PushLib::Widget {
+    RootWidget(PushLib::PushContext * const pctx);
+    ~RootWidget();
 
-    PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
+    PushLib::BoundingBox bounds() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
+
+    Widget * widgetToUpdate();
 
     void switchToView(PushView view);
     void goToPreviousView();
@@ -39,6 +41,7 @@ struct MainWidget : public PushLib::Widget {
     bool handleDefaultEncoder(PushLib::EncoderEvent &ev);
 
     std::vector<PushLib::ButtonColor> buttonsColors() override;
+    
     private:
     PushUIContext _puictx;
 
@@ -47,14 +50,14 @@ struct MainWidget : public PushLib::Widget {
     std::unique_ptr<ModuleWidget> _moduleWidget;
     std::unique_ptr<BrowserWidget> _browserWidget;
 
-    PushLib::Widget * widgetFromView(PushView view);
+    PushLib::Widget * widgetFromView(const PushView view);
 
     PushView _currentView = PushView::ERROR;
     PushView _previousView = PushView::ERROR;
     bool _viewSwitched;
     
     void colorButtons();
-    static const PushLib::ButtonCallbackMap<MainWidget> _buttonsCallback;
+    static const PushLib::ButtonCallbackMap<RootWidget> _buttonsCallback;
 
     bool userBtnClb(PushLib::ButtonEvent &ev);
     bool deviceBtnClb(PushLib::ButtonEvent &ev);

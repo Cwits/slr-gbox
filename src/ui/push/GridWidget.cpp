@@ -25,7 +25,8 @@ GridWidget::GridWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
     Widget(parent),
     _pUIctx(puictx)
 {
-
+    position(0, 0);
+    size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
     RectX = 50;
     RectY = 50;
     RectColor = 50;
@@ -35,10 +36,6 @@ GridWidget::~GridWidget() {
 
 }
 
-PushLib::BoundingBox GridWidget::invalidate() {
-    return PushLib::BoundingBox();
-}
-
 void GridWidget::paint(PushLib::Painter &painter) {
     using namespace PushLib;
 
@@ -46,7 +43,7 @@ void GridWidget::paint(PushLib::Painter &painter) {
     painter.writeString(400, 50, std::string("Grid"), PushLib::Font_11x18, PushLib::COLORS::White);
 
     painter.filledRectangle(RectX, 50+RectY, 50, 50, COLORS::Red);
-    painter.Rectangle(70+RectX, 50+RectY, 50, 50, 1, COLORS::Green);
+    painter.rectangle(70+RectX, 50+RectY, 50, 50, 1, COLORS::Green);
     painter.filledRectangle(140+RectX, 50+RectY, 50, 50, rgb(255, 100, 100));
     uint16_t color = 0;
     if(RectColor == 0) color = rgb(255, 0, 0);
@@ -55,9 +52,9 @@ void GridWidget::paint(PushLib::Painter &painter) {
     else if(RectColor == 3) color = rgb(255, 255, 0);
     else if(RectColor == 4) color = rgb(255, 0, 255);
     else if(RectColor == 5) color = rgb(0, 255, 255);
-    else if(RectColor == 6) color = rgb(100, 100, 100);
+    else if(RectColor == 6) color = rgb(98, 98, 98);
     else if(RectColor == 7) color = rgb(255, 255, 255);
-    painter.Rectangle(500+RectX, 50+RectY, 50, 50, 1, color);
+    painter.rectangle(500+RectX, 50+RectY, 50, 50, 1, color);
 }
 
 bool GridWidget::handleButton(PushLib::ButtonEvent &ev) {

@@ -17,7 +17,6 @@ struct GridWidget : public PushLib::Widget {
     GridWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~GridWidget();
 
-    PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;

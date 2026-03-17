@@ -5,6 +5,7 @@
 #include "push/Widget.h"
 
 #include <memory>
+#include <vector>
 
 namespace PushLib {
     class Painter;
@@ -12,6 +13,8 @@ namespace PushLib {
 
 namespace PushUI {
 
+class StaticLabel;
+class Pointer;
 class PadNoteLayout;
 class PushUIContext;
 
@@ -19,13 +22,12 @@ struct PadLayoutWidget : public PushLib::Widget {
     PadLayoutWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~PadLayoutWidget();
 
-    PushLib::BoundingBox invalidate() override; //return BoundingBox of area that has to be redrawn
     void paint(PushLib::Painter &painter) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
 
-    std::vector<PushLib::ButtonColor> buttonsColors() override { return std::vector<PushLib::ButtonColor>();}
+    std::vector<PushLib::ButtonColor> buttonsColors() override;
 
     private:
     PushUIContext * const _pUIctx;
@@ -39,8 +41,13 @@ struct PadLayoutWidget : public PushLib::Widget {
     
     bool _redrawPointer;
 
+    std::unique_ptr<Pointer> _pointer;
+    std::vector<std::unique_ptr<StaticLabel>> _scaleNames;
+
     bool toggleChromatic(PushLib::ButtonEvent &ev);
     bool setRootNote(PushLib::ButtonEvent &ev);
-};
+    bool pointerTestInc(PushLib::ButtonEvent &ev);
+    bool pointerTestDec(PushLib::ButtonEvent &ev);
+};  
 
 }

@@ -170,8 +170,13 @@ file(GLOB SOURCES
   src/push/Widget.cpp
 
   #push ui
+  src/ui/push/primitives/Pointer.cpp
+  src/ui/push/primitives/StaticLabel.cpp
+  src/ui/push/primitives/Canvas.cpp
+  src/ui/push/primitives/Rectangle.cpp
+
   src/ui/push/PushUIContext.cpp
-  src/ui/push/MainWidget.cpp
+  src/ui/push/RootWidget.cpp
   src/ui/push/GridWidget.cpp
   src/ui/push/ModuleWidget.cpp
   src/ui/push/BrowserWidget.cpp
