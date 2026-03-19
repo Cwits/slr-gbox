@@ -83,7 +83,7 @@ void PushCore::tick(int dt) {
         _pads.update();
     }
     
-    needRedraw |= _rootWidget->checkForRedraw();
+    // needRedraw |= _rootWidget->checkForRedraw(); 
 
     if(needRedraw || _manualRedraw) {
         if(!_rootWidget) { 
