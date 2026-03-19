@@ -2,6 +2,7 @@ bin
 build
 CMakeFiles
 CMakeCache.txt
+/inc/generated/*
 /tests/files/*
 /GenaV3/__pycache__
 /GenaV3/__pycache__/*
