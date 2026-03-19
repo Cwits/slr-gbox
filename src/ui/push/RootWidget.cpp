@@ -243,6 +243,8 @@ bool RootWidget::checkForRedraw() {
 
     if any of something requires redraw than return true -> push will call all things to redraw, otherwise nothing to redraw...
     */
+
+    return false;
 }
 
 void RootWidget::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
