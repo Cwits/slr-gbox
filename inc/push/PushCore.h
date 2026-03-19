@@ -38,7 +38,7 @@ struct PushCore {
     void redraw() { _manualRedraw = true; }
 
     private:
-    bool _connected;
+    std::atomic<bool> _connected;
 
     PushMidi _midi;
     PushSysex _sysex;

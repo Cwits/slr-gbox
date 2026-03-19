@@ -29,12 +29,12 @@ void Canvas::paint(PushLib::Painter &painter) {
 void Canvas::update() {
     PushLib::Pixel * cnv = _canvas.get();
 
-    PushLib::Color gray = PushLib::rgb2(100, 100, 100); //?? why it is green lol :D
+    PushLib::Color gray = PushLib::rgb(100, 100, 100); //?? why it is green lol :D
     for(int x=0; x<_width*_height; ++x) {
         cnv[x] = gray;
     }
 
-    gray = PushLib::rgb2(255, 0, 0);
+    gray = PushLib::rgb(255, 0, 0);
     int half = _height/2;
     for(int i=0; i<_width; ++i) { 
         int amp = half + ((half/2)*std::sin(2*M_PI*20*((float)i/(float)_width)));

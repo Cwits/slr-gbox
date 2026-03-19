@@ -4,6 +4,7 @@
 
 #include "push/Widget.h"
 #include <memory>
+#include <vector>
 
 namespace PushLib {
     class Painter;
@@ -23,13 +24,11 @@ struct GridWidget : public PushLib::Widget {
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
 
     std::vector<PushLib::ButtonColor> buttonsColors() override;
+    
     private:
     PushUIContext * const _pUIctx;
-    
-    int RectX;      //test purpose
-    int RectY;      //test purpose
-    int RectColor;  //test purpose
 
+    // BUTTONS
     static const PushLib::ButtonCallbackMap<GridWidget> _buttonsCallback;
 
     bool upBtnClb(PushLib::ButtonEvent &ev);

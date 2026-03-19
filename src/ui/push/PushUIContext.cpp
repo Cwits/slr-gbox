@@ -5,6 +5,7 @@
 #include "push/PushLib.h"
 
 #include "ui/push/RootWidget.h"
+#include "ui/push/primitives/ModuleUIBase.h"
 
 namespace PushUI {
 

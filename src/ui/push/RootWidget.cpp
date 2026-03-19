@@ -11,7 +11,13 @@
 #include "push/PushPainter.h"
 #include "push/helper.h"
 
+#include "snapshots/AudioUnitView.h"
+#include "core/ModuleManager.h"
+#include "core/Events.h"
+
 #include "logger.h"
+
+#include <string>
 
 namespace PushUI {
 
@@ -38,6 +44,7 @@ const std::vector<PushLib::ButtonColor> _colors = {
 
 static int playColor = 1;
 
+static RootWidget * _rootInstance = nullptr;
 
 std::vector<PushLib::BoundingBox> _dirtyRegions;
 
@@ -89,6 +96,7 @@ RootWidget::RootWidget(PushLib::PushContext * const pctx) :
     PushLib::Widget(nullptr),
     _currentView(PushView::ERROR)
 {
+    _rootInstance = this;
     _x = 0; _y = 0; _width = 0; _height = 0;
     // position(0, 0);
     // size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
@@ -224,6 +232,93 @@ bool RootWidget::handleDefaultEncoder(PushLib::EncoderEvent &ev) {
 std::vector<PushLib::ButtonColor> RootWidget::buttonsColors() {
     return PushHelper::buttonColorsFromMap<RootWidget>(RootWidget::_buttonsCallback);
 }
+
+bool RootWidget::checkForRedraw() {
+    /* 
+    //when audiounitview parameter changed(that means it has changed in rt as well) -> mark unit as dirty...
+    
+    run through current view and check if this view need for redraw something
+    e.g. if current view is module Track and we changed volume on track -> tracks audio unit view marked dirty -> we check that 
+    trackUI->_unitView->dirty() ? return true : return false;
+
+    if any of something requires redraw than return true -> push will call all things to redraw, otherwise nothing to redraw...
+    */
+}
+
+void RootWidget::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
+    // UnitUIBase * base = mod->createUI(view, &_uiContext);
+    // base->create(&_uiContext);
+    // _uiContext._unitsUI.push_back(base);
+    LOG_INFO("Push create UI for %s", mod->_name->c_str());
+}
+
+void RootWidget::updateUI(slr::ID id) {
+    // UnitUIBase * ui = nullptr;
+    // for(UnitUIBase * u : _uiContext._unitsUI) {
+    //     if(u->id() == id) {
+    //         ui = u;
+    //         break;
+    //     }
+    // }
+
+    // if(!ui) {
+    //     LOG_ERROR("Failed to find UI with id %u", id);
+    //     return;
+    // }
+
+    // ui->update(&_uiContext);
+    LOG_INFO("Push update UI for id %d", id);
+}
+
+void RootWidget::destroyUI(slr::ID id) {
+    // UnitUIBase * ui = nullptr;
+    // for(UnitUIBase * u : _uiContext._unitsUI) {
+    //     if(u->id() == id) {
+    //         ui = u;
+    //         break;
+    //     }
+    // }
+
+    // if(!ui) {
+    //     LOG_ERROR("Failed to find UI with id %u", id);
+    //     return;
+    // }
+
+
+    // std::size_t size = _uiContext._unitsUI.size();
+    // std::size_t idx = 0;
+    // for(std::size_t i=0; i<size; ++i) {
+    //     if(_uiContext._unitsUI.at(i)->id() == id) {
+    //         // found = _trackGuiList.at(i).get();
+    //         idx = i;
+    //         break;
+    //     }
+    // }
+
+    // _uiContext._unitsUI.erase(_uiContext._unitsUI.begin()+idx);
+    // //move items positions up starting from idx 
+    // size -= 1;
+    // for(std::size_t i=0; i<size; ++i) {
+    //     UnitUIBase * tr = _uiContext._unitsUI.at(i);
+    //     int x = 0;
+    //     int y = LayoutDef::calcTrackY(i);
+    //     // int x = tr->getPosX();
+    //     // int y = tr->getPosY();
+    //     tr->updatePosition(x, y);
+    // }
+
+    // _uiContext.setLastSelected(nullptr);
+    // ui->destroy(&_uiContext);
+    // delete ui;
+    LOG_INFO("Push destroy UI for id %d", id);
+}
+
+
+RootWidget * RootWidget::inst() {
+    return _rootInstance;
+}
+
+
 
 void RootWidget::colorButtons() {
     // _puictx.pctx()->clearButtonColors();

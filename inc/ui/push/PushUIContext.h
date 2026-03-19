@@ -4,6 +4,8 @@
 
 #include "push/PushLib.h"
 
+#include <memory>
+
 namespace PushLib {
     class PushContext;
 }
@@ -29,6 +31,9 @@ enum class PushView {
 };
 
 class RootWidget;
+class GridWidget;
+class ModuleUIBase;
+
 struct PushUIContext {
     PushUIContext();
 
@@ -45,7 +50,11 @@ struct PushUIContext {
 
     private:
     PushLib::PushContext * _pctx;
+
     RootWidget *_rootWidget;
+    GridWidget * _gridWidget;
+
+    // std::vector<std::unique_ptr<ModuleUIBase>> _modulesUI;
 
     friend class RootWidget;
 };

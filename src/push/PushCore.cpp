@@ -71,6 +71,11 @@ void PushCore::disconnect() {
 }
 
 void PushCore::tick(int dt) {
+    if(!_rootWidget) {
+        LOG_ERROR("Root widget is not set");
+        return;
+    }
+
     bool needRedraw = _midi.dispatchEvents();
 
     //animations tick?
@@ -78,6 +83,8 @@ void PushCore::tick(int dt) {
         _pads.update();
     }
     
+    needRedraw |= _rootWidget->checkForRedraw();
+
     if(needRedraw || _manualRedraw) {
         if(!_rootWidget) { 
             LOG_ERROR("Root Widget is not set");

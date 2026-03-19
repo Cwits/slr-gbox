@@ -19,18 +19,18 @@ namespace COLORS {
     constexpr Color White   = 0xFFFF;
 }
 
+// inline Color rgb(int r, int g, int b) {
+//     uint16_t tmpr, tmpg, tmpb;
+//     tmpr = tmpg = tmpb = 0;
+
+//     if(r>0) tmpr = 0 + (float)((float)(0x001F-0)/(float)(255-0)) * (r - 0);
+//     if(g>0) tmpg = 0x001F + (float)((float)(0x07E0 - 0x001F)/(float)(255-0)) * (g - 0);
+//     if(b>0) tmpb = 0x07E0 + (float)((float)(0xF800 - 0x07E0)/(float)(255-0)) * (b - 0);
+
+//     return tmpr | tmpg | tmpb;
+// }
+
 inline Color rgb(int r, int g, int b) {
-    uint16_t tmpr, tmpg, tmpb;
-    tmpr = tmpg = tmpb = 0;
-
-    if(r>0) tmpr = 0 + (float)((float)(0x001F-0)/(float)(255-0)) * (r - 0);
-    if(g>0) tmpg = 0x001F + (float)((float)(0x07E0 - 0x001F)/(float)(255-0)) * (g - 0);
-    if(b>0) tmpb = 0x07E0 + (float)((float)(0xF800 - 0x07E0)/(float)(255-0)) * (b - 0);
-
-    return tmpr | tmpg | tmpb;
-}
-
-inline Color rgb2(int r, int g, int b) {
     uint16_t tmpr, tmpg, tmpb;
 
     tmpr = (r * 31 / 255) & 0x1F;

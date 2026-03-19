@@ -5,6 +5,9 @@
 #include "ui/display/MainWindow.h"
 #include "ui/display/RouteManager.h"
 
+#include "ui/pushThread.h"
+#include "ui/push/RootWidget.h"
+
 #include <cassert>
 #include <functional>
 
@@ -75,17 +78,29 @@ void addModuleUI(const slr::Module * mod, slr::AudioUnitView * view) {
     postToLvgl([mod, view]() {
         UI::MainWindow::inst()->createUI(mod, view);
     });
+
+    PushThread::postTask([mod, view]() {
+        PushUI::RootWidget::inst()->createUI(mod, view);
+    });
 }
 
 void updateModuleUI(slr::ID id) {
     postToLvgl([id]() {
         UI::MainWindow::inst()->updateUI(id);
     });
+
+    PushThread::postTask([id]() {
+        PushUI::RootWidget::inst()->updateUI(id);
+    });
 }
 
 void destroyModuleUI(slr::ID id) {
     postToLvgl([id]() {
         UI::MainWindow::inst()->destroyUI(id);
+    });
+    
+    PushThread::postTask([id]() {
+        PushUI::RootWidget::inst()->destroyUI(id);
     });
 }
 

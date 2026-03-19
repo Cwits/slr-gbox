@@ -5,11 +5,17 @@
 #include "push/Widget.h"
 #include "ui/push/PushUIContext.h"
 
+#include "defines.h"
+
 #include <memory>
-#include <map>
 
 namespace PushLib {
     class Painter;
+}
+
+namespace slr {
+    class AudioUnitView;
+    class Module;
 }
 
 namespace PushUI {
@@ -42,6 +48,14 @@ struct RootWidget : public PushLib::Widget {
 
     std::vector<PushLib::ButtonColor> buttonsColors() override;
     
+    bool checkForRedraw();
+
+    void createUI(const slr::Module * mod, slr::AudioUnitView * view);
+    void updateUI(slr::ID id);
+    void destroyUI(slr::ID id);
+
+    static RootWidget * inst();
+
     private:
     PushUIContext _puictx;
 

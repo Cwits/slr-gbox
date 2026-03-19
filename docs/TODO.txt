@@ -194,8 +194,12 @@ Push:
         //TODO: the other's important CC will be here as well - e.g. sustain pedal... smth else?
 
 [ ] - you want to somehow make _buttonCallbackMap of widgets not an std::map, but std::array<> or smth... to make search time less consuming...
-[ ] - BIG REWORK-UPDATE: need some proper retained UI logic... (similar to lvgl?) to redraw only affected areas and save some cpu...
-
+[\] - BIG REWORK-UPDATE: need some proper retained UI logic... (similar to lvgl?) to redraw only affected areas and save some cpu...
+        [x] - very basic implementation of retained logic
+        [ ] - PushDisplay::updateFrame(BoundingBox &boxToUpdate); encoding whole frame instead of boxToUpdate
+        [ ] - Sometimes, when things moving quickly - old position struggle to clear
+                (e.g. with Pointer in PadLayoutWidget - sometimes old pointer stays there)
+        [ ] - PushPainter drawing algos can be optimised more?
 
 /* Notes */
  - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 

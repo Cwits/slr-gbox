@@ -18,6 +18,8 @@
 #include <atomic>
 #include <memory>
 #include <chrono>
+#include <deque>
+#include <mutex>
 
 namespace PushThread {
 
@@ -26,6 +28,10 @@ std::unique_ptr<PushUI::RootWidget> _pushMainWidget;
 
 std::thread _pushRunner;
 std::atomic<bool> _threadRunning;
+
+std::mutex _taskMutex;
+std::deque<std::unique_ptr<std::function<void()>> > _taskQueue;
+std::deque<std::unique_ptr<std::function<void()>> > _internalTaskQueue;
 
 void threadLoop(slr::MidiPort * port);
 
@@ -74,8 +80,21 @@ void threadLoop(slr::MidiPort *port) {
     std::chrono::time_point<std::chrono::steady_clock> lastFrame = std::chrono::steady_clock::now();
     while(_threadRunning) {
         if(_pushDev->connected()) {
-            auto now = std::chrono::steady_clock::now();
+            _internalTaskQueue.clear();
+            {
+                std::lock_guard<std::mutex> l(_taskMutex);
+                _internalTaskQueue.swap(_taskQueue);
+            }
 
+            while(true) {
+                if(_internalTaskQueue.empty()) break;
+
+                auto &task = _internalTaskQueue.front();
+                (*task)();
+                _internalTaskQueue.pop_front();
+            }
+
+            auto now = std::chrono::steady_clock::now();
             unsigned long diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastFrame).count();
             _pushDev->tick(diff);
 
@@ -87,6 +106,15 @@ void threadLoop(slr::MidiPort *port) {
 
         std::this_thread::sleep_for(dt);
     }
+}
+
+void postTask(std::function<void()> fn) {
+    if(!_pushDev->connected()) return;
+
+    auto task = std::make_unique<std::function<void()>>(std::move(fn));
+
+    std::lock_guard<std::mutex> l(_taskMutex);
+    _taskQueue.push_back(std::move(task));
 }
 
 }

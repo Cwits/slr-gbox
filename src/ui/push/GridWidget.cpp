@@ -27,9 +27,9 @@ GridWidget::GridWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
 {
     position(0, 0);
     size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
-    RectX = 50;
-    RectY = 50;
-    RectColor = 50;
+    // RectX = 50;
+    // RectY = 50;
+    // RectColor = 50;
 }
 
 GridWidget::~GridWidget() {
@@ -42,19 +42,19 @@ void GridWidget::paint(PushLib::Painter &painter) {
     painter.clear();
     painter.writeString(400, 50, std::string("Grid"), PushLib::Font_11x18, PushLib::COLORS::White);
 
-    painter.filledRectangle(RectX, 50+RectY, 50, 50, COLORS::Red);
-    painter.rectangle(70+RectX, 50+RectY, 50, 50, 1, COLORS::Green);
-    painter.filledRectangle(140+RectX, 50+RectY, 50, 50, rgb(255, 100, 100));
-    uint16_t color = 0;
-    if(RectColor == 0) color = rgb(255, 0, 0);
-    else if(RectColor == 1) color = rgb(0, 255, 0);
-    else if(RectColor == 2) color = rgb(0, 0, 255);
-    else if(RectColor == 3) color = rgb(255, 255, 0);
-    else if(RectColor == 4) color = rgb(255, 0, 255);
-    else if(RectColor == 5) color = rgb(0, 255, 255);
-    else if(RectColor == 6) color = rgb(98, 98, 98);
-    else if(RectColor == 7) color = rgb(255, 255, 255);
-    painter.rectangle(500+RectX, 50+RectY, 50, 50, 1, color);
+    // painter.filledRectangle(RectX, 50+RectY, 50, 50, COLORS::Red);
+    // painter.rectangle(70+RectX, 50+RectY, 50, 50, 1, COLORS::Green);
+    // painter.filledRectangle(140+RectX, 50+RectY, 50, 50, rgb(255, 100, 100));
+    // uint16_t color = 0;
+    // if(RectColor == 0) color = rgb(255, 0, 0);
+    // else if(RectColor == 1) color = rgb(0, 255, 0);
+    // else if(RectColor == 2) color = rgb(0, 0, 255);
+    // else if(RectColor == 3) color = rgb(255, 255, 0);
+    // else if(RectColor == 4) color = rgb(255, 0, 255);
+    // else if(RectColor == 5) color = rgb(0, 255, 255);
+    // else if(RectColor == 6) color = rgb(98, 98, 98);
+    // else if(RectColor == 7) color = rgb(255, 255, 255);
+    // painter.rectangle(500+RectX, 50+RectY, 50, 50, 1, color);
 }
 
 bool GridWidget::handleButton(PushLib::ButtonEvent &ev) {
@@ -80,7 +80,7 @@ std::vector<PushLib::ButtonColor> GridWidget::buttonsColors() {
 
 bool GridWidget::upBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
-    LOG_INFO("Up");
+    // LOG_INFO("Up");
 
     slr::Events::CreateModule e = {
         .name = "Track"
@@ -92,19 +92,19 @@ bool GridWidget::upBtnClb(PushLib::ButtonEvent &ev) {
 
 bool GridWidget::downBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
-    LOG_INFO("down");
+    // LOG_INFO("down");
     return false;
 }
 
 bool GridWidget::leftBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
-    LOG_INFO("left");
+    // LOG_INFO("left");
     return false;
 }
 
 bool GridWidget::rightBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
-    LOG_INFO("right");
+    // LOG_INFO("right");
     return false;
 }
 
