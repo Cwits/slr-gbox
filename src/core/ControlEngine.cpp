@@ -8,7 +8,8 @@
 #include "core/primitives/ControlContext.h"
 #include "core/primitives/SPSCQueue.h"
 
-#include "core/AudioBufferManager.h"
+// #include "core/AudioBufferManager.h"
+#include "core/BufferManager.h"
 #include "core/Events.h"
 #include "core/FlatEvents.h"
 #include "core/RtEngine.h"
@@ -18,6 +19,7 @@
 #include "core/CEHandlerTables.h"
 #include "core/ModuleManager.h"
 #include "core/MidiController.h"
+#include "core/Metronome.h"
 
 #include "core/utility/helper.h"
 #include "inc/core/primitives/MidiEvent.h"
@@ -40,6 +42,7 @@
 #include <optional>
 #include <condition_variable>
 #include <unordered_map>
+#include <future>
 
 #define QUEUE_INITIAL_SIZE 128
 
@@ -48,6 +51,8 @@ namespace slr {
 std::thread _controlThread;
 std::atomic<bool> _shutdown;
 std::condition_variable _cond;
+
+std::unique_ptr<BufferManager> _bufferManager;
 
 std::unique_ptr<RtEngine> _engine;
     
@@ -88,6 +93,13 @@ void processLoop() {
 
     while(!_shutdown) {
         // Events::Event e;
+        ControlContext ctx(_project.get(),
+                            _fileWorker.get(),
+                            _engine.get(),
+                            _projectSnapshot.get(),
+                            _midiController.get(),
+                            _bufferManager.get());
+
         if(_engine == nullptr) {
             LOG_WARN("RT Engine not set!");
             goto sleep;
@@ -97,14 +109,7 @@ void processLoop() {
             LOG_WARN("RT Engine not running!");
             goto sleep;
         }
-
-        ControlContext ctx;
-        ctx.project = _project.get();
-        ctx.fileWorker = _fileWorker.get();
-        ctx.engine = _engine.get(); //might be bad :/
-        ctx.projectView = _projectSnapshot.get();
-        ctx.midiController = _midiController.get();
-
+        
         //handle general Events
         _eventSnapshot.clear();
         {
@@ -179,11 +184,17 @@ bool init() {
     _eventSnapshot.reserve(QUEUE_INITIAL_SIZE);
     _flatResponseSnapshot.reserve(256);
 
-    if(!AudioBufferManager::init(SettingsManager::getBlockSize(),
-                                DEFAULT_BUFFER_CHANNELS)) {
-        LOG_ERROR("Failed to init Audio Buffer Manager");
+    _bufferManager = std::make_unique<BufferManager>();
+    if(!_bufferManager->init(SettingsManager::getBlockSize(), DEFAULT_BUFFER_CHANNELS)) {
+        LOG_ERROR("Failed to init Buffer Manager");
         return false;
     }
+
+    // if(!AudioBufferManager::init(SettingsManager::getBlockSize(),
+    //                             DEFAULT_BUFFER_CHANNELS)) {
+    //     LOG_ERROR("Failed to init Audio Buffer Manager");
+    //     return false;
+    // }
 
     _fileWorker = std::make_unique<FileWorker>();
     if(!_fileWorker->init()) {
@@ -200,7 +211,6 @@ bool init() {
     ModuleManagerFactory::init();
 
     _midiController = std::make_unique<MidiController>();
-    _midiDiscoverThread = std::thread(ControlEngine::discoverMidi);
 
     _controlThread = std::thread(ControlEngine::processLoop);
 
@@ -211,13 +221,18 @@ bool init() {
     */
 
     _project = std::make_unique<Project>();
+    _project->metronome()->create(_bufferManager.get());
     _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
 
     _engine->setProject(_project.get());
-    if(!_engine->start()) {
+    if(!_engine->start([ctl = _midiController.get()](frame_t framesPassed) {
+        ctl->setAnchor(framesPassed);
+    })) {
         LOG_ERROR("Failed to start RT Engine");
         return false;
     }
+    
+    _midiDiscoverThread = std::thread(ControlEngine::discoverMidi);
 
     return true;
 }
@@ -240,10 +255,14 @@ bool shutdown() {
     }
     _fileWorker.reset();
 
-    if(!AudioBufferManager::shutdown()) {
-        LOG_ERROR("Failed to shutdown Audio Buffer Manager");
-        return false;
-    }
+    // if(!AudioBufferManager::shutdown()) {
+    //     LOG_ERROR("Failed to shutdown Audio Buffer Manager");
+    //     return false;
+    // }
+
+    _bufferManager->shutdown();
+
+    _midiController.reset();
 
     _controlThread.join();
     _midiDiscoverThread.join();
@@ -264,7 +283,15 @@ void EmitEvent(const Events::Event &e) {
     // _controlEventQueue.push(e);
 }
 
-void emitRtControl(const FlatEvents::FlatControl &ctl) {
+// bool EmitEventBlocking(const Events::Event &e, int msTimeout) {
+//     std::promise<bool> prom;
+//     std::future<bool> f = prom.get_future();
+
+
+// }
+
+void emitRtControl(FlatEvents::FlatControl &ctl) {
+    ctl.commandId = ControlEngine::generateCommandId();
     _engine->FlatControlEvent(ctl);
     // _pendingAck.push_back({ctl, false});
 }
@@ -283,7 +310,7 @@ void awaitRtResult(const FlatEvents::FlatControl &ctl,
     ev.deleteEvent = false;
 
     _awaitEvents.push_back(ev);
-    emitRtControl(ctl);
+    emitRtControl(ev.ctl);
 }
 
 void notify() {

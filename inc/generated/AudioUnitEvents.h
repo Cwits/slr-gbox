@@ -1,19 +1,19 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
 #include <memory>
-#include <cstdint> 
-#include <vector>
-#include "core/FileWorker.h"
 #include "defines.h"
+#include "core/FileWorker.h"
+#include <vector>
 #include "Status.h"
-#include "core/FileTasks.h"
 #include <string>
+#include "core/FileTasks.h"
+#include <cstdint> 
 
 namespace slr {
 
-class ClipItem;
 class File;
 class AudioUnit;
+class ClipItem;
 
 namespace Events {
 

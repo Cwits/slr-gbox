@@ -5,14 +5,14 @@ set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -fsanitize=address")
 #set(CMAKE_CXX_FLAGS "-g -O0 -Wall -fsanitize=address")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall")
-set(CMAKE_CXX_FLAGS "-g -O0 -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type")
+set(CMAKE_CXX_FLAGS "-g -O0 -Wall -Werror=return-type")
 
 
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall" CACHE STRING "Debug flags" FORCE)
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type" CACHE STRING "Debug flags" FORCE)
 endif()
 
 message("Building ${CMAKE_BUILD_TYPE}")
@@ -29,6 +29,22 @@ find_package(ALSA)
 
 pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack>=0.100.0)
 find_library(JACK_LIBRARY NAMES ${JACK_LIBRARIES} HINTS ${JACK_LIBDIR})
+
+# Find libusb
+find_path(LIBUSB_INCLUDE_DIR
+  NAMES libusb.h
+  PATH_SUFFIXES "include" "libusb" "libusb-1.0")
+find_library(LIBUSB_LIBRARY
+  NAMES usb usb-1.0
+  PATH_SUFFIXES "lib" "lib32" "lib64")
+
+#message(STATUS ${LIBUSB_INCLUDE_DIR})
+#message(STATUS ${LIBUSB_LIBRARY})
+
+if((NOT LIBUSB_INCLUDE_DIR) OR (NOT LIBUSB_LIBRARY))
+  message(FATAL_ERROR "Can't find libusb. Please verify that it is installed")
+endif()
+
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/shared)
@@ -60,10 +76,12 @@ file(GLOB SOURCES
   src/core/primitives/Parameter.cpp
   src/core/primitives/ParameterArray.cpp
   src/core/primitives/RenderPlan.cpp
+  src/core/primitives/MidiPort.cpp
 
   src/core/utility/basicAudioManipulation.cpp
+  src/core/utility/basicMidiManipulation.cpp
 
-  src/core/AudioBufferManager.cpp
+  src/core/BufferManager.cpp
   src/core/AudioPeakBuilder.cpp
   src/core/ControlEngine.cpp
   src/core/Events.cpp
@@ -138,6 +156,39 @@ file(GLOB SOURCES
   src/ui/uiControls.cpp
   src/ui/guiThread.cpp
 
+  #push core
+  src/push/PushFaker.cpp
+  src/push/PushCore.cpp
+  src/push/PushDisplay.cpp
+  src/push/PushMidi.cpp
+  src/push/PushSysex.cpp
+  src/push/PushLeds.cpp
+  src/push/PushPads.cpp
+  src/push/PushPainter.cpp
+  src/push/PushFonts.cpp
+  src/push/PushContext.cpp
+  src/push/Widget.cpp
+
+  #push ui
+  src/ui/push/primitives/Pointer.cpp
+  src/ui/push/primitives/StaticLabel.cpp
+  src/ui/push/primitives/Canvas.cpp
+  src/ui/push/primitives/Rectangle.cpp
+
+  src/ui/push/PushUIContext.cpp
+  src/ui/push/RootWidget.cpp
+  src/ui/push/GridWidget.cpp
+  src/ui/push/ModuleWidget.cpp
+  src/ui/push/BrowserWidget.cpp
+  
+  src/ui/push/PadLayoutWidget.cpp
+  src/ui/push/PadNoteLayout.cpp
+  src/ui/push/PadLayout.cpp
+  
+
+  src/ui/pushThread.cpp
+
+
   #other
   src/defines.cpp
 )
@@ -159,7 +210,8 @@ set(LIBRARIES lvgl::lvgl
               PkgConfig::JACK
               loguru::loguru
               GestLib
-              ALSA::ALSA)
+              ALSA::ALSA
+              ${LIBUSB_LIBRARY})
 
 
 target_link_libraries(slrlib ${LIBRARIES})

@@ -11,6 +11,14 @@ void EmitEvent(const Events::Event & e) {
     ControlEngine::notify();
 }
 
+/* 
+    Blocks the execution until timeout reached or got any kind of response
+    return true on success, false on fail.
+*/
+// bool EmitEventBlocking(const Events::Event &e, int msTimeout) {
+//     return ControlEngine::EmitEventBlocking(e, msTimeout);
+// }
+
 ProjectView * getLastSnapshot() {
     return ControlEngine::projectSnapshot();
 }

@@ -40,13 +40,13 @@ class Project {
 
     //nonRT
     bool addUnit(std::unique_ptr<AudioUnit> unit);
-    bool removeUnit(ID id);
+    // bool removeUnit(ID id);
+    std::unique_ptr<AudioUnit> removeUnit(ID id);
 
     const int getUnitCount() const { return _unitList.size(); }
     AudioUnit * getUnitById(ID id); //for building track graph???
     const std::vector<std::unique_ptr<AudioUnit>> & getAllUnits() const { return _unitList; }
 
-    Timeline & timeline() { return _timeline; }
 
     const std::vector<AudioRoute> & routes() const { return _routes; }
     void addRoute(AudioRoute route) { _routes.push_back(route); }
@@ -58,9 +58,10 @@ class Project {
     const std::vector<MidiRoute> & midiRoutes() const { return _midiRoutes; }
     void addRoute(MidiRoute route) { _midiRoutes.push_back(route); }
 
+    Timeline & timeline() { return _timeline; }
     Metronome * metronome() const;
-    
     ClipContainerMap & clipContainerMap() { return _clipContainerMap; }
+    
     private:
     bool _isSolo;
     RenderPlan * _soloPlan;

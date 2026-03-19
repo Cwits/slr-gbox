@@ -31,53 +31,71 @@ enum class MidiEventType : uint8_t {
   Stop                  = 0xFC, // System Real Time - Stop
   ActiveSensing         = 0xFE, // System Real Time - Active Sensing
   SystemReset           = 0xFF, // System Real Time - System Reset
-
 };
 
-using uchar = unsigned char;
-using MidiMessage = std::vector<uchar>;
+enum class MetaEventType : uint8_t {
+    SequenceNumber                  = 0x00,
+    TextEvent                       = 0x01,
+    CopyrightNotice                 = 0x02,
+    SequenceOrTrackName             = 0x03,
+    InstrumentName                  = 0x04,
+    LyricText                       = 0x05,
+    MarkerText                      = 0x06,
+    CuePoint                        = 0x07,
+    MIDIChannelPrefixAssignment     = 0x20,
+    EndofTrack                      = 0x2F,
+    TempoSetting                    = 0x51,
+    SMPTEOffset                     = 0x54,
+    TimeSignature                   = 0x58,
+    KeySignature                    = 0x59,
+    SequencerSpecificEvent          = 0x7F
+};
+
+// using uchar = unsigned char;
+// using MidiMessage = std::vector<uchar>;
 
 struct MidiEvent {
     MidiEventType type;
     uint8_t channel;
     uint8_t note;
     uint8_t velocity;
-    std::chrono::time_point<std::chrono::steady_clock> timestamp;
-};
+    frame_t offset; //depends on context - in file = from file start, in rt - from current frame start
 
-struct RtMidiBuffer {
-    ID id;
-    std::vector<MidiEvent> * buffer;
-};
-
-inline MidiEventType getEventType(MidiMessage *msg) { return static_cast<MidiEventType>(*msg->begin() & 0xF0); }
-
-/* note or controller number */
-inline uchar getNumber(MidiEventType type, MidiMessage *msg) {
-    switch(type) {
-        case MidiEventType::NoteOn:
-        case MidiEventType::NoteOff:
-        case MidiEventType::Aftertouch:
-        case MidiEventType::CC:
-            return (*msg)[1];
-        default:
-            return 0;
+    MidiEvent & operator=(const MidiEvent &other) {
+        type = other.type;
+        channel = other.channel;
+        note = other.note;
+        velocity = other.velocity;
+        offset = other.offset;
+        return *this;
     }
-}
+};
 
-/* velocity/ammount/value */
-inline uchar getValue(MidiEventType type, MidiMessage *msg) {
-    switch (type) {
-        case MidiEventType::NoteOn:
-        case MidiEventType::NoteOff:
-        case MidiEventType::Aftertouch:
-        case MidiEventType::CC:
-        case MidiEventType::PitchBend:
-            return (*msg)[2];
-        case MidiEventType::ChannelPressure:
-            return (*msg)[1];
-        default:
-            return 0;
+struct MetaEvent {
+    MetaEventType type;
+    frame_t offset;
+    std::vector<uint8_t> data;
+};
+
+struct SysexEvent {
+    frame_t offset;
+    std::vector<uint8_t> data;
+};
+
+inline int expectedLength(const MidiEventType &type) {
+    switch(type) {
+        case(MidiEventType::NoteOff):
+        case(MidiEventType::NoteOn):
+        case(MidiEventType::Aftertouch):
+        case(MidiEventType::CC):
+        case(MidiEventType::PitchBend):
+        case(MidiEventType::SongPosition): return 2; break;
+        case(MidiEventType::ProgramChange):
+        case(MidiEventType::ChannelPressure):
+        case(MidiEventType::TimeCodeQuarterFrame):
+        case(MidiEventType::SongSelect): return 1; break;
+        case(MidiEventType::SysEx): return -1; break;
+        default: return 0; break;
     }
 }
 

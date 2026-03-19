@@ -21,7 +21,6 @@ void handleEvent(const ControlContext &ctx, const Events::ToggleMetronome &e) {
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SetParameter;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.setParameter.unit = ctx.project->metronome();
     ctl.setParameter.parameterId = metro->muteId();
     ctl.setParameter.value = boolToFloat((oldState ? false : true));

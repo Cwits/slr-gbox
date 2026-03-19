@@ -3,83 +3,221 @@
 
 #include "core/MidiController.h"
 
+#include "slr_config.h"
 
-// #include <rtmidi/RtMidi.h>
 #include "logger.h"
 #include "core/primitives/MidiEvent.h"
+#include "core/primitives/MidiPort.h"
 #include "core/SettingsManager.h"
+#include "core/ControlEngine.h"
+#include "core/RtEngine.h"
+#include "core/FlatEvents.h"
 
+#if (USE_PUSH == 1)
+// #include "push/PushCore.h"
+#include "ui/pushThread.h"
+// #include "ui/push/MainWindow.h" //does not belong here...
+#endif
+
+#include <alsa/asoundlib.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 
-// #include <unistd.h> //close(fd)
-// #include <fcntl.h> //open() O_RDONLY
 #include <sys/eventfd.h>
 
 namespace slr {
 
-void event(MidiPort *port, const MidiEventType type, const int channel, const unsigned char *data);
-void realTimeEvent(MidiPort *port, const MidiEventType type);
-void sysexEvent(const unsigned char *data, const int &len);
-int expectedLength(const MidiEventType &type);
-
-ID _midiPortIdCounter = 1;
-
 frame_t _input_constant_delay = 0;
+frame_t _sample_rate = 0;
+frame_t _block_size = 0;
+
+MidiDevice _virtualDev;
+MidiSubdevice _virtualSub;
+std::unique_ptr<MidiPort> _virtualPort;
+
+
+#if (USE_PUSH == 1)
+#include "ui/pushThread.h"
+
+    #if (USE_FAKE_PUSH == 1)
+    std::unique_ptr<MidiDevice> _pdev;
+    std::unique_ptr<MidiPort> pushPort;
+    #endif
+
+#endif
 
 MidiController::MidiController() {
     _input_constant_delay = SettingsManager::getBlockSize();
+    _sample_rate = SettingsManager::getSampleRate();
+    _block_size = SettingsManager::getBlockSize();
+    
+    //init virtual midi
+    _virtualDev._name = "Virtual Midi";
+    _virtualDev._card = 0;
+    _virtualDev._check = true;
+    _virtualDev._online = true;
+    _virtualSub._hasInput = true;
+    _virtualSub._hasOutput = false;
+    _virtualSub._path = "";
+    _virtualSub._inputName = "Virtual Midi Input";
+    _virtualSub._outputName = "";
+    _virtualDev._ports.push_back(_virtualSub);
+    _virtualPort = std::make_unique<MidiPort>();
+    _virtualPort->_ownerDev = &_virtualDev;
+    _virtualPort->_ownerSubdev = &_virtualDev._ports.at(0);
+    _virtualPort->_path = "";
+    _virtualPort->_isOpened = true;
+    _virtualPort->_inputOpened = true;
+    _virtualPort->_controller = this;
+
+    MidiPort * port = _virtualPort.get();
+    RtEngine *engine = ControlEngine::rtEngine();
+    _activePorts.push_back(std::move(_virtualPort));
+    {
+        const std::vector<RtMidiBuffer> *midiLocalBuffers = engine->midiLocalBuffers();
+        const std::vector<RtMidiQueue> *midiInMap = engine->midiInMap();
+        const std::vector<RtMidiOutput> *midiOutMap = engine->midiOutMap();
+
+        std::vector<RtMidiBuffer> *local = new std::vector<RtMidiBuffer>(*midiLocalBuffers);
+        std::vector<RtMidiQueue> *inMap = new std::vector<RtMidiQueue>(*midiInMap);
+        std::vector<RtMidiOutput> *outMap = new std::vector<RtMidiOutput>(*midiOutMap); 
+
+        RtMidiQueue inq;
+        inq.id = port->id();
+        inq.queue = port->inQueue();
+        inMap->push_back(inq);
+
+        RtMidiOutput outq(port, port->id());
+        outMap->push_back(outq);
+
+        RtMidiBuffer locq;
+        locq.id = port->id();
+        locq.buffer = port->rtLocalBuffer();
+        local->push_back(locq);
+
+        port->portsAddedToRt();
+
+        FlatEvents::FlatControl ctrl;
+        ctrl.type = FlatEvents::FlatControl::Type::UpdateMidiMaps;
+        ctrl.commandId = ControlEngine::generateCommandId();
+        ctrl.updateMidiMaps.engine = engine;
+        ctrl.updateMidiMaps.inputMap = inMap;
+        ctrl.updateMidiMaps.outputMap = outMap;
+        ctrl.updateMidiMaps.localBuffers = local;
+        ControlEngine::emitRtControl(ctrl);
+    }
+
+#if (USE_PUSH == 1 && USE_FAKE_PUSH == 1)
+    LOG_WARN("FAKING PUSH, DISABLE ON RASPBERRY");
+    
+    MidiSubdevice psdev;
+    psdev._hasInput = true;
+    psdev._hasOutput = true;
+    psdev._inputName = "AFake";
+    psdev._outputName = "AFake out";
+    psdev._path = "";
+    
+    _pdev.reset();
+    _pdev = std::make_unique<MidiDevice>();
+    _pdev->_card = -1;
+    _pdev->_name = "Ableton Fake";
+    _pdev->_online = true;
+    _pdev->_ports.push_back(psdev);
+
+    pushPort.reset();
+    pushPort = std::make_unique<MidiPort>();
+    MidiPort *aport = pushPort.get();
+    aport->_controller = this;
+    aport->_ownerDev = _pdev.get();
+    aport->_ownerSubdev = &_pdev->_ports.at(0);
+    aport->_path = "";
+    _activePorts.push_back(std::move(pushPort));
+                
+    PushThread::start(aport);
+#endif            
 }
 
 MidiController::~MidiController() {
+#if (USE_PUSH == 1)
+    PushThread::shutdown();
+#endif
+
     for(std::unique_ptr<MidiPort> &port : _activePorts) {
-        closeDevice(port.get());
+        if(port->id() != 0) 
+            closeDevice(port.get());
         // delete port;
     }
+
+    //close virtual midi
+
 }
 
 void MidiController::checkDevices() {
+    //this is separate, independent thread
     std::vector<MidiDevice> list = discoverMidiDevices();
 
     std::lock_guard<std::mutex> l(_mutex);
 
-    for(MidiDevice &exist : _deviceList) {
-        exist._check = false;
+    for(std::unique_ptr<MidiDevice> &exist : _deviceList) {
+        exist->_check = false;
     }
 
     for(MidiDevice &devFound : list) {
-        std::vector<MidiDevice>::iterator it;
+        std::vector<std::unique_ptr<MidiDevice>>::iterator it;
         it = std::find_if(
             _deviceList.begin(), 
             _deviceList.end(),
-            [&](const MidiDevice &exist) {
-                return (exist._card == devFound._card && 
-                        exist._name == devFound._name);
+            [&](const std::unique_ptr<MidiDevice> &exist) {
+                return (exist->_card == devFound._card && 
+                        exist->_name == devFound._name);
             }
         );
 
         if(it != _deviceList.end()) {
-            if(!it->_online) {
+            if(!it->get()->_online) {
                 //device got back
-                it->_online = true;
-                LOG_INFO("Device connected back %d", it->_card);
+                it->get()->_online = true;
+                LOG_INFO("Device connected back %d", it->get()->_card);
             }
-            it->_check = true;
+            it->get()->_check = true;
         } else {
             //new device
             devFound._check = true;
             devFound._online = true;
-            _deviceList.push_back(devFound);
+            std::unique_ptr<MidiDevice> d = std::make_unique<MidiDevice>(devFound);
+            MidiDevice * dev = d.get();
+
+            _deviceList.push_back(std::move(d));
             LOG_INFO("New device %d", devFound._card);
+#if (USE_PUSH == 1)
+            if(dev->_name.compare("Ableton Push 2") == 0) {
+                //...
+                //need to get everything from here to similar an for GUI - pushThread.cpp with only start() func?
+                LOG_INFO("Ableton device found!"); 
+
+                MidiSubdevice * subdevptr = &dev->_ports.at(0); //get the Live port not User
+
+                std::unique_ptr<MidiPort> pushPort = std::make_unique<MidiPort>();
+                MidiPort *port = pushPort.get();
+                port->_controller = this;
+                port->_ownerDev = dev;
+                port->_ownerSubdev = subdevptr;
+                port->_path = subdevptr->_path;
+
+                _activePorts.push_back(std::move(pushPort));
+                PushThread::start(port);
+            }
+#endif
+            
         }
     }
 
-    for(MidiDevice &dev : _deviceList) {
-        if(!dev._check) {
-            if(dev._online) { //already there
-                dev._online = false;
-                LOG_INFO("Device disconnected %i", dev._card);
+    for(std::unique_ptr<MidiDevice> &dev : _deviceList) {
+        if(!dev->_check) {
+            if(dev->_online) { //already there
+                dev->_online = false;
+                LOG_INFO("Device disconnected %i", dev->_card);
             }       
         }
     }
@@ -90,7 +228,11 @@ std::vector<MidiDevice> MidiController::devList() {
     
     {
         std::lock_guard<std::mutex> lock(_mutex);
-        ret = _deviceList;
+        for(auto &dev : _deviceList) {
+            MidiDevice d(*dev.get());
+            ret.push_back(d);
+        }
+        // ret = _deviceList;
     }
 
     return ret;
@@ -129,7 +271,8 @@ void MidiController::openDevice(MidiPort *port, bool input, bool output) {
 
     port->_isOpened        = true;
     port->_inputOpened   = input;
-    // port->_outputOpened  = output;
+    port->_outputOpened  = output;
+    // port->_anchorTimepoint = _midiAnchorTimepoint;
 
     //start reading thread if necessary
     if(input)
@@ -251,9 +394,6 @@ std::vector<MidiDevice> MidiController::discoverMidiDevices() {
                 if(hasOutput) subdev._outputName = std::string(subOutName);
 
                 dev._ports.push_back(subdev);
-                // printf("%c%c  hw:%d,%d,%d  %s\n",
-                //                 hasInput ? 'I' : ' ', hasOutput ? 'O' : ' ',
-                //                 card, device, sub, subName);
                 sub++;
             }
         }
@@ -303,405 +443,9 @@ bool MidiController::is_output(snd_ctl_t *ctl, int card, int device, int sub) {
     return false;
 }
 
-MidiPort::MidiPort() :
-    _uniqueId(_midiPortIdCounter++),
-    _justCreated(true)
-{
-    _rtLocalBuffer = std::make_unique<std::vector<MidiEvent>>();
-    _rtLocalBuffer->reserve(MIDI_SPSCQUEUE_SIZE);
-    _inQueue = std::make_unique<SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE>>();
-    _outQueue = std::make_unique<SPSCQueue<MidiEvent, MIDI_SPSCQUEUE_SIZE>>();
+void MidiController::addVirtualKbdEvent(const MidiEvent ev) {
+    MidiPort * port = _activePorts.at(0).get();
+    port->pushEvent(ev.type, ev.channel, ev.note, ev.velocity);
 }
-
-MidiPort::~MidiPort() {
-    //we are closing at ~MidiController
-    // _run = false;
-    // _readingThread.join();
-
-    // if(_inputHandle) snd_rawmidi_close(_inputHandle);
-    // if(_outputHandle) snd_rawmidi_close(_outputHandle);
-}
-
-constexpr int MIDI_RAW_INPUT_SIZE = 128;
-
-/* inspired and Big Thanks to LMMS*/
-void MidiPort::inputHandle(MidiPort *port) {
-    unsigned char buf[MIDI_RAW_INPUT_SIZE];
-  
-    // std::atomic<bool> & run = port->_run;
-    port->_run = true;
-
-    snd_rawmidi_t * in = port->_inputHandle;
-	snd_rawmidi_nonblock(in, 1);
-	int npfds = snd_rawmidi_poll_descriptors_count(in);
-	pollfd * pfds = new pollfd[npfds];
-	snd_rawmidi_poll_descriptors(in, pfds, npfds);
-
-    while(port->_run) {
-        std::this_thread::sleep_for(std::chrono::microseconds(5));
-
-        int err = poll(pfds, npfds, 10000);
-
-        if(err < 0 && errno == EINTR) {
-            // printf( "MidiAlsaRaw::run(): Got EINTR while "
-			// 	"polling. Will stop polling MIDI-events from "
-			// 	"MIDI-port.\n" );
-            break;
-        }
-        if(err < 0) {
-            // printf( "poll failed: %s\nWill stop polling "
-			// 	"MIDI-events from MIDI-port.\n",
-			// 				strerror( errno ) );
-            break;
-        }
-
-        if(err == 0) continue;
-
-        unsigned short revents;
-        err = snd_rawmidi_poll_descriptors_revents(in, pfds, npfds, &revents);
-
-        if(err < 0) {
-            // printf( "cannot get poll events: %s\nWill stop polling "
-			// 	"MIDI-events from MIDI-port.\n",
-			// 				snd_strerror( errno ) );
-            break;
-        }
-
-        if(revents & (POLLERR | POLLHUP)) {
-            // printf( "POLLERR or POLLHUP\n" );
-            break;
-        }
- 
-        if(!(revents & POLLIN)) continue;
-
-        err = snd_rawmidi_read(in, buf, sizeof(buf));
-        if(err == -EAGAIN) continue;
-
-        if(err < 0) {
-            // printf( "cannot read from port \"%s\": %s\nWill stop "
-			// 	"polling MIDI-events from MIDI-port.\n",
-			// 	/*port_name*/"default", snd_strerror( err ) );
-			break;
-        }
-
-        if(err == 0) continue;
-
-        // buf[127] = '\0';
-        // LOG_INFO("Data!");// %s", &buf[0]);
-        // for(int i=0; i<err; ++i) {
-        port->parseInput(&buf[0], err);
-        // }
-    }
-
-    delete [] pfds;
-}
-
-void MidiPort::parseInput(unsigned char *raw, const int &size) {
-    int bytenum = 0;
-
-    while(true) {
-        if(bytenum >= size) break;
-        int byte = raw[bytenum++];
-        
-        if(byte >= 0xF8) {
-            //real-time msg
-            //0xFD and 0xF9 just ignored
-            realTimeEvent(this, static_cast<MidiEventType>(byte));
-            continue;
-        }
-
-        if(byte >= 0x80) {
-            //command byte
-            if(byte == 0xF7) {
-                if(_currentCommand == MidiEventType::SysEx) {
-                    //Sysex completed
-                    sysexEvent(&_rawData[0], _dataBytesReaded);
-                } else {
-                    // prl("error, unexpected 0xF7 byte");
-                }
-
-                _currentCommand = MidiEventType::InvalidType;
-                _dataBytesReaded = 0;
-                continue;
-            }
-
-            if(byte == 0xF4 || byte == 0xF5) {
-                // prl("error, undefined status byte, previous status " << std::hex <<
-                //     static_cast<int>(_currentCommand) << " readed data " << std::dec <<
-                //     _dataBytesReaded);
-
-                _currentCommand = MidiEventType::InvalidType;
-                _dataBytesReaded = 0;
-            }
-
-            if(_dataBytesReaded != 0) {
-                // prl("new command during unfinished data reading, previous " << std::hex <<
-                //     static_cast<int>(_currentCommand) << " readed data " << std::dec <<
-                //     _dataBytesReaded);
-                _dataBytesReaded = 0;
-            }
-
-            _currentCommand = (byte > 0xF0) ? 
-                                    static_cast<MidiEventType>(byte) : 
-                                    static_cast<MidiEventType>(byte & 0xF0);
-            _channel = (byte < 0xF0) ? (byte & 0x0F)+1 : 0;
-            _expectedLength = expectedLength(_currentCommand);
-
-            if(_currentCommand == MidiEventType::TuneRequest) {
-                // prl("tune request");
-                event(this, _currentCommand, 0, nullptr);
-            }
-
-            continue;
-        }
-
-        //data byte
-        if(_currentCommand == MidiEventType::InvalidType) {
-            // LOG_ERROR("garbage data?");
-            continue;
-        }
-
-        if(_currentCommand == MidiEventType::SysEx) {
-            if(_dataBytesReaded < 128) {
-                _rawData[_dataBytesReaded++] = byte;
-            } else {
-                // LOG_ERROR("sysex overflow");
-            }
-
-            continue;
-        }
-
-        if(_dataBytesReaded < _expectedLength) {
-            _rawData[_dataBytesReaded++] = byte;
-        }
-
-        if(_dataBytesReaded == _expectedLength) {
-            event(this, _currentCommand, _channel, &_rawData[0]);
-            _dataBytesReaded = 0;
-        }
-    }
-}
-
-void MidiPort::pushEvent(const MidiEventType type, const int channel, const int note, const int velocity) {
-    MidiEvent ev;
-    ev.channel = channel;
-    ev.type = type;
-    ev.note = note;
-    ev.velocity = velocity;
-    // ev.timestamp = std::chrono::steady_clock::now();
-    _inQueue->push(ev);
-}
-
-void event(MidiPort *port, const MidiEventType type, const int channel, const unsigned char *data) {
-    switch(type) {
-        case(MidiEventType::NoteOff): {
-            int note = static_cast<int>(data[0]);
-            int velocity = static_cast<int>(data[1]);
-            LOG_INFO("Note Off channel %d note %d vel %d",
-                        channel, note, velocity);
-            port->pushEvent(type, channel, note, velocity);
-        } break;
-        case(MidiEventType::NoteOn): {
-            int note = static_cast<int>(data[0]);
-            int velocity = static_cast<int>(data[1]);
-            if(velocity > 0) {
-                LOG_INFO("Note On channel %d note %d vel %d",
-                        channel, note, velocity);
-                port->pushEvent(type, channel, note, velocity);
-            } else {
-                LOG_INFO("Note On(Off) channel %d note %d vel %d",
-                        channel, note, velocity);
-                port->pushEvent(MidiEventType::NoteOff, channel, note, velocity);
-            }
-        } break;
-        case(MidiEventType::Aftertouch): { 
-            int note = static_cast<int>(data[0]);
-            int pressure = static_cast<int>(data[1]);
-            LOG_INFO("Aftertouch channel %d note %d pressure %d",
-                        channel, note, pressure);
-            port->pushEvent(type, channel, note, pressure);
-        } break;
-        case(MidiEventType::CC): { 
-            int cc = static_cast<int>(data[0]);
-            int value = static_cast<int>(data[1]);
-            LOG_INFO("CC channel %d cc %d value %d",
-                        channel, cc, value);
-                        
-            port->pushEvent(type, channel, cc, value);
-        } break;
-        case(MidiEventType::ProgramChange): { 
-            int program = static_cast<int>(data[0]);
-            LOG_INFO("Program Change channel %d program %d",
-                        channel, program);
-        } break;
-        case(MidiEventType::ChannelPressure): { 
-            int pressure = static_cast<int>(data[0]);
-            LOG_INFO("Channel Pressure channel %d pressure %d",
-                        channel, pressure);
-                        
-            port->pushEvent(type, channel, pressure, 0);
-        } break;
-        case(MidiEventType::PitchBend): {
-            int lsb = static_cast<int>(data[0]);
-            int msb = static_cast<int>(data[1]);
-            int pitch = lsb | (msb << 7);
-            LOG_INFO("Pitch Bend channel %d pitch %d",
-                        channel, pitch);
-                        
-            port->pushEvent(type, channel, pitch, 0);
-        } break;
-        case(MidiEventType::SongPosition): {
-            int lsb = static_cast<int>(data[0]);
-            int msb = static_cast<int>(data[1]);
-            LOG_INFO("Song Position lsb %x msb %x",
-                        lsb, msb);
-        } break;
-        case(MidiEventType::SongSelect): {
-            int song = static_cast<int>(data[0]);
-            LOG_INFO("Song Select song %d", song);
-        } break;
-        case(MidiEventType::TimeCodeQuarterFrame): {
-            int dta = static_cast<int>(data[0]);
-            LOG_INFO("Time Code Quater Frame data %d", dta);
-        } break;
-        case(MidiEventType::TuneRequest): {
-            LOG_INFO("Tune Request");
-        }
-    }
-}
-
-void realTimeEvent(MidiPort *port, const MidiEventType type) {
-    switch(type) {
-        case(MidiEventType::Clock): LOG_INFO("Clock"); break;
-        case(MidiEventType::Start): LOG_INFO("Start"); break;
-        case(MidiEventType::Continue): LOG_INFO("Continue"); break;
-        case(MidiEventType::Stop): LOG_INFO("Stop"); break;
-        case(MidiEventType::ActiveSensing): /*LOG_INFO("Active Sensing")*/; break;
-        case(MidiEventType::SystemReset): {
-            LOG_INFO("System Reset"); break;
-            port->_dataBytesReaded = 0;
-            port->_currentCommand = MidiEventType::InvalidType;
-            port->_channel = 0;
-            port->_expectedLength = 0;
-        }
-    }
-}
-
-void sysexEvent(const unsigned char *data, const int &len) {
-    // pr("SysEx event length " << len << " data: ");
-    // pr(std::hex);
-    // pr("0xf0 ");
-    LOG_INFO("SysEx event length: %d", len);
-    // for(int i=0; i<len; ++i) {
-        // pr((int)data[i] << " ");
-    // }
-    // pr("f7")
-    // prl(std::dec);
-}
-
-int expectedLength(const MidiEventType &type) {
-    switch(type) {
-        case(MidiEventType::NoteOff):
-        case(MidiEventType::NoteOn):
-        case(MidiEventType::Aftertouch):
-        case(MidiEventType::CC):
-        case(MidiEventType::PitchBend):
-        case(MidiEventType::SongPosition): return 2; break;
-        case(MidiEventType::ProgramChange):
-        case(MidiEventType::ChannelPressure):
-        case(MidiEventType::TimeCodeQuarterFrame):
-        case(MidiEventType::SongSelect): return 1; break;
-        case(MidiEventType::SysEx): return -1; break;
-        default: return 0; break;
-    }
-}
-
-/* some LLM stuff, need testing. don't want to dive deep into alsa right now */
-void MidiPort::writeHandle(MidiPort *port) {
-    snd_rawmidi_t *out = port->_outputHandle;
-    auto *queue = port->outQueue();
-
-    snd_rawmidi_nonblock(out, 1);
-
-    int alsa_fds = snd_rawmidi_poll_descriptors_count(out);
-    pollfd *alsa_pfds = new pollfd[alsa_fds];
-    snd_rawmidi_poll_descriptors(out, alsa_pfds, alsa_fds);
-
-    int efd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-
-    pollfd idle_pfd{};
-    idle_pfd.fd = efd;
-    idle_pfd.events = POLLIN;
-
-    pollfd *write_pfds = new pollfd[alsa_fds + 1];
-    for (int i = 0; i < alsa_fds; ++i)
-        write_pfds[i] = alsa_pfds[i];
-
-    write_pfds[alsa_fds].fd = efd;
-    write_pfds[alsa_fds].events = POLLIN;
-
-    uint8_t buffer[256];
-    size_t buf_used = 0;
-
-    port->_efd = efd;
-    port->_outputOpened = true;
-    port->_runOutput = true;
-
-    while(port->_runOutput) {
-
-        if(buf_used == 0 && queue->empty()) {
-            idle_pfd.revents = 0;
-            poll(&idle_pfd, 1, -1);
-
-            if(idle_pfd.revents & POLLIN) {
-                uint64_t v;
-                read(efd, &v, sizeof(v));
-            }
-            continue;
-        }
-
-        while(buf_used + 3 <= sizeof(buffer)) {
-            MidiEvent ev;
-            if(!queue->pop(ev))
-                break;
-
-            buffer[buf_used + 0] = static_cast<uint8_t>(ev.type) | (ev.channel & 0x0F);
-            buffer[buf_used + 1] = static_cast<uint8_t>(ev.note & 0x7F);
-            buffer[buf_used + 2] = static_cast<uint8_t>(ev.velocity & 0x7F);
-            buf_used += 3;
-        }
-
-        if(buf_used == 0)
-            continue;
-
-        ssize_t r = snd_rawmidi_write(out, buffer, buf_used);
-
-        if(r > 0) {
-            memmove(buffer, buffer + r, buf_used - r);
-            buf_used -= r;
-            continue;
-        }
-
-        if(r == -EAGAIN) {
-            for(int i=0; i<alsa_fds+1; ++i)
-                write_pfds[i].revents = 0;
-
-            poll(write_pfds, alsa_fds + 1, -1);
-
-            if(write_pfds[alsa_fds].revents & POLLIN) {
-                uint64_t v;
-                read(efd, &v, sizeof(v));
-            }
-            continue;
-        }
-
-        break;
-    }
-
-    close(efd);
-    delete[] alsa_pfds;
-    delete[] write_pfds;
-}
-
 
 }

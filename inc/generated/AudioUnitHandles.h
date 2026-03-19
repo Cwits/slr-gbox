@@ -1,26 +1,26 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <memory>
-#include "core/ControlEngine.h"
 #include "logger.h"  
-#include "Status.h"
-#include "ui/uiControls.h"
-#include <string>
-#include "core/Project.h"
-#include "core/primitives/AudioUnit.h"
+#include <memory>
 #include "core/FileWorker.h"
-#include "core/primitives/FileContainer.h"
-#include "core/primitives/AudioUnit.h"  
+#include "core/primitives/File.h"
+#include "logger.h"
+#include "modules/Track/TrackView.h"
+#include "snapshots/ProjectView.h"
+#include "core/FileTasks.h"
 #include "snapshots/AudioUnitView.h"
+#include "core/primitives/AudioUnit.h"
+#include "core/primitives/AudioUnit.h"  
+#include "core/ControlEngine.h"
+#include "Status.h"
+#include <string>
+#include "core/FlatEvents.h"
+#include "ui/uiControls.h"
 #include "snapshots/FileContainerView.h"
 #include "inc/ui/uiControls.h"
-#include "snapshots/ProjectView.h"
-#include "core/FlatEvents.h"
-#include "core/FileTasks.h"
-#include "modules/Track/TrackView.h"
-#include "core/primitives/File.h"
+#include "core/Project.h"
+#include "core/primitives/FileContainer.h"
 #include <algorithm>
-#include "logger.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -186,7 +186,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::SetParameter &e
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SetParameter;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.setParameter.unit = unit;
     ctl.setParameter.parameterId = e.parameterId;
     ctl.setParameter.value = e.value;
@@ -205,7 +204,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiThru 
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::ToggleMidiThru;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.toggleMidiThru.unit = u;
     ctl.toggleMidiThru.newState = e.newState;
     ControlEngine::emitRtControl(ctl);
@@ -223,7 +221,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleOmniHwInp
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::ToggleOmniHwInput;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.toggleOmniHwInput.unit = u;
     ctl.toggleOmniHwInput.newState = e.newState;
     ControlEngine::emitRtControl(ctl);
@@ -322,7 +319,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) 
 
 		FlatEvents::FlatControl ctrl;
 		ctrl.type = FlatEvents::FlatControl::Type::SwapContainer;
-		ctrl.commandId = ControlEngine::generateCommandId();
 		ctrl.swapContainer.unit = unit;
 		ctrl.swapContainer.container = workable;
    
@@ -339,7 +335,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) 
 		LOG_INFO("Appending item %u to unit id: %u", appendable->_uniqueId, e.unitId);
 		FlatEvents::FlatControl ctrl;
 		ctrl.type = FlatEvents::FlatControl::Type::AppendItem;
-		ctrl.commandId = ControlEngine::generateCommandId();
 		ctrl.appendItem.unit = unit;
 		ctrl.appendItem.item = appendable;
 		ControlEngine::emitRtControl(ctrl);
@@ -416,7 +411,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::FileUIRemoved &
 
     FlatEvents::FlatControl swap;
     swap.type = FlatEvents::FlatControl::Type::SwapContainer;
-    swap.commandId = ControlEngine::generateCommandId();
     swap.swapContainer.unit = unit;
     swap.swapContainer.container = swappable;
 
@@ -469,7 +463,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::ModClipItem &e)
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::ModClipItem;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.modClipItem.unit = unit;
     ctl.modClipItem.item = item;
     ctl.modClipItem.startPosition = e.startPosition;

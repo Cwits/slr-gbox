@@ -29,7 +29,6 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
     
     ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
         if(resp.status != Status::Ok) {
@@ -37,7 +36,15 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
             return;
         }
 
-        bool res = ctx.project->removeUnit(targetId);
+        bool res = true;
+        std::unique_ptr<AudioUnit> unit = ctx.project->removeUnit(targetId);
+        if(unit == nullptr) {
+            LOG_ERROR("Failed to find unit");
+            res = false;
+        }
+
+        unit->destroy(ctx.bufferManager);
+        // bool res = ctx.project->removeUnit(targetId);
         AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
         
         if(view) {

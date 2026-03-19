@@ -1,15 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/FlatEvents.h"
 #include "core/ControlEngine.h"
-#include "snapshots/ProjectView.h"
-#include "snapshots/TimelineView.h"
-#include "logger.h"
 #include "defines.h"
-#include "Status.h"
 #include "core/Timeline.h"
-#include "ui/uiControls.h"
 #include "core/Project.h"
+#include "logger.h"
+#include "Status.h"
+#include "snapshots/ProjectView.h"
+#include "core/FlatEvents.h"
+#include "snapshots/TimelineView.h"
+#include "ui/uiControls.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -79,7 +79,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::RequestPlayhead
 inline void handleEvent(const ControlContext &ctx, const Events::ChangeTimelineState &e) {
     FlatEvents::FlatControl tlstate;
     tlstate.type = FlatEvents::FlatControl::Type::ChangeTimelineState;
-    tlstate.commandId = ControlEngine::generateCommandId();
     tlstate.changeTimelineState.timeline = &ctx.project->timeline();
     tlstate.changeTimelineState.state = e.state;
     ControlEngine::emitRtControl(tlstate);
@@ -98,7 +97,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::ChangeSigBpm &e
     LOG_INFO("Change time signature and bpm. Sig: %u/%u, bpm: %f", e.sig._numerator, e.sig._denominator, e.bpm);
     FlatEvents::FlatControl sig;
     sig.type = FlatEvents::FlatControl::Type::ChangeSigBpm;
-    sig.commandId = ControlEngine::generateCommandId();
     sig.changeSigBpm.tl = &ctx.project->timeline();
     sig.changeSigBpm.bpm = e.bpm;
     sig.changeSigBpm.sig = e.sig;

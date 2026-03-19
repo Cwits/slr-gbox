@@ -11,7 +11,10 @@ Control Engine:
 [ ] - make a loopback latency test function that will be called from settings.
         (call a function -> warning("make a loopback from output to input" OK/Cancle) -> test completing -> 
         popup with result -> "Result measured X samples latency" Apply/Cancle)
-
+[x] - bit of rework for Events - have to make them get their own command id every time event fired(e.g. in EmitEvent())
+        ...emmm... problem: RequestPlayheadPosition event from UI::MainWindow.cpp:372 backfires because of same commandId of flat event
+        Done? now there is no need to assign ID manually - all is done in emitRtEvent(clt); function
+        
 Parameters: 
 [\] - lil bit of rework. use std::vector instead of array, (use bool, int instead of using float everywhere... eeee...hz), (check in google drive)
         as soon as all the parameters are prepared in NRT and doesn't change dynamically - should be no problems
@@ -38,8 +41,9 @@ AudioUnit:
         [\] - Make some config members as bool canLoadFile(type), AudioUnit::playbackFiles() abstraction, and ???
                 canLoadFiles handled in UnitUIBase
         [ ] - Make unified logic for drawing files...
-
-[ ] - each module needs to have some function to reconfigure samplerate and blocksize?
+[ ] - In order to be able to inject midi events to AudioUnit they need some (current frame MidiBuffer) and small SPSCQueue...
+        Injecting should work same way as MidiPort::pushEvent(...) in terms of frame calculating.
+        (Current frame MidiBuffer - buffer where events for current frame will be stored and manipulated?)
         
 Metronome:
 [\] - implement one(must live in rt class)(not tested)
@@ -52,16 +56,26 @@ Refactoring:
 [x?] - instead of local in counters switch to one global id counter for all the entities.
         (not only for track, but for fx, mod engine, mixer, etc...)
 [ ] - move std::string _name from track to audio unit
-[x] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
+[\] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
         (Track separated, mixer left)
+        [ ] - create CMakeLists.txt for each module and add dynamic modules search in ModuleManager
 [ ] - separate defines.h to two files - slr_config.h and common.h
+[ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
+[ ] - Folder structure need bit of changes:
+        [ ] - separate RT core from everything else(but than timeline should live in RT and not in project?)
+                RT must become separate compilable entity?
+                eee...
+                PROFIT?!
+        [ ] - primitives folder needs to be in inc/ but not in inc/core/ (1 layer higher)
 
-[ ] - big one: Get rid of Flat Response from RtEngine. Ideally RtEngine must not send back anything.
-        The main idea is to fire event from Control Engine to Rt Engine via Flat Event and that's all.
-        For UI Updating - Control Engine stores sent events and check's if it is completed.
-                - like instead of "handle Responses from RT Engine" - "check value updated"
-                  than call UI update.
-                  I guess should be some kind of timeout for that otherwise sent event's that failed to succeed will stay forever?
+[ ] - rewrite snapshots to some kind of subscribe model.??
+        when some parameter changed and snapshots updated - call functions...?? 
+
+RtEngine:
+[ ] - ideally RtEngine should not know anything about Project. The RenderPlan can be stored in Project as std::unique_ptr, and passed as it happens now
+        but what to do with timeline? should RtEngine own timeline, or Project(and pass together with render plan?)? Feels like first option be better...
+        But if timeline stored in RtEngine than it would make things as prepareToPlay()\record() more difficult?
+
 
 Project:
 [ ] - make save and load system(serialization)
@@ -88,6 +102,20 @@ Modules:
 [ ] - Make a proper CMakeLists.txt template for easier to implement each module and not to edit main CMakeLists in order to add new one
 [ ] - now modules registring in ModuleManager directly -> each module has to compile as dynamically linked libs - 
         .so and ModuleManager has to discover them automatically
+
+Track Recording: 
+[ ] - should prevent changing track record arm state if timeline is recording? or, at least, polish it somehow to make things nicer
+        Thing that concerns me is that it looks bit messy right now? 
+        because:
+        RecordTarget::finalize() is called from two different places - one is when global record is stopped
+                Event -> timeline::stopRecord() -> Project::stopAfterRecord() -> AudioUnit::stopRecording() -> Track::stopRecording() -> RecordTarget::stopRecord() -> RecordTarget::finalize()
+        
+        and another path is when Track's record arm is toggled to off state and finalize called though Track's Event(after record is off in RT):
+                Event -> Track::setRecordArm() -> Response -> if(record == off) Track::releaseRecordTarget() -> RecordTarget::finalize() ...
+        
+        That's doesn't look right, must be reworked somehow
+
+[ ] - MIDI recording isn't finished...
 
 other:
 [\] - introduce using ID = uint32_t(or uint64_t) so ID would be unified thing all across system
@@ -116,6 +144,7 @@ other:
 Route Manager:
 [ ] - channel mapping
 [ ] - removing route
+[ ] - "Omni HW Input" checkbox confuses. What is that - omni midi input or omni audio input?
 
 Browser:
 [ ] - Browser TODO: show selector that will allow to select where we want to drag.
@@ -137,6 +166,7 @@ CMakeLists and EvGen
 [ ] - modify cmakelists.txt to use strict file sources list for compiling, not recursive serach
 [ ] - after cmake mod - move template files from evgen folder to regular inc/src folders and modify evgen to parse them
 [ ] - EvGen not working properly with <moduleEventsGen.h> files that aren't located in src/core folder
+[ ] - Clear and structurize CMakeFile better :S
 
 Tests:
 [ ] - tests for Control Engine
@@ -153,6 +183,23 @@ Tests:
 [ ] - there is several memory leaks in ui...?
 
 
+Push:
+[ ] - don't understand how reconnect suppose to work...
+        at some time point all of midi in/midi out/display will return false
+        meaning that device is disconnected... -> ??
+        how to reconnect??
+        Relates to generic midi as well???
+
+[ ] - MidiInterface::handleEvent...
+        //TODO: the other's important CC will be here as well - e.g. sustain pedal... smth else?
+
+[ ] - you want to somehow make _buttonCallbackMap of widgets not an std::map, but std::array<> or smth... to make search time less consuming...
+[\] - BIG REWORK-UPDATE: need some proper retained UI logic... (similar to lvgl?) to redraw only affected areas and save some cpu...
+        [x] - very basic implementation of retained logic
+        [ ] - PushDisplay::updateFrame(BoundingBox &boxToUpdate); encoding whole frame instead of boxToUpdate
+        [ ] - Sometimes, when things moving quickly - old position struggle to clear
+                (e.g. with Pointer in PadLayoutWidget - sometimes old pointer stays there)
+        [ ] - PushPainter drawing algos can be optimised more?
 
 /* Notes */
  - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 

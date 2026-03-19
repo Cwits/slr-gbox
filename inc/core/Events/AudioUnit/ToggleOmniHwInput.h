@@ -33,7 +33,6 @@ void handleEvent(const ControlContext &ctx, const Events::ToggleOmniHwInput &e) 
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::ToggleOmniHwInput;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.toggleOmniHwInput.unit = u;
     ctl.toggleOmniHwInput.newState = e.newState;
     ControlEngine::emitRtControl(ctl);

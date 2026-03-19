@@ -3,7 +3,6 @@
 
 #include "core/ControlEngine.h"
 #include "core/Events.h"
-#include "core/AudioBufferManager.h"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <cstring>

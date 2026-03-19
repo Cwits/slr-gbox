@@ -11,13 +11,17 @@ class FileWorker;
 class ProjectView;
 class RtEngine;
 class MidiController;
+class BufferManager;
 
 struct ControlContext {
-    Project * project;
-    FileWorker * fileWorker;
-    RtEngine * engine;
-    ProjectView * projectView;
-    MidiController * midiController;
+    ControlContext(Project *prj, FileWorker *fw, RtEngine *rt, ProjectView *pv, MidiController *mc, BufferManager *bm) :
+        project(prj), fileWorker(fw), engine(rt), projectView(pv), midiController(mc), bufferManager(bm) {}
+    Project * const project;
+    FileWorker * const fileWorker;
+    RtEngine * const engine;
+    ProjectView * const projectView;
+    MidiController * const midiController;
+    BufferManager * const bufferManager;
 };
 
 }

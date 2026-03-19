@@ -6,9 +6,9 @@
 #include <vector>
 #include <atomic>
 #include "Status.h"
-#include "core/primitives/AudioBuffer.h"
 #include "core/primitives/AudioRoute.h"
-#include "core/primitives/MidiEvent.h"
+#include "core/primitives/AudioBuffer.h"
+#include "core/primitives/MidiBuffer.h"
 
 namespace slr {
 
@@ -28,7 +28,7 @@ struct MidiDependencie {
     bool external;
     uint16_t extId;
 
-    const std::vector<MidiEvent> *buf;
+    const MidiBuffer *buf;
     uint8_t channelFrom;
     uint8_t channelTo;
 };

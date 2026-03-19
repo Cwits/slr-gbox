@@ -1,16 +1,16 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/ModuleManager.h"
 #include "core/ControlEngine.h"
-#include "core/primitives/FileContainer.h"
-#include "core/primitives/AudioUnit.h"
-#include "snapshots/ProjectView.h"
-#include "logger.h"
-#include "snapshots/AudioUnitView.h"
-#include "Status.h"
-#include "ui/uiControls.h"
-#include "core/primitives/RenderPlan.h"
+#include "core/ModuleManager.h"
 #include "core/Project.h"
+#include "logger.h"
+#include "Status.h"
+#include "snapshots/ProjectView.h"
+#include "core/primitives/FileContainer.h"
+#include "snapshots/AudioUnitView.h"
+#include "core/primitives/AudioUnit.h"
+#include "core/primitives/RenderPlan.h"
+#include "ui/uiControls.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -38,7 +38,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::AddNewRoute &e)
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
      
     ControlEngine::awaitRtResult(ctl, [](const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
         if(resp.status == Status::Ok) {
@@ -65,7 +64,7 @@ inline void handleEvent(const ControlContext &ctx, const Events::AddNewMidiRoute
     //     UIControls::floatingWarning("Invalid route");
     //     LOG_ERROR("Invalid route");
     //     return;
-    // }
+    // } 
     
     ctx.project->addRoute(e.route);
 
@@ -83,7 +82,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::AddNewMidiRoute
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
      
     ControlEngine::awaitRtResult(ctl, [](const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
         if(resp.status == Status::Ok) {
@@ -118,7 +116,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SwapRenderPlan;
     ctl.swapRenderPlan.project = ctx.project;
-    ctl.commandId = ControlEngine::generateCommandId();
     
     ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
         if(resp.status != Status::Ok) {
@@ -126,7 +123,15 @@ inline void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e
             return;
         }
 
-        bool res = ctx.project->removeUnit(targetId);
+        bool res = true;
+        std::unique_ptr<AudioUnit> unit = ctx.project->removeUnit(targetId);
+        if(unit == nullptr) {
+            LOG_ERROR("Failed to find unit");
+            res = false;
+        }
+
+        unit->destroy(ctx.bufferManager);
+        // bool res = ctx.project->removeUnit(targetId);
         AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
         
         if(view) {
@@ -165,8 +170,14 @@ inline void handleEvent(const ControlContext &ctx, const Events::CreateModule &e
         AudioUnitView * view = nullptr;
         std::unique_ptr<AudioUnit> unit = mod->createRT();
         au = unit.get();
+
+        if(!unit->create(ctx.bufferManager)) {
+            LOG_ERROR("Failed to create unit for some reasons");
+            return;
+        }
+
         ctx.project->addUnit(std::move(unit));
-        
+
         view = mod->createView(au);
         ctx.projectView->addUnitView(view);
 

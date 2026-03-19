@@ -3,6 +3,9 @@
 
 #include "core/primitives/RenderPlan.h"
 #include "core/primitives/AudioUnit.h"
+#include "core/primitives/AudioBuffer.h"
+#include "core/primitives/MidiBuffer.h"
+#include "core/primitives/MidiEvent.h"
 #include "core/Project.h"
 #include "logger.h"
 
@@ -206,8 +209,8 @@ RenderPlan * buildPlan(Project *prj) {
     std::vector<ID> order = topoSort(edges, indegree);
     if(order.size() == 0) {
         //cycle detected or there is no ID's
-        LOG_ERROR("Returning empty Render Plan");
-        return nullptr;
+        LOG_WARN("No items to render, returning dummy Render Plan");
+        return &dummyPlan; 
     }
 
     LOG_WARN("Render Order: ");

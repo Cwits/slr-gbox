@@ -6,9 +6,9 @@
 #include "defines.h"
 #include "core/primitives/ParameterArray.h"
 #include "core/primitives/Parameter.h"
-#include "core/primitives/AudioBuffer.h"
 #include "core/primitives/FileContainer.h"
-#include "core/primitives/MidiEvent.h"
+#include "core/primitives/AudioBuffer.h"
+#include "core/primitives/MidiBuffer.h"
 #include "core/FlatEvents.h"
 #include "Status.h"
 
@@ -22,21 +22,18 @@ class ParameterBool;
 class ParameterInt;
 class ParameterBase;
 class Dependencies;
-
-enum class AudioUnitType {
-    Error,
-    Mixer,
-    Track,
-    Effect,
-    Metronome,
-    // EffectChain,
-};
+class BufferManager;
 
 class AudioUnit {
     public:
-    explicit AudioUnit(AudioUnitType type, bool needsAudioOutput = true);
+    explicit AudioUnit();
     //explicit AudioUnit(ClipContainer & container, bool needsAudioOutput = true);
     virtual ~AudioUnit();
+
+    virtual bool create(BufferManager *man);
+    virtual bool destroy(BufferManager *man);
+
+    // virtual void reinit() {}
 
     RT_FUNC virtual frame_t process(const AudioContext &ctx, const Dependencies &inputs) = 0;
 
@@ -62,9 +59,9 @@ class AudioUnit {
     // virtual const AudioBuffer * output(uint32_t outputId) const;
     virtual const AudioBuffer * outputs() const { return _outputs; }
 
-    void injectMidi(MidiEvent & ev) { _midiQueue.push_back(ev); }
-    void clearMidiBuffer() { _midiQueue.clear(); }
-    std::vector<MidiEvent> * midiOutputs() { return &_midiQueue; }
+    // void injectMidi(MidiEvent & ev) { _midiQueue.push_back(ev); }
+    void clearMidiBuffer();
+    MidiBuffer * midiOutputs() { return _midiOutput; }
     const bool isMidiThru() const { return _midiThru; }
     const bool isOmniHwInput() const { return _omniHwInput; }
     
@@ -77,17 +74,17 @@ class AudioUnit {
     // const AudioUnitType type() const { return _type; }
     // const bool solo() const { return _solo; }
 
-    void setMute(bool mute) { *_mute = mute; }
-    const bool mute() const { return *_mute; }
-    const ID muteId() const { return _mute->id(); }
+    void setMute(bool mute) { _mute = mute; }
+    const bool mute() const { return _mute; }
+    const ID muteId() const { return _mute.id(); }
     
-    void setVolume(float volume) { *_volume = volume; }
-    const float volume() const { return *_volume; }
-    const ID volumeId() const { return _volume->id(); }
+    void setVolume(float volume) { _volume = volume; }
+    const float volume() const { return _volume; }
+    const ID volumeId() const { return _volume.id(); }
 
-    void setPan(float pan) { *_pan = pan; }
-    const float pan() const { return *_pan; }
-    const ID panId() const { return _pan->id(); }
+    void setPan(float pan) { _pan = pan; }
+    const float pan() const { return _pan; }
+    const ID panId() const { return _pan.id(); }
 
     bool hasParameterWithId(ID parameterId);
 
@@ -100,34 +97,37 @@ class AudioUnit {
     RT_FUNC static Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
     void setClips(std::vector<ClipItem*> * ptr) { _clipContainer._clips = ptr; }
+
     protected:
-    AudioUnitType _type;
-    void addParameter(ParameterBase * base);
+    const ID _uniqueId = -1;
 
     bool _solo;
     
-    bool _buffersClear;
-    
-    ParameterFloat * _volume;
-    ParameterFloat * _pan;
-    ParameterBool * _mute;
+    void addParameter(ParameterBase * base);
     ParameterArray _flatParameterList;
-    
-    const ID _uniqueId = -1;
+    ParameterFloat _volume;
+    ParameterFloat _pan;
 
-    const bool _haveAudioOutputs;
+    ParameterBool _mute;
+    bool _buffersClear;
+    bool isMuted(const AudioContext &ctx);
+
     AudioBuffer * _outputs;
 
     bool _midiThru;
     bool _omniHwInput; //unit will gather all available midi inputs event if there is no route for that
-    std::vector<MidiEvent> _midiQueue;
+    // std::vector<MidiEvent> _midiQueue;
+    MidiBuffer * _midiInput;
+    MidiBuffer * _midiOutput;
     //spsc queue midi
     //spsc queue control
 
     //midi learn map
     //automation clips
 
-    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */);
+    RT_FUNC void applyMidiEvents(MidiBuffer *buf);
+
+    RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid);
     ClipContainer _clipContainer;
     
     friend class AudioUnitView;

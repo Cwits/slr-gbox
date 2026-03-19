@@ -1,5 +1,5 @@
 {
-    "Audio Driver": "Jack Driver",
+    "Audio Driver": "Dummy Driver",
     "Sample Rate": 44100,
     "Block Size": 64,
     "Latency Compensation": 37,
@@ -10,8 +10,10 @@
     "Projects Path": "/home/",
     "Save Tmp to Project": true,
     "Default Storage": "/home/",
-    "Temporary Recording Path": "/home/",
+    "Temporary Recording Path": "/home/pi/music/recordings/",
     "Plugins Path": "/home/",
     "Default Pixel Per Bar": 1000,
-    "Frames Per Pixel": 588
+    "Frames Per Pixel": 588,
+    "Regular Buffer Count": 1024,
+    "Record Buffer Count": 128
 }

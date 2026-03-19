@@ -33,6 +33,10 @@ bool _saveTmpToProjectFolder;
 std::string _tmpRecordPath;
 std::string _pluginPath;
 
+/* Audio */
+int _regularBufferCount;
+int _recordBufferCount;
+
 /* UI */
 int _defaultPixelPerBar;
 slr::frame_t _defaultFramesPerPixel;

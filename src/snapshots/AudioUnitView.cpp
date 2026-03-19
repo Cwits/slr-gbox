@@ -12,9 +12,9 @@ AudioUnitView::AudioUnitView(AudioUnit * au) :
     // _solo(au->solo()),
 
 {
-    addParameter(_volume = new ParameterFloatView(au->_volume));
-    addParameter(_pan = new ParameterFloatView(au->_pan));
-    addParameter(_mute = new ParameterBoolView(au->_mute));
+    addParameter(_volume = new ParameterFloatView(&au->_volume));
+    addParameter(_pan = new ParameterFloatView(&au->_pan));
+    addParameter(_mute = new ParameterBoolView(&au->_mute));
 
     
     _name = "Untitled ";

@@ -1,10 +1,10 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include "core/utility/helper.h"
-#include "core/FlatEvents.h"
 #include "core/ControlEngine.h"
 #include "core/Metronome.h"
 #include "core/Project.h"
+#include "core/FlatEvents.h"
+#include "core/utility/helper.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -17,7 +17,6 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMetronome
 
     FlatEvents::FlatControl ctl;
     ctl.type = FlatEvents::FlatControl::Type::SetParameter;
-    ctl.commandId = ControlEngine::generateCommandId();
     ctl.setParameter.unit = ctx.project->metronome();
     ctl.setParameter.parameterId = metro->muteId();
     ctl.setParameter.value = boolToFloat((oldState ? false : true));

@@ -1,14 +1,15 @@
 /* This file is generated automatically, do not edit manually */
 #pragma once
-#include <array>
+#include "core/primitives/MidiEvent.h"
 #include "core/ControlEngine.h"
-#include <vector>
 #include <unordered_map>
-#include "core/primitives/MidiEvent.h" //for RtMidiPort
-#include "core/MidiController.h"
+#include <array>
+#include <vector>
 #include "logger.h"
-#include "core/RtEngine.h"
+#include "core/primitives/MidiEvent.h" //for RtMidiPort
 #include "Status.h"
+#include "core/MidiController.h"
+#include "core/RtEngine.h"
 #include "core/primitives/ControlContext.h"
 
 namespace slr {
@@ -38,11 +39,17 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
     if(!e.device) {
         //no such card
         LOG_ERROR("No such midi device %s to enable", e.device->_name.c_str());
+        
+        if(e.completed)
+            e.completed(1);
         return;
     }
 
     if(!e.device->_online) {
         LOG_ERROR("Midi device %s is offline", e.device->_name.c_str());
+        
+        if(e.completed)
+            e.completed(2);
         return;
     }
 
@@ -56,16 +63,25 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
 
     if(!e.subdev) {
         LOG_ERROR("Card %s doesn't have specified subdevice", e.subdev->_path.c_str());
+        
+        if(e.completed)
+            e.completed(3);
         return;
     }
 
     if(e.port == DevicePort::INPUT && !e.subdev->_hasInput) {
         LOG_ERROR("Card %s input can't be enabled because it doesn't have one", e.subdev->_path.c_str());
+        
+        if(e.completed)
+            e.completed(4);
         return;
     }
 
     if(e.port == DevicePort::OUTPUT && !e.subdev->_hasOutput) {
         LOG_ERROR("Card %s output can't be enabled because it doesn't have one", e.subdev->_path.c_str());
+
+        if(e.completed)
+            e.completed(5);
         return;
     }
 
@@ -87,11 +103,25 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
         std::unique_ptr<MidiPort> tmp = std::make_unique<MidiPort>();
         port = tmp.get();
         ctx.midiController->addNewPort(std::move(tmp));
+        // TODO: ctx.midiController->addNewPort(e.device, e.subdev);
 
         port->_path = e.subdev->_path;
         port->_ownerDev = e.device;
         port->_ownerSubdev = e.subdev;
     }
+
+    // if(e.port == DevicePort::INPUT) {
+    //     if(e.newState && port->inputOpened()) {
+    //         LOG_WARN("Input for device %s already opened", e.device->_name);
+    //         return;
+    //     }
+    // }
+    // if(e.port == DevicePort::OUTPUT) {
+    //     if(e.newState && port->outputOpened()) {
+    //         LOG_WARN("Output for device %s already opened", e.device->_name);
+    //         return;
+    //     }
+    // }
 
     //enable
     if(e.port == DevicePort::INPUT) {
@@ -107,6 +137,8 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
             (e.newState ? "open" : "close")
         );
 
+        if(e.completed)
+            e.completed(6);
         return;
     }
 
@@ -142,13 +174,30 @@ inline void handleEvent(const ControlContext &ctx, const Events::ToggleMidiDevic
 
         FlatEvents::FlatControl ctrl;
         ctrl.type = FlatEvents::FlatControl::Type::UpdateMidiMaps;
-        ctrl.commandId = ControlEngine::generateCommandId();
         ctrl.updateMidiMaps.engine = ctx.engine;
         ctrl.updateMidiMaps.inputMap = inMap;
         ctrl.updateMidiMaps.outputMap = outMap;
         ctrl.updateMidiMaps.localBuffers = local;
         ControlEngine::emitRtControl(ctrl);
     }
+
+    if(e.completed)
+        e.completed(0);
+}
+
+inline void handleEvent(const ControlContext &ctx, const Events::VirtualMidiKbdAction &e) {
+    if(e.note < 1 || e.note > 127) { LOG_ERROR("Wrong note value %d expected >= 1 and <= 127", e.note); return; }
+    if(e.velocity < 0 || e.velocity > 127) { LOG_ERROR("Wrong note velocity %d expected >= 0 and <= 127", e.velocity); return; }
+    if(e.channel < 0 || e.channel > 15) { LOG_ERROR("Wrong note channel %d expected >= 0 and <= 15", e.channel); return; }
+
+    slr::MidiEvent ev;
+    ev.type = e.isPressed ? slr::MidiEventType::NoteOn : slr::MidiEventType::NoteOff;
+    ev.channel = e.channel;
+    ev.note = e.note;
+    ev.velocity = e.velocity;
+    ev.offset = 0;
+
+    ctx.midiController->addVirtualKbdEvent(ev);
 }
 
 } //namespace slr

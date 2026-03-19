@@ -15,6 +15,7 @@
 #include <array>
 #include <vector>
 #include <unordered_map>
+#include <functional>
 /* Sample. Loop. Repeat. */
 namespace slr {
 
@@ -30,7 +31,7 @@ class RtEngine {
 
     bool init();
     bool shutdown();
-    bool start();
+    bool start(std::function<void(frame_t)> anchorLambda);
     bool stop();
 
     const RtState getState() const { return _state; } 
@@ -71,6 +72,7 @@ class RtEngine {
     
     std::atomic<RtState> _state;
 
+    bool _isFirstCallback;
 };
 
 }

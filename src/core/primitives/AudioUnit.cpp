@@ -7,7 +7,9 @@
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioContext.h"
 
-#include "core/AudioBufferManager.h"
+#include "core/utility/basicAudioManipulation.h"
+
+#include "core/BufferManager.h"
 #include "logger.h"
 
 namespace slr {
@@ -20,22 +22,35 @@ result yelds not existing routes(at least for midi...)
 constexpr int FirstUnitId = 0;
 static ID uniqueIdCounter = FirstUnitId; 
 
-AudioUnit::AudioUnit(AudioUnitType type, bool needsAudioOutputs) : _type(type), _uniqueId(uniqueIdCounter++), _haveAudioOutputs(needsAudioOutputs) {
-    addParameter(_volume = new ParameterFloat("Volume", 1.0f, 0.0f, 1.0f));
-    addParameter(_pan = new ParameterFloat("Pan", 0.5f, 0.f, 1.f));
-    addParameter(_mute = new ParameterBool("Mute", 0.0f, 0.f, 1.f));
-
-    if(needsAudioOutputs) {
-        _outputs = AudioBufferManager::acquireRegular();
-    }
-
-    _midiQueue.reserve(MIDI_SPSCQUEUE_SIZE);
+AudioUnit::AudioUnit() : _uniqueId(uniqueIdCounter++),
+    _volume(ParameterFloat("Volume", 1.0f, 0.f, 1.f)),
+    _pan(ParameterFloat("Pan", 0.5f, 0.f, 1.f)),
+    _mute(ParameterBool("Mute", 0.f, 0.f, 1.f))    
+{
+    // _outputs = AudioBufferManager::acquireRegular();
+    
+    // _midiQueue.reserve(MIDI_SPSCQUEUE_SIZE);
 }
 
 AudioUnit::~AudioUnit() {
-    if(_haveAudioOutputs) {
-        AudioBufferManager::releaseRegular(_outputs);
-    }
+    // AudioBufferManager::releaseRegular(_outputs);
+}
+
+bool AudioUnit::create(BufferManager *man) {
+    addParameter(&_volume);
+    addParameter(&_pan);
+    addParameter(&_mute);
+    _outputs = man->acquireAudioRegular();
+    _midiInput = man->acquireMidiRegular();
+    _midiOutput = man->acquireMidiRegular();
+    return true;
+}
+
+bool AudioUnit::destroy(BufferManager *man) {
+    man->releaseAudioRegular(_outputs);
+    man->releaseMidiRegular(_midiInput);
+    man->releaseMidiRegular(_midiOutput);
+    return true;
 }
 
 void AudioUnit::addParameter(ParameterBase * base) {
@@ -49,6 +64,20 @@ bool AudioUnit::hasParameterWithId(ID parameterId) {
             return true;
     }
 
+    return false;
+}
+
+bool AudioUnit::isMuted(const AudioContext &ctx) {
+    if(_mute) {
+        if(!_buffersClear) {
+            _buffersClear = true;
+            clearAudioBuffer((*_outputs)[0], ctx.frames);
+            clearAudioBuffer((*_outputs)[1], ctx.frames);
+        }
+        return true;
+    }
+
+    _buffersClear = false;
     return false;
 }
 
@@ -89,8 +118,11 @@ Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvent
     return Status::Ok;
 }
 
+void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
 
-void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiBuffer *mid */) {
+}
+
+void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid) {
     if(!_clipContainer._clips) return; //because container created only when some files is loaded
 
     for(const ClipItem * const item : *(_clipContainer._clips)) {
@@ -161,6 +193,8 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf/*, MidiB
         }
     }
 }
+
+void AudioUnit::clearMidiBuffer() { _midiInput->clear(); }
 
 bool AudioUnit::checkFileContainerNeedResize() {
     return false;

@@ -119,7 +119,6 @@ void handleEvent(const ControlContext &ctx, const Events::FileUIRemoved &e) {
 
     FlatEvents::FlatControl swap;
     swap.type = FlatEvents::FlatControl::Type::SwapContainer;
-    swap.commandId = ControlEngine::generateCommandId();
     swap.swapContainer.unit = unit;
     swap.swapContainer.container = swappable;
 

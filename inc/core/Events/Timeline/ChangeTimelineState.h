@@ -30,7 +30,6 @@ INCLUDE "defines.h"
 void handleEvent(const ControlContext &ctx, const Events::ChangeTimelineState &e) {
     FlatEvents::FlatControl tlstate;
     tlstate.type = FlatEvents::FlatControl::Type::ChangeTimelineState;
-    tlstate.commandId = ControlEngine::generateCommandId();
     tlstate.changeTimelineState.timeline = &ctx.project->timeline();
     tlstate.changeTimelineState.state = e.state;
     ControlEngine::emitRtControl(tlstate);

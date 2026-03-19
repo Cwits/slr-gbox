@@ -29,6 +29,7 @@ RtEngine::RtEngine() {
     _midiInLocal = new std::vector<RtMidiBuffer>();
     _midiInputMap = new std::vector<RtMidiQueue>();
     _midiOutputMap = new std::vector<RtMidiOutput>();
+    _isFirstCallback = true;
 }
 
 RtEngine::~RtEngine() {
@@ -41,8 +42,8 @@ RtEngine::~RtEngine() {
 
 bool RtEngine::init() {
     _snapshotCount = 0;
-    // _controlSnapshot.fill(_zeroControl);
-
+    _isFirstCallback = true;
+    
 #if defined(__aarch64__)
     _driver = AudioDriverFactory::create(SettingsManager::getAudioDriver());
 #else
@@ -61,10 +62,11 @@ bool RtEngine::init() {
     return true;
 }
 
-bool RtEngine::start() {
+bool RtEngine::start(std::function<void(frame_t)> anchorLambda) {
     if(_state == RtState::ERROR) return false;
 
-    if(!_driver->start([this](AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed) -> frame_t {
+    if(!_driver->start([this, anchorLambda](AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed) -> frame_t {
+        anchorLambda(framesPassed); //lol is that very bad? :/
         return this->processNextBlock(inputs, outputs, frames, framesPassed);
     })) {
         //error
@@ -113,12 +115,12 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         b.buffer->clear();
     }
 
-    /*
     for(RtMidiQueue &q : *_midiInputMap) {
-        std::vector<MidiEvent> *v = nullptr;
+        //MidiBuffer valid for current frame only... bad naming here...
+        MidiBuffer *buf = nullptr;
         for(RtMidiBuffer &b : *_midiInLocal) {
             if(q.id == b.id) {
-                v = b.buffer;
+                buf = b.buffer;
                 break;
             }
         }
@@ -134,18 +136,30 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
         const MidiEvent * peekptr;
         while(q.queue->peek(peekptr)) {
-            if(peekptr->frame <= currentFrame + blockSize) {
-                // q.queue->pop(midiev);
-                v->push_back(*peekptr);
-                q.queue->commit_pop();
+            if(peekptr->offset >= framesPassed) {
+                MidiEvent ev;
+                q.queue->pop(ev);
+                ev.offset = ev.offset - framesPassed; //or calculate this in midi input handle, assuming that event will be handled in next frame by default?
+                buf->push_back(ev);
+                // q.queue->commit_pop();
+#if (RT_TRACE == 1)
+                LOG_INFO("Midi Ev offset %lu, frames passed %lu", ev.offset, framesPassed);
+#endif
             } else {
+#if (RT_TRACE == 1)
+                LOG_INFO("Still ev left  offset %lu, frames passed %lu", peekptr->offset, framesPassed);
+                LOG_ERROR("theoretically Unreachable?");
+#endif
+                q.queue->commit_pop(); //just skip this
                 break;
             }
-            out->sendEvent(*peekptr);
+
+            //simple echo?
+            // out->sendEvent(*peekptr);
         }
     }
-    */
-   
+    
+   /*
     MidiEvent midiev;
     for(RtMidiQueue &q : *_midiInputMap) {
         std::vector<MidiEvent> *v = nullptr;
@@ -165,12 +179,13 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         }
 
         while(q.queue->pop(midiev)) {
+            LOG_INFO("Midi Ev offset %lu, frames passed %lu", midiev.offset, framesPassed);
             v->push_back(midiev);
             //test echo
             if(midiev.type == MidiEventType::NoteOn)
                 out->sendEvent(midiev);
         }
-    }
+    }*/
     
     Timeline & tl = _prj->timeline();
     const bool playing = tl.playing();//must be called before elapsed because if prevstate == preparing than we can do 
