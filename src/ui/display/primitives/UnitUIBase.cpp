@@ -39,11 +39,11 @@ const slr::Color & UnitUIBase::color() const {
     return _view->color();
 }
 
-bool UnitUIBase::update(UIContext * ctx) {
+bool UnitUIBase::commonUIUpdate() {
     
-    for(auto clb : _externalUpdates) {
-        clb();
-    }
+    // for(auto clb : _externalUpdates) {
+    //     clb();
+    // }
 
     //File check
     std::size_t viewSize = _view->_clipContainer._items.size();
@@ -68,7 +68,7 @@ bool UnitUIBase::update(UIContext * ctx) {
 
             //add to grid
             for(std::size_t i=0; i<toAdd.size(); ++i) {
-                FileView * fw = new FileView(ctx->grid(), this, toAdd.at(i), _uictx);
+                FileView * fw = new FileView(_uictx->grid(), this, toAdd.at(i), _uictx);
                 _viewItems.push_back(fw);
             }
 
@@ -105,7 +105,7 @@ bool UnitUIBase::update(UIContext * ctx) {
             }
         }
 
-        ctx->_gridTimeline->updatePlayheadZ();
+        _uictx->_gridTimeline->updatePlayheadZ();
     }
 
     //update items positions(uiSize should be == viewSize)

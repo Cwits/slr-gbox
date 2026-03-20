@@ -99,7 +99,7 @@ class AudioUnit {
     void setClips(std::vector<ClipItem*> * ptr) { _clipContainer._clips = ptr; }
 
     protected:
-    const ID _uniqueId = -1;
+    const ID _uniqueId;
 
     bool _solo;
     

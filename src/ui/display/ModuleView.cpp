@@ -21,6 +21,7 @@ ModuleView::ModuleView(BaseWidget* parent, UIContext * const uictx) : View(paren
     _lb = lv_label_create(_lvhost);
     lv_label_set_text(_lb, "Module");
     lv_obj_center(_lb);
+    _lastShownModule = nullptr;
 }
 
 ModuleView::~ModuleView() {
@@ -35,10 +36,17 @@ void ModuleView::update() {
     if(!unit) {
         lv_label_set_text(_lb, "Module not selected");
         lv_obj_clear_flag(_lb, LV_OBJ_FLAG_HIDDEN);
+        _lastShownModule = nullptr;
     } else {
         lv_obj_add_flag(_lb, LV_OBJ_FLAG_HIDDEN);
         unit->moduleUI()->show();
+        _lastShownModule = unit;
     }
+}
+
+void ModuleView::pollUIUpdate() {
+    if(_lastShownModule)
+        _lastShownModule->moduleUI()->pollUIUpdate();
 }
 
 

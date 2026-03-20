@@ -43,32 +43,32 @@ bool TrackUI::create(UIContext * ctx) {
     return true;
 }
 
-bool TrackUI::update(UIContext * ctx) {
-     if(_track->record()) {
-        _gridControl->_btnRecord->setColor(RED_COLOR);
-        _gridControl->_btnSource->show();
-    } else {
-        _gridControl->_btnRecord->setColor(BUTTON_DEFAULT_COLOR);
-        _gridControl->_btnSource->hide();
-    }
+// bool TrackUI::update(UIContext * ctx) {
+//     if(_track->record()) {
+//         _gridControl->_btnRecord->setColor(RED_COLOR);
+//         _gridControl->_btnSource->show();
+//     } else {
+//         _gridControl->_btnRecord->setColor(BUTTON_DEFAULT_COLOR);
+//         _gridControl->_btnSource->hide();
+//     }
 
-    if(_track->recordSource() == slr::RecordSource::Audio) {
-        _gridControl->_btnSource->setText("Audio");
-    } else {
-        _gridControl->_btnSource->setText("Midi");
-    }
+//     if(_track->recordSource() == slr::RecordSource::Audio) {
+//         _gridControl->_btnSource->setText("Audio");
+//     } else {
+//         _gridControl->_btnSource->setText("Midi");
+//     }
 
-    if(_track->mute()) {
-        _gridControl->_btnMute->setColor(MUTE_ON_COLOR);
-    } else {
-        _gridControl->_btnMute->setColor(MUTE_OFF_COLOR);
-    }
+//     if(_track->mute()) {
+//         _gridControl->_btnMute->setColor(MUTE_ON_COLOR);
+//     } else {
+//         _gridControl->_btnMute->setColor(MUTE_OFF_COLOR);
+//     }
 
-    _gridControl->_lblVolume->setText(std::to_string(_track->volume()));
+//     _gridControl->_lblVolume->setText(std::to_string(_track->volume()));
     
-    UnitUIBase::update(ctx);
-    return true;
-}
+//     UnitUIBase::update(ctx);
+//     return true;
+// }
 
 bool TrackUI::destroy(UIContext * ctx) {
     UnitUIBase::destroy(ctx);
@@ -224,6 +224,36 @@ bool TrackUI::TrackGridControlUI::handleDoubleTap(GestLib::DoubleTapGesture & dt
     return true;
 }
 
+void TrackUI::TrackGridControlUI::pollUIUpdate() {
+    slr::TrackView * view = _parentUI->_track;
+
+    if(isSameUIVersion(view->version())) return;
+
+    if(view->record()) {
+        _btnRecord->setColor(RED_COLOR);
+        _btnSource->show();
+    } else {
+        _btnRecord->setColor(BUTTON_DEFAULT_COLOR);
+        _btnSource->hide();
+    }
+
+    if(view->recordSource() == slr::RecordSource::Audio) {
+        _btnSource->setText("Audio");
+    } else {
+        _btnSource->setText("Midi");
+    }
+
+    if(view->mute()) {
+        _btnMute->setColor(MUTE_ON_COLOR);
+    } else {
+        _btnMute->setColor(MUTE_OFF_COLOR);
+    }
+
+    _lblVolume->setText(std::to_string(view->volume()));
+    
+    _parentUI->commonUIUpdate();
+}
+
 TrackUI::TrackModuleUI::TrackModuleUI(BaseWidget *parent, TrackUI * parentUI) 
     : BaseWidget(parent, true),
     _parentUI(parentUI)
@@ -245,5 +275,10 @@ TrackUI::TrackModuleUI::~TrackModuleUI() {
     lv_obj_delete(_testRect);
 }
 
+void TrackUI::TrackModuleUI::pollUIUpdate() {
+    slr::TrackView * view = _parentUI->_track;
+    if(isSameUIVersion(view->version())) return;
+    
+}
 
 }

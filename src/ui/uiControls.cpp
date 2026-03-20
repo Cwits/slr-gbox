@@ -84,15 +84,15 @@ void addModuleUI(const slr::Module * mod, slr::AudioUnitView * view) {
     });
 }
 
-void updateModuleUI(slr::ID id) {
-    postToLvgl([id]() {
-        UI::MainWindow::inst()->updateUI(id);
-    });
+// void updateModuleUI(slr::ID id) {
+//     postToLvgl([id]() {
+//         UI::MainWindow::inst()->updateUI(id);
+//     });
 
-    PushThread::postTask([id]() {
-        PushUI::RootWidget::inst()->updateUI(id);
-    });
-}
+//     PushThread::postTask([id]() {
+//         PushUI::RootWidget::inst()->updateUI(id);
+//     });
+// }
 
 void destroyModuleUI(slr::ID id) {
     postToLvgl([id]() {

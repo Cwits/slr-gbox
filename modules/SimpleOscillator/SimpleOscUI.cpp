@@ -42,11 +42,11 @@ bool SimpleOscUI::create(UIContext * ctx) {
     return true;
 }
 
-bool SimpleOscUI::update(UIContext * ctx) {
+// bool SimpleOscUI::update(UIContext * ctx) {
     
-    UnitUIBase::update(ctx);
-    return true;
-}
+//     UnitUIBase::update(ctx);
+//     return true;
+// }
 
 bool SimpleOscUI::destroy(UIContext * ctx) {
     UnitUIBase::destroy(ctx);

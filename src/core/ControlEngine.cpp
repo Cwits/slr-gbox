@@ -310,7 +310,7 @@ void awaitRtResult(const FlatEvents::FlatControl &ctl,
     ev.deleteEvent = false;
 
     _awaitEvents.push_back(ev);
-    emitRtControl(ev.ctl);
+    emitRtControl(_awaitEvents.back().ctl);
 }
 
 void notify() {

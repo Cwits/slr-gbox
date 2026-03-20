@@ -77,6 +77,7 @@ file(GLOB SOURCES
   src/core/primitives/ParameterArray.cpp
   src/core/primitives/RenderPlan.cpp
   src/core/primitives/MidiPort.cpp
+  src/core/primitives/FileContainer.cpp
 
   src/core/utility/basicAudioManipulation.cpp
   src/core/utility/basicMidiManipulation.cpp

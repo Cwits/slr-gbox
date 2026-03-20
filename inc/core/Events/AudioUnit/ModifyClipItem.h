@@ -123,7 +123,7 @@ void handleModifyClipItemResponse(const ControlContext &ctx, const FlatEvents::F
     item->_length = resp.modClipItem.item->length();
     item->_muted = resp.modClipItem.item->isMuted();
 
-    UIControls::updateModuleUI(uview->id());
+    // UIControls::updateModuleUI(uview->id());
 }
 END_HANDLE
 

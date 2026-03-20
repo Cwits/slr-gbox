@@ -25,6 +25,9 @@ struct GridControl : public BaseWidget {
     ~GridControl();
 
     lv_obj_t * _lastSelectedRect;
+
+    void pollUIUpdate() override;
+
     private:
     GridView * _grid;
     UIContext * const _uictx;
@@ -35,6 +38,8 @@ struct GridControl : public BaseWidget {
 struct GridGrid : public BaseWidget { 
     GridGrid(GridView * parent, UIContext * const uictx);
     ~GridGrid();
+
+    void pollUIUpdate() override;
 
     private:    
     GridView * _grid;
@@ -49,7 +54,7 @@ struct GridView : public View {
     ~GridView();
 
     const float hZoom() const { return _horizontalZoom; }
-    void update() override {}
+    void pollUIUpdate() override;
 
     GridControl * _control;
     GridGrid * _grid;

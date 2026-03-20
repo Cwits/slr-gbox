@@ -22,7 +22,7 @@ struct SimpleOscUI : public UnitUIBase {
     ~SimpleOscUI();
     
     bool create(UIContext * ctx) override;
-    bool update(UIContext * ctx) override;
+    // bool update(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
     BaseWidget * gridUI() override { return _gridControl; }

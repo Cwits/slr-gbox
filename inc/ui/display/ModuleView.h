@@ -9,6 +9,7 @@
 
 namespace UI {
 class UIContext;
+class UnitUIBase;
 
 class ModuleView : public View {
     public:
@@ -16,9 +17,12 @@ class ModuleView : public View {
     ~ModuleView();
 
     void update() override;
+    void pollUIUpdate() override;
 
     lv_obj_t * _lb;
     private:
+
+    UnitUIBase * _lastShownModule;
 };
 
 }

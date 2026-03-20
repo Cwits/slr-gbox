@@ -454,7 +454,7 @@ void MainWindow::updateUI(slr::ID id) {
         return;
     }
 
-    ui->update(&_uiContext);
+    // ui->update(&_uiContext);
 }
 
 void MainWindow::destroyUI(slr::ID id) {
@@ -513,5 +513,20 @@ void MainWindow::destroyUI(slr::ID id) {
 //     // }
 //     // unit->moduleView()->show();
 // }
+
+void MainWindow::pollUIUpdate() {
+    //depends on current view -> check updates?
+    MainView view = currentView();
+    switch(view) {
+        case(MainView::Grid): _gridView->pollUIUpdate(); break;
+        case(MainView::Module): _moduleView->pollUIUpdate(); break;
+        case(MainView::Browser): _browser->pollUIUpdate(); break;
+        case(MainView::Patch): ; break;
+        case(MainView::Editor): ; break;
+        case(MainView::StepSequencer): ; break;
+        case(MainView::ModMatrix): ; break;
+    }
+}
+
 
 } //namespace UI

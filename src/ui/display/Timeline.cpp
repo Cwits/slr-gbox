@@ -120,7 +120,6 @@ void Timeline::updatePlayhead(slr::frame_t position) {
     lv_line_set_points(_playhead._line, &_playhead._points[0], 2);
 
     lv_obj_invalidate(_playhead._line);
-
 }
 
 void Timeline::updatePlayheadZ() {
@@ -169,6 +168,11 @@ void Timeline::showLoopMarkers(bool onoff) {
 
 void Timeline::updateLoopMarkers() {
     _loop.update(_horizontalZoom, false);
+}
+
+
+void Timeline::pollUIUpdate() {
+    
 }
 
 void Timeline::loop::update(float hZoom, bool firstTime) {

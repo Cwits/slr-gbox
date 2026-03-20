@@ -21,6 +21,7 @@ struct ClipItemView {
 
 struct ClipContainerView {
     std::vector<ClipItemView*> _items;
+    uint64_t _version;
 };
 
 

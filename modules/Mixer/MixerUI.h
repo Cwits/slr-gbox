@@ -3,6 +3,7 @@
 
 #pragma once
 #include "ui/display/primitives/UnitUIBase.h"
+#include <memory>
 
 namespace slr {
     class AudioUnitView;
@@ -22,15 +23,10 @@ struct MixerUI : public UnitUIBase {
     ~MixerUI();
 
     bool create(UIContext * ctx) override;
-    bool update(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
     BaseWidget * gridUI() override { return _gridControl; }
     BaseWidget * moduleUI() override { return _moduleUI; }
-
-    // int gridY() override;
-    // void setNudge(slr::frame_t nudge, const float horizontalZoom) override;
-    // void updatePosition(int x, int y) override;
 
     private:
     slr::MixerView * const _mixer;
@@ -46,6 +42,8 @@ struct MixerUI : public UnitUIBase {
         MixerGridControlUI(BaseWidget *parent, MixerUI *parentUI);
         ~MixerGridControlUI();
 
+        void pollUIUpdate() override;
+        
         private:
         MixerUI * _parentUI;
 
@@ -64,15 +62,26 @@ struct MixerUI : public UnitUIBase {
         ~MixerModuleUI();
 
         void show() override;
+        void pollUIUpdate() override;
 
         private:
         MixerUI * _parentUI;
 
-        // struct sliderUnit {
-        //     Label * _lblName;
-        //     Slider * _sldVolume;
-        // };
-        std::vector<Slider*> _sliders; // need somehow to update these thing based on routes
+        struct SliderWork {
+            SliderWork();
+            ~SliderWork();
+            std::unique_ptr<Slider> slider;
+            const slr::AudioUnitView * target;
+            uint64_t _lastTargetVersion;
+            bool checked;
+
+            SliderWork(SliderWork&&) = default;
+            SliderWork& operator=(SliderWork&&) = default;
+        };
+
+        std::vector<SliderWork> _sliders;
+        
+        void checkAddOrDeleteSliders();
 
         friend class MixerUI;
     };

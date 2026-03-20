@@ -38,7 +38,7 @@ struct UnitUIBase {
     virtual ~UnitUIBase();
 
     virtual bool create(UIContext * ctx) = 0;
-    virtual bool update(UIContext * ctx);
+    bool commonUIUpdate();
     virtual bool destroy(UIContext * ctx);
 
     virtual BaseWidget * gridUI() = 0;
@@ -60,7 +60,7 @@ struct UnitUIBase {
     // virtual GridBase * grid() = 0;
     // virtual ModuleBase * module() = 0;
     
-    void registerExternalUpdate(std::function<void()> clb) { _externalUpdates.push_back(std::move(clb)); }
+    // void registerExternalUpdate(std::function<void()> clb) { _externalUpdates.push_back(std::move(clb)); }
 
     std::vector<FileView*> & fileList() { return _viewItems; }
 
@@ -72,7 +72,7 @@ struct UnitUIBase {
     
     std::vector<FileView*> _viewItems;
 
-    std::vector<std::function<void()>> _externalUpdates;
+    // std::vector<std::function<void()>> _externalUpdates;
 };
 
 

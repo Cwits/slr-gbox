@@ -248,4 +248,18 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
     return true;
 }
 
+void GridView::pollUIUpdate() {
+    _control->pollUIUpdate();
+    _grid->pollUIUpdate();
+    _timeline->pollUIUpdate();
+}
+
+void GridControl::pollUIUpdate() {
+    BaseWidget::pollChildsUIUpdate();
+}
+
+void GridGrid::pollUIUpdate() {
+    BaseWidget::pollChildsUIUpdate();
+}
+
 }

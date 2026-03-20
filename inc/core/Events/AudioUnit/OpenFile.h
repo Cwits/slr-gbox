@@ -185,9 +185,10 @@ void handleAppendItemNewResponse(const ControlContext &ctx, const FlatEvents::Fl
 		}
 
 		ClipItemView * item = new ClipItemView(resp.appendItem.item);
-		uview->_clipContainer._items.push_back(item);
+		// uview->_clipContainer._items.push_back(item);
+		uview->appendClipItem(item);
 
-		UIControls::updateModuleUI(uview->id());
+		// UIControls::updateModuleUI(uview->id());
 	} else {    
 		LOG_ERROR("Need to handle error!");
 	}

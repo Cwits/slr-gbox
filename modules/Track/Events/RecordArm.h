@@ -115,7 +115,7 @@ void handleRecordArmResponse(const ControlContext &ctx, const FlatEvents::FlatRe
         }
 
         trview->update();
-        UIControls::updateModuleUI(resp.recordArm.track->id());
+        // UIControls::updateModuleUI(resp.recordArm.track->id());
     } else {
         //user notify...
         LOG_ERROR("Failed to update Record state of track id: %u. Record: %s, type: %s", 

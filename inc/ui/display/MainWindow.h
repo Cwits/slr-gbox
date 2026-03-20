@@ -44,6 +44,7 @@ struct MainWindow : public BaseWidget {
     ~MainWindow();
     
     void switchToView(MainView view);
+    MainView currentView() const { return _currentView; }
     MainView previousView() const { return _prevView; }
     void switchToPreviousView();
 
@@ -64,6 +65,7 @@ struct MainWindow : public BaseWidget {
     void updateUI(slr::ID id);
     void destroyUI(slr::ID id);
 
+    void pollUIUpdate() override;
     // void setLastSelected(UnitUIBase * unit);
     // UnitUIBase * lastSelectedModule() const { return _lastSelectedModule; }
     

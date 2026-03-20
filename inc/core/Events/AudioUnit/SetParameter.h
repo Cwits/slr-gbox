@@ -72,8 +72,9 @@ void handleSetParameterResponse(const ControlContext &ctx, const FlatEvents::Fla
             return;
         }
 
-        uview->update();
-        UIControls::updateModuleUI(id);
+        // uview->update();
+        uview->setParameter(resp.setParameter.parameterId, resp.setParameter.value);
+        // UIControls::updateModuleUI(id);
     } else {
         LOG_ERROR("Failed to set parameter %u for unit %u to value %f", 
                     resp.setParameter.parameterId, 

@@ -5,7 +5,9 @@
 
 #include "lvgl.h"
 #include "gestlib/GestLib.h"
+
 #include <vector>
+#include <algorithm>
 
 namespace UI {
 
@@ -61,6 +63,23 @@ struct BaseWidget {
 
     BaseWidget * parent() const { return _parent; }
 
+    virtual void pollUIUpdate() {}
+
+    inline void pollChildsUIUpdate() {
+        std::for_each(_childs.begin(), _childs.end(), [](BaseWidget *w) {
+            w->pollUIUpdate();
+        });
+    }
+
+    //if _lastPolledUIVersion != other -> save new and return false
+    bool isSameUIVersion(uint64_t other) {
+        if(other == _lastPolledUIVersion) return true;
+        
+        _lastPolledUIVersion = other;
+        return false;
+    }
+    
+
     protected:
     BaseWidget * _parent;
     std::vector<BaseWidget*> _childs;
@@ -81,6 +100,7 @@ struct BaseWidget {
     virtual bool handleDTSwipe(GestLib::DTSwipeGesture & swipe);
     virtual bool handleDTCircular(GestLib::DTCircularGesture & swipe);
 
+    uint64_t _lastPolledUIVersion;
     private:
     // BaseWidget * _parent;
     // std::vector<BaseWidget*> _childs;

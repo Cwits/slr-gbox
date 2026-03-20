@@ -13,7 +13,7 @@ class View : public BaseWidget {
     View(BaseWidget * parent, UIContext * const uicontext);
     virtual ~View();
 
-    virtual void update() = 0; 
+    virtual void update() {}
 
     protected:
     UIContext * const _uictx;

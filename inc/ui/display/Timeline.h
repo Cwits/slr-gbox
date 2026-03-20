@@ -24,6 +24,9 @@ struct Timeline : public BaseWidget {
 
     void showLoopMarkers(bool onoff);
     void updateLoopMarkers();
+
+    void pollUIUpdate() override;
+
     private:
     lv_style_t _font;
     

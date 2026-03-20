@@ -65,7 +65,8 @@ void handleEvent(const ControlContext &ctx, const Events::RemoveFile &e) {
     itemsViews.erase(itemsViews.begin()+idxViews);
     delete itemView;
     
-    UIControls::updateModuleUI(e.unitId);
+    uview->incVersion();
+    // UIControls::updateModuleUI(e.unitId);
 }
 END_HANDLE
 

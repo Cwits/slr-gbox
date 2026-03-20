@@ -82,23 +82,23 @@ void ProjectView::updateRoutes(const std::vector<AudioRoute> & routes) {
     _routes = routes;
 }
 
-//routes where this id is source(receiving from this id)
+//routes where this id is source(sending to this id)
 const std::vector<AudioRoute> ProjectView::sourcesForId(ID id) {
     std::vector<AudioRoute> ret;
     for(AudioRoute &r : _routes) {
-        if(r._sourceId == id) {
+        if(r._targetId == id) {
             ret.push_back(r);
-        }
+        } 
     }
 
     return ret;
 }
 
-//routes where this id is target(sending to this id)
+//routes where this id is target(sending from this id)
 const std::vector<AudioRoute> ProjectView::targetsForId(ID id) {
     std::vector<AudioRoute> ret;
     for(AudioRoute &r : _routes) {
-        if(r._targetId == id) {
+        if(r._sourceId == id) {
             ret.push_back(r);
         }
     }

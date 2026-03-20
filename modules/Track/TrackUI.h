@@ -20,7 +20,7 @@ struct TrackUI : public UnitUIBase {
     ~TrackUI();
     
     bool create(UIContext * ctx) override;
-    bool update(UIContext * ctx) override;
+    // bool update(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
     BaseWidget * gridUI() override { return _gridControl; }
@@ -28,7 +28,7 @@ struct TrackUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::TrackView * _track;
+    slr::TrackView * const _track;
 
     class TrackGridControlUI;
     class TrackModuleUI;
@@ -40,6 +40,8 @@ struct TrackUI : public UnitUIBase {
     struct TrackGridControlUI : public BaseWidget {
         TrackGridControlUI(BaseWidget *parent, TrackUI * parentUI);
         ~TrackGridControlUI();
+
+        void pollUIUpdate() override;
 
         private:
         TrackUI * _parentUI;
@@ -59,6 +61,8 @@ struct TrackUI : public UnitUIBase {
     struct TrackModuleUI : public BaseWidget {
         TrackModuleUI(BaseWidget *parent, TrackUI * parentUI);
         ~TrackModuleUI();
+
+        void pollUIUpdate() override;
 
         private:
         TrackUI * _parentUI;

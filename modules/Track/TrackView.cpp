@@ -23,10 +23,10 @@ TrackView::~TrackView() {
 }
 
 void TrackView::update() {
-    AudioUnitView::update();
+    // AudioUnitView::update();
     _record = _track->record();
     _recordSource = _track->recordSource();
-
+    incrementVersion();
     //update File container
 }
     

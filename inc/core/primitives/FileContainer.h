@@ -4,6 +4,7 @@
 #pragma once
 #include "defines.h"
 #include "core/primitives/File.h"
+#include "Status.h"
 
 #include <vector>
 #include <memory>
@@ -11,11 +12,13 @@
 
 namespace slr {
 
-class AudioUnit;
+// class AudioUnit;
+// class FlatEvents::FlatControl;
+// class FlatEvents::FlatResponse;
 
 struct ClipItem {
-    ClipItem(const File * const file, frame_t startPos) : _startPosition(startPos), _length(file->frames()), _fileOffset(0), _muted(false), _file(file), _uniqueId(file->id()) {}
-    ~ClipItem() {}
+    ClipItem(const File * const file, frame_t startPos);
+    ~ClipItem();
 
     frame_t startPosition() const { return _startPosition; }
     frame_t endPosition() const { return _startPosition + _length; }
@@ -28,6 +31,7 @@ struct ClipItem {
     const File * const _file;
     const ID _uniqueId;
     private:
+
     frame_t _startPosition;
     frame_t _length;
     frame_t _fileOffset;
@@ -38,13 +42,13 @@ struct ClipItem {
 
 //for use in Audio Unit
 struct ClipContainer {
-    ClipContainer() : _clips(nullptr) {}
-    ~ClipContainer() {}
+    ClipContainer();
+    ~ClipContainer();
 
-    bool hasClips() const { return !_clips && _clips->size() > 0; }
-    const std::vector<ClipItem*> * clips() const { return _clips; }
+    bool hasClips() const;
+    const std::vector<ClipItem*> * clips() const;
 
-    void appendClip(ClipItem * clip) { _clips->push_back(clip); }
+    void appendClip(ClipItem * clip);
 
     private:
     std::vector<ClipItem*> *_clips;
@@ -53,30 +57,15 @@ struct ClipContainer {
 };
 
 struct ClipStorage {
-    ClipStorage() {
-        _rawVector1 = std::make_unique<std::vector<ClipItem*>>();
-        _rawVector2 = std::make_unique<std::vector<ClipItem*>>();
-        _rawVector1->reserve(2);
-        _rawVector2->reserve(2);
-    }
-    std::vector<ClipItem*> * getOtherVector(const std::vector<ClipItem*> * current) {
-        if(current == nullptr) return _rawVector1.get();
-        if(current == _rawVector1.get()) 
-            return _rawVector2.get();
-        
-        return _rawVector1.get();
-    }
+    ClipStorage();
+    std::vector<ClipItem*> * getOtherVector(const std::vector<ClipItem*> * current);
 
-    std::vector<ClipItem*> * getCurrentVector(const std::vector<ClipItem*> * current) {
-        if(current == _rawVector1.get()) return _rawVector1.get();
-
-        return _rawVector2.get();
-    }
+    std::vector<ClipItem*> * getCurrentVector(const std::vector<ClipItem*> * current);
 
     std::vector<std::unique_ptr<ClipItem>> _clipsOwner;
     
-    std::unique_ptr<std::vector<ClipItem*>> _rawVector1;
-    std::unique_ptr<std::vector<ClipItem*>> _rawVector2;
+    std::unique_ptr<std::vector<ClipItem*>> _rawVector1; //passing this to RTEngine
+    std::unique_ptr<std::vector<ClipItem*>> _rawVector2; //passing this to RTEngine
 };
 
 using ClipContainerMap = std::unordered_map<ID, ClipStorage>;

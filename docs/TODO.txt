@@ -167,6 +167,8 @@ CMakeLists and EvGen
 [ ] - after cmake mod - move template files from evgen folder to regular inc/src folders and modify evgen to parse them
 [ ] - EvGen not working properly with <moduleEventsGen.h> files that aren't located in src/core folder
 [ ] - Clear and structurize CMakeFile better :S
+[ ] - IMPORTANT!!! need to stabilize naming convention - either all parts(track, mixer, sampler, whatever will be called Module or Unit...)
+                ugh... :\
 
 Tests:
 [ ] - tests for Control Engine
