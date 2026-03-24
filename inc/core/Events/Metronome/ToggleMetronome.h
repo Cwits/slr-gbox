@@ -26,7 +26,7 @@ void handleEvent(const ControlContext &ctx, const Events::ToggleMetronome &e) {
     ctl.setParameter.value = boolToFloat((oldState ? false : true));
 
     ControlEngine::awaitRtResult(ctl, [](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-        if(resp.status != Status::Ok) {
+        if(resp.status != Common::Status::Ok) {
             LOG_ERROR("Failed to set metronome to: %s", (floatToBool(resp.setParameter.value) ? "Off" : "On"));
             return;
         }

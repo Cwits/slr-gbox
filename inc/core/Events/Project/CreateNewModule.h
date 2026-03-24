@@ -10,6 +10,7 @@ struct CreateModule {
 };
 
 EV_HANDLE
+INCLUDE "core/primitives/ControlContext.h"
 INCLUDE "core/ModuleManager.h"
 INCLUDE "core/primitives/FileContainer.h"
 INCLUDE "core/Project.h"
@@ -24,42 +25,26 @@ void handleEvent(const ControlContext &ctx, const Events::CreateModule &e) {
         return;
     }
 
-
-    try {
-        AudioUnit * au = nullptr;
-        AudioUnitView * view = nullptr;
-        std::unique_ptr<AudioUnit> unit = mod->createRT();
-        au = unit.get();
-
-        if(!unit->create(ctx.bufferManager)) {
-            LOG_ERROR("Failed to create unit for some reasons");
-            return;
-        }
-
-        ctx.project->addUnit(std::move(unit));
-
-        view = mod->createView(au);
-        ctx.projectView->addUnitView(view);
-
-        if(!au && !view) {
-            LOG_ERROR("2 Failed to create module %s", e.name.c_str());
-            return;
-        }
-
-        ClipContainerMap &map = ctx.project->clipContainerMap();
-        auto [it, inserted] = map.try_emplace(au->id());
-        ClipStorage & storage = it->second;
-
-        au->setClips(storage.getOtherVector(nullptr));
-        
-        if(!inserted) LOG_ERROR("Clip Container Map with %u id already exists", au->id());
-
-        UIControls::addModuleUI(mod, view);
-    } catch(...) {
-        LOG_ERROR("Failed to create module %s", e.name.c_str());
+    if(ctx.prohibitAllocation()) {
+        LOG_ERROR("Low on memory");
+        return;
+    }
+    
+    AudioUnit * au = ctx.project->createUnit(ctx, mod);
+    if(!au) {
+        //error
+        LOG_ERROR("Failed to create %s RT", e.name.c_str());
         return;
     }
 
+    AudioUnitView *view = ctx.projectView->createUnitView(ctx, mod, au);
+    if(!view) {
+        LOG_ERROR("2 Failed to create module %s", e.name.c_str());
+        //ctx.project->discardUnit(au);
+        return;
+    }
+
+    UIControls::addModuleUI(mod, view);
 }
 END_HANDLE
 

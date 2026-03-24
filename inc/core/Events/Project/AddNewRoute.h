@@ -40,7 +40,7 @@ void handleEvent(const ControlContext &ctx, const Events::AddNewRoute &e) {
     ctl.swapRenderPlan.project = ctx.project;
      
     ControlEngine::awaitRtResult(ctl, [](const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
-        if(resp.status == Status::Ok) {
+        if(resp.status == Common::Status::Ok) {
             UIControls::updateRouteManager();
         } else {
             goto error;

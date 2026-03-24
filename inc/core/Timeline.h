@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "defines.h"
-#include "Status.h"
 #include "core/FlatEvents.h"
+#include "common/Status.h"
+#include "defines.h"
 
 namespace slr {
 
@@ -53,11 +53,11 @@ class Timeline {
     // int getPpqn() const { return _ppqn; }
 
     /* RT Callbacks */
-    static Status setBpmTimeSig(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Status setLoopPosition(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Status toggleLoop(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Status changeTimelineState(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Status requestPlayhead(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    static Common::Status setBpmTimeSig(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    static Common::Status setLoopPosition(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    static Common::Status toggleLoop(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    static Common::Status changeTimelineState(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    static Common::Status requestPlayhead(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
      
     private:
     float _bpm;

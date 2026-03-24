@@ -225,6 +225,8 @@ bool TrackUI::TrackGridControlUI::handleDoubleTap(GestLib::DoubleTapGesture & dt
 }
 
 void TrackUI::TrackGridControlUI::pollUIUpdate() {
+    _parentUI->commonUIUpdate();
+    
     slr::TrackView * view = _parentUI->_track;
 
     if(isSameUIVersion(view->version())) return;
@@ -250,8 +252,6 @@ void TrackUI::TrackGridControlUI::pollUIUpdate() {
     }
 
     _lblVolume->setText(std::to_string(view->volume()));
-    
-    _parentUI->commonUIUpdate();
 }
 
 TrackUI::TrackModuleUI::TrackModuleUI(BaseWidget *parent, TrackUI * parentUI) 

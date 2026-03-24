@@ -13,7 +13,7 @@
 
 namespace slr {
 
-SimpleOsc::SimpleOsc() : AudioUnit() {
+SimpleOsc::SimpleOsc(const ClipContainer *initContainer) : AudioUnit(initContainer) {
     _phase = 0.0f;
     _deltaTime = 1.0f/(float)SettingsManager::getSampleRate();
     _time = 0.0f;

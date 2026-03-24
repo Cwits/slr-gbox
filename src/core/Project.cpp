@@ -4,6 +4,8 @@
 #include "core/Project.h"
 #include "core/primitives/AudioUnit.h"
 #include "core/Metronome.h"
+#include "core/ModuleManager.h"
+#include "core/primitives/ControlContext.h"
 #include "logger.h"
 
 #include <algorithm>
@@ -46,11 +48,50 @@ Project::~Project() {
     destroyPlan(_renderPlan2);
 }
 
-bool Project::addUnit(std::unique_ptr<AudioUnit> unit) {
-    AudioUnit * u = unit.get();
-    _unitList.push_back(std::move(unit));
+AudioUnit * Project::createUnit(const ControlContext &ctx, const Module *mod) {
+    AudioUnit * au = nullptr;
+    try {
+        slr::ID nextId = ctx.nextAudioUnitId();
+        ClipContainerMap &map = _clipContainerMap; //.project->clipContainerMap();
+        auto [it, inserted] = map.try_emplace(nextId);
+        ClipContainerBuffer & storage = it->second;
 
-    return true;
+        if(!inserted) {
+            /*
+                is this situation even possible? 
+                i guess like... when there was attempt to create unit and it failed -> container wasn't deleted...
+                just clear it and... ?
+            */
+            LOG_WARN("ClipStorage for id %d existed already. Checking if unit with similar id exists");
+            AudioUnit * exists = getUnitById(nextId); //.project->getUnitById(nextId);
+            if(exists) {
+                //unit associated with this ID exists, can't touch that container.
+                LOG_ERROR("Something really serious went off");
+                LOG_ERROR("Expected next ID to be %d but it already taken", nextId);
+                return nullptr;
+            }
+            LOG_WARN("Unit doesn't exist, safe to proceed, but may be some skew");
+            storage.clear();
+        }
+        
+        std::unique_ptr<AudioUnit> unit = mod->createRT(storage.inUseContainer());
+        au = unit.get();
+
+        if(au->id() != nextId) {
+            LOG_ERROR("Something went wrong... expected next unit id was %d but got %d", nextId, au->id());
+            return nullptr;
+        }
+
+        if(!unit->create(ctx.bufferManager)) {
+            LOG_ERROR("Failed to create unit for some reasons");
+            return nullptr;
+        }
+
+        _unitList.push_back(std::move(unit)); //ctx.project->addUnit(std::move(unit));
+    } catch(...) {
+        LOG_ERROR("Failed to create module %s", mod->_name->data());
+    }
+    return au;
 }
 
 std::unique_ptr<AudioUnit> Project::removeUnit(ID id) {
@@ -131,15 +172,15 @@ void Project::replaceEditablePlan(RenderPlan * plan) {
     }
 }
 
-Status Project::swapPlan(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+Common::Status Project::swapPlan(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     Project * prj = ev.swapRenderPlan.project;
     
     prj->_planInWork ? prj->_planInWork = false : prj->_planInWork = true;
     
     resp.type = FlatEvents::FlatResponse::Type::SwapRenderPlan;
-    resp.status = Status::Ok;
+    resp.status = Common::Status::Ok;
     resp.commandId = ev.commandId;
-    return Status::Ok;
+    return Common::Status::Ok;
 }
 
 const RenderPlan * Project::editablePlan() const {
@@ -174,6 +215,34 @@ void Project::removeRoutesForId(ID id) {
 
             return false;
     }), _midiRoutes.end());
+}
+
+ClipContainerBuffer & Project::getClipContainerBufferById(ID id) {
+    return _clipContainerMap.at(id);
+}
+
+ClipItem * Project::findClipItemById(ID id) {
+    return _clipStorage.findClipById(id);
+}
+
+Common::Status Project::modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    ClipItem * item = ev.modClipItem.item;
+
+    item->_startPosition = ev.modClipItem.startPosition;
+    item->_length = ev.modClipItem.length;
+    item->_fileOffset = ev.modClipItem.fileStartOffset;
+    item->_muted = ev.modClipItem.muted;
+
+    resp.type = FlatEvents::FlatResponse::Type::ModClipItem;
+    resp.commandId = ev.commandId;
+    resp.status = Common::Status::Ok;
+    resp.modClipItem.item = ev.modClipItem.item;
+    resp.modClipItem.startPosition = ev.modClipItem.startPosition;
+    resp.modClipItem.length = ev.modClipItem.length;
+    resp.modClipItem.fileStartOffset = ev.modClipItem.fileStartOffset;
+    resp.modClipItem.muted = ev.modClipItem.muted;
+    
+    return Common::Status::Ok;
 }
 
 }

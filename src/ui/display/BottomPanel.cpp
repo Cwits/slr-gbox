@@ -269,6 +269,12 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _testPlayhead->setPos(1120, 5); //120 diff
     _testPlayhead->setFont(&DEFAULT_FONT);
 
+    // _uictx->registerFrequentUpdate([phlabel = _testPlayhead]() {
+    //     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
+    //     slr::frame_t position = tl.elapsed();
+    //     phlabel->setText(std::to_string(position));
+    // });
+
     _newButton = new Button(this, LV_SYMBOL_PLUS);
     _newButton->setPos(LayoutDef::BOTTOM_PANEL_WIDTH-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN, posy);
     _newButton->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);

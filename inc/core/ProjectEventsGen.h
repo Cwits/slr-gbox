@@ -5,3 +5,4 @@
 #include "inc/core/Events/Project/AddNewMidiRoute.h"
 #include "inc/core/Events/Project/DeleteModule.h"
 #include "inc/core/Events/Project/CreateNewModule.h"
+#include "inc/core/Events/Project/ModifyClipItem.h"

@@ -440,23 +440,6 @@ void MainWindow::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
     _uiContext._unitsUI.push_back(base);
 }
 
-void MainWindow::updateUI(slr::ID id) {
-    UnitUIBase * ui = nullptr;
-    for(UnitUIBase * u : _uiContext._unitsUI) {
-        if(u->id() == id) {
-            ui = u;
-            break;
-        }
-    }
-
-    if(!ui) {
-        LOG_ERROR("Failed to find UI with id %u", id);
-        return;
-    }
-
-    // ui->update(&_uiContext);
-}
-
 void MainWindow::destroyUI(slr::ID id) {
     UnitUIBase * ui = nullptr;
     for(UnitUIBase * u : _uiContext._unitsUI) {
@@ -516,6 +499,18 @@ void MainWindow::destroyUI(slr::ID id) {
 
 void MainWindow::pollUIUpdate() {
     //depends on current view -> check updates?
+    //check frequent updates e.g. animated, timeline or smth else
+    
+    // for(auto clb : _frequentUpdateCallbacks) { /// hmm... not the best option i guess?
+    //     clb();
+    // }
+
+    //slow updates - roughly  30/15 ~= 2hz
+    // static unsigned char slowdown = 0;
+    // slowdown++;
+    // if(slowdown < 15) return;
+    // slowdown = 0;
+
     MainView view = currentView();
     switch(view) {
         case(MainView::Grid): _gridView->pollUIUpdate(); break;
@@ -528,5 +523,8 @@ void MainWindow::pollUIUpdate() {
     }
 }
 
+void MainWindow::registerFrequentUpdate(std::function<void()> clb) {
+    // _frequentUpdateCallbacks.push_back(std::move(clb));
+}
 
 } //namespace UI

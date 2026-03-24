@@ -27,13 +27,13 @@ struct UpdateMidiMaps {
 
 FLAT_RESP
 INCLUDE <unordered_map>
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 INCLUDE "defines.h"
 struct UpdateMidiMaps {
     std::vector<RtMidiBuffer> *oldLocal;
     std::vector<RtMidiQueue> *oldInput;
     std::vector<RtMidiOutput> *oldOutput;
-    Status status;
+    Common::Status status;
 };
 
 EV_HANDLE
@@ -214,10 +214,10 @@ INCLUDE "core/RtEngine.h"
 END_HANDLE
 
 RESP_HANDLE
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 INCLUDE "logger.h"
 void handleUpdateMidiMapsResponse(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-    if(resp.status == Status::Ok) {
+    if(resp.status == Common::Status::Ok) {
         LOG_INFO("Midi Maps swapped successfully");
         delete resp.updateMidiMaps.oldInput;
         delete resp.updateMidiMaps.oldOutput;

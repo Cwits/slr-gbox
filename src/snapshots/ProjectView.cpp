@@ -6,6 +6,8 @@
 
 #include "core/Timeline.h"
 #include "core/ControlEngine.h"
+#include "core/primitives/ControlContext.h"
+#include "core/ModuleManager.h"
 
 #include "logger.h"
 
@@ -17,25 +19,34 @@ ProjectView::ProjectView(Timeline *tl) : _timeline(tl) {
 }
 
 ProjectView::~ProjectView() {
-    //both Views points to same data...
-    for(AudioUnitView * tr : _unitList) {
-        delete tr;
-    }
 }
 
 std::vector<AudioUnitView*> ProjectView::unitList() {
     std::vector<AudioUnitView*> ret;
-    for(AudioUnitView * v : _unitList) {
-        ret.push_back(v);
+    for(std::unique_ptr<AudioUnitView>& v : _unitViewList) {
+        ret.push_back(v.get());
     }
 
     return ret;
 }
 
+AudioUnitView * ProjectView::createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au) {
+    AudioUnitView * view = nullptr;
+    try {
+        std::unique_ptr<AudioUnitView> v = mod->createView(au);
+        view = v.get();
+        _unitViewList.push_back(std::move(v));
+        incrementVersion();
+    } catch(...) {
+        LOG_ERROR("Failed to create %s", mod->_name->data());
+    }
+    return view;
+}
+
 AudioUnitView * ProjectView::getUnitById(ID id) {
     AudioUnitView * unit = nullptr;
-    for(std::size_t i=0; i<_unitList.size(); ++i) {
-        AudioUnitView * potential = _unitList.at(i);
+    for(std::size_t i=0; i<_unitViewList.size(); ++i) {
+        AudioUnitView * potential = _unitViewList.at(i).get();
         if(potential->id() == id) {
             unit = potential;
         }
@@ -47,8 +58,8 @@ AudioUnitView * ProjectView::getUnitById(ID id) {
 AudioUnitView * ProjectView::removeUnitView(ID id) {
     std::size_t pos = 0;
     bool found = false;
-    for(std::size_t i=0; i<_unitList.size(); ++i) {
-        AudioUnitView * potential = _unitList.at(i);
+    for(std::size_t i=0; i<_unitViewList.size(); ++i) {
+        AudioUnitView * potential = _unitViewList.at(i).get();
         if(potential->id() == id) {
             pos = i;
             found = true;
@@ -57,20 +68,13 @@ AudioUnitView * ProjectView::removeUnitView(ID id) {
 
     AudioUnitView * unit = nullptr;
     if(found) {
-        unit = _unitList.at(pos);
-        _unitList.erase(_unitList.begin() + pos);
+        unit = _unitViewList.at(pos).get();
+        _unitViewList.erase(_unitViewList.begin() + pos);
+        incrementVersion();
     } else {
         LOG_ERROR("Failed to find unit with id %u", id);
     }
     return unit;
-}
-
-void ProjectView::clone(ProjectView * other) {
-    // std::size_t sizeThis = _trackList.size();
-    // std::size_t sizeOther = other->_trackList.size();
-    _timeline.clone(other->timeline());
-    _unitList = other->_unitList;
-    // _playheadPosition = other->_playheadPosition;
 }
 
 ProjectView & ProjectView::getProjectView() {
@@ -133,5 +137,16 @@ const std::vector<MidiRoute> ProjectView::midiTargetsForId(ID id) {
     return ret;
 }
 
+ClipItemView * ProjectView::createClipView(ClipItem *item) {
+    return _clipStorage.newClipView(item);
+}
+
+ClipItemView * ProjectView::findClipViewById(ID id) {
+    return _clipStorage.findClipById(id);
+}
+
+bool ProjectView::deleteClipViewById(ID id) {
+    return _clipStorage.deleteClipById(id);
+}
 
 }

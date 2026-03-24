@@ -7,7 +7,7 @@
 #include "snapshots/ParameterArrayView.h"
 #include "snapshots/FileContainerView.h"
 #include "defines.h"
-#include "Color.h"
+#include "common/Color.h"
 
 #include <vector>
 #include <functional>
@@ -22,8 +22,7 @@ class AudioUnitView {
     public:
     AudioUnitView(AudioUnit * au);
     virtual ~AudioUnitView();
-    
-    void addParameter(ParameterBaseView * base);
+
     void setParameter(ID parameterId, float value);
 
     virtual void update() {}
@@ -55,20 +54,19 @@ class AudioUnitView {
 
     uint64_t version() const;
 
-    //temporary this, remove after refactor ClipContainer to versions as well
-    void incVersion() { incrementVersion(); }
-
     protected:
     const AudioUnit * _au;
     const ID _uniqueId;
 
+    
     std::atomic<uint64_t> _version;
     void incrementVersion();
-
+    
     bool _solo;
     
     Color _uniqueColor;
-
+    
+    void addParameter(ParameterBaseView * base);
     ParameterFloatView * _volume;
     ParameterFloatView * _pan;
     ParameterBoolView * _mute;

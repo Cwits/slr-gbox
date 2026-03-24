@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ui/display/Timeline.h"
+
+#include "ui/display/primitives/UIContext.h"
 #include "ui/display/layoutSizes.h"
 #include "ui/display/defaultStyles.h"
 #include "ui/uiutility.h"
@@ -16,7 +18,7 @@
 
 namespace UI {
 
-Timeline::Timeline(BaseWidget * parent) : BaseWidget(parent, true) {
+Timeline::Timeline(BaseWidget * parent, UIContext * uictx) : BaseWidget(parent, true), _uictx(uictx) {
     setPos(LayoutDef::TIMELINE_X, LayoutDef::TIMELINE_Y);
     setSize(LayoutDef::TIMELINE_WIDTH, LayoutDef::TIMELINE_HEIGHT);
     lv_obj_add_style(_lvhost, &workspace, 0);
@@ -36,6 +38,10 @@ Timeline::Timeline(BaseWidget * parent) : BaseWidget(parent, true) {
     _firstTime = false;
 
     _flags.isDrag = true;
+
+    // _uictx->registerFrequentUpdate([this]() {
+    //     this->updatePlayhead(0);
+    // });
 
     show();
 }
@@ -110,6 +116,7 @@ void Timeline::update() {
 
 void Timeline::updatePlayhead(slr::frame_t position) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
+    // position = tl.elapsed();
     // int framesPerBar = tl.framesPerBar();
     int pixPerBar = UIUtility::pixelPerBar(_horizontalZoom);
     float framesPerPixel = (float)pixPerBar / tl.framesPerBar();

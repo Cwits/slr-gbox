@@ -4,6 +4,7 @@
 #include "modules/Mixer/MixerModule.h"
 
 #include "core/ModuleManager.h"
+#include "core/primitives/ClipContainer.h"
 
 #include "ui/display/primitives/UnitUIBase.h"
 
@@ -13,19 +14,19 @@
 
 #include <memory>
 
-std::unique_ptr<slr::AudioUnit> createMixerRT() { 
-    return std::make_unique<slr::Mixer>();
+std::unique_ptr<slr::AudioUnit> createMixerRT(const slr::ClipContainer * initContainer) { 
+    return std::make_unique<slr::Mixer>(initContainer);
 }
 
-slr::AudioUnitView * createMixerView(slr::AudioUnit * mixer) {
-    return new slr::MixerView(static_cast<slr::Mixer*>(mixer));
+std::unique_ptr<slr::AudioUnitView> createMixerView(slr::AudioUnit * mixer) {
+    return std::make_unique<slr::MixerView>(static_cast<slr::Mixer*>(mixer));
 }
 
 UI::UnitUIBase * createMixerUI(slr::AudioUnitView * mixer, UI::UIContext * uictx) {
     return new UI::MixerUI(mixer, uictx);
 }
 
-std::string _mixerName = "Mixer";
+const std::string_view _mixerName = "Mixer";
 
 const slr::Module MixerModule {
     ._name = &_mixerName,

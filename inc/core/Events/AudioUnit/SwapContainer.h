@@ -4,18 +4,20 @@
 START_BLOCK SwapContainer
 
 FLAT_REQ
+INCLUDE "core/primitives/FileContainer.h"
 INCLUDE <vector>
 struct SwapContainer {
     AudioUnit * unit; //-> class AudioUnit;
-    std::vector<ClipItem*> * container; //-> class ClipItem;
+    const ClipContainer * container; //-> class ClipItem;
 };
 
 FLAT_RESP
+INCLUDE "core/primitives/FileContainer.h"
 INCLUDE <vector>
 struct SwapContainer {
     AudioUnit * unit;
-    std::vector<ClipItem*> * oldContainer; //-> class ClipItem;
-    std::vector<ClipItem*> * newContainer;
+    const ClipContainer * oldContainer; //-> class ClipItem;
+    const ClipContainer * newContainer;
 };
  
 RT_HANDLE
@@ -27,9 +29,8 @@ RESP_HANDLE
 INCLUDE "core/Project.h"
 INCLUDE "logger.h"
 void handleContainerSwappedNew(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-    if(resp.status == Status::Ok) {
-        LOG_INFO("Container for unit %u swapped, deleting old one", resp.swapContainer.unit->id());
-        // delete resp.swapContainerNew.oldContainer;
+    if(resp.status == Common::Status::Ok) {
+        LOG_INFO("Container for unit %u swapped", resp.swapContainer.unit->id());
     } else {
         LOG_ERROR("Failed to swap unit %u container", resp.swapContainer.unit->id());
     }

@@ -6,12 +6,12 @@
 //GENERATE_INCLUDES
 
 #include "core/FlatEvents.h"
-#include "Status.h"
+#include "common/Status.h"
 namespace slr {
 
 namespace RTHandlers {
 
-using RTHandler = Status(*)(const FlatEvents::FlatControl&, FlatEvents::FlatResponse&);
+using RTHandler = Common::Status(*)(const FlatEvents::FlatControl&, FlatEvents::FlatResponse&);
 extern "C" {
 constexpr RTHandler RTTable[] = {
     //GENERATE_RT_HANDLES

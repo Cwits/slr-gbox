@@ -4,7 +4,7 @@
 #pragma once
 #include "defines.h"
 #include "core/primitives/File.h"
-#include "Status.h"
+#include "core/primitives/ClipContainer.h"
 
 #include <vector>
 #include <memory>
@@ -12,9 +12,7 @@
 
 namespace slr {
 
-// class AudioUnit;
-// class FlatEvents::FlatControl;
-// class FlatEvents::FlatResponse;
+class Project;
 
 struct ClipItem {
     ClipItem(const File * const file, frame_t startPos);
@@ -25,49 +23,52 @@ struct ClipItem {
     frame_t length() const { return _length; }
     frame_t fileOffset() const { return _fileOffset; }
     bool isMuted() const { return _muted; }
-
-    // const File * file() const { return _file; }
+    ID id() const { return _uniqueId; }
 
     const File * const _file;
-    const ID _uniqueId;
     private:
-
+    
     frame_t _startPosition;
     frame_t _length;
-    frame_t _fileOffset;
+    frame_t _fileOffset; //inside of clip
     bool _muted;
+    const ID _uniqueId;
 
-    friend class AudioUnit;
+    friend class Project;
 };
 
 //for use in Audio Unit
-struct ClipContainer {
-    ClipContainer();
-    ~ClipContainer();
 
-    bool hasClips() const;
-    const std::vector<ClipItem*> * clips() const;
+struct ClipContainerBuffer {
+    ClipContainerBuffer();
 
-    void appendClip(ClipItem * clip);
+    ClipContainer * modifiableContainer();
+    const ClipContainer * inUseContainer();
+    void clear();
 
+    void containerSwapped();
+    
     private:
-    std::vector<ClipItem*> *_clips;
+    bool _inUse;
 
-    friend class AudioUnit;
+    std::unique_ptr<ClipContainer> _container1; //passing this to RTEngine
+    std::unique_ptr<ClipContainer> _container2; //passing this to RTEngine
 };
+
+using ClipContainerMap = std::unordered_map<ID, ClipContainerBuffer>;
 
 struct ClipStorage {
-    ClipStorage();
-    std::vector<ClipItem*> * getOtherVector(const std::vector<ClipItem*> * current);
+    ~ClipStorage();
+    ClipItem * newClip(const File *const file, frame_t startPosition);
+    // ClipItem * duplicateFrom(const ClipItem *item);
 
-    std::vector<ClipItem*> * getCurrentVector(const std::vector<ClipItem*> * current);
+    ClipItem * findClipById(ID id);
+    void deleteClipById(ID id);
 
-    std::vector<std::unique_ptr<ClipItem>> _clipsOwner;
+    ClipItem * makeUniqueFrom(const ClipItem *other);
     
-    std::unique_ptr<std::vector<ClipItem*>> _rawVector1; //passing this to RTEngine
-    std::unique_ptr<std::vector<ClipItem*>> _rawVector2; //passing this to RTEngine
+    private:
+    std::vector<std::unique_ptr<ClipItem>> _clipList;
 };
-
-using ClipContainerMap = std::unordered_map<ID, ClipStorage>;
 
 }

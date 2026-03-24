@@ -48,7 +48,7 @@ INCLUDE "ui/uiControls.h"
 INCLUDE "core/Timeline.h"
 INCLUDE "logger.h"
 void handleRequestChangeTimelineState(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
-    if(resp.status == Status::NotOk) { 
+    if(resp.status == Common::Status::NotOk) { 
         LOG_ERROR("Failed to change timeline state");
     }
 

@@ -8,7 +8,7 @@
 
 namespace slr {
 
-Mixer::Mixer() : AudioUnit() {
+Mixer::Mixer(const ClipContainer *initContainer) : AudioUnit(initContainer) {
 
 }
 

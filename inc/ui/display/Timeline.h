@@ -11,8 +11,10 @@
 
 namespace UI {
 
+class UIContext;
+
 struct Timeline : public BaseWidget {
-    Timeline(BaseWidget * parent);
+    Timeline(BaseWidget * parent, UIContext * uictx);
     ~Timeline();
 
     void setNudge(slr::frame_t nudge);
@@ -28,6 +30,8 @@ struct Timeline : public BaseWidget {
     void pollUIUpdate() override;
 
     private:
+    UIContext * const _uictx;
+
     lv_style_t _font;
     
     struct line {

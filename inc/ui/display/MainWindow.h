@@ -62,13 +62,14 @@ struct MainWindow : public BaseWidget {
     bool cancleGesture(BaseWidget * widget);
 
     void createUI(const slr::Module * mod, slr::AudioUnitView * view);
-    void updateUI(slr::ID id);
     void destroyUI(slr::ID id);
 
     void pollUIUpdate() override;
     // void setLastSelected(UnitUIBase * unit);
     // UnitUIBase * lastSelectedModule() const { return _lastSelectedModule; }
     
+    void registerFrequentUpdate(std::function<void()> clb);
+
     static MainWindow * inst();
     
     std::unique_ptr<TopPanel> _topPanel;
@@ -117,6 +118,8 @@ struct MainWindow : public BaseWidget {
     static void playheadUpdateCb(lv_timer_t * timer);
 
     UnitUIBase * _lastSelectedModule = nullptr;
+
+    // std::vector<std::function<void()>> _frequentUpdateCallbacks;
 };
 
 }

@@ -41,7 +41,8 @@ void AudioUnitView::setParameter(ID parameterId, float value) {
 }
 
 void AudioUnitView::appendClipItem(ClipItemView * item) {
-    _clipContainer._items.push_back(item);
+    // _clipContainer._items.push_back(item);
+    _clipContainer.addClipItem(item);
     incrementVersion();
 } 
 

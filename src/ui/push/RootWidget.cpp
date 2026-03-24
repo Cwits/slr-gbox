@@ -251,7 +251,7 @@ void RootWidget::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
     // UnitUIBase * base = mod->createUI(view, &_uiContext);
     // base->create(&_uiContext);
     // _uiContext._unitsUI.push_back(base);
-    LOG_INFO("Push create UI for %s", mod->_name->c_str());
+    LOG_INFO("Push create UI for %s", mod->_name->data());
 }
 
 void RootWidget::updateUI(slr::ID id) {

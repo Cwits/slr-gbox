@@ -266,9 +266,9 @@ void RtEngine::handleControlEvents(std::array<FlatEvents::FlatControl, 256> & li
     for(int i=0; i<_snapshotCount; ++i) {
         const FlatEvents::FlatControl & ev = list[i];
 		FlatEvents::FlatResponse resp;
-        Status st = RTHandlers::RTTable[static_cast<size_t>(ev.type)](ev, resp);
+        Common::Status st = RTHandlers::RTTable[static_cast<size_t>(ev.type)](ev, resp);
         
-        if(st == Status::Ok)
+        if(st == Common::Status::Ok)
             _outputControl.push(resp);
     }
 
@@ -288,11 +288,11 @@ void RtEngine::addRtResponse(const FlatEvents::FlatResponse & resp) {
     ControlEngine::rtEngine()->FlatResponseEvent(resp);
 }
 
-Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+Common::Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     RtEngine * engine = ev.updateMidiMaps.engine;
     
     resp.type = FlatEvents::FlatResponse::Type::UpdateMidiMaps;
-    resp.status = Status::Ok;
+    resp.status = Common::Status::Ok;
     resp.commandId = ev.commandId;
     resp.updateMidiMaps.oldInput = engine->_midiInputMap;
     resp.updateMidiMaps.oldOutput = engine->_midiOutputMap;
@@ -302,7 +302,7 @@ Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::F
     engine->_midiOutputMap = ev.updateMidiMaps.outputMap;
     engine->_midiInLocal = ev.updateMidiMaps.localBuffers;
 
-    return Status::Ok;
+    return Common::Status::Ok;
 }
 
 }

@@ -15,7 +15,7 @@
 #include "core/primitives/AudioPeaks.h"
 
 #include "testhelper.h"
-#include "utility.h"
+#include "common/FileWork.h"
 
 const slr::frame_t testFileSize = 64;
 
@@ -38,8 +38,8 @@ TEST(AudioPeaks, GenerateTestAudioTarget) {
     std::string path = pathToTestFolder;
     path.append("test_target_no_tail.wav");
 
-    if(file_exists(path)) {
-        delete_file(path);
+    if(Common::fileExists(path)) {
+        Common::deleteFile(path);
     }
 
     slr::AudioFile * f = new slr::AudioFile();
@@ -181,7 +181,7 @@ TEST(AudioPeaks, TestLODs) {
 
     delete apk;
     delete f;
-    delete_file(path);
+    Common::deleteFile(path);
 }
 
 int main(int argc, char* argv[]) {

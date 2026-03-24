@@ -5,7 +5,6 @@
 
 #include <vector>
 #include <atomic>
-#include "Status.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/MidiBuffer.h"

@@ -5,14 +5,14 @@
 #pragma once
 
 #include "generated/ProjectEvents.h"
-#include "generated/RenderPlanEvents.h"
 #include "generated/MetronomeEvents.h"
 #include "generated/TimelineEvents.h"
 #include "generated/MidiControllerEvents.h"
+#include "generated/RenderPlanEvents.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/TrackEvents.h"
 
-#include "Status.h"
+#include "common/Status.h"
 #include "defines.h"
 #include <cstdint>
 #include <assert.h>
@@ -23,18 +23,17 @@ namespace FlatEvents {
 
 struct FlatControl {
 	enum class Type { //Error = 0, 
-		SwapRenderPlan,
+		ModClipItem,
 		RequestPlayhead,
 		ChangeTimelineState,
 		ToggleLoop,
 		ChangeSigBpm,
 		LoopPosition,
 		UpdateMidiMaps,
+		SwapRenderPlan,
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
-		AppendItem,
-		ModClipItem,
 		SwapContainer,
 		RecordArm,
 		ReinitTrackRecord
@@ -42,18 +41,17 @@ struct FlatControl {
 	Type type;
 	ID commandId;
 	union {
-		FlatControls::SwapRenderPlan swapRenderPlan;
+		FlatControls::ModClipItem modClipItem;
 		FlatControls::RequestPlayhead requestPlayhead;
 		FlatControls::ChangeTimelineState changeTimelineState;
 		FlatControls::ToggleLoop toggleLoop;
 		FlatControls::ChangeSigBpm changeSigBpm;
 		FlatControls::LoopPosition loopPosition;
 		FlatControls::UpdateMidiMaps updateMidiMaps;
+		FlatControls::SwapRenderPlan swapRenderPlan;
 		FlatControls::SetParameter setParameter;
 		FlatControls::ToggleMidiThru toggleMidiThru;
 		FlatControls::ToggleOmniHwInput toggleOmniHwInput;
-		FlatControls::AppendItem appendItem;
-		FlatControls::ModClipItem modClipItem;
 		FlatControls::SwapContainer swapContainer;
 		FlatControls::RecordArm recordArm;
 		FlatControls::ReinitTrackRecord reinitTrackRecord;
@@ -62,39 +60,37 @@ struct FlatControl {
 
 struct FlatResponse {
 	enum class Type { //Error = 0, 
-		SwapRenderPlan,
+		ModClipItem,
 		RequestPlayhead,
 		ChangeTimelineState,
 		ToggleLoop,
 		ChangeSigBpm,
 		LoopPosition,
 		UpdateMidiMaps,
+		SwapRenderPlan,
 		SetParameter,
 		ToggleMidiThru,
 		ToggleOmniHwInput,
-		AppendItem,
-		ModClipItem,
 		SwapContainer,
 		RecordArm,
 		DumpRecordedAudio,
 		ReinitTrackRecord
 	}; 
 	Type type;
-	Status status;
+	Common::Status status;
 	ID commandId;
 	union {
-		FlatResponses::SwapRenderPlan swapRenderPlan;
+		FlatResponses::ModClipItem modClipItem;
 		FlatResponses::RequestPlayhead requestPlayhead;
 		FlatResponses::ChangeTimelineState changeTimelineState;
 		FlatResponses::ToggleLoop toggleLoop;
 		FlatResponses::ChangeSigBpm changeSigBpm;
 		FlatResponses::LoopPosition loopPosition;
 		FlatResponses::UpdateMidiMaps updateMidiMaps;
+		FlatResponses::SwapRenderPlan swapRenderPlan;
 		FlatResponses::SetParameter setParameter;
 		FlatResponses::ToggleMidiThru toggleMidiThru;
 		FlatResponses::ToggleOmniHwInput toggleOmniHwInput;
-		FlatResponses::AppendItem appendItem;
-		FlatResponses::ModClipItem modClipItem;
 		FlatResponses::SwapContainer swapContainer;
 		FlatResponses::RecordArm recordArm;
 		FlatResponses::DumpRecordedAudio dumpRecordedAudio;

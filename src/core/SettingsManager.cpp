@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/SettingsManager.h"
-#include "utility.h"
+#include "common/FileWork.h"
 #include "logger.h"
 
 #include <nlohmann/json.hpp>
@@ -90,7 +90,7 @@ bool init(const std::string path) {
     
     lpath.append("default_config.json");
     
-    if(file_exists(lpath)) {
+    if(Common::fileExists(lpath)) {
         //load default
         f.open(lpath);
     } else {

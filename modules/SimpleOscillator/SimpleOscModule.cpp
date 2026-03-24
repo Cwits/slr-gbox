@@ -3,6 +3,7 @@
 #include "modules/SimpleOscillator/SimpleOscModule.h"
 
 #include "core/ModuleManager.h"
+#include "core/primitives/ClipContainer.h"
 
 #include "ui/display/primitives/UnitUIBase.h"
 
@@ -12,19 +13,19 @@
 
 #include <memory>
 
-std::unique_ptr<slr::AudioUnit> createSimpleOscRT() { 
-    return std::make_unique<slr::SimpleOsc>();
+std::unique_ptr<slr::AudioUnit> createSimpleOscRT(const slr::ClipContainer *initContainer) { 
+    return std::make_unique<slr::SimpleOsc>(initContainer);
 }
 
-slr::AudioUnitView * createSimpleOscView(slr::AudioUnit * osc) {
-    return new slr::SimpleOscView(static_cast<slr::SimpleOsc*>(osc));
+std::unique_ptr<slr::AudioUnitView> createSimpleOscView(slr::AudioUnit * osc) {
+    return std::make_unique<slr::SimpleOscView>(static_cast<slr::SimpleOsc*>(osc));
 }
 
 UI::UnitUIBase * createSimpleOscUI(slr::AudioUnitView * osc, UI::UIContext * uictx) {
     return new UI::SimpleOscUI(osc, uictx);
 }
 
-std::string _simpleOscName = "OSC";
+const std::string_view _simpleOscName = "OSC";
 
 const slr::Module SimpleOscModule {
     ._name = &_simpleOscName,

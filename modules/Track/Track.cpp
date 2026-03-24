@@ -27,7 +27,7 @@
 namespace slr {
 
 
-Track::Track() : AudioUnit() {
+Track::Track(const ClipContainer * initContainer) : AudioUnit(initContainer) {
     // _recInt = AudioBufferManager::acquireRegular();
     // _recExt = AudioBufferManager::acquireRegular();
     // _preFX = AudioBufferManager::acquireRegular();
@@ -273,25 +273,25 @@ void Track::stopRecording() {
     }
 }
 
-Status Track::setRecordArm(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+Common::Status Track::setRecordArm(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     bool record = floatToBool(ev.recordArm.recordState);
     ev.recordArm.track->_record = record;
     ev.recordArm.track->_recordSource = ev.recordArm.recordSource;
 
     resp.type = FlatEvents::FlatResponse::Type::RecordArm;
-    resp.status = Status::Ok;
+    resp.status = Common::Status::Ok;
     resp.recordArm.track = ev.recordArm.track;
     resp.recordArm.recordState = ev.recordArm.recordState;
     resp.recordArm.recordSource = ev.recordArm.recordSource;
-    return Status::Ok;
+    return Common::Status::Ok;
 }
 
-Status Track::reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+Common::Status Track::reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     (void)resp;
-    if(ev.reinitTrackRecord.status == Status::Ok) {
+    if(ev.reinitTrackRecord.status == Common::Status::Ok) {
         ev.reinitTrackRecord.track->_record = true;
     }
-    return Status::NotOk; //don't send response
+    return Common::Status::NotOk; //don't send response
 }
 
 //latencyToCompensate comes from RecordArm or ReinitRecord events...

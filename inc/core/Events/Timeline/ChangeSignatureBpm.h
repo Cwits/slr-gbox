@@ -45,7 +45,7 @@ INCLUDE "snapshots/ProjectView.h"
 INCLUDE "snapshots/TimelineView.h"
 INCLUDE "logger.h"
 void handleChangeSigBpm(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-    if(resp.status == Status::Ok) {
+    if(resp.status == Common::Status::Ok) {
         LOG_INFO("Time signature %d/%d and bpm %f changed",
                     resp.changeSigBpm.sig._numerator,
                     resp.changeSigBpm.sig._denominator,

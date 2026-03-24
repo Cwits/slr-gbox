@@ -5,6 +5,7 @@
 #include "defines.h"
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/File.h"
+#include "logger.h"
 
 #include <vector>
 #include <memory>
@@ -20,48 +21,72 @@ ClipItem::ClipItem(const File * const file, frame_t startPos) :
     _fileOffset(0), 
     _muted(false), 
     _file(file), 
-    // _uniqueId(_clipItemUniqueId++) {}
-    _uniqueId(file->id()) {}
+    _uniqueId(_clipItemUniqueId++) {}
 
 ClipItem::~ClipItem() {}
 
-
-//for use in Audio Unit
-ClipContainer::ClipContainer() : _clips(nullptr) {}
-ClipContainer::~ClipContainer() {}
-
-bool ClipContainer::hasClips() const {
-    return !_clips && _clips->size() > 0; 
+ClipContainerBuffer::ClipContainerBuffer() {
+    _container1 = std::make_unique<ClipContainer>();
+    _container2 = std::make_unique<ClipContainer>();
+    _container1->reserve(2);
+    _container2->reserve(2);
+    _inUse = false;
 }
 
-const std::vector<ClipItem*> * ClipContainer::clips() const { 
-    return _clips; 
+ClipContainer * ClipContainerBuffer::modifiableContainer() {
+    if(!_inUse) return _container1.get();
+    else return _container2.get();
 }
 
-void ClipContainer::appendClip(ClipItem * clip) { 
-    _clips->push_back(clip); 
+const ClipContainer * ClipContainerBuffer::inUseContainer() {
+    if(!_inUse) return _container2.get();
+    else return _container1.get();
 }
 
-
-ClipStorage::ClipStorage() {
-    _rawVector1 = std::make_unique<std::vector<ClipItem*>>();
-    _rawVector2 = std::make_unique<std::vector<ClipItem*>>();
-    _rawVector1->reserve(2);
-    _rawVector2->reserve(2);
+void ClipContainerBuffer::clear() {
+    LOG_WARN("Not implemented");
 }
 
-std::vector<ClipItem*> * ClipStorage::getOtherVector(const std::vector<ClipItem*> * current) {
-    if(current == nullptr) return _rawVector1.get();
-    if(current == _rawVector1.get()) 
-        return _rawVector2.get();
-        
-    return _rawVector1.get();
+void ClipContainerBuffer::containerSwapped() {
+    _inUse = !_inUse;
 }
 
-std::vector<ClipItem*> * ClipStorage::getCurrentVector(const std::vector<ClipItem*> * current) {
-    if(current == _rawVector1.get()) return _rawVector1.get();
+ClipStorage::~ClipStorage() {
 
-    return _rawVector2.get();
+}
+
+ClipItem * ClipStorage::newClip(const File * const file, frame_t startPosition) {
+    ClipItem * clip = nullptr;
+    std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(file, startPosition);
+    clip = itemUniq.get();
+
+    _clipList.push_back(std::move(itemUniq));
+    return clip;
+}
+
+ClipItem * ClipStorage::findClipById(ID id) {
+    ClipItem * ret = nullptr;
+
+    auto found = std::find_if(
+        _clipList.begin(), 
+        _clipList.end(),
+        [id](std::unique_ptr<ClipItem> &i) {
+            return i->id() == id;
+        }
+    );
+
+    if(found != _clipList.end()) ret = found->get();
+
+    return ret;
+}
+
+void ClipStorage::deleteClipById(ID id) {
+    LOG_WARN("Not implemented");
+}
+    
+ClipItem * ClipStorage::makeUniqueFrom(const ClipItem *other) {
+    LOG_WARN("Not implemented");
+    return nullptr;
 }
 
 }

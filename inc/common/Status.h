@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace slr {
+namespace Common {
 
 enum class Status {
     NotOk,

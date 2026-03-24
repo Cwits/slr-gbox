@@ -40,7 +40,7 @@ INCLUDE "snapshots/ProjectView.h"
 INCLUDE "snapshots/TimelineView.h"
 INCLUDE "logger.h"
 void handleToggleLoop(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-    if(resp.status == Status::Ok) {
+    if(resp.status == Common::Status::Ok) {
         LOG_INFO("Loop event response, new loop state: %s", (resp.toggleLoop.newState ? "On" : "Off"));
         ctx.projectView->timeline().update();
         UIControls::updateTimeline(false);

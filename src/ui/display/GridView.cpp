@@ -140,7 +140,7 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx)
     
     _control = new GridControl(this, uictx);
     _grid = new GridGrid(this, uictx);
-    _timeline = new Timeline(_grid);
+    _timeline = new Timeline(_grid, uictx);
     
     _flags.isSwipe = true;
     show();

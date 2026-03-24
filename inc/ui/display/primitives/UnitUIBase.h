@@ -5,7 +5,7 @@
 
 #include "ui/display/primitives/BaseWidget.h"
 #include "ui/display/primitives/Popup.h"
-#include "Color.h"
+#include "common/Color.h"
 #include "defines.h"
 
 #include <vector>
@@ -20,18 +20,6 @@ namespace UI {
 class Button;
 class UIContext;
 class FileView;
-
-struct GridBase : public BaseWidget {
-    GridBase(BaseWidget * parent, bool hasHost, bool addAsChild) 
-            : BaseWidget(parent, hasHost, addAsChild) {}
-    virtual ~GridBase() {}
-};
-
-struct ModuleBase : public BaseWidget {
-    ModuleBase(BaseWidget * parent, bool hasHost, bool addAsChild) 
-            : BaseWidget(parent, hasHost, addAsChild) {}
-    virtual ~ModuleBase() {}
-};
 
 struct UnitUIBase {
     UnitUIBase(slr::AudioUnitView * view, UIContext * uictx);
@@ -57,11 +45,6 @@ struct UnitUIBase {
 
     const slr::AudioUnitView * view() const { return _view; }
 
-    // virtual GridBase * grid() = 0;
-    // virtual ModuleBase * module() = 0;
-    
-    // void registerExternalUpdate(std::function<void()> clb) { _externalUpdates.push_back(std::move(clb)); }
-
     std::vector<FileView*> & fileList() { return _viewItems; }
 
     protected:
@@ -70,9 +53,8 @@ struct UnitUIBase {
     bool _canLoadFiles = false;
     slr::AudioUnitView * _view;
     
-    std::vector<FileView*> _viewItems;
-
-    // std::vector<std::function<void()>> _externalUpdates;
+    std::vector<FileView*> _viewItems; //only for grid? or both for grid and module?
+    uint64_t _fileContainerVersion;
 };
 
 
@@ -84,6 +66,20 @@ struct UnitControlPopup : public Popup {
     
     Button * _deleteBtn;
     Button * _routeManagerBtn;
+};
+
+struct DefaultGridUI : public BaseWidget {
+    DefaultGridUI(BaseWidget * parent, UnitUIBase *base) 
+            : BaseWidget(parent, true, true) {}
+    virtual ~DefaultGridUI() {}
+    // std::vector<std::unique_ptr<FileView>> _fileUIs;
+};
+
+struct DefaultModuleUI : public BaseWidget {
+    DefaultModuleUI(BaseWidget * parent, UnitUIBase *base) 
+            : BaseWidget(parent, true, true) {}
+    virtual ~DefaultModuleUI() {}
+    // std::unique_ptr<FileView> _fileEditorUI;
 };
 
 }

@@ -14,7 +14,7 @@ INCLUDE "core/ControlEngine.h"
 INCLUDE "core/Project.h"
 INCLUDE "ui/uiControls.h"
 INCLUDE "snapshots/AudioUnitView.h"
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 INCLUDE "logger.h"
 void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
     //remove from ui
@@ -31,7 +31,7 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
     ctl.swapRenderPlan.project = ctx.project;
     
     ControlEngine::awaitRtResult(ctl, [targetId = e.targetId](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-        if(resp.status != Status::Ok) {
+        if(resp.status != Common::Status::Ok) {
             LOG_ERROR("RT Engine failed to remove unit");
             return;
         }

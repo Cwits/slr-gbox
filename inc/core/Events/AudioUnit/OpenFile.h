@@ -13,21 +13,14 @@ struct OpenFile {
 };
 
 EV
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 INCLUDE "defines.h"
 struct FileOpened {
-    Status status;
+    Common::Status status;
     const File * file; //-> class File;
 	ID unitId;
 	frame_t fileStartPosition;
 };
-
-FLAT_REQ
-struct AppendItem {
-	AudioUnit * unit; //-> class AudioUnit;
-	ClipItem * item; //-> class ClipItem;
-};
-
 
 EV_HANDLE
 INCLUDE "core/FileTasks.h"
@@ -36,6 +29,11 @@ INCLUDE <memory>
 INCLUDE <string>
 void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
 	LOG_INFO("Opening a file %s", e.path.c_str());
+
+	if(ctx.prohibitAllocation(0)) {
+		LOG_WARN("Low on memory, prohibit creating new things");
+		return;
+	}
 
 	AudioUnit * u = ctx.project->getUnitById(e.unitId);
 	if(!u) {
@@ -54,7 +52,7 @@ void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
 		}
 
 		Events::FileOpened e = {
-            .status = slr::Status::Ok,
+            .status = Common::Status::Ok,
             .file = file,
             .unitId = targetId,
 			.fileStartPosition = fileStartPosition
@@ -68,16 +66,19 @@ void handleEvent(const ControlContext &ctx, const Events::OpenFile &e) {
 END_HANDLE
 
 EV_HANDLE
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 INCLUDE "core/primitives/FileContainer.h"
 INCLUDE "core/ControlEngine.h"
 INCLUDE "core/Project.h"
 INCLUDE "core/FlatEvents.h"
 INCLUDE "core/primitives/AudioUnit.h"
+INCLUDE "snapshots/ProjectView.h"
+INCLUDE "snapshots/FileContainerView.h"
+INCLUDE "ui/uiControls.h"
+INCLUDE "logger.h"  
 INCLUDE <string>
 void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
-    if(e.status == Status::NotOk) {
-        //TODO: failed to open
+    if(e.status == Common::Status::NotOk) {
 		LOG_ERROR("Failed to open audio file");
         return;
     }
@@ -89,110 +90,78 @@ void handleEvent(const ControlContext &ctx, const Events::FileOpened &e) {
         return;
     }
 
-	ClipContainerMap &map = ctx.project->clipContainerMap();
-	// auto [it, inserted] = map.try_emplace(e.unitId);
-	ClipStorage &clipStorage = map.at(e.unitId);
-	// ClipStorage &clipStorage = it->second;
+	ClipContainerBuffer &unitStorage = ctx.project->getClipContainerBufferById(e.unitId);
 
-	bool isSwapping = false;
-	std::vector<ClipItem*> *workable = nullptr;
-	const std::vector<ClipItem*> *clips = unit->clips();
-	if(clips->size()+1 > clips->capacity()) {
-		workable = clipStorage.getOtherVector(clips);
-		workable->clear();
-		workable->reserve(clips->capacity()*2);
-		*workable = *clips;
-		isSwapping = true;
+	ClipContainer *modContainer = unitStorage.modifiableContainer();
+	const ClipContainer *inUseContainer = unitStorage.inUseContainer();
+
+	if(inUseContainer->size()+1 > inUseContainer->capacity()) {
+		if(ctx.prohibitAllocation(inUseContainer->capacity()*2*sizeof(ClipItem*))) {
+			LOG_WARN("Low on memory, prohibit creating new things");
+			return;
+		}
+		modContainer->clear();
+		modContainer->reserve(inUseContainer->capacity()*2);
+		*modContainer = *(inUseContainer);
 	} else {
-		workable = clipStorage.getCurrentVector(clips);
+		modContainer->clear();
+		*modContainer = *(inUseContainer);
 	}
-	// if(!clips) {
-	// 	// workable = clipStorage._rawVector1.get();
-	// 	workable = clipStorage.getOtherVector(nullptr);
-	// 	workable->reserve(4);
-	// 	isSwapping = true;
-	// } else {
-	// 	if(clips->size()+1 > clips->capacity()) {
-	// 		workable = clipStorage.getOtherVector(clips);
-	// 		workable->clear();
-	// 		workable->reserve(clips->capacity()*2);
-	// 		*workable = *clips;
-	// 		isSwapping = true;
-	// 	} else {
-	// 		workable = clipStorage.getCurrentVector(clips);
-	// 	}
-	// }
 
-	ClipItem * appendable = nullptr;
-	std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(e.file, e.fileStartPosition);
-	clipStorage._clipsOwner.push_back(std::move(itemUniq));
-	appendable = clipStorage._clipsOwner.back().get();
-	
-    if(isSwapping) {
-        //swap one
-		LOG_INFO("Unit id:%u container run out of space, resizing", e.unitId);
-		
-		workable->push_back(appendable);
+	if(ctx.prohibitAllocation(sizeof(ClipItem))) {
+		LOG_WARN("Low on memory, prohibit creating new things");
+		return;
+	}
+  
+	ClipItem *clip = ctx.project->clipStorage().newClip(e.file, e.fileStartPosition);
+	// ClipItem *clip = ctx.project->createClip(e.file, e.fileStartPosition); 
 
-		FlatEvents::FlatControl ctrl;
-		ctrl.type = FlatEvents::FlatControl::Type::SwapContainer;
-		ctrl.swapContainer.unit = unit;
-		ctrl.swapContainer.container = workable;
+	if(!clip) {
+		LOG_WARN("Failed to create new clip from file %d", e.file->id());
+		return;
+	}
+
+	modContainer->push_back(clip);
+
+	FlatEvents::FlatControl ctrl;
+	ctrl.type = FlatEvents::FlatControl::Type::SwapContainer;
+	ctrl.swapContainer.unit = unit;
+	ctrl.swapContainer.container = modContainer;
    
-		ControlEngine::awaitRtResult(ctrl, [appendable](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-			FlatEvents::FlatResponse fake;
-			fake.type = FlatEvents::FlatResponse::Type::AppendItem;
-			fake.status = resp.status;
-			fake.appendItem.unit = resp.swapContainer.unit;
-			fake.appendItem.item = appendable;
-			handleAppendItemNewResponse(ctx, fake);
-		});
-    } else {
-        //append?
-		LOG_INFO("Appending item %u to unit id: %u", appendable->_uniqueId, e.unitId);
-		FlatEvents::FlatControl ctrl;
-		ctrl.type = FlatEvents::FlatControl::Type::AppendItem;
-		ctrl.appendItem.unit = unit;
-		ctrl.appendItem.item = appendable;
-		ControlEngine::emitRtControl(ctrl);
-    }
-}
-END_HANDLE
-
-RT_HANDLE
-INCLUDE "core/primitives/AudioUnit.h"
-&AudioUnit::appendItem
-END_HANDLE
-
-RESP_HANDLE
-INCLUDE "Status.h"
-INCLUDE "snapshots/ProjectView.h"
-INCLUDE "snapshots/FileContainerView.h"
-INCLUDE "core/ControlEngine.h"
-INCLUDE "ui/uiControls.h"
-INCLUDE "core/primitives/AudioUnit.h"
-INCLUDE "logger.h"  
-void handleAppendItemNewResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
-	if(resp.status == Status::Ok) {
-		LOG_INFO("Item %u appended successfully on unit id: %u", resp.appendItem.item->_uniqueId, resp.appendItem.unit->id());
-		// ProjectView * psnap = ControlEngine::getLastSnapshot();
+	
+	ControlEngine::awaitRtResult(ctrl, [clip](const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
+		if(resp.status == Common::Status::NotOk) {
+			LOG_ERROR("Need to handle error!");
+		}
 		
-		AudioUnitView * uview = ctx.projectView->getUnitById(resp.appendItem.unit->id());
-		// TrackView * tv = static_cast<TrackView*>(uview);
+		LOG_INFO("Item %u appended successfully on unit id: %u", resp.swapContainer.newContainer->back()->id(), resp.swapContainer.unit->id());
+		ClipContainerBuffer &unitStorage = ctx.project->getClipContainerBufferById(resp.swapContainer.unit->id());
+		unitStorage.containerSwapped();
+
+		AudioUnitView * uview = ctx.projectView->getUnitById(resp.swapContainer.unit->id());
 		if(!uview) {
-			LOG_ERROR("Failed to find AudioUnitView with id %u", resp.appendItem.unit->id());
+			LOG_ERROR("Failed to find AudioUnitView with id %u", resp.swapContainer.unit->id());
 			return;
 		}
 
-		ClipItemView * item = new ClipItemView(resp.appendItem.item);
-		// uview->_clipContainer._items.push_back(item);
-		uview->appendClipItem(item);
+		if(ctx.prohibitAllocation(sizeof(ClipItemView))) {
+			LOG_WARN("Low on memory");
+			return;
+		}
 
-		// UIControls::updateModuleUI(uview->id());
-	} else {    
-		LOG_ERROR("Need to handle error!");
-	}
+		ClipItemView *cview = ctx.projectView->createClipView(clip);
+		if(!cview) {
+			LOG_WARN("Failed to create ClipView");
+			//need some cleanup
+			return;
+		}
+
+		uview->_clipContainer.addClipItem(cview);
+		
+		// UIControls::fileAddedToId(uview->id());
+	});
 }
 END_HANDLE
+
 
 END_BLOCK

@@ -22,14 +22,18 @@ result yelds not existing routes(at least for midi...)
 constexpr int FirstUnitId = 0;
 static ID uniqueIdCounter = FirstUnitId; 
 
-AudioUnit::AudioUnit() : _uniqueId(uniqueIdCounter++),
+ID AudioUnit::nextAudioUnitId() {
+    return uniqueIdCounter;
+}
+
+AudioUnit::AudioUnit(const ClipContainer * initialContainer) :
+    _uniqueId(uniqueIdCounter++),
     _volume(ParameterFloat("Volume", 1.0f, 0.f, 1.f)),
     _pan(ParameterFloat("Pan", 0.5f, 0.f, 1.f)),
-    _mute(ParameterBool("Mute", 0.f, 0.f, 1.f))    
+    _mute(ParameterBool("Mute", 0.f, 0.f, 1.f)),
+    _clipContainer(initialContainer)
 {
-    // _outputs = AudioBufferManager::acquireRegular();
-    
-    // _midiQueue.reserve(MIDI_SPSCQUEUE_SIZE);
+
 }
 
 AudioUnit::~AudioUnit() {
@@ -81,41 +85,41 @@ bool AudioUnit::isMuted(const AudioContext &ctx) {
     return false;
 }
 
-Status AudioUnit::setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) { 
+Common::Status AudioUnit::setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) { 
     AudioUnit * u = ev.setParameter.unit;
     u->_flatParameterList[ev.setParameter.parameterId]->setValue(ev.setParameter.value);
     
     resp.type = FlatEvents::FlatResponse::Type::SetParameter;
-    resp.status = Status::Ok;
+    resp.status = Common::Status::Ok;
     resp.commandId = ev.commandId;
     resp.setParameter.unit = u;
     resp.setParameter.parameterId = ev.setParameter.parameterId;
     resp.setParameter.value = ev.setParameter.value;
-    return Status::Ok;
+    return Common::Status::Ok;
 }
 
-Status AudioUnit::toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+Common::Status AudioUnit::toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     AudioUnit *u = ev.toggleMidiThru.unit;
     u->_midiThru = ev.toggleMidiThru.newState;
 
     resp.type = FlatEvents::FlatResponse::Type::ToggleMidiThru;
-    resp.status = Status::Ok;
+    resp.status = Common::Status::Ok;
     resp.commandId = ev.commandId;
     resp.toggleMidiThru.unit = u;
     resp.toggleMidiThru.newState = ev.toggleMidiThru.newState;
-    return Status::Ok;
+    return Common::Status::Ok;
 }
 
-Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+Common::Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     AudioUnit *u = ev.toggleOmniHwInput.unit;
     u->_omniHwInput = ev.toggleOmniHwInput.newState;
 
     resp.type = FlatEvents::FlatResponse::Type::ToggleOmniHwInput;
-    resp.status = Status::Ok;
+    resp.status = Common::Status::Ok;
     resp.commandId = ev.commandId;
     resp.toggleOmniHwInput.unit = u;
     resp.toggleOmniHwInput.newState = ev.toggleOmniHwInput.newState;
-    return Status::Ok;
+    return Common::Status::Ok;
 }
 
 void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
@@ -123,13 +127,13 @@ void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
 }
 
 void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid) {
-    if(!_clipContainer._clips) return; //because container created only when some files is loaded
+    if(!_clipContainer) return; //because container created only when some files is loaded
 
-    for(const ClipItem * const item : *(_clipContainer._clips)) {
-        if(item->_muted) continue;
+    for(const ClipItem * const item : *_clipContainer) {
+        if(item->isMuted()) continue;
 
-        if((ctx.elapsed+ctx.frames) <= item->_startPosition) continue;
-        if(ctx.elapsed > (item->_startPosition+item->_length)) continue;
+        if((ctx.elapsed+ctx.frames) <= item->startPosition()) continue;
+        if(ctx.elapsed > (item->startPosition()+item->length())) continue;
 
         switch(item->_file->type()) {
             case(FileType::Audio): {
@@ -141,21 +145,21 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
                 frame_t framesToRead = 0;
                 frame_t writePosition = 0;
                 frame_t readPosition = 0;
-                if(ctx.elapsed < item->_startPosition) { 
+                if(ctx.elapsed < item->startPosition()) { 
                     //beginning
-                    framesToRead = ctx.frames - (item->_startPosition - ctx.elapsed);
-                    writePosition = item->_startPosition - ctx.elapsed;
+                    framesToRead = ctx.frames - (item->startPosition() - ctx.elapsed);
+                    writePosition = item->startPosition() - ctx.elapsed;
                     readPosition = 0;
-                } else if(ctx.elapsed + ctx.frames > item->_startPosition + item->_length) {
+                } else if(ctx.elapsed + ctx.frames > item->startPosition() + item->length()) {
                     //end
-                    framesToRead = (item->_startPosition + item->_length) - ctx.elapsed;
+                    framesToRead = (item->startPosition() + item->length()) - ctx.elapsed;
                     writePosition = 0;
-                    readPosition = ctx.elapsed - item->_startPosition;
+                    readPosition = ctx.elapsed - item->startPosition();
                 } else {
                     //middle
                     framesToRead = ctx.frames;
                     writePosition = 0;
-                    readPosition = ctx.elapsed - item->_startPosition;
+                    readPosition = ctx.elapsed - item->startPosition();
                 }
 
                 // {
@@ -196,53 +200,17 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
 
 void AudioUnit::clearMidiBuffer() { _midiInput->clear(); }
 
-bool AudioUnit::checkFileContainerNeedResize() {
-    return false;
-}
-
-void AudioUnit::resizeFileContainer() {
-
-}
-
-Status AudioUnit::appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ev.appendItem.unit->_clipContainer._clips->push_back(ev.appendItem.item);
-    resp.type = FlatEvents::FlatResponse::Type::AppendItem;
-    resp.status = Status::Ok;
-    resp.appendItem.unit = ev.appendItem.unit;
-    resp.appendItem.item = ev.appendItem.item;
-    return Status::Ok;
-}
-
-Status AudioUnit::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    resp.swapContainer.oldContainer = ev.swapContainer.unit->_clipContainer._clips;
+Common::Status AudioUnit::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    resp.swapContainer.oldContainer = ev.swapContainer.unit->_clipContainer;
     
-    ev.swapContainer.unit->_clipContainer._clips = ev.swapContainer.container;
+    ev.swapContainer.unit->_clipContainer = ev.swapContainer.container;
     
     resp.type = FlatEvents::FlatResponse::Type::SwapContainer;
-    resp.status = Status::Ok;
+    resp.status = Common::Status::Ok;
     resp.swapContainer.unit = ev.swapContainer.unit;
     resp.swapContainer.newContainer = ev.swapContainer.container;
     resp.commandId = ev.commandId;
-    return Status::Ok;
-}
-
-Status AudioUnit::modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ClipItem * item = ev.modClipItem.item;
-
-    item->_startPosition = ev.modClipItem.startPosition;
-    item->_length = ev.modClipItem.length;
-    item->_muted = ev.modClipItem.muted;
-
-    resp.type = FlatEvents::FlatResponse::Type::ModClipItem;
-    resp.commandId = ev.commandId;
-    resp.status = Status::Ok;
-    resp.modClipItem.unit = ev.modClipItem.unit;
-    resp.modClipItem.item = ev.modClipItem.item;
-    resp.modClipItem.startPosition = ev.modClipItem.startPosition;
-    resp.modClipItem.length = ev.modClipItem.length;
-    resp.modClipItem.muted = ev.modClipItem.muted;
-    
-    return Status::Ok;
+    return Common::Status::Ok;
 }
 
 }

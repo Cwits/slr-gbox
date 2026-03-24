@@ -13,12 +13,12 @@ INCLUDE "core/Project.h"
 &Project::swapPlan
 END_HANDLE
 
-RESP_HANDLE 
+RESP_HANDLE  
 INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "core/Project.h"
 INCLUDE "logger.h"
 void handleGraphSwapped(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
-    if(resp.status == Status::Ok) {        
+    if(resp.status == Common::Status::Ok) {        
         // const std::vector<AudioUnit*> & order = ctx.project->renderGraph().order();
         // std::vector<AudioUnit*> & editable = ctx.project->renderGraph().editableGraph();
 

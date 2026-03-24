@@ -4,24 +4,29 @@
 #pragma once
 
 #include "snapshots/TimelineView.h"
+#include "snapshots/FileContainerView.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
 #include "defines.h"
 #include <vector>
+#include <atomic>
+#include <memory>
 
 namespace slr {
 
 class Timeline;
+class ControlContext;
+class Module;
+class AudioUnit;
 class AudioUnitView;
 
 class ProjectView {
     public:
     ProjectView(Timeline * tl);
     ~ProjectView();
-    void clone(ProjectView * other);
 
-    void addUnitView(AudioUnitView * unit) { _unitList.push_back(unit); }
-    const std::size_t unitCount() const { return _unitList.size(); }
+    AudioUnitView * createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au);
+    const std::size_t unitCount() const { return _unitViewList.size(); }
     std::vector<AudioUnitView*> unitList();
     AudioUnitView * getUnitById(ID id);
     AudioUnitView * removeUnitView(ID id);
@@ -39,11 +44,23 @@ class ProjectView {
     TimelineView & timeline() { return _timeline; }
     static ProjectView & getProjectView();
 
+    const uint64_t version() const { return _version.load(std::memory_order_acquire); }
+
+    ClipItemView * createClipView(ClipItem *item);
+    ClipItemView * findClipViewById(ID id);
+    bool deleteClipViewById(ID id);
+
     private:
-    std::vector<AudioUnitView*> _unitList;
+    std::vector<std::unique_ptr<AudioUnitView>> _unitViewList;
+
     TimelineView _timeline;
     std::vector<AudioRoute> _routes;
     std::vector<MidiRoute> _midiRoutes;
+
+    ClipViewStorage _clipStorage;
+
+    void incrementVersion() { _version.fetch_add(1, std::memory_order_release); }
+    std::atomic<uint64_t> _version;
     // frame_t _playheadPosition;
 };
 

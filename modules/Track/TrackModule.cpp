@@ -4,6 +4,7 @@
 #include "modules/Track/TrackModule.h"
 
 #include "core/ModuleManager.h"
+#include "core/primitives/ClipContainer.h"
 
 #include "ui/display/primitives/UnitUIBase.h"
 
@@ -13,19 +14,19 @@
 
 #include <memory>
 
-std::unique_ptr<slr::AudioUnit> createTrackRT() { 
-    return std::make_unique<slr::Track>();
+std::unique_ptr<slr::AudioUnit> createTrackRT(const slr::ClipContainer * initContainer) { 
+    return std::make_unique<slr::Track>(initContainer);
 }
 
-slr::AudioUnitView * createTrackView(slr::AudioUnit * track) {
-    return new slr::TrackView(static_cast<slr::Track*>(track));
+std::unique_ptr<slr::AudioUnitView> createTrackView(slr::AudioUnit * track) {
+    return std::make_unique<slr::TrackView>(static_cast<slr::Track*>(track));
 }
 
 UI::UnitUIBase * createTrackUI(slr::AudioUnitView * track, UI::UIContext * uictx) {
     return new UI::TrackUI(track, uictx);
 }
 
-std::string _trackName = "Track";
+const std::string_view _trackName = "Track";
 
 const slr::Module TrackModule {
     ._name = &_trackName,

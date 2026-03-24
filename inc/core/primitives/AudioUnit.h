@@ -10,7 +10,7 @@
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/MidiBuffer.h"
 #include "core/FlatEvents.h"
-#include "Status.h"
+#include "common/Status.h"
 
 #include <vector>
 
@@ -26,8 +26,7 @@ class BufferManager;
 
 class AudioUnit {
     public:
-    explicit AudioUnit();
-    //explicit AudioUnit(ClipContainer & container, bool needsAudioOutput = true);
+    AudioUnit(const ClipContainer *initialContainer);
     virtual ~AudioUnit();
 
     virtual bool create(BufferManager *man);
@@ -44,10 +43,10 @@ class AudioUnit {
 
     RT_FUNC virtual frame_t latency() { return 0; }
 
-    RT_FUNC static Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Common::Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
-    RT_FUNC static Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Common::Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    RT_FUNC static Common::Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
     struct UnitOutput {
         AudioBuffer * ptr;
@@ -88,15 +87,10 @@ class AudioUnit {
 
     bool hasParameterWithId(ID parameterId);
 
-    bool checkFileContainerNeedResize();
-    void resizeFileContainer();
-
-    const std::vector<ClipItem*> * clips() const { return _clipContainer.clips(); }
-    RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    const ClipContainer * clips() const { return _clipContainer; }
+    RT_FUNC static Common::Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
-    void setClips(std::vector<ClipItem*> * ptr) { _clipContainer._clips = ptr; }
+    static ID nextAudioUnitId();
 
     protected:
     const ID _uniqueId;
@@ -128,10 +122,9 @@ class AudioUnit {
     RT_FUNC void applyMidiEvents(MidiBuffer *buf);
 
     RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid);
-    ClipContainer _clipContainer;
+    const ClipContainer *_clipContainer;
     
     friend class AudioUnitView;
 };
-
     
 }

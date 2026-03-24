@@ -6,14 +6,14 @@
 
 #include "generated/ProjectEvents.h"
 #include "generated/ProjectHandles.h"
-#include "generated/RenderPlanEvents.h"
-#include "generated/RenderPlanHandles.h"
 #include "generated/MetronomeEvents.h"
 #include "generated/MetronomeHandles.h"
 #include "generated/TimelineEvents.h"
 #include "generated/TimelineHandles.h"
 #include "generated/MidiControllerEvents.h"
 #include "generated/MidiControllerHandles.h"
+#include "generated/RenderPlanEvents.h"
+#include "generated/RenderPlanHandles.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/AudioUnitHandles.h"
 #include "generated/TrackEvents.h"
@@ -43,6 +43,7 @@ constexpr EventHandlerFn ControlTable[] = {
 	&dispatchHelper<Events::AddNewMidiRoute>,
 	&dispatchHelper<Events::DeleteModule>,
 	&dispatchHelper<Events::CreateModule>,
+	&dispatchHelper<Events::ModClipItem>,
 	&dispatchHelper<Events::ToggleMetronome>,
 	&dispatchHelper<Events::RequestPlayhead>,
 	&dispatchHelper<Events::ChangeTimelineState>,
@@ -56,9 +57,8 @@ constexpr EventHandlerFn ControlTable[] = {
 	&dispatchHelper<Events::ToggleOmniHwInput>,
 	&dispatchHelper<Events::OpenFile>,
 	&dispatchHelper<Events::FileOpened>,
-	&dispatchHelper<Events::RemoveFile>,
-	&dispatchHelper<Events::FileUIRemoved>,
-	&dispatchHelper<Events::ModClipItem>,
+	&dispatchHelper<Events::RemoveClip>,
+	&dispatchHelper<Events::ClipUIRemoved>,
 	&dispatchHelper<Events::RecordArm>
 };
 }
@@ -66,18 +66,17 @@ constexpr EventHandlerFn ControlTable[] = {
 extern "C" {
 constexpr ResponseHandlerFn ResponseTable[] = {
     //&handleAppendItemResponse,
-	&handleGraphSwapped,
+	&handleModifyClipItemResponse,
 	&handleRequestPlayhead,
 	&handleRequestChangeTimelineState,
 	&handleToggleLoop,
 	&handleChangeSigBpm,
 	&handleLoopPositionChange,
 	&handleUpdateMidiMapsResponse,
+	&handleGraphSwapped,
 	&handleSetParameterResponse,
 	&handleToggleMidiThruResponse,
 	&handleToggleOmniHwInputResponse,
-	&handleAppendItemNewResponse,
-	&handleModifyClipItemResponse,
 	&handleContainerSwappedNew,
 	&handleRecordArmResponse,
 	&handleDumpRecordedAudio,

@@ -5,10 +5,10 @@
 #pragma once
 
 #include "generated/ProjectEvents.h"
-#include "generated/RenderPlanEvents.h"
 #include "generated/MetronomeEvents.h"
 #include "generated/TimelineEvents.h"
 #include "generated/MidiControllerEvents.h"
+#include "generated/RenderPlanEvents.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/TrackEvents.h"
 
@@ -23,6 +23,7 @@ using Event = std::variant<
 		AddNewMidiRoute,
 		DeleteModule,
 		CreateModule,
+		ModClipItem,
 		ToggleMetronome,
 		RequestPlayhead,
 		ChangeTimelineState,
@@ -36,9 +37,8 @@ using Event = std::variant<
 		ToggleOmniHwInput,
 		OpenFile,
 		FileOpened,
-		RemoveFile,
-		FileUIRemoved,
-		ModClipItem,
+		RemoveClip,
+		ClipUIRemoved,
 		RecordArm
 >;
 

@@ -55,32 +55,32 @@ RESP_HANDLE
 INCLUDE "core/primitives/AudioUnit.h"
 INCLUDE "snapshots/ProjectView.h"
 INCLUDE "logger.h"
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 void handleSetParameterResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
-    if(resp.status == Status::Ok) {
-        LOG_INFO("Parameter %u updated for unit %u to value %f",
-                    resp.setParameter.parameterId, 
-                    resp.setParameter.unit->id(),
-                    resp.setParameter.value);
-                    
-        // LOG_WARN("Need somehow update ui...");
-        //find unitview
-        const slr::ID id = resp.setParameter.unit->id(); 
-        AudioUnitView * uview = ctx.projectView->getUnitById(id);
-        if(!uview) {
-            LOG_ERROR("Failed to find unit with id %u", id);
-            return;
-        }
-
-        // uview->update();
-        uview->setParameter(resp.setParameter.parameterId, resp.setParameter.value);
-        // UIControls::updateModuleUI(id);
-    } else {
+    if(resp.status == Common::Status::NotOk) {
         LOG_ERROR("Failed to set parameter %u for unit %u to value %f", 
-                    resp.setParameter.parameterId, 
-                    resp.setParameter.unit->id(),
-                    resp.setParameter.value);
+                            resp.setParameter.parameterId, 
+                            resp.setParameter.unit->id(),
+                            resp.setParameter.value);
+        return;
     }
+    LOG_INFO("Parameter %u updated for unit %u to value %f",
+                resp.setParameter.parameterId, 
+                resp.setParameter.unit->id(),
+                resp.setParameter.value);
+                    
+    // LOG_WARN("Need somehow update ui...");
+    //find unitview
+    const slr::ID id = resp.setParameter.unit->id(); 
+    AudioUnitView * uview = ctx.projectView->getUnitById(id);
+    if(!uview) {
+        LOG_ERROR("Failed to find unit with id %u", id);
+        return;
+    }
+
+    // uview->update();
+    uview->setParameter(resp.setParameter.parameterId, resp.setParameter.value);
+    // UIControls::updateModuleUI(id);
 }
 END_HANDLE
 

@@ -7,13 +7,12 @@
 #include "core/primitives/AudioBuffer.h"
 #include "core/FlatEvents.h"
 #include "defines.h"
-#include "Status.h"
 
 namespace slr {
 
 class SimpleOsc : public AudioUnit {
     public:
-    SimpleOsc();
+    SimpleOsc(const ClipContainer *initContainer);
     ~SimpleOsc();
 
     RT_FUNC frame_t process(const AudioContext &ctx, const Dependencies &inputs) override;

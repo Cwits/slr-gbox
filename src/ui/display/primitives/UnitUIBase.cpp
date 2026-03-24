@@ -41,84 +41,87 @@ const slr::Color & UnitUIBase::color() const {
 
 bool UnitUIBase::commonUIUpdate() {
     
-    // for(auto clb : _externalUpdates) {
-    //     clb();
-    // }
+    // uint64_t ver = _view->_clipContainer->version();
+    // if(ver == _fileContainerVersion) return;
+    // _fileContainerVersion = ver;
 
-    //File check
-    std::size_t viewSize = _view->_clipContainer._items.size();
-    std::size_t uiSize = _viewItems.size(); 
-    //create or delete
-    if(viewSize != uiSize) {
-        if(viewSize > uiSize) {
-            //new items added
-            std::vector<slr::ClipItemView*> toAdd;
-            for(std::size_t i=0; i<viewSize; ++i) {
-                slr::ClipItemView * item = _view->_clipContainer._items.at(i);
-                bool found = false;
-                for(std::size_t y=0; y<uiSize; ++y) {
-                    if(_viewItems.at(y)->_clipItem->_uniqueId == item->_uniqueId) {
-                        found = true;
+    uint64_t containerVersion = _view->_clipContainer.version();
+
+    if(containerVersion != _fileContainerVersion) {
+        _fileContainerVersion = containerVersion;
+        //File check
+        const std::vector<const slr::ClipItemView*> &items = _view->_clipContainer.clips();
+        std::size_t viewSize = items.size(); //_view->_clipContainer._items.size();
+        std::size_t uiSize = _viewItems.size(); 
+        //create or delete
+        if(viewSize != uiSize) {
+            if(viewSize > uiSize) {
+                //new items added
+                std::vector<const slr::ClipItemView*> toAdd;
+                for(std::size_t i=0; i<viewSize; ++i) {
+                    const slr::ClipItemView * item = items.at(i); //_view->_clipContainer._items.at(i);
+                    bool found = false;
+                    for(std::size_t y=0; y<uiSize; ++y) {
+                        if(_viewItems.at(y)->_clipItem->id() == item->id()) {
+                            found = true;
+                        }
                     }
+
+                    if(found) continue;
+                    toAdd.push_back(item);
                 }
 
-                if(found) continue;
-                toAdd.push_back(item);
-            }
-
-            //add to grid
-            for(std::size_t i=0; i<toAdd.size(); ++i) {
-                FileView * fw = new FileView(_uictx->grid(), this, toAdd.at(i), _uictx);
-                _viewItems.push_back(fw);
-            }
-
-            //add to moduleUI
-        } else {
-            //items removed
-            std::vector<FileView*> toRemove;
-            for(std::size_t i=0; i<uiSize; ++i) {
-                FileView * item = _viewItems.at(i);
-                bool found = false;
-                for(std::size_t y=0; y<viewSize; ++y) {
-                    if(item->id() == _view->_clipContainer._items.at(y)->_uniqueId) {
-                        found = true;
-                    }
+                //add to grid
+                for(std::size_t i=0; i<toAdd.size(); ++i) {
+                    FileView * fw = new FileView(_uictx->grid(), this, toAdd.at(i), _uictx);
+                    _viewItems.push_back(fw);
                 }
 
-                if(found) continue;
-                toRemove.push_back(item);
-            }
-            //need to erase from _viewItems container as well...
-            for(std::size_t i=0; i<toRemove.size(); ++i) {
-                // LOG_ERROR("RESTORE DIS");
-                slr::Events::FileUIRemoved e = {
-                    .fileId = toRemove.at(i)->id(),
-                    .unitId = _view->id()
-                };
-                slr::EmitEvent(e);
-                for(std::size_t y=0; y<_viewItems.size(); ++y) {
-                    if(_viewItems.at(y) == toRemove.at(i)) {
-                        _viewItems.erase(_viewItems.begin()+y);
+                //add to moduleUI
+            } else {
+                //items removed
+                std::vector<FileView*> toRemove;
+                for(std::size_t i=0; i<uiSize; ++i) {
+                    FileView * item = _viewItems.at(i);
+                    bool found = false;
+                    for(std::size_t y=0; y<viewSize; ++y) {
+                        if(item->id() == items.at(y)->id()) { //_view->_clipContainer._items.at(y)->_uniqueId) {
+                            found = true;
+                        }
                     }
+
+                    if(found) continue;
+                    toRemove.push_back(item);
                 }
-                delete toRemove.at(i);
+                //need to erase from _viewItems container as well...
+                for(std::size_t i=0; i<toRemove.size(); ++i) {
+                    slr::Events::ClipUIRemoved e = {
+                        .clipId = toRemove.at(i)->id(),
+                        .unitId = _view->id()
+                    };
+                    slr::EmitEvent(e);
+                    for(std::size_t y=0; y<_viewItems.size(); ++y) {
+                        if(_viewItems.at(y) == toRemove.at(i)) {
+                            _viewItems.erase(_viewItems.begin()+y);
+                        }
+                    }
+                    delete toRemove.at(i);
+                }
             }
+
+            _uictx->_gridTimeline->updatePlayheadZ();
         }
-
-        _uictx->_gridTimeline->updatePlayheadZ();
     }
 
-    //update items positions(uiSize should be == viewSize)
-    viewSize = _view->_clipContainer._items.size();
-    uiSize = _viewItems.size();
+    //file UI handle versions by themselves
+    const std::vector<const slr::ClipItemView*> &items = _view->_clipContainer.clips();
+    std::size_t viewSize = items.size();
+    std::size_t uiSize = _viewItems.size(); 
 
     for(std::size_t i=0; i<uiSize; ++i) {
         FileView * fui = _viewItems.at(i);
-        const slr::ClipItemView * const fview = fui->_clipItem;
 
-        float xposition = UIUtility::frameToPixel(fview->_startPosition, _uictx->gridHorizontalZoom());
-        fui->setPos(xposition, gridY());
-        // fui->setPos()
+        fui->pollUIUpdate();
     }
 
     return true;

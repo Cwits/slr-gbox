@@ -7,7 +7,6 @@
 #include "core/primitives/AudioPeakFile.h"
 #include "core/FileWorker.h"
 #include "core/Events.h"
-#include "Status.h"
 #include "logger.h"
 
 #include <memory>

@@ -41,13 +41,13 @@ INCLUDE "core/Timeline.h"
 END_HANDLE
 
 RESP_HANDLE
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 INCLUDE "ui/uiControls.h"
 INCLUDE "snapshots/ProjectView.h"
 INCLUDE "snapshots/TimelineView.h"
 INCLUDE "logger.h"
 void handleLoopPositionChange(const ControlContext &ctx, const FlatEvents::FlatResponse &resp) {
-    if(resp.status == Status::Ok) {
+    if(resp.status == Common::Status::Ok) {
         LOG_INFO("Loop position changed to start %lu, end %lu", resp.loopPosition.start, resp.loopPosition.end);
         ctx.projectView->timeline().update();
         UIControls::updateTimeline(false);

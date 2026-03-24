@@ -97,7 +97,7 @@ INCLUDE "modules/Track/TrackView.h"
 INCLUDE "snapshots/AudioUnitView.h"
 INCLUDE "core/utility/helper.h"
 void handleRecordArmResponse(const ControlContext &ctx, const FlatEvents::FlatResponse & resp) {
-    if(resp.status == Status::Ok) {
+    if(resp.status == Common::Status::Ok) {
         bool state = floatToBool(resp.recordArm.recordState);
         LOG_INFO("Track id: %u, record arm switched, new state: %s", resp.recordArm.track->id(), (state ? "On" : "Off"));
 

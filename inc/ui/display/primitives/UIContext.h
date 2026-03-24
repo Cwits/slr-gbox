@@ -62,6 +62,8 @@ struct UIContext {
 
     float gridHorizontalZoom();
 
+    void registerFrequentUpdate(std::function<void()> clb);
+
     private:
     DragContext * _dragContext;
     

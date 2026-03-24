@@ -5,7 +5,7 @@
 
 //GENERATE_INCLUDES
 
-#include "Status.h"
+#include "common/Status.h"
 #include "defines.h"
 #include <cstdint>
 #include <assert.h>
@@ -30,7 +30,7 @@ struct FlatResponse {
 		//GENERATE_RESP_TYPES
 	}; 
 	Type type;
-	Status status;
+	Common::Status status;
 	ID commandId;
 	union {
 		//GENERATE_RESP_UNIONS

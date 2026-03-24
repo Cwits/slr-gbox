@@ -22,6 +22,27 @@ struct ControlContext {
     ProjectView * const projectView;
     MidiController * const midiController;
     BufferManager * const bufferManager;
+
+    //placeholder for future improvements
+    bool prohibitAllocation(std::size_t size) const { 
+        if(size == 0) {
+            //probably unknown size...
+            return false;
+        }
+        
+        int remainedSpace = 9999;
+        if(remainedSpace < size) {
+            //return true;
+        }
+        
+        return false; 
+    }
+
+    bool prohibitAllocation() const { 
+        return false;
+    }
+    
+    ID nextAudioUnitId() const;
 };
 
 }

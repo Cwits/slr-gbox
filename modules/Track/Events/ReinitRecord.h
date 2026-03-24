@@ -4,9 +4,9 @@
 START_BLOCK ReinitTrackRecord
 
 FLAT_REQ
-INCLUDE "Status.h"
+INCLUDE "common/Status.h"
 struct ReinitTrackRecord {
-    Status status;
+    Common::Status status;
     Track * track; //-> class Track;
 };
 
@@ -62,7 +62,7 @@ void handleReinitTrackRecord(const ControlContext &ctx, const FlatEvents::FlatRe
     FlatEvents::FlatControl reinit;
     reinit.type = FlatEvents::FlatControl::Type::ReinitTrackRecord;
     reinit.reinitTrackRecord.track = track;
-    reinit.reinitTrackRecord.status = Status::Ok;
+    reinit.reinitTrackRecord.status = Common::Status::Ok;
     ControlEngine::emitRtControl(reinit);
     LOG_INFO("Record reinit done");
 }

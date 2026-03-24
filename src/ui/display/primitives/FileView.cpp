@@ -37,7 +37,7 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     _uictx(uictx),
     _parentUI(parentUI),
     _clipItem(clipItem),
-    _uniqueId(clipItem->_uniqueId)
+    _uniqueId(clipItem->id())
 {
 // _lvhost = parent->lvhost();
     _canvas = lv_canvas_create(lvhost());
@@ -52,7 +52,7 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     //calculate width
     slr::TimelineView & tlsnap = slr::TimelineView::getTimelineView();
 
-    slr::frame_t frames = clipItem->_length;// testme.frames();
+    slr::frame_t frames = clipItem->length();// testme.frames();
     int framesPerBar = tlsnap.framesPerBar();
     int pixPerBar = UIUtility::pixelPerBar(_uictx->gridHorizontalZoom());
     float pixelPerFrame = (float)pixPerBar/framesPerBar;
@@ -94,12 +94,12 @@ void FileView::update() {
 void FileView::draw() {
     lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
 
-    if(_clipItem->_file->isAudio()) {
-        const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->_file);
+    if(_clipItem->item()->_file->isAudio()) {
+        const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->item()->_file);
         const slr::AudioPeakFile * peakFile = afile->peaks();
 
         int xsize = _canvasWidth;
-        float ratio = (float)_clipItem->_length / (float)xsize; 
+        float ratio = (float)_clipItem->length() / (float)xsize; 
         slr::AudioPeaks::LODLevels nearestLvl = slr::AudioPeaks::pickLevel(ratio);
 
         {//draw
@@ -140,9 +140,20 @@ void FileView::draw() {
                 }
             }
         }
-    } else if(_clipItem->_file->isMidi()) {
+    } else if(_clipItem->item()->_file->isMidi()) {
         //draw midi file
     }
+}
+
+void FileView::pollUIUpdate() {    
+    const slr::ClipItemView * const fview = _clipItem;
+
+    uint64_t version = fview->version();
+    if(version == _uiVersion) return;
+    _uiVersion = version;
+
+    float xposition = UIUtility::frameToPixel(fview->startPosition(), _uictx->gridHorizontalZoom());
+    setPos(xposition, _parentUI->gridY());
 }
 
 bool FileView::handleTap(GestLib::TapGesture &tap) {
@@ -170,7 +181,11 @@ bool FileView::handleHold(GestLib::HoldGesture &hold) {
         _originalY = getY();
         setPos(cx, cy);
     } else if(hold.state == GestLib::GestureState::Move) {
-        setPos(cx, cy);
+        setPos(cx, cy); 
+        //somehow position of element still goes to _originalX\Y on grid... :S
+        //i know... it is happening because of UnitUIBase.cpp:115 updates position at 30fps, 
+        //that's why see lag with lv_refr_now and why this stage not working properly
+        lv_refr_now(nullptr);
     } else if(hold.state == GestLib::GestureState::End) {
         // setPos(_originalX, _originalY);
         setPos(cx, _originalY);
@@ -179,15 +194,16 @@ bool FileView::handleHold(GestLib::HoldGesture &hold) {
         slr::frame_t res = UIUtility::pixelToFrame(cx, _uictx->gridHorizontalZoom());
         LOG_WARN("File sample pos: %lu", res);
         slr::Events::ModClipItem e = {
-            .unitId = _parentUI->view()->id(),
-            .itemId = _clipItem->_uniqueId,
+            .clipId = _clipItem->id(),
             .startPosition = res,
-            .length = _clipItem->_length,
-            .muted = _clipItem->_muted
+            .length = _clipItem->length(),
+            .fileStartOffset = _clipItem->fileOffset(),
+            .muted = _clipItem->muted()
         };
         slr::EmitEvent(e);
         //emit event
     }
+    
     return true;
 }
 
@@ -202,8 +218,8 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     _deleteBtn->setFont(&DEFAULT_FONT);
     _deleteBtn->setCallback([this]() {
         LOG_INFO("Remove item event");
-        slr::Events::RemoveFile e {
-            .fileId = this->_item->_clipItem->_uniqueId,
+        slr::Events::RemoveClip e {
+            .clipId = this->_item->_clipItem->id(),
             .unitId = this->_item->parentUI()->id()
         };
 

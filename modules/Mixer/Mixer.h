@@ -8,9 +8,10 @@
 namespace slr {
 
 class AudioContext;
+
 class Mixer : public AudioUnit {
     public:
-    Mixer();
+    Mixer(const ClipContainer *initContainer);
     ~Mixer();
 
     frame_t process(const AudioContext &ctx,  const Dependencies &inputs) override;

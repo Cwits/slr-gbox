@@ -44,7 +44,13 @@ AudioUnit:
 [ ] - In order to be able to inject midi events to AudioUnit they need some (current frame MidiBuffer) and small SPSCQueue...
         Injecting should work same way as MidiPort::pushEvent(...) in terms of frame calculating.
         (Current frame MidiBuffer - buffer where events for current frame will be stored and manipulated?)
-        
+[ ] - RemoveClip.h:118
+        not deleting Clip and closing file totally.
+        May add some reference counter to file and some kind of clean up process to close and free such memory.
+        otherwise they stay in memory so user can reuse them quickly(need some kind of access procedure for it)
+
+
+
 Metronome:
 [\] - implement one(must live in rt class)(not tested)
 [ ] - //TODO: add simple decay

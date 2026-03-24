@@ -8,7 +8,7 @@
 #include "core/primitives/SPSCQueue.h"
 #include "core/primitives/MidiEvent.h"
 #include "core/FlatEvents.h"
-#include "Status.h"
+#include "common/Status.h"
 
 #include <memory>
 #include <atomic>
@@ -53,7 +53,7 @@ class RtEngine {
     const std::vector<RtMidiQueue> * midiInMap() const { return _midiInputMap; }
     const std::vector<RtMidiOutput> * midiOutMap() const { return _midiOutputMap; }
 
-    static Status updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    static Common::Status updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
     private:
     frame_t processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed);

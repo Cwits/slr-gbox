@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/primitives/ClipContainer.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -19,11 +20,11 @@ class AudioUnitView;
 
 enum class ModuleType { Basic, BuiltinFX, ExternalFX };
 struct Module {
-    std::string * _name;
+    const std::string_view * _name;
     ModuleType _type;
     //some other parameters??
-    std::unique_ptr<slr::AudioUnit> (*createRT)();
-    slr::AudioUnitView * (*createView)(slr::AudioUnit *);
+    std::unique_ptr<slr::AudioUnit> (*createRT)(const ClipContainer *);
+    std::unique_ptr<slr::AudioUnitView> (*createView)(slr::AudioUnit *);
     UI::UnitUIBase * (*createUI)(slr::AudioUnitView *, UI::UIContext *);
 };
 
