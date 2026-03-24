@@ -41,10 +41,10 @@ struct ClipItemView {
 
 struct ClipContainerView {
     void addClipItem(const ClipItemView *item);
-    const std::vector<const ClipItemView*> & clips();
+    const std::vector<const ClipItemView*> & clips() const;
     void deleteClipViewItem(ID id);
     
-    uint64_t version() { return _version.load(std::memory_order_acquire); }
+    uint64_t version() const { return _version.load(std::memory_order_acquire); }
     
     private:
     std::vector<const ClipItemView*> _items;

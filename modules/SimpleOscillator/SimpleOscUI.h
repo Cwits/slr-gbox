@@ -3,6 +3,7 @@
 
 #pragma once
 #include "ui/display/primitives/UnitUIBase.h"
+#include <memory>
 
 namespace slr {
     class SimpleOscView;    
@@ -22,44 +23,19 @@ struct SimpleOscUI : public UnitUIBase {
     ~SimpleOscUI();
     
     bool create(UIContext * ctx) override;
-    // bool update(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
-    BaseWidget * gridUI() override { return _gridControl; }
-    BaseWidget * moduleUI() override { return _moduleUI; }
+    DefaultGridUI * gridUI() override { return _gridControl.get(); }
+    BaseWidget * moduleUI() override { return _moduleUI.get(); }
     // BaseWidget * patchUI() override;
  
-    // int gridY() override;
-    // void updatePosition(int x, int y) override;
-
     private:
     slr::SimpleOscView * _osc;
 
-    class SimpleOscGridControlUI;
     class SimpleOscModuleUI;
-    // class TrackPatchUI;
 
-    SimpleOscGridControlUI * _gridControl;
-    SimpleOscModuleUI * _moduleUI;
-
-    struct SimpleOscGridControlUI : public BaseWidget {
-        SimpleOscGridControlUI(BaseWidget *parent, SimpleOscUI * parentUI);
-        ~SimpleOscGridControlUI();
-
-        private:
-        SimpleOscUI * _parentUI;
-
-        Label * _lblName; //static
-        Label * _lblVolume;
-        Button * _btnMute;
-        Button * _btnSolo;
-        Button * _btnRecord;
-        Button * _btnSource;
-
-        bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
-
-        friend class SimpleOscUI;
-    };
+    std::unique_ptr<DefaultGridUI> _gridControl;
+    std::unique_ptr<SimpleOscModuleUI> _moduleUI;
 
     struct SimpleOscModuleUI : public BaseWidget {
         SimpleOscModuleUI(BaseWidget *parent, SimpleOscUI * parentUI);

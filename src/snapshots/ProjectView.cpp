@@ -55,7 +55,7 @@ AudioUnitView * ProjectView::getUnitById(ID id) {
     return unit;
 }
 
-AudioUnitView * ProjectView::removeUnitView(ID id) {
+bool ProjectView::removeUnitView(ID id) {
     std::size_t pos = 0;
     bool found = false;
     for(std::size_t i=0; i<_unitViewList.size(); ++i) {
@@ -71,10 +71,11 @@ AudioUnitView * ProjectView::removeUnitView(ID id) {
         unit = _unitViewList.at(pos).get();
         _unitViewList.erase(_unitViewList.begin() + pos);
         incrementVersion();
+        return true;
     } else {
         LOG_ERROR("Failed to find unit with id %u", id);
+        return false;
     }
-    return unit;
 }
 
 ProjectView & ProjectView::getProjectView() {

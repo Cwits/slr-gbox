@@ -28,7 +28,7 @@ class AudioUnitView {
     virtual void update() {}
 
     const std::string & name() const { return _name; }
-    void setName(const std::string &name) { _name = name; }
+    void setName(const std::string &name) { _name = name; incrementVersion(); }
 
     const bool mute() const { return *_mute; }
     const ID muteId() const { return _mute->id(); }

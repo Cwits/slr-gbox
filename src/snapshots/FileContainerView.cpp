@@ -13,6 +13,7 @@ namespace slr {
 ClipItemView::ClipItemView(ClipItem * container) : 
     _startPosition(container->startPosition()),
     _length(container->length()),
+    _fileOffset(container->fileOffset()),
     _muted(container->isMuted()),
     // _file(container->_file),
     _item(container),
@@ -37,7 +38,7 @@ void ClipContainerView::addClipItem(const ClipItemView *item) {
     incrementVersion();
 }
 
-const std::vector<const ClipItemView*> & ClipContainerView::clips() { 
+const std::vector<const ClipItemView*> & ClipContainerView::clips() const { 
     return _items; 
 }
 

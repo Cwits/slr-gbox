@@ -45,15 +45,16 @@ void handleEvent(const ControlContext &ctx, const Events::DeleteModule &e) {
 
         unit->destroy(ctx.bufferManager);
         // bool res = ctx.project->removeUnit(targetId);
-        AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
+        // AudioUnitView * view = ctx.projectView->removeUnitView(targetId);
         
-        if(view) {
-            res &= true;
-            delete view;
-        } else {
-            res &= false;
-            LOG_ERROR("Failed to find view with id %u", targetId);
-        }
+        res |= ctx.projectView->removeUnitView(targetId);
+        // if(view) {
+        //     res &= true;
+        //     delete view;
+        // } else {
+        //     res &= false;
+        //     LOG_ERROR("Failed to find view with id %u", targetId);
+        // }
         
         ClipContainerMap &map = ctx.project->clipContainerMap();
         auto it = map.find(targetId);

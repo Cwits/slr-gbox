@@ -474,28 +474,13 @@ void MainWindow::destroyUI(slr::ID id) {
         int y = LayoutDef::calcTrackY(i);
         // int x = tr->getPosX();
         // int y = tr->getPosY();
-        tr->updatePosition(x, y);
+        tr->gridUI()->updatePosition(x, y);
     }
 
     _uiContext.setLastSelected(nullptr);
     ui->destroy(&_uiContext);
     delete ui;
 }
-
-// void MainWindow::setLastSelected(UnitUIBase * unit) {
-//     if(unit == nullptr) {
-//         _lastSelectedModule = nullptr;
-//         lv_obj_add_flag(_gridView->_control->_lastSelectedRect, LV_OBJ_FLAG_HIDDEN);
-//     } else {
-//         _lastSelectedModule = unit;
-//     }
-
-//     _moduleView->update();
-//     // for(std::size_t i=0; i<_unitsUI.size(); ++i) {
-//     //     _unitsUI.at(i)->moduleView()->hide();
-//     // }
-//     // unit->moduleView()->show();
-// }
 
 void MainWindow::pollUIUpdate() {
     //depends on current view -> check updates?

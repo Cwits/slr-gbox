@@ -9,7 +9,7 @@
 #include "defines.h"
 
 #include <vector>
-#include <functional>
+#include <memory>
 
 namespace slr {
     class AudioUnitView;
@@ -17,19 +17,20 @@ namespace slr {
 
 namespace UI {
 
+class Label;
 class Button;
 class UIContext;
 class FileView;
+class DefaultGridUI;
 
 struct UnitUIBase {
     UnitUIBase(slr::AudioUnitView * view, UIContext * uictx);
     virtual ~UnitUIBase();
 
     virtual bool create(UIContext * ctx) = 0;
-    bool commonUIUpdate();
     virtual bool destroy(UIContext * ctx);
 
-    virtual BaseWidget * gridUI() = 0;
+    virtual DefaultGridUI * gridUI() = 0;
     virtual BaseWidget * moduleUI() = 0;
     // virtual BaseWidget * patchUI() = 0;
 
@@ -38,23 +39,15 @@ struct UnitUIBase {
     const slr::Color & color() const;
     const bool canLoadFiles() const { return _canLoadFiles; }
 
-    //there should be better solution for this things...
-    virtual int gridY();
-    virtual void setNudge(slr::frame_t nudge, const float horizontalZoom);
-    virtual void updatePosition(int x, int y);
-
     const slr::AudioUnitView * view() const { return _view; }
+    slr::AudioUnitView * nonconstview() { return _view; }
 
-    std::vector<FileView*> & fileList() { return _viewItems; }
+    UIContext * uictx() const { return _uictx; }
 
     protected:
-
     UIContext * const _uictx;
     bool _canLoadFiles = false;
     slr::AudioUnitView * _view;
-    
-    std::vector<FileView*> _viewItems; //only for grid? or both for grid and module?
-    uint64_t _fileContainerVersion;
 };
 
 
@@ -69,10 +62,30 @@ struct UnitControlPopup : public Popup {
 };
 
 struct DefaultGridUI : public BaseWidget {
-    DefaultGridUI(BaseWidget * parent, UnitUIBase *base) 
-            : BaseWidget(parent, true, true) {}
-    virtual ~DefaultGridUI() {}
-    // std::vector<std::unique_ptr<FileView>> _fileUIs;
+    DefaultGridUI(BaseWidget * parent, UnitUIBase *base);
+    virtual ~DefaultGridUI();
+
+    void pollFileUpdate();
+    virtual void pollUIUpdate();
+
+    virtual int gridY();
+    virtual void setNudge(slr::frame_t nudge, const float horizontalZoom);
+    virtual void updatePosition(int x, int y);
+
+    std::vector<FileView*> fileList();
+
+    protected:
+    UnitUIBase * const _uibase;
+
+    std::unique_ptr<Label> _lblName;
+    std::unique_ptr<Label> _lblVolume;
+    std::unique_ptr<Button> _btnMute;
+    std::unique_ptr<Button> _btnSolo;
+
+    std::vector<std::unique_ptr<FileView>> _fileUIs;
+    uint64_t _fileContainerVersion;
+    
+    bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
 };
 
 struct DefaultModuleUI : public BaseWidget {
@@ -80,6 +93,26 @@ struct DefaultModuleUI : public BaseWidget {
             : BaseWidget(parent, true, true) {}
     virtual ~DefaultModuleUI() {}
     // std::unique_ptr<FileView> _fileEditorUI;
+    /* 
+        it should be something like... dunno... several buttons as
+            - clips - where you can manipulate each clip that is associated with current unit individually
+                        (e.g. if there is 3 clips than you select only one of them and can stretch/move/cut/crop/duplicate or whatever)
+            
+            - modules settings itself - e.g. for Mixer it would be sliders, for OSC it would be some voice controls, adsr, or whatever.
+                                        (dunno what to do for track)
+                                        
+            - something else? mby alternative route mapping menu? where on one side is inputs and on another is outputs
+
+                                Inputs  |        |  Outputs
+                                 unit   |        |    unit
+                                 unit   |  Unit  |     +
+                                  +     |        |
+                                        |        |
+                maybe :)
+                
+            - dunno...
+    
+    */
 };
 
 }

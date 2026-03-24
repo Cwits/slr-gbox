@@ -25,37 +25,17 @@ struct MixerUI : public UnitUIBase {
     bool create(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
-    BaseWidget * gridUI() override { return _gridControl; }
-    BaseWidget * moduleUI() override { return _moduleUI; }
+    DefaultGridUI * gridUI() override { return _gridControl.get(); }
+    BaseWidget * moduleUI() override { return _moduleUI.get(); }
 
     private:
     slr::MixerView * const _mixer;
     std::vector<FileView*> _viewItems;
 
-    class MixerGridControlUI;
     class MixerModuleUI;
 
-    MixerGridControlUI * _gridControl;
-    MixerModuleUI * _moduleUI;
-
-    struct MixerGridControlUI : public BaseWidget {
-        MixerGridControlUI(BaseWidget *parent, MixerUI *parentUI);
-        ~MixerGridControlUI();
-
-        void pollUIUpdate() override;
-        
-        private:
-        MixerUI * _parentUI;
-
-        Label * _lblName;
-        Label * _lblVolume;
-        Button * _btnMute;
-        Button * _btnSolo;
-
-        bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
-
-        friend class MixerUI;
-    };
+    std::unique_ptr<DefaultGridUI> _gridControl;
+    std::unique_ptr<MixerModuleUI> _moduleUI;
 
     struct MixerModuleUI : public BaseWidget { 
         MixerModuleUI(BaseWidget *parent, MixerUI *parentUI);

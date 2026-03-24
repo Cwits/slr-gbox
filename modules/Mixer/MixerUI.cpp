@@ -36,128 +36,16 @@ MixerUI::~MixerUI() {
 }
 
 bool MixerUI::create(UIContext * ctx) {
-    _gridControl = new MixerGridControlUI(ctx->gridControl(), this);
-    _moduleUI = new MixerModuleUI(ctx->moduleView(), this);
+    _gridControl = std::make_unique<DefaultGridUI>(ctx->gridControl(), this);
+    _moduleUI = std::make_unique<MixerModuleUI>(ctx->moduleView(), this);
     return true;
 }
 
 bool MixerUI::destroy(UIContext * ctx) {
     UnitUIBase::destroy(ctx);
-    delete _gridControl;
-    delete _moduleUI;
+    _gridControl.reset();
+    _moduleUI.reset();
     return true;
-}
-
-
-MixerUI::MixerGridControlUI::MixerGridControlUI(BaseWidget *parent, MixerUI *parentUI) :
-    BaseWidget(parent, true),
-    _parentUI(parentUI)
-{
-    _flags.isDoubleTap = true;
-
-    setSize(LayoutDef::TRACK_CONTROL_PANEL_WIDTH, LayoutDef::TRACK_HEIGHT);
-    int y = LayoutDef::calcTrackY(_parentUI->_uictx->_unitsUI.size());
-    setPos(0, y);
-
-    lv_obj_set_style_bg_color(lvhost(),
-                    lv_color_make(_parentUI->_mixer->color().r, 
-                                    _parentUI->_mixer->color().g, 
-                                    _parentUI->_mixer->color().b), 0);
-
-    _lblName = new Label(this, _parentUI->_mixer->name().c_str());
-    _lblName->setSize(LayoutDef::TRACK_NAME_LABEL_W, lv_font_get_line_height(&DEFAULT_FONT));
-    _lblName->setPos(LayoutDef::TRACK_NAME_LABEL_X, LayoutDef::TRACK_NAME_LABEL_Y);
-    _lblName->setFont(&DEFAULT_FONT);
-    _lblName->setTextColor(lv_color_hex(0xffffff));
-    _lblName->setHoldCallback([this]() {
-        this->_parentUI->_uictx->_popManager->enableKeyboard(
-            this->_parentUI->_mixer->name(), 
-            [this](const std::string & text) {
-                LOG_INFO("New mixer name: %s for id: %d", text.c_str(), this->_parentUI->_mixer->id());
-                this->_parentUI->_mixer->setName(text);
-                this->_lblName->setText(text);
-            }
-        );
-    });
-
-    _lblVolume = new Label(this, std::to_string(_parentUI->_mixer->volume()));
-    _lblVolume->setSize(80, lv_font_get_line_height(&DEFAULT_FONT));
-    _lblVolume->setPos(280, LayoutDef::TRACK_NAME_LABEL_Y);
-    _lblVolume->setFont(&DEFAULT_FONT);
-    _lblVolume->setTapCallback([this]() {
-        this->_parentUI->_uictx->_popManager->enableKeyboard(
-            std::to_string(this->_parentUI->_mixer->volume()),
-            [this](const std::string & text) {
-                float vol = std::stof(text);
-                LOG_WARN("No check for volume!");
-                LOG_INFO("Setting volume to: %f", vol);
-                slr::Events::SetParameter e = {
-                    e.targetId = this->_parentUI->_mixer->id(),
-                    e.parameterId = this->_parentUI->_mixer->volumeId(),
-                    e.value = vol
-                };
-                slr::EmitEvent(e);
-            }
-        );
-    });
-
-
-
-    int posx = 10;
-    int posy = 50;
-    _btnMute = new Button(this, "M");
-    _btnMute->setPos(posx, posy);
-    _btnMute->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _btnMute->setFont(&lv_font_montserrat_40);
-    _btnMute->setCallback([this]() {
-        // std::cout << "Mute track: " << (int)_track->id() << " parid: " << _track->muteId() << std::endl;
-        slr::Events::SetParameter e = {
-            .targetId = _parentUI->_mixer->id(),
-            .parameterId = _parentUI->_mixer->muteId(),
-            .value = (_parentUI->_mixer->mute() ? slr::boolToFloat(false) : slr::boolToFloat(true))
-        };
-        slr::EmitEvent(e);
-    });
-
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
-    _btnSolo = new Button(this, "S");
-    _btnSolo->setPos(posx, posy);
-    _btnSolo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _btnSolo->setFont(&lv_font_montserrat_40);
-    _btnSolo->setCallback([this]() {
-        // std::cout << "Solo track: " << (int)_track->id() << " parid: " << "1" << std::endl;
-    });
-
-    show();
-}
-
-MixerUI::MixerGridControlUI::~MixerGridControlUI() {
-    delete _btnMute;
-    delete _btnSolo;
-    delete _lblVolume;
-    delete _lblName;
-}
-
-bool MixerUI::MixerGridControlUI::handleDoubleTap(GestLib::DoubleTapGesture &dt) {
-    _parentUI->_uictx->_popManager->enableUnitControl(_parentUI, this);
-    return true;
-}
-
-void MixerUI::MixerGridControlUI::pollUIUpdate() {
-    slr::MixerView *view = _parentUI->_mixer;
-
-    if(isSameUIVersion(view->version())) return;
-
-    if(view->mute()) {
-        _btnMute->setColor(MUTE_ON_COLOR);
-    } else {
-        _btnMute->setColor(MUTE_OFF_COLOR);
-    }
-
-    _lblVolume->setText(std::to_string(view->volume()));
-
-    _parentUI->commonUIUpdate();
-    // return true;
 }
 
 MixerUI::MixerModuleUI::MixerModuleUI(BaseWidget *parent, MixerUI *parentUI) :

@@ -29,7 +29,7 @@ class ProjectView {
     const std::size_t unitCount() const { return _unitViewList.size(); }
     std::vector<AudioUnitView*> unitList();
     AudioUnitView * getUnitById(ID id);
-    AudioUnitView * removeUnitView(ID id);
+    bool removeUnitView(ID id);
 
     void updateRoutes(const std::vector<AudioRoute> & routes);
     const std::vector<AudioRoute> & audioRoutes() const { return _routes; }

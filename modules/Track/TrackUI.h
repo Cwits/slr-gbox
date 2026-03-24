@@ -20,11 +20,10 @@ struct TrackUI : public UnitUIBase {
     ~TrackUI();
     
     bool create(UIContext * ctx) override;
-    // bool update(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
-    BaseWidget * gridUI() override { return _gridControl; }
-    BaseWidget * moduleUI() override { return _moduleUI; }
+    DefaultGridUI * gridUI() override { return _gridControl.get(); }
+    BaseWidget * moduleUI() override { return _moduleUI.get(); }
     // BaseWidget * patchUI() override;
  
     private:
@@ -34,10 +33,10 @@ struct TrackUI : public UnitUIBase {
     class TrackModuleUI;
     // class TrackPatchUI;
 
-    TrackGridControlUI * _gridControl;
-    TrackModuleUI * _moduleUI;
+    std::unique_ptr<TrackGridControlUI> _gridControl;
+    std::unique_ptr<TrackModuleUI> _moduleUI;
 
-    struct TrackGridControlUI : public BaseWidget {
+    struct TrackGridControlUI : public DefaultGridUI {
         TrackGridControlUI(BaseWidget *parent, TrackUI * parentUI);
         ~TrackGridControlUI();
 
@@ -45,28 +44,23 @@ struct TrackUI : public UnitUIBase {
 
         private:
         TrackUI * _parentUI;
+        uint64_t _customVersion;
 
-        Label * _lblName; //static
-        Label * _lblVolume;
-        Button * _btnMute;
-        Button * _btnSolo;
-        Button * _btnRecord;
-        Button * _btnSource;
-
-        bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
+        std::unique_ptr<Button> _btnRecord;
+        std::unique_ptr<Button> _btnSource;
 
         friend class TrackUI;
     };
 
+    // struct TrackModuleUI : public DefaultModuleUI {
     struct TrackModuleUI : public BaseWidget {
         TrackModuleUI(BaseWidget *parent, TrackUI * parentUI);
         ~TrackModuleUI();
 
         void pollUIUpdate() override;
-
+        
         private:
         TrackUI * _parentUI;
-        // std::vector<FileView*> _viewItems;
     
         Label * _name;
         lv_obj_t * _testRect;

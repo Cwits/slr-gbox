@@ -65,8 +65,6 @@ struct MainWindow : public BaseWidget {
     void destroyUI(slr::ID id);
 
     void pollUIUpdate() override;
-    // void setLastSelected(UnitUIBase * unit);
-    // UnitUIBase * lastSelectedModule() const { return _lastSelectedModule; }
     
     void registerFrequentUpdate(std::function<void()> clb);
 
@@ -90,7 +88,6 @@ struct MainWindow : public BaseWidget {
     std::unique_ptr<SettingsPopup> _settingsPopup;
     std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;
     // ViewSelector * _viewSelector; //called only when need to switch from drag to target?
-    //Slider mode popup * //aka AKAI MPC Live 3
 
     private:
     UIContext _uiContext;
@@ -116,8 +113,6 @@ struct MainWindow : public BaseWidget {
 
     lv_timer_t * _playheadUpdateTimer;
     static void playheadUpdateCb(lv_timer_t * timer);
-
-    UnitUIBase * _lastSelectedModule = nullptr;
 
     // std::vector<std::function<void()>> _frequentUpdateCallbacks;
 };
