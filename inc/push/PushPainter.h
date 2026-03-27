@@ -47,16 +47,16 @@ struct Painter {
     void writeChar(int x, int y, char ch, Font &font, Color color);
     void writeString(int x, int y, std::string str, Font &font, Color color);
     void writeString(int x, int y, std::string *str, Font &font, Color color);
-    void writeString(int x, int y, std::string &str, Font &font, Color color);
+    void writeString(int x, int y, const std::string_view str, Font &font, Color color);
     void writeString(int x, int y, const std::string_view *str, Font &font, Color color);
-    void writeString(int x, int y, const std::string_view &str, Font &font, Color color);
+    // void writeString(int x, int y, const std::string_view &str, Font &font, Color color);
     
     //limit in symbols???
     void writeStringLimited(int x, int y, int limPixel, std::string str, Font &font, Color color);
     void writeStringLimited(int x, int y, int limPixel, std::string *str, Font &font, Color color);
-    void writeStringLimited(int x, int y, int limPixel, std::string &str, Font &font, Color color);
+    void writeStringLimited(int x, int y, int limPixel, const std::string_view str, Font &font, Color color);
     void writeStringLimited(int x, int y, int limPixel, const std::string_view *str, Font &font, Color color);
-    void writeStringLimited(int x, int y, int limPixel, const std::string_view &str, Font &font, Color color);
+    // void writeStringLimited(int x, int y, int limPixel, const std::string_view &str, Font &font, Color color);
 
     const Pixel * canvas();
 

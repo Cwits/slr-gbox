@@ -13,6 +13,10 @@ namespace UI {
 
 class UIContext;
 
+// struct TimeGrid : public BaseWidget {...
+
+// struct TimelineTexts { // - e.g. at bottom panel 
+
 struct Timeline : public BaseWidget {
     Timeline(BaseWidget * parent, UIContext * uictx);
     ~Timeline();

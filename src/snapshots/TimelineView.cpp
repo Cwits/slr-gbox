@@ -48,6 +48,7 @@ void TimelineView::update() {
     _framesPerQuater = _timeline->framesPerQuater();
     _framesPerBeat = _timeline->framesPerBeat();
     _framesPerBar = _timeline->framesPerBar();
+    incrementVersion();
 }
 
 void TimelineView::clone(TimelineView & other) {

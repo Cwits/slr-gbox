@@ -30,6 +30,8 @@ struct PushContext {
     PushPadLayout const * currentPadLayout() const;
     void updatePadsColors();
 
+    void forceRedraw();
+
     // void setPadLayoutUpdateCallback(std::function<void()> clb);
     // void setPadLayoutCustom(PadLayout & layout);
 

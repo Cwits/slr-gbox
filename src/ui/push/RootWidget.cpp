@@ -4,12 +4,14 @@
 
 #include "ui/push/PadLayoutWidget.h"
 #include "ui/push/GridWidget.h"
-#include "ui/push/ModuleWidget.h"
+#include "ui/push/UnitWidget.h"
 #include "ui/push/BrowserWidget.h"
+#include "ui/push/primitives/UnitUIBase.h"
 
 #include "push/PushContext.h"
 #include "push/PushPainter.h"
 #include "push/helper.h"
+
 
 #include "snapshots/AudioUnitView.h"
 #include "core/ModuleManager.h"
@@ -105,8 +107,11 @@ RootWidget::RootWidget(PushLib::PushContext * const pctx) :
 
     _padLayoutWidget = std::make_unique<PadLayoutWidget>(this, &_puictx);
     _gridWidget = std::make_unique<GridWidget>(this, &_puictx);
-    _moduleWidget = std::make_unique<ModuleWidget>(this, &_puictx);
+    _unitWidget = std::make_unique<UnitWidget>(this, &_puictx);
     _browserWidget = std::make_unique<BrowserWidget>(this, &_puictx);
+
+    _puictx._gridWidget = _gridWidget.get();
+    _puictx._unitWidget = _unitWidget.get();
 
     switchToView(PushView::Grid);
 
@@ -174,7 +179,7 @@ PushLib::Widget * RootWidget::widgetFromView(const PushView view) {
     switch(view) {
         case(PushView::ERROR): LOG_ERROR("ooops, error"); break;
         case(PushView::Grid): ret = _gridWidget.get(); break;
-        case(PushView::Module): ret = _moduleWidget.get(); break;
+        case(PushView::Unit): ret = _unitWidget.get(); break;
         case(PushView::Editor): break;
         case(PushView::Patch): break;
         case(PushView::StepSequencer): break;
@@ -251,25 +256,14 @@ void RootWidget::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
     // UnitUIBase * base = mod->createUI(view, &_uiContext);
     // base->create(&_uiContext);
     // _uiContext._unitsUI.push_back(base);
+    
+    std::unique_ptr<UnitUIBase> unitUI = mod->createPushUI(view, &_puictx);
+    unitUI->create(&_puictx);
+
+    _puictx._unitUIs.push_back(std::move(unitUI));
+
+    _puictx.forceRedraw();
     LOG_INFO("Push create UI for %s", mod->_name->data());
-}
-
-void RootWidget::updateUI(slr::ID id) {
-    // UnitUIBase * ui = nullptr;
-    // for(UnitUIBase * u : _uiContext._unitsUI) {
-    //     if(u->id() == id) {
-    //         ui = u;
-    //         break;
-    //     }
-    // }
-
-    // if(!ui) {
-    //     LOG_ERROR("Failed to find UI with id %u", id);
-    //     return;
-    // }
-
-    // ui->update(&_uiContext);
-    LOG_INFO("Push update UI for id %d", id);
 }
 
 void RootWidget::destroyUI(slr::ID id) {
@@ -379,7 +373,7 @@ bool RootWidget::userBtnClb(PushLib::ButtonEvent &ev) {
 bool RootWidget::deviceBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     
-    switchToView(PushView::Module);
+    switchToView(PushView::Unit);
     return true;
 }
 

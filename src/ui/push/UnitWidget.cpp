@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "ui/push/ModuleWidget.h"
+#include "ui/push/UnitWidget.h"
 
 #include "push/PushContext.h"
 #include "push/PushPainter.h"
@@ -18,8 +18,8 @@ namespace PushUI {
     X(Left, leftCallback) \
     X(Right, rightCallback) \
 
-const PushLib::ButtonCallbackMap<ModuleWidget> ModuleWidget::_buttonsCallback = {
-#define X(btn, clb) {PushLib::Button::btn, &ModuleWidget::clb},
+const PushLib::ButtonCallbackMap<UnitWidget> UnitWidget::_buttonsCallback = {
+#define X(btn, clb) {PushLib::Button::btn, &UnitWidget::clb},
     CLBS(X)
 #undef X
 };
@@ -30,7 +30,7 @@ const std::vector<PushLib::ButtonColor> _buttonColors = {
 #undef X
 };
 
-ModuleWidget::ModuleWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
+UnitWidget::UnitWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
     Widget(parent),
     _pUIctx(puictx)
 {
@@ -46,16 +46,16 @@ ModuleWidget::ModuleWidget(PushLib::Widget *parent, PushUIContext * const puictx
     _rect->color(PushLib::rgb(255, 0, 255));
 }
 
-ModuleWidget::~ModuleWidget() {
+UnitWidget::~UnitWidget() {
 
 }
 
-void ModuleWidget::paint(PushLib::Painter &painter) {
+void UnitWidget::paint(PushLib::Painter &painter) {
     painter.clear();
     painter.writeString(400, 50, std::string("Module"), PushLib::Font_11x18, PushLib::COLORS::White);
 }
 
-bool ModuleWidget::handleButton(PushLib::ButtonEvent &ev) {
+bool UnitWidget::handleButton(PushLib::ButtonEvent &ev) {
     const auto res = _buttonsCallback.find(ev.button);
     if(res != _buttonsCallback.end()) {
         const auto cb = res->second;
@@ -65,13 +65,13 @@ bool ModuleWidget::handleButton(PushLib::ButtonEvent &ev) {
     return _pUIctx->tryHandleButtonDefault(ev);
 }
 
-bool ModuleWidget::handleEncoder(PushLib::EncoderEvent &ev) {
+bool UnitWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     return false;
 }
 
-std::vector<PushLib::ButtonColor> ModuleWidget::buttonsColors() {  return _buttonColors; }
+std::vector<PushLib::ButtonColor> UnitWidget::buttonsColors() {  return _buttonColors; }
 
-bool ModuleWidget::leftCallback(PushLib::ButtonEvent &ev) {
+bool UnitWidget::leftCallback(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
 
     PushLib::Vec2 v = _rect->position();
@@ -79,7 +79,7 @@ bool ModuleWidget::leftCallback(PushLib::ButtonEvent &ev) {
     return true;
 }
 
-bool ModuleWidget::rightCallback(PushLib::ButtonEvent &ev) {
+bool UnitWidget::rightCallback(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
 
     PushLib::Vec2 v = _rect->position();

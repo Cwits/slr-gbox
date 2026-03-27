@@ -45,22 +45,6 @@ void postToLvgl(std::function<void()> fn) {
     }
 }
 
-/*
-void postToLvgl(std::function<void()> fn) {
-    static auto lambda = [](void *userData) {
-        auto fn = static_cast<std::function<void()>*>(userData);
-        (*fn)();
-        delete fn;
-    };
-
-    auto * ptr = new std::function<void()>(std::move(fn));
-
-    //no, lock\unlock not helping, still getting corrupted user_data somehow
-    lv_lock();
-    lv_async_call(lambda, ptr);
-    lv_unlock();
-} */
-
 void floatingInfo(std::string text) {
     postToLvgl([text]() {
         UI::MainWindow::inst()->floatingText(false, text);
@@ -83,16 +67,6 @@ void addModuleUI(const slr::Module * mod, slr::AudioUnitView * view) {
         PushUI::RootWidget::inst()->createUI(mod, view);
     });
 }
-
-// void updateModuleUI(slr::ID id) {
-//     postToLvgl([id]() {
-//         UI::MainWindow::inst()->updateUI(id);
-//     });
-
-//     PushThread::postTask([id]() {
-//         PushUI::RootWidget::inst()->updateUI(id);
-//     });
-// }
 
 void destroyModuleUI(slr::ID id) {
     postToLvgl([id]() {

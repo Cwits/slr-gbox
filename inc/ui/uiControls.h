@@ -23,7 +23,6 @@ void floatingWarning(std::string text);
 
 /* Module related */
 void addModuleUI(const slr::Module * mod, slr::AudioUnitView * view);
-// void updateModuleUI(slr::ID id);
 void destroyModuleUI(slr::ID id);
 
 /* Timeline */

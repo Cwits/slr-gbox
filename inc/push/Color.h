@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "common/Color.h"
 
 namespace PushLib {
 
@@ -38,6 +39,10 @@ inline Color rgb(int r, int g, int b) {
     tmpb = (b * 31 / 255) & 0x1F;
 
     return (tmpb << 11) | (tmpg << 5) | tmpr;
+}
+
+inline Color rgb(slr::Color color) {
+    return rgb(color.r, color.g, color.b);
 }
 
 inline Color invert(Color color) { return (color ^ 0xFFFF); }

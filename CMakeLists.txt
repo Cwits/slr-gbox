@@ -111,6 +111,7 @@ file(GLOB SOURCES
   modules/Track/TrackModule.cpp
   modules/Track/TrackUI.cpp
   modules/Track/TrackView.cpp
+  modules/Track/TrackPushUI.cpp
 
   modules/Mixer/Mixer.cpp
   modules/Mixer/MixerModule.cpp
@@ -176,11 +177,13 @@ file(GLOB SOURCES
   src/ui/push/primitives/StaticLabel.cpp
   src/ui/push/primitives/Canvas.cpp
   src/ui/push/primitives/Rectangle.cpp
+  src/ui/push/primitives/UnitUIBase.cpp
+  src/ui/push/primitives/Label.cpp
 
   src/ui/push/PushUIContext.cpp
   src/ui/push/RootWidget.cpp
   src/ui/push/GridWidget.cpp
-  src/ui/push/ModuleWidget.cpp
+  src/ui/push/UnitWidget.cpp
   src/ui/push/BrowserWidget.cpp
   
   src/ui/push/PadLayoutWidget.cpp

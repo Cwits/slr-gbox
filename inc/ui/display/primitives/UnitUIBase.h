@@ -98,6 +98,15 @@ struct DefaultModuleUI : public BaseWidget {
             - clips - where you can manipulate each clip that is associated with current unit individually
                         (e.g. if there is 3 clips than you select only one of them and can stretch/move/cut/crop/duplicate or whatever)
             
+                        but for clips editing it should be somewhat unified interface for all modules. Than, on clip switching - 
+                            redraw canvas i guess?
+
+                        so it would be separate things - Clip Edito and File Editor?
+                            Editor in general, but there should be than:
+                            clips, audio files, midi files, automations, emm... smth else?
+
+                        Plus some simplified timeline
+
             - modules settings itself - e.g. for Mixer it would be sliders, for OSC it would be some voice controls, adsr, or whatever.
                                         (dunno what to do for track)
                                         
@@ -109,7 +118,7 @@ struct DefaultModuleUI : public BaseWidget {
                                   +     |        |
                                         |        |
                 maybe :)
-                
+
             - dunno...
     
     */

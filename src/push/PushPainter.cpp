@@ -282,8 +282,8 @@ void Painter::writeString(int x, int y, std::string str, Font &font, Color color
     writeStringImpl(x, y, str, font, color, false);
 }
 
-void Painter::writeString(int x, int y, std::string &str, Font &font, Color color) {
-    writeStringImpl(x, y, str, font, color, false);
+void Painter::writeString(int x, int y, std::string_view str, Font &font, Color color) {
+    writeStringViewImpl(x, y, str, font, color, false);
 }
 
 void Painter::writeString(int x, int y, std::string *str, Font &font, Color color) {
@@ -296,9 +296,9 @@ void Painter::writeString(int x, int y, const std::string_view *str, Font &font,
     writeStringViewImpl(x, y, *str, font, color, false);
 }
 
-void Painter::writeString(int x, int y, const std::string_view &str, Font &font, Color color) {
-    writeStringViewImpl(x, y, str, font, color, false);
-}
+// void Painter::writeString(int x, int y, const std::string_view &str, Font &font, Color color) {
+//     writeStringViewImpl(x, y, str, font, color, false);
+// }
 
 void Painter::writeStringLimited(int x, int y, int limPixel, std::string str, Font &font, Color color) {
     //some limiting logic
@@ -306,10 +306,10 @@ void Painter::writeStringLimited(int x, int y, int limPixel, std::string str, Fo
     writeStringImpl(x, y, str, font, color, epsilon);
 }
 
-void Painter::writeStringLimited(int x, int y, int limPixel, std::string &str, Font &font, Color color) {
+void Painter::writeStringLimited(int x, int y, int limPixel, std::string_view str, Font &font, Color color) {
     //some limiting logic
     bool epsilon = false;
-    writeStringImpl(x, y, str, font, color, epsilon);
+    writeStringViewImpl(x, y, str, font, color, epsilon);
 }
 
 void Painter::writeStringLimited(int x, int y, int limPixel, std::string *str, Font &font, Color color) {
@@ -326,11 +326,11 @@ void Painter::writeStringLimited(int x, int y, int limPixel, const std::string_v
     writeStringViewImpl(x, y, *str, font, color, epsilon);
 }
 
-void Painter::writeStringLimited(int x, int y, int limPixel, const std::string_view &str, Font &font, Color color) {
-    //some limiting logic
-    bool epsilon = false;
-    writeStringViewImpl(x, y, str, font, color, epsilon);
-}
+// void Painter::writeStringLimited(int x, int y, int limPixel, const std::string_view &str, Font &font, Color color) {
+//     //some limiting logic
+//     bool epsilon = false;
+//     writeStringViewImpl(x, y, str, font, color, epsilon);
+// }
 
 const Pixel * Painter::canvas() {
     return _displayCanvas.get();

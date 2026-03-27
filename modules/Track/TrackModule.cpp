@@ -7,10 +7,12 @@
 #include "core/primitives/ClipContainer.h"
 
 #include "ui/display/primitives/UnitUIBase.h"
+#include "ui/push/primitives/UnitUIBase.h"
 
 #include "modules/Track/Track.h"
 #include "modules/Track/TrackUI.h"
 #include "modules/Track/TrackView.h"
+#include "modules/Track/TrackPushUI.h"
 
 #include <memory>
 
@@ -26,6 +28,10 @@ UI::UnitUIBase * createTrackUI(slr::AudioUnitView * track, UI::UIContext * uictx
     return new UI::TrackUI(track, uictx);
 }
 
+std::unique_ptr<PushUI::UnitUIBase> createTrackPushUI(slr::AudioUnitView * track, PushUI::PushUIContext * uictx) {
+    return std::make_unique<PushUI::TrackPushUI>(track, uictx);
+}
+
 const std::string_view _trackName = "Track";
 
 const slr::Module TrackModule {
@@ -33,7 +39,8 @@ const slr::Module TrackModule {
     ._type = slr::ModuleType::Basic,
     .createRT = createTrackRT,
     .createView = createTrackView,
-    .createUI = createTrackUI
+    .createUI = createTrackUI,
+    .createPushUI = createTrackPushUI
 };
 
 

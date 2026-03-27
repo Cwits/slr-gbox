@@ -33,6 +33,9 @@ void PushContext::updatePadsColors() {
     _pads->updateRequest();
 }
 
+void PushContext::forceRedraw() {
+    _core->redraw();
+}
 
 
 

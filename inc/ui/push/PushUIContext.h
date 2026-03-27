@@ -8,6 +8,7 @@
 
 namespace PushLib {
     class PushContext;
+    class Widget;
 }
 
 namespace PushUI {
@@ -15,7 +16,7 @@ namespace PushUI {
 enum class PushView {
     ERROR = 0,
     Grid, //
-    Module, //track/mixer/osc/whatever
+    Unit, //track/mixer/osc/whatever
     Editor, //midi, audio or automation editor
     Patch, //for Module sends and receives? or it can be in Module itself... 
     StepSequencer,
@@ -32,10 +33,12 @@ enum class PushView {
 
 class RootWidget;
 class GridWidget;
-class ModuleUIBase;
+class UnitUIBase;
+class UnitWidget;
 
 struct PushUIContext {
     PushUIContext();
+    ~PushUIContext();
 
     PushLib::PushContext * const pctx() { return _pctx; }
 
@@ -48,13 +51,21 @@ struct PushUIContext {
     const PushView currentView() const; 
     const PushView previousView() const;
 
+    PushLib::Widget * gridWidget() const;
+    PushLib::Widget * unitWidget() const;
+
+    void forceRedraw();
+
+    std::size_t unitsCount() { return _unitUIs.size(); }
+
     private:
     PushLib::PushContext * _pctx;
 
     RootWidget *_rootWidget;
     GridWidget * _gridWidget;
+    UnitWidget * _unitWidget;
 
-    // std::vector<std::unique_ptr<ModuleUIBase>> _modulesUI;
+    std::vector<std::unique_ptr<UnitUIBase>> _unitUIs;
 
     friend class RootWidget;
 };

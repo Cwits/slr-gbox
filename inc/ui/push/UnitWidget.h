@@ -15,9 +15,9 @@ class PushUIContext;
 class Canvas;
 class Rectangle;
 
-struct ModuleWidget : public PushLib::Widget {
-    ModuleWidget(PushLib::Widget *parent, PushUIContext * const puictx);
-    ~ModuleWidget();
+struct UnitWidget : public PushLib::Widget {
+    UnitWidget(PushLib::Widget *parent, PushUIContext * const puictx);
+    ~UnitWidget();
 
     void paint(PushLib::Painter &painter) override;
 
@@ -32,7 +32,7 @@ struct ModuleWidget : public PushLib::Widget {
     std::unique_ptr<Canvas> _canvas;
     std::unique_ptr<Rectangle> _rect;
     
-    static const PushLib::ButtonCallbackMap<ModuleWidget> _buttonsCallback;
+    static const PushLib::ButtonCallbackMap<UnitWidget> _buttonsCallback;
     bool leftCallback(PushLib::ButtonEvent &ev);
     bool rightCallback(PushLib::ButtonEvent &ev);
 };

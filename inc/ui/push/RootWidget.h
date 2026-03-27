@@ -22,7 +22,7 @@ namespace PushUI {
 
 class PadLayoutWidget;
 class GridWidget;
-class ModuleWidget;
+class UnitWidget;
 class BrowserWidget;
 // class Settings;
 
@@ -51,7 +51,6 @@ struct RootWidget : public PushLib::Widget {
     bool checkForRedraw();
 
     void createUI(const slr::Module * mod, slr::AudioUnitView * view);
-    void updateUI(slr::ID id);
     void destroyUI(slr::ID id);
 
     static RootWidget * inst();
@@ -61,7 +60,7 @@ struct RootWidget : public PushLib::Widget {
 
     std::unique_ptr<PadLayoutWidget> _padLayoutWidget;
     std::unique_ptr<GridWidget> _gridWidget;
-    std::unique_ptr<ModuleWidget> _moduleWidget;
+    std::unique_ptr<UnitWidget> _unitWidget;
     std::unique_ptr<BrowserWidget> _browserWidget;
 
     PushLib::Widget * widgetFromView(const PushView view);

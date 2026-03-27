@@ -13,6 +13,11 @@ namespace UI {
     class UIContext;
 }
 
+namespace PushUI {
+    class UnitUIBase;
+    class PushUIContext;
+}
+
 namespace slr {
 
 class AudioUnit;
@@ -26,6 +31,7 @@ struct Module {
     std::unique_ptr<slr::AudioUnit> (*createRT)(const ClipContainer *);
     std::unique_ptr<slr::AudioUnitView> (*createView)(slr::AudioUnit *);
     UI::UnitUIBase * (*createUI)(slr::AudioUnitView *, UI::UIContext *);
+    std::unique_ptr<PushUI::UnitUIBase> (*createPushUI)(slr::AudioUnitView *, PushUI::PushUIContext *); 
 };
 
 struct ModuleManagerFactory {

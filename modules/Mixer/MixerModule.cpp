@@ -7,6 +7,7 @@
 #include "core/primitives/ClipContainer.h"
 
 #include "ui/display/primitives/UnitUIBase.h"
+#include "ui/push/primitives/UnitUIBase.h"
 
 #include "modules/Mixer/Mixer.h"
 #include "modules/Mixer/MixerUI.h"
@@ -26,6 +27,11 @@ UI::UnitUIBase * createMixerUI(slr::AudioUnitView * mixer, UI::UIContext * uictx
     return new UI::MixerUI(mixer, uictx);
 }
 
+std::unique_ptr<PushUI::UnitUIBase> createMixerPushUI(slr::AudioUnitView * mixer, PushUI::PushUIContext * uictx) {
+    // return std::make_unique<PushUI::MixerPushUI>(mixer, uictx);
+    return std::unique_ptr<PushUI::UnitUIBase>(nullptr);
+}
+
 const std::string_view _mixerName = "Mixer";
 
 const slr::Module MixerModule {
@@ -33,7 +39,8 @@ const slr::Module MixerModule {
     ._type = slr::ModuleType::Basic,
     .createRT = createMixerRT,
     .createView = createMixerView,
-    .createUI = createMixerUI
+    .createUI = createMixerUI,
+    .createPushUI = createMixerPushUI
 };
 
 
