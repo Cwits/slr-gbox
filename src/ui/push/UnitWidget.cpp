@@ -37,8 +37,8 @@ UnitWidget::UnitWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
     position(0, 0);
     size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
 
-    _canvas = std::make_unique<Canvas>(this, PushLib::DISPLAY_WIDTH-160, PushLib::DISPLAY_HEIGHT-40);
-    _canvas->position(80, 20);
+    _canvas = std::make_unique<Canvas>(this, PushLib::DISPLAY_WIDTH-40, PushLib::DISPLAY_HEIGHT-40);
+    _canvas->position(20, 20);
 
     _rect = std::make_unique<Rectangle>(this, true);
     _rect->position(70, 70);
@@ -50,9 +50,8 @@ UnitWidget::~UnitWidget() {
 
 }
 
-void UnitWidget::paint(PushLib::Painter &painter) {
-    painter.clear();
-    painter.writeString(400, 50, std::string("Module"), PushLib::Font_11x18, PushLib::COLORS::White);
+void UnitWidget::paint(PushLib::Painter &p) {
+    p.clearScreen();
 }
 
 bool UnitWidget::handleButton(PushLib::ButtonEvent &ev) {

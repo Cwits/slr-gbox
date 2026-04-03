@@ -117,11 +117,19 @@ file(GLOB SOURCES
   modules/Mixer/MixerModule.cpp
   modules/Mixer/MixerUI.cpp
   modules/Mixer/MixerView.cpp
+  modules/Mixer/MixerPushUI.cpp
 
   modules/SimpleOscillator/SimpleOsc.cpp
   modules/SimpleOscillator/SimpleOscModule.cpp
   modules/SimpleOscillator/SimpleOscUI.cpp
   modules/SimpleOscillator/SimpleOscView.cpp
+  modules/SimpleOscillator/SimpleOscPushUI.cpp
+
+  modules/Sampler/Sampler.cpp
+  modules/Sampler/SamplerModule.cpp
+  modules/Sampler/SamplerView.cpp
+  modules/Sampler/SamplerUI.cpp
+  modules/Sampler/SamplerPushUI.cpp
 
   #ui
   src/ui/display/primitives/BaseWidget.cpp
@@ -158,6 +166,8 @@ file(GLOB SOURCES
   src/ui/FakeGestures.cpp
   src/ui/uiControls.cpp
   src/ui/guiThread.cpp
+
+  src/ui/display/helpers/AudioFileToCanvas.cpp
 
   #push core
   src/push/PushFaker.cpp

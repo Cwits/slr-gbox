@@ -323,6 +323,7 @@ bool DefaultGridUI::handleDoubleTap(GestLib::DoubleTapGesture & dt) {
     return true;
 }
 
-
-
+DefaultModuleUI::DefaultModuleUI(BaseWidget * parent, UnitUIBase *base) 
+            : BaseWidget(parent, true, true) {}
+DefaultModuleUI::~DefaultModuleUI() {}
 }

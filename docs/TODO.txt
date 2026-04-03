@@ -208,6 +208,7 @@ Push:
         [ ] - Sometimes, when things moving quickly - old position struggle to clear
                 (e.g. with Pointer in PadLayoutWidget - sometimes old pointer stays there)
         [ ] - PushPainter drawing algos can be optimised more?
+        [ ] - if Label (or StaticLabel?) overlaps with some moving element than text might drift
 
 /* Notes */
  - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 

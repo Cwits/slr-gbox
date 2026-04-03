@@ -21,9 +21,8 @@ BrowserWidget::~BrowserWidget() {
 
 }
 
-void BrowserWidget::paint(PushLib::Painter &painter) {
-    painter.clear();
-    painter.writeString(400, 50, std::string("Browser"), PushLib::Font_11x18, PushLib::COLORS::White);
+void BrowserWidget::paint(PushLib::Painter &p) {
+    p.clearScreen();
 }
 
 bool BrowserWidget::handleButton(PushLib::ButtonEvent &ev) {

@@ -54,35 +54,40 @@ void collectDirty(PushLib::Widget *w, std::vector<PushLib::BoundingBox> &list) {
     if(!w->visible()) return; 
 
     if(w->dirty()) {
-        PushLib::BoundingBox b = w->lastBounds();
-        if(!b.empty())
-            list.push_back(b);
-        
-        b = w->bounds();
-        if(!b.empty())
-            list.push_back(b);
+        auto cur = w->globalBounds();
+        auto old = w->lastGlobalBounds();
+
+        if(!cur.empty()) list.push_back(cur);
+        if(!old.empty()) {
+            if(old != cur)
+                list.push_back(old);
+        }
     }
+
     for(PushLib::Widget *c : w->childs())
         collectDirty(c, list);
 };
 
+
 void traverse(PushLib::Widget *w, PushLib::Painter &p, const PushLib::BoundingBox &clip) {
     if(!w->visible()) return;
 
-    if(!w->bounds().intersects(clip)) return;
+    auto global = w->globalBounds();
+    // if(!global.intersects(clip)) return;
 
-    PushLib::BoundingBox newClip = w->bounds().intersect(clip);
+    PushLib::BoundingBox newClip = global.intersect(clip);
     if(newClip.empty()) return;
 
     p.pushClip(newClip);
-
-    w->sortChildsByZ();
-
+    p.pushOffset(global.x, global.y);
+    
     w->paint(p);
-
+    
+    w->sortChildsByZ();
     for(PushLib::Widget *c : w->childs()) 
         traverse(c, p, newClip);
-
+    
+    p.popOffset();
     p.popClip();
 };
 
@@ -99,9 +104,9 @@ RootWidget::RootWidget(PushLib::PushContext * const pctx) :
     _currentView(PushView::ERROR)
 {
     _rootInstance = this;
-    _x = 0; _y = 0; _width = 0; _height = 0;
-    // position(0, 0);
-    // size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
+    // _x = 0; _y = 0; _width = 0; _height = 0;
+    position(0, 0);
+    size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
     _puictx._pctx = pctx;
     _puictx._rootWidget = this;
 
@@ -127,38 +132,20 @@ RootWidget::~RootWidget() {
 
 }
 
-PushLib::BoundingBox RootWidget::bounds() { //return BoundingBox of area that has to be redrawn
-    PushLib::BoundingBox b;
-    if(_viewSwitched) {
-        b.x = 0;
-        b.y = 0;
-        b.h = PushLib::DISPLAY_HEIGHT;
-        b.w = PushLib::DISPLAY_WIDTH;
-        _viewSwitched = false;
-    } else {
-        //invalidate?
-        // b = widgetFromView(_currentView)->bounds();
-        _dirtyRegions.clear();
-        collectDirty(widgetFromView(currentView()), _dirtyRegions);
-        for(auto &r : _dirtyRegions)
-            b.unionWith(r);
-    }
-    return b;
-}
-
 void RootWidget::paint(PushLib::Painter &painter) {
     _dirtyRegions.clear();
             
     PushLib::Widget * toUpdate = widgetFromView(currentView());
     collectDirty(toUpdate, _dirtyRegions);
 
-    if(_dirtyRegions.empty()) return;
+    if(_dirtyRegions.empty()) { clearDirty(); return; }
 
     for(const PushLib::BoundingBox &b : _dirtyRegions) {
         traverse(toUpdate, painter, b);
     }
 
     finalize(toUpdate);
+    clearDirty();
 }
 
 bool RootWidget::handleButton(PushLib::ButtonEvent &ev) {
@@ -174,7 +161,7 @@ bool RootWidget::handleEncoder(PushLib::EncoderEvent &ev) {
     return widgetFromView(_currentView)->handleEncoder(ev);
 }
 
-PushLib::Widget * RootWidget::widgetFromView(const PushView view) {
+PushLib::Widget * RootWidget::widgetFromView(const PushView view) const {
     Widget * ret = nullptr;
     switch(view) {
         case(PushView::ERROR): LOG_ERROR("ooops, error"); break;
@@ -238,20 +225,6 @@ std::vector<PushLib::ButtonColor> RootWidget::buttonsColors() {
     return PushHelper::buttonColorsFromMap<RootWidget>(RootWidget::_buttonsCallback);
 }
 
-bool RootWidget::checkForRedraw() {
-    /* 
-    //when audiounitview parameter changed(that means it has changed in rt as well) -> mark unit as dirty...
-    
-    run through current view and check if this view need for redraw something
-    e.g. if current view is module Track and we changed volume on track -> tracks audio unit view marked dirty -> we check that 
-    trackUI->_unitView->dirty() ? return true : return false;
-
-    if any of something requires redraw than return true -> push will call all things to redraw, otherwise nothing to redraw...
-    */
-
-    return false;
-}
-
 void RootWidget::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
     // UnitUIBase * base = mod->createUI(view, &_uiContext);
     // base->create(&_uiContext);
@@ -262,7 +235,7 @@ void RootWidget::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
 
     _puictx._unitUIs.push_back(std::move(unitUI));
 
-    _puictx.forceRedraw();
+    // _puictx.forceRedraw();
     LOG_INFO("Push create UI for %s", mod->_name->data());
 }
 
@@ -308,6 +281,11 @@ void RootWidget::destroyUI(slr::ID id) {
     // delete ui;
     LOG_INFO("Push destroy UI for id %d", id);
 }
+
+bool RootWidget::hasAnythingDirty() const {
+    return widgetFromView(currentView())->hasAnythingDirty();
+}
+
 
 
 RootWidget * RootWidget::inst() {

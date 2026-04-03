@@ -321,8 +321,8 @@ void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
     if(gesture == GestLib::Gestures::Drag) {
         //TODO: shouldn't be like that... dunno yet how to make it proper way
         
-        _gestureTarget = _gridView->_grid;
-        // _gestureTarget = getSwitchViewTarget(view);
+        // _gestureTarget = _gridView->_grid;
+        _gestureTarget = getSwitchViewTarget(view);
         switchToView(view);
     }
 }
@@ -435,16 +435,16 @@ std::string gestureToText(GestLib::Gestures &g) {
 }
 
 void MainWindow::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
-    UnitUIBase * base = mod->createUI(view, &_uiContext);
+    std::unique_ptr<UnitUIBase> base = mod->createUI(view, &_uiContext);
     base->create(&_uiContext);
-    _uiContext._unitsUI.push_back(base);
+    _uiContext._unitsUI.push_back(std::move(base));
 }
 
 void MainWindow::destroyUI(slr::ID id) {
     UnitUIBase * ui = nullptr;
-    for(UnitUIBase * u : _uiContext._unitsUI) {
-        if(u->id() == id) {
-            ui = u;
+    for(auto &u : _uiContext._unitsUI) {
+        if(u.get()->id() == id) {
+            ui = u.get();
             break;
         }
     }
@@ -458,18 +458,19 @@ void MainWindow::destroyUI(slr::ID id) {
     std::size_t size = _uiContext._unitsUI.size();
     std::size_t idx = 0;
     for(std::size_t i=0; i<size; ++i) {
-        if(_uiContext._unitsUI.at(i)->id() == id) {
+        if(_uiContext._unitsUI.at(i).get()->id() == id) {
             // found = _trackGuiList.at(i).get();
             idx = i;
             break;
         }
     }
 
+    ui->destroy(&_uiContext);
     _uiContext._unitsUI.erase(_uiContext._unitsUI.begin()+idx);
     //move items positions up starting from idx 
     size -= 1;
     for(std::size_t i=0; i<size; ++i) {
-        UnitUIBase * tr = _uiContext._unitsUI.at(i);
+        UnitUIBase * tr = _uiContext._unitsUI.at(i).get();
         int x = 0;
         int y = LayoutDef::calcTrackY(i);
         // int x = tr->getPosX();
@@ -478,8 +479,8 @@ void MainWindow::destroyUI(slr::ID id) {
     }
 
     _uiContext.setLastSelected(nullptr);
-    ui->destroy(&_uiContext);
-    delete ui;
+    // ui->destroy(&_uiContext);
+    // delete ui;
 }
 
 void MainWindow::pollUIUpdate() {

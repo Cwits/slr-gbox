@@ -12,6 +12,7 @@
 #include "modules/Mixer/Mixer.h"
 #include "modules/Mixer/MixerUI.h"
 #include "modules/Mixer/MixerView.h"
+#include "modules/Mixer/MixerPushUI.h"
 
 #include <memory>
 
@@ -23,13 +24,12 @@ std::unique_ptr<slr::AudioUnitView> createMixerView(slr::AudioUnit * mixer) {
     return std::make_unique<slr::MixerView>(static_cast<slr::Mixer*>(mixer));
 }
 
-UI::UnitUIBase * createMixerUI(slr::AudioUnitView * mixer, UI::UIContext * uictx) {
-    return new UI::MixerUI(mixer, uictx);
+std::unique_ptr<UI::UnitUIBase> createMixerUI(slr::AudioUnitView * mixer, UI::UIContext * uictx) {
+    return std::make_unique<UI::MixerUI>(mixer, uictx);
 }
 
 std::unique_ptr<PushUI::UnitUIBase> createMixerPushUI(slr::AudioUnitView * mixer, PushUI::PushUIContext * uictx) {
-    // return std::make_unique<PushUI::MixerPushUI>(mixer, uictx);
-    return std::unique_ptr<PushUI::UnitUIBase>(nullptr);
+    return std::make_unique<PushUI::MixerPushUI>(mixer, uictx);
 }
 
 const std::string_view _mixerName = "Mixer";

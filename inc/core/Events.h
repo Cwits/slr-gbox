@@ -10,6 +10,7 @@
 #include "generated/MidiControllerEvents.h"
 #include "generated/RenderPlanEvents.h"
 #include "generated/AudioUnitEvents.h"
+#include "generated/SamplerEvents.h"
 #include "generated/TrackEvents.h"
 
 #include <variant>
@@ -39,6 +40,8 @@ using Event = std::variant<
 		FileOpened,
 		RemoveClip,
 		ClipUIRemoved,
+		LoadAsset,
+		AssetOpened,
 		RecordArm
 >;
 

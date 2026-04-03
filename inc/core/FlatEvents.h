@@ -10,6 +10,7 @@
 #include "generated/MidiControllerEvents.h"
 #include "generated/RenderPlanEvents.h"
 #include "generated/AudioUnitEvents.h"
+#include "generated/SamplerEvents.h"
 #include "generated/TrackEvents.h"
 
 #include "common/Status.h"
@@ -35,6 +36,7 @@ struct FlatControl {
 		ToggleMidiThru,
 		ToggleOmniHwInput,
 		SwapContainer,
+		AssetOpened,
 		RecordArm,
 		ReinitTrackRecord
 	};
@@ -53,6 +55,7 @@ struct FlatControl {
 		FlatControls::ToggleMidiThru toggleMidiThru;
 		FlatControls::ToggleOmniHwInput toggleOmniHwInput;
 		FlatControls::SwapContainer swapContainer;
+		FlatControls::AssetOpened assetOpened;
 		FlatControls::RecordArm recordArm;
 		FlatControls::ReinitTrackRecord reinitTrackRecord;
 	};
@@ -72,6 +75,7 @@ struct FlatResponse {
 		ToggleMidiThru,
 		ToggleOmniHwInput,
 		SwapContainer,
+		AssetOpened,
 		RecordArm,
 		DumpRecordedAudio,
 		ReinitTrackRecord
@@ -92,6 +96,7 @@ struct FlatResponse {
 		FlatResponses::ToggleMidiThru toggleMidiThru;
 		FlatResponses::ToggleOmniHwInput toggleOmniHwInput;
 		FlatResponses::SwapContainer swapContainer;
+		FlatResponses::AssetOpened assetOpened;
 		FlatResponses::RecordArm recordArm;
 		FlatResponses::DumpRecordedAudio dumpRecordedAudio;
 		FlatResponses::ReinitTrackRecord reinitTrackRecord;

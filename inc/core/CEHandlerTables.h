@@ -16,6 +16,8 @@
 #include "generated/RenderPlanHandles.h"
 #include "generated/AudioUnitEvents.h"
 #include "generated/AudioUnitHandles.h"
+#include "generated/SamplerEvents.h"
+#include "generated/SamplerHandles.h"
 #include "generated/TrackEvents.h"
 #include "generated/TrackHandles.h"
 
@@ -59,6 +61,8 @@ constexpr EventHandlerFn ControlTable[] = {
 	&dispatchHelper<Events::FileOpened>,
 	&dispatchHelper<Events::RemoveClip>,
 	&dispatchHelper<Events::ClipUIRemoved>,
+	&dispatchHelper<Events::LoadAsset>,
+	&dispatchHelper<Events::AssetOpened>,
 	&dispatchHelper<Events::RecordArm>
 };
 }
@@ -78,6 +82,7 @@ constexpr ResponseHandlerFn ResponseTable[] = {
 	&handleToggleMidiThruResponse,
 	&handleToggleOmniHwInputResponse,
 	&handleContainerSwappedNew,
+	&handleAssetOpenedResponse,
 	&handleRecordArmResponse,
 	&handleDumpRecordedAudio,
 	&handleReinitTrackRecord

@@ -7,6 +7,8 @@
 #include "push/helper.h"
 
 #include "ui/push/PushUIContext.h"
+#include "ui/push/primitives/UnitUIBase.h"
+#include "ui/push/primitives/Label.h"
 
 #include "core/Events.h"
 
@@ -19,6 +21,7 @@ const PushLib::ButtonCallbackMap<GridWidget> GridWidget::_buttonsCallback = {
     {PushLib::Button::Down, &GridWidget::downBtnClb},
     {PushLib::Button::Right, &GridWidget::rightBtnClb},
     {PushLib::Button::Left, &GridWidget::leftBtnClb},
+    {PushLib::Button::New, &GridWidget::newBtnClb}
 };
 
 GridWidget::GridWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
@@ -27,34 +30,31 @@ GridWidget::GridWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
 {
     position(0, 0);
     size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
-    // RectX = 50;
-    // RectY = 50;
-    // RectColor = 50;
+    
+    _someText1 = std::make_unique<Label>(this, "Some text");
+    _someText1->position(1, 1);
+    _someText1->font(PushLib::Font_7x10);
+    _someText1->color(PushLib::Colors::White);
+    _someText2 = std::make_unique<Label>(this, "Some text");
+    _someText2->position(200, 1);
+    _someText2->font(PushLib::Font_7x10);
+    _someText2->color(PushLib::Colors::White);
+    _someText3 = std::make_unique<Label>(this, "Some text");
+    _someText3->position(400, 1);
+    _someText3->font(PushLib::Font_7x10);
+    _someText3->color(PushLib::Colors::White);
+    _someText4 = std::make_unique<Label>(this, "Some text");
+    _someText4->position(600, 1);
+    _someText4->font(PushLib::Font_7x10);
+    _someText4->color(PushLib::Colors::White);
 }
 
 GridWidget::~GridWidget() {
 
 }
 
-void GridWidget::paint(PushLib::Painter &painter) {
-    using namespace PushLib;
-
-    painter.clear();
-    painter.writeString(400, 50, std::string("Grid"), PushLib::Font_11x18, PushLib::COLORS::White);
-
-    // painter.filledRectangle(RectX, 50+RectY, 50, 50, COLORS::Red);
-    // painter.rectangle(70+RectX, 50+RectY, 50, 50, 1, COLORS::Green);
-    // painter.filledRectangle(140+RectX, 50+RectY, 50, 50, rgb(255, 100, 100));
-    // uint16_t color = 0;
-    // if(RectColor == 0) color = rgb(255, 0, 0);
-    // else if(RectColor == 1) color = rgb(0, 255, 0);
-    // else if(RectColor == 2) color = rgb(0, 0, 255);
-    // else if(RectColor == 3) color = rgb(255, 255, 0);
-    // else if(RectColor == 4) color = rgb(255, 0, 255);
-    // else if(RectColor == 5) color = rgb(0, 255, 255);
-    // else if(RectColor == 6) color = rgb(98, 98, 98);
-    // else if(RectColor == 7) color = rgb(255, 255, 255);
-    // painter.rectangle(500+RectX, 50+RectY, 50, 50, 1, color);
+void GridWidget::paint(PushLib::Painter &p) {
+    p.clearScreen();
 }
 
 bool GridWidget::handleButton(PushLib::ButtonEvent &ev) {
@@ -81,31 +81,52 @@ std::vector<PushLib::ButtonColor> GridWidget::buttonsColors() {
 bool GridWidget::upBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
     // LOG_INFO("Up");
+    std::vector<std::unique_ptr<UnitUIBase>> & v = _pUIctx->units();
+    for(auto &c : v) {
+        c->gridUI()->up();
+    }
+    return true;
+}
+
+bool GridWidget::downBtnClb(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+    // LOG_INFO("down");
+    std::vector<std::unique_ptr<UnitUIBase>> & v = _pUIctx->units();
+    for(auto &c : v) {
+        c->gridUI()->down();
+    }
+    return true;
+}
+
+bool GridWidget::leftBtnClb(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+    // LOG_INFO("left");;
+    std::vector<std::unique_ptr<UnitUIBase>> & v = _pUIctx->units();
+    for(auto &c : v) {
+        c->gridUI()->left();
+    }
+    return false;
+}
+
+bool GridWidget::rightBtnClb(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
+    // LOG_INFO("right");;
+    std::vector<std::unique_ptr<UnitUIBase>> & v = _pUIctx->units();
+    for(auto &c : v) {
+        c->gridUI()->right();
+    }
+    return false;
+}
+
+bool GridWidget::newBtnClb(PushLib::ButtonEvent &ev) {
+    if(!PushHelper::isBtnPressed(ev)) return false;
 
     slr::Events::CreateModule e = {
         .name = "Track"
     };
     slr::EmitEvent(e); 
     
-    return false;
-}
-
-bool GridWidget::downBtnClb(PushLib::ButtonEvent &ev) {
-    if(!PushHelper::isBtnPressed(ev)) return false;
-    // LOG_INFO("down");
-    return false;
-}
-
-bool GridWidget::leftBtnClb(PushLib::ButtonEvent &ev) {
-    if(!PushHelper::isBtnPressed(ev)) return false;
-    // LOG_INFO("left");
-    return false;
-}
-
-bool GridWidget::rightBtnClb(PushLib::ButtonEvent &ev) {
-    if(!PushHelper::isBtnPressed(ev)) return false;
-    // LOG_INFO("right");
-    return false;
+    return true;
 }
 
 }

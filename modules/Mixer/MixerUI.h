@@ -26,7 +26,7 @@ struct MixerUI : public UnitUIBase {
     bool destroy(UIContext * ctx) override;
 
     DefaultGridUI * gridUI() override { return _gridControl.get(); }
-    BaseWidget * moduleUI() override { return _moduleUI.get(); }
+    DefaultModuleUI * moduleUI() override { return _moduleUI.get(); }
 
     private:
     slr::MixerView * const _mixer;
@@ -37,7 +37,7 @@ struct MixerUI : public UnitUIBase {
     std::unique_ptr<DefaultGridUI> _gridControl;
     std::unique_ptr<MixerModuleUI> _moduleUI;
 
-    struct MixerModuleUI : public BaseWidget { 
+    struct MixerModuleUI : public DefaultModuleUI { 
         MixerModuleUI(BaseWidget *parent, MixerUI *parentUI);
         ~MixerModuleUI();
 

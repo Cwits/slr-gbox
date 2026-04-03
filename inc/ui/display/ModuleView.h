@@ -23,6 +23,8 @@ class ModuleView : public View {
     private:
 
     UnitUIBase * _lastShownModule;
+    
+    bool handleDrag(GestLib::DragGesture & drag) override;
 };
 
 }

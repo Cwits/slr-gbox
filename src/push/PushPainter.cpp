@@ -46,46 +46,51 @@ void Painter::popClip() {
         _clipStack.pop_back();
 }
 
-void Painter::clear() {
-    fill(COLORS::Black);
+void Painter::clearScreen() {
+    filledRectangle(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, Colors::Black);
 }
 
 void Painter::clearRegion(int x, int y, int w, int h) {
-    filledRectangle(x, y, w, h, COLORS::Black);
+    filledRectangle(x, y, w, h, Colors::Black);
 }
 
 void Painter::drawPixel(int x, int y, Color color) {
     if(x < 0 || x > DISPLAY_WIDTH) return;
     if(y < 0 || y > DISPLAY_HEIGHT) return;
 
-    if(!inClip(*this, x,y)) return;
-    
     _displayCanvas.get()[(y*DISPLAY_WIDTH)+x] = color;
 }
 
-void Painter::fill(Color color) {
-    BoundingBox &c = currentClip();
-    if(c.empty()) return;
+// void Painter::fill(Color color) {
+//     // BoundingBox &b = currentClip();
+//     // if(b.empty()) return;
 
-    Pixel* ptr = _displayCanvas.get();
-    for(int y = c.y; y < c.y + c.h; ++y) {
-        int row = y * DISPLAY_WIDTH;
+//     auto off = offset();
+//     BoundingBox c = BoundingBox(b.x+off.x(), 
+//                                 b.y+off.y(), 
+//                                 b.w, 
+//                                 b.h);
 
-        for(int x = c.x; x < c.x + c.w; ++x) {
-            ptr[row + x] = color;
-        }
-    }
-}
+//     Pixel* ptr = _displayCanvas.get();
+//     for(int y = c.y; y < c.y + c.h; ++y) {
+//         int row = y * DISPLAY_WIDTH;
+
+//         for(int x = c.x; x < c.x + c.w; ++x) {
+//             ptr[row + x] = color;
+//         }
+//     }
+// }
 
 void Painter::filledRectangle(int x, int y, int w, int h, Color color) {
-    BoundingBox r(x,y,w,h);
+    auto off = offset();
+    // BoundingBox r(x+off.x(),y+off.y(),w,h);
+    BoundingBox r(off.x(), off.y(), w, h);
     BoundingBox &c = currentClip();
     BoundingBox vis = r.intersect(c);
 
     if(vis.empty()) return;
 
     Pixel *ptr = _displayCanvas.get();
-
     for(int yd = vis.y; yd < vis.y + vis.h; ++yd) {
         int row = yd * DISPLAY_WIDTH;
         for(int xd = vis.x; xd < vis.x + vis.w; ++xd) {
@@ -94,18 +99,27 @@ void Painter::filledRectangle(int x, int y, int w, int h, Color color) {
     }
 }
 
-void Painter::rectangle(int x, int y, int w, int h, int thick, Color color) {
-    if(x < 0 || (x+w) > DISPLAY_WIDTH) return;
-    if(y < 0 || (y+h) > DISPLAY_HEIGHT) return;
-    if(thick == 0) return;
+// void Painter::rectangle(int x, int y, int w, int h, int thick, Color color) {
+//     auto off = offset();
+//     x += off.x();
+//     y += off.y();
+//     if(x < 0 || (x+w) > DISPLAY_WIDTH) return;
+//     if(y < 0 || (y+h) > DISPLAY_HEIGHT) return;
+//     if(thick == 0) return;
 
-    filledRectangle(x, y, w, thick, color); //up
-    filledRectangle(x, y + h - thick, w, thick, color); //down
-    filledRectangle(x, y, thick, h, color); //left
-    filledRectangle(x + w - thick, y, thick, h, color); //right
-}
+//     filledRectangle(x, y, w, thick, color); //up
+//     filledRectangle(x, y + h - thick, w, thick, color); //down
+//     filledRectangle(x, y, thick, h, color); //left
+//     filledRectangle(x + w - thick, y, thick, h, color); //right
+// }
 
+/*
 void Painter::line(int x0, int x1, int y0, int y1, Color color) {
+    auto off = offset();
+
+    x0 += off.x(); x1 += off.x();
+    y0 += off.y(); y1 += off.y();
+
     if(x0 < 0 || x0 > DISPLAY_WIDTH) return;
     if(x1 < 0 || x1 > DISPLAY_WIDTH) return;
     if(y0 < 0 || y0 > DISPLAY_HEIGHT) return;
@@ -147,6 +161,11 @@ void Painter::line(int x0, int x1, int y0, int y1, Color color) {
 }
 
 void Painter::hLine(int y, int x0, int x1, Color color) {
+    auto off = offset();
+    y += off.y();
+    x0 += off.x();
+    x1 += off.x();
+
     if(y < 0 || y >= DISPLAY_HEIGHT) return;
 
     if(x0 > x1) std::swap(x0, x1);
@@ -162,6 +181,11 @@ void Painter::hLine(int y, int x0, int x1, Color color) {
 }
 
 void Painter::vLine(int x, int y0, int y1, Color color) {
+    auto off = offset();
+    x += off.x();
+    y0 += off.y();
+    y1 += off.y();
+
     if(x < 0 || x >= DISPLAY_WIDTH) return;
 
     if(y0 > y1) std::swap(y0, y1);
@@ -233,13 +257,14 @@ void Painter::filledCircle(int cx, int cy, int r, Color color) {
         std::fill(ptr, ptr + (x1 - x0 + 1), color);
     }
 }
-
+*/
 void Painter::drawBuffer(BoundingBox size, Pixel *buf) {
     if(!buf) return;
 
+    auto off = offset();
     BoundingBox screen(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT); //protect from going outside the screen
     BoundingBox &c = currentClip();
-    BoundingBox target(size.x, size.y, size.w, size.h);
+    BoundingBox target(off.x(), off.y(), size.w, size.h);
     BoundingBox vis = target.intersect(c).intersect(screen);
 
     if(vis.w <= 0 || vis.h <= 0) return;
@@ -278,52 +303,52 @@ void Painter::writeChar(int x, int y, char ch, Font &font, Color color) {
     }
 }
 
-void Painter::writeString(int x, int y, std::string str, Font &font, Color color) {
-    writeStringImpl(x, y, str, font, color, false);
+// void Painter::writeString(int x, int y, std::string str, Font &font, Color color) {
+//     writeStringImpl(x, y, str, font, color, false);
+// }
+
+void Painter::writeString(int x, int y, int w, int h, std::string_view str, Font &font, Color color) {
+    writeStringViewImpl(x, y, w, h, str, font, color, false);
 }
 
-void Painter::writeString(int x, int y, std::string_view str, Font &font, Color color) {
-    writeStringViewImpl(x, y, str, font, color, false);
-}
-
-void Painter::writeString(int x, int y, std::string *str, Font &font, Color color) {
+void Painter::writeString(int x, int y, int w, int h, std::string *str, Font &font, Color color) {
     if(!str) return;
-    writeStringImpl(x, y, *str, font, color, false);
+    writeStringImpl(x, y, w, h, *str, font, color, false);
 }
 
-void Painter::writeString(int x, int y, const std::string_view *str, Font &font, Color color) {
+void Painter::writeString(int x, int y, int w, int h, const std::string_view *str, Font &font, Color color) {
     if(!str) return;
-    writeStringViewImpl(x, y, *str, font, color, false);
+    writeStringViewImpl(x, y, w, h, *str, font, color, false);
 }
 
 // void Painter::writeString(int x, int y, const std::string_view &str, Font &font, Color color) {
 //     writeStringViewImpl(x, y, str, font, color, false);
 // }
 
-void Painter::writeStringLimited(int x, int y, int limPixel, std::string str, Font &font, Color color) {
+void Painter::writeStringLimited(int x, int y, int w, int h, int limPixel, std::string str, Font &font, Color color) {
     //some limiting logic
     bool epsilon = false;
-    writeStringImpl(x, y, str, font, color, epsilon);
+    writeStringImpl(x, y, w, h, str, font, color, epsilon);
 }
 
-void Painter::writeStringLimited(int x, int y, int limPixel, std::string_view str, Font &font, Color color) {
+void Painter::writeStringLimited(int x, int y, int w, int h, int limPixel, std::string_view str, Font &font, Color color) {
     //some limiting logic
     bool epsilon = false;
-    writeStringViewImpl(x, y, str, font, color, epsilon);
+    writeStringViewImpl(x, y, w, h, str, font, color, epsilon);
 }
 
-void Painter::writeStringLimited(int x, int y, int limPixel, std::string *str, Font &font, Color color) {
+void Painter::writeStringLimited(int x, int y, int w, int h, int limPixel, std::string *str, Font &font, Color color) {
     if(!str) return;
     //some limiting logic
     bool epsilon = false;
-    writeStringImpl(x, y, *str, font, color, epsilon);
+    writeStringImpl(x, y, w, h, *str, font, color, epsilon);
 }
 
-void Painter::writeStringLimited(int x, int y, int limPixel, const std::string_view *str, Font &font, Color color) {
+void Painter::writeStringLimited(int x, int y, int w, int h, int limPixel, const std::string_view *str, Font &font, Color color) {
     if(!str) return;
     //some limiting logic
     bool epsilon = false;
-    writeStringViewImpl(x, y, *str, font, color, epsilon);
+    writeStringViewImpl(x, y, w, h, *str, font, color, epsilon);
 }
 
 // void Painter::writeStringLimited(int x, int y, int limPixel, const std::string_view &str, Font &font, Color color) {
@@ -336,13 +361,20 @@ const Pixel * Painter::canvas() {
     return _displayCanvas.get();
 }
 
-void Painter::writeStringImpl(int x, int y, const std::string &str, Font &font, Color &color, bool epsilon) {
+void Painter::writeStringImpl(int x, int y, int w, int h, const std::string &str, Font &font, Color &color, bool epsilon) {
     int tmpx = 0;
     std::size_t len = str.length();
 
+    auto off = offset();
+    BoundingBox r(off.x(), off.y(), w, h);
+    BoundingBox &c = currentClip();
+    BoundingBox vis = r.intersect(c);
+
+    if(vis.empty()) return;
+
     for(std::size_t i=0; i<len; ++i) {
         char c = str[i];
-        writeChar(x+tmpx, y, c, font, color);
+        writeChar(vis.x+tmpx, vis.y, c, font, color);
         tmpx += font.FontWidth;
     }
 
@@ -351,13 +383,20 @@ void Painter::writeStringImpl(int x, int y, const std::string &str, Font &font, 
     }
 }
 
-void Painter::writeStringViewImpl(int x, int y, const std::string_view &str, Font &font, Color &color, bool epsilon) {
+void Painter::writeStringViewImpl(int x, int y, int w, int h, const std::string_view &str, Font &font, Color &color, bool epsilon) {
     int tmpx = 0;
     std::size_t len = str.length();
 
+    auto off = offset();
+    BoundingBox r(off.x(), off.y(), w, h);
+    BoundingBox &c = currentClip();
+    BoundingBox vis = r.intersect(c);
+
+    if(vis.empty()) return;
+
     for(std::size_t i=0; i<len; ++i) {
         char c = str[i];
-        writeChar(x+tmpx, y, c, font, color);
+        writeChar(vis.x+tmpx, vis.y, c, font, color);
         tmpx += font.FontWidth;
     }
 

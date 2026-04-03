@@ -11,6 +11,7 @@
 #include "modules/SimpleOscillator/SimpleOsc.h"
 #include "modules/SimpleOscillator/SimpleOscUI.h"
 #include "modules/SimpleOscillator/SimpleOscView.h"
+#include "modules/SimpleOscillator/SimpleOscPushUI.h"
 
 #include <memory>
 
@@ -22,13 +23,12 @@ std::unique_ptr<slr::AudioUnitView> createSimpleOscView(slr::AudioUnit * osc) {
     return std::make_unique<slr::SimpleOscView>(static_cast<slr::SimpleOsc*>(osc));
 }
 
-UI::UnitUIBase * createSimpleOscUI(slr::AudioUnitView * osc, UI::UIContext * uictx) {
-    return new UI::SimpleOscUI(osc, uictx);
+std::unique_ptr<UI::UnitUIBase> createSimpleOscUI(slr::AudioUnitView * osc, UI::UIContext * uictx) {
+    return std::make_unique<UI::SimpleOscUI>(osc, uictx);
 }
 
 std::unique_ptr<PushUI::UnitUIBase> createSimpleOscPushUI(slr::AudioUnitView * osc, PushUI::PushUIContext * uictx) {
-    // return std::make_unique<PushUI::SimpleOscPushUI>(osc, uictx);
-    return std::unique_ptr<PushUI::UnitUIBase>(nullptr);
+    return std::make_unique<PushUI::SimpleOscPushUI>(osc, uictx);
 }
 
 const std::string_view _simpleOscName = "OSC";

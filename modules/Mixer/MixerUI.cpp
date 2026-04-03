@@ -49,7 +49,7 @@ bool MixerUI::destroy(UIContext * ctx) {
 }
 
 MixerUI::MixerModuleUI::MixerModuleUI(BaseWidget *parent, MixerUI *parentUI) :
-    BaseWidget(parent, true),
+    DefaultModuleUI(parent, parentUI),
     _parentUI(parentUI)
 {
     setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);

@@ -57,6 +57,7 @@ struct PushUIContext {
     void forceRedraw();
 
     std::size_t unitsCount() { return _unitUIs.size(); }
+    std::vector<std::unique_ptr<UnitUIBase>> & units() { return _unitUIs; }
 
     private:
     PushLib::PushContext * _pctx;

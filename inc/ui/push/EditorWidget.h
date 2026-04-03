@@ -17,7 +17,7 @@ struct EditorWidget : public PushLib::Widget {
     EditorWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~EditorWidget();
 
-    void paint(PushLib::Painter &painter) override;
+    void paint(PushLib::Painter &p) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;

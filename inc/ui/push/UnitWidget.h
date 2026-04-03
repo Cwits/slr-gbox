@@ -19,8 +19,8 @@ struct UnitWidget : public PushLib::Widget {
     UnitWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~UnitWidget();
 
-    void paint(PushLib::Painter &painter) override;
-
+    void paint(PushLib::Painter &p) override;
+    
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
 

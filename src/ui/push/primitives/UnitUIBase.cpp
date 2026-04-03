@@ -7,6 +7,7 @@
 #include "ui/push/primitives/Label.h"
 
 #include "snapshots/AudioUnitView.h"
+#include "logger.h"
 
 namespace PushUI {
 
@@ -25,30 +26,54 @@ DefaultGridUI::DefaultGridUI(PushLib::Widget *parent, UnitUIBase *parentUI)
     : PushLib::Widget(parent),
     _parentUI(parentUI) 
 {
-    size(200, 30);
+    size(200, 70);
     PushUIContext *ctx = _parentUI->uictx();
-    int y = (30 * ctx->unitsCount())+15;
+    int y = (70 * ctx->unitsCount()) + (5*ctx->unitsCount()) + 13;
 
-    position(20, y);
+    position(5, y);
 
     _rectangle = std::make_unique<Rectangle>(this, true);
-    _rectangle->position(20, y);
-    _rectangle->size(200, 30);
+    _rectangle->position(5, 5);
+    _rectangle->size(190, 60);
     _rectangle->color(PushLib::rgb(_parentUI->view()->color()));
+    
+    _rectangle2 = std::make_unique<Rectangle>(this, true);
+    _rectangle2->position(10, 10);
+    _rectangle2->size(20, 20);
+    _rectangle2->color(PushLib::invert(_rectangle->color()));
 
     _label = std::make_unique<Label>(this, _parentUI->view()->name());
-    _label->position(20, y);
-    _label->size(195, 25);
+    _label->position(10, 10);
     _label->font(PushLib::Font_7x10);
+    _label->color(PushLib::Colors::Black);
 }
 
 DefaultGridUI::~DefaultGridUI() {
-
 }
 
-void DefaultGridUI::paint(PushLib::Painter &painter) {
-    _rectangle->paint(painter);
-    _label->paint(painter);
+
+void DefaultGridUI::paint(PushLib::Painter &p) {
+    p.filledRectangle(_x, _y, _width, _height, PushLib::Colors::White);
+}
+
+void DefaultGridUI::up() {
+    auto old = _rectangle2->position();
+    _rectangle2->position(old.x(), old.y()-10);
+}
+
+void DefaultGridUI::down() {
+    auto old = _rectangle2->position();
+    _rectangle2->position(old.x(), old.y()+10);
+}
+
+void DefaultGridUI::left() {
+    auto old = _rectangle2->position();
+    _rectangle2->position(old.x()-10, old.y());
+}
+
+void DefaultGridUI::right() {
+    auto old = _rectangle2->position();
+    _rectangle2->position(old.x()+10, old.y());
 }
 
 
@@ -61,19 +86,14 @@ DefaultUnitUI::DefaultUnitUI(PushLib::Widget *parent, UnitUIBase *parentUI)
     _rectangle->size(100, 80);
     _rectangle->color(PushLib::rgb(_parentUI->view()->color()));
 
-    _label = std::make_unique<Label>(this, _parentUI->view()->name());
-    _label->position(400, 20);
-    _label->size(200, 40);
-    _label->font(PushLib::Font_7x10);
+    // _label = std::make_unique<Label>(this, _parentUI->view()->name());
+    // _label->position(400, 20);
+    // _label->size(200, 40);
+    // _label->font(PushLib::Font_7x10);
 }
 
 DefaultUnitUI::~DefaultUnitUI() {
 
-}
-
-void DefaultUnitUI::paint(PushLib::Painter &painter) {
-    _rectangle->paint(painter);
-    _label->paint(painter);
 }
 
 }

@@ -23,7 +23,7 @@ struct TrackUI : public UnitUIBase {
     bool destroy(UIContext * ctx) override;
 
     DefaultGridUI * gridUI() override { return _gridControl.get(); }
-    BaseWidget * moduleUI() override { return _moduleUI.get(); }
+    DefaultModuleUI * moduleUI() override { return _moduleUI.get(); }
     // BaseWidget * patchUI() override;
  
     private:
@@ -53,7 +53,7 @@ struct TrackUI : public UnitUIBase {
     };
 
     // struct TrackModuleUI : public DefaultModuleUI {
-    struct TrackModuleUI : public BaseWidget {
+    struct TrackModuleUI : public DefaultModuleUI {
         TrackModuleUI(BaseWidget *parent, TrackUI * parentUI);
         ~TrackModuleUI();
 

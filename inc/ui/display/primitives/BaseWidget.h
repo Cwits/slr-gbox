@@ -33,7 +33,7 @@ struct BaseWidget {
     explicit BaseWidget(lv_obj_t * parent);
     virtual ~BaseWidget();
 
-    bool canHandleGesture(GestLib::Gestures & gesture);
+    bool canHandleGesture(GestLib::Gestures gesture);
     bool handleGesture(GestLib::Gesture & gesture);
 
 

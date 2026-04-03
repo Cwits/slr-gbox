@@ -12,7 +12,7 @@ namespace PushLib {
 using Color = uint16_t;
 using Pixel = uint16_t;
 
-namespace COLORS {
+namespace Colors {
     constexpr Color Black   = 0x0000;
     constexpr Color Red     = 0x001F;
     constexpr Color Green   = 0x07E0;

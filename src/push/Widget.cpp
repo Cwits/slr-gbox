@@ -37,7 +37,7 @@ Widget::Widget(Widget * parent) :
     _width(0), 
     _height(0), 
     _z(0),
-    _color(PushLib::COLORS::White)
+    _color(PushLib::Colors::White)
 {
     if(_parent)
         _parent->addChild(this);
@@ -75,6 +75,16 @@ void Widget::markAllDirty() {
     std::for_each(_childrens.begin(), _childrens.end(), [](Widget *ch) {
         ch->markAllDirty();
     });
+}
+
+bool Widget::hasAnythingDirty() const {
+    bool ret = false;
+    ret |= dirty();
+    for(auto *c : _childrens) {
+        if(ret) break;
+        ret |= c->hasAnythingDirty();
+    } 
+    return ret;
 }
 
 // void Widget::paint(Painter &painter) {

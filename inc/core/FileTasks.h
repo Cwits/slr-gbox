@@ -18,6 +18,12 @@ class File;
 namespace Tasks {
 
 /* Generic Tasks */
+//open, callback, close
+struct OneShotOpen : public Task {
+    /* like for e.g. preset loading - you don't need keep file with preset always opened? */
+    void exec(FileWorker *f) override {}
+};
+
 struct openFile : public Task {
     void exec(FileWorker *f) override;
 

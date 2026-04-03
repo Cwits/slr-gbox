@@ -89,6 +89,17 @@ void dumpAudio::exec(FileWorker *f) {
 }
 
 /* Audio Buffer Editing */
+/* 
+    need some actions for swaping audiobuffer in file after task.
+    e.g. cut audio - buffer size change
+
+    1. calculate diff
+    2. create new buffer
+    3. fill new buffer with data
+    4. swap buffer in file thru Events
+        (it will automatically apply for each of clipitems
+        because clipitems has pointers)
+*/
 void cutAudio::exec(FileWorker *f) {
     //file->markDirty();
 }

@@ -18,7 +18,7 @@ class UnitUIBase;
 class Button;
 class UIContext;
 
-struct FileView : public BaseWidget {
+struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     FileView(BaseWidget * parent, UnitUIBase * _parentUI, const slr::ClipItemView * const item, UIContext * const uictx);
     ~FileView();
 

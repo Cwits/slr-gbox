@@ -22,6 +22,7 @@
 #include "ui/display/GridView.h"
 #include "ui/display/layoutSizes.h"
 #include "ui/uiutility.h"
+#include "ui/display/helpers/AudioFileToCanvas.h"
 
 #include "logger.h"
 
@@ -96,6 +97,18 @@ void FileView::draw() {
 
     if(_clipItem->item()->_file->isAudio()) {
         const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->item()->_file);
+        
+        UIHelpers::audioFileToCanvas(
+            afile,
+            0,
+            _clipItem->length(),
+            _canvas,
+            LayoutDef::TRACK_HEIGHT,
+            _canvasWidth,
+            _peakColor,
+            _fillColor
+        );
+        /*const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->item()->_file);
         const slr::AudioPeakFile * peakFile = afile->peaks();
 
         int xsize = _canvasWidth;
@@ -139,7 +152,7 @@ void FileView::draw() {
                     // midpoint += heightPerChannel;
                 }
             }
-        }
+        }*/
     } else if(_clipItem->item()->_file->isMidi()) {
         //draw midi file
     }

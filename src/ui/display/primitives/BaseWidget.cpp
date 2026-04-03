@@ -175,7 +175,7 @@ void BaseWidget::hideAllChilds() {
     }
 }
 
-bool BaseWidget::canHandleGesture(GestLib::Gestures & gesture) {
+bool BaseWidget::canHandleGesture(GestLib::Gestures gesture) {
     bool ret = false;
     if(gesture == GestLib::Gestures::TouchDown && _flags.isTouchDown) ret = true;
     if(gesture == GestLib::Gestures::TouchUp && _flags.isTouchUp) ret = true;

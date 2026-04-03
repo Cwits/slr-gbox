@@ -24,8 +24,8 @@ std::unique_ptr<slr::AudioUnitView> createTrackView(slr::AudioUnit * track) {
     return std::make_unique<slr::TrackView>(static_cast<slr::Track*>(track));
 }
 
-UI::UnitUIBase * createTrackUI(slr::AudioUnitView * track, UI::UIContext * uictx) {
-    return new UI::TrackUI(track, uictx);
+std::unique_ptr<UI::UnitUIBase> createTrackUI(slr::AudioUnitView * track, UI::UIContext * uictx) {
+    return std::make_unique<UI::TrackUI>(track, uictx);
 }
 
 std::unique_ptr<PushUI::UnitUIBase> createTrackPushUI(slr::AudioUnitView * track, PushUI::PushUIContext * uictx) {

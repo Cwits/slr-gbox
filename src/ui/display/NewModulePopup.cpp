@@ -24,7 +24,7 @@ NewModulePopup::NewModulePopup(BaseWidget *parent, UIContext * const uictx) :
         LOG_INFO("Create New Track Event");
         // slr::Events::NewTrack e;
         slr::Events::CreateModule e = {
-            .name = "Track"
+            .name = "Track" 
         };
         slr::EmitEvent(e); 
     });
@@ -48,11 +48,23 @@ NewModulePopup::NewModulePopup(BaseWidget *parent, UIContext * const uictx) :
         };
         slr::EmitEvent(e);
     });
+
+    _btnSampler = new Button(this, "Sampler");
+    _btnSampler->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnSampler->setPos(100, 200);
+    _btnSampler->setCallback([this]() {
+        slr::Events::CreateModule e = {
+            .name = "Sampler"
+        };
+        slr::EmitEvent(e);
+    });
 }
 
 NewModulePopup::~NewModulePopup() {
     delete _btnTrack;
     delete _btnMixer;
+    delete _btnOsc;
+    delete _btnSampler;
 }
 
 void NewModulePopup::update() {

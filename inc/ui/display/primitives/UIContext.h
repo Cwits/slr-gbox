@@ -7,6 +7,7 @@
 #include "ui/display/PopupManager.h"
 #include "gestlib/GestLib.h"
 #include <vector>
+#include <memory>
 
 namespace UI {
 
@@ -35,7 +36,7 @@ enum class MainView {
 struct UIContext {
     DragContext * dragContext() { return _dragContext; }
     
-    std::vector<UnitUIBase*> _unitsUI;
+    std::vector<std::unique_ptr<UnitUIBase>> _unitsUI;
     
     PopupManager * _popManager;
     Timeline * _gridTimeline;

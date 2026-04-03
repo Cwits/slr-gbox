@@ -6,6 +6,7 @@ CMakeCache.txt
 /tests/files/*
 /GenaV3/__pycache__
 /GenaV3/__pycache__/*
+/docs/TODO2.txt
 
 .vscode
 *.d

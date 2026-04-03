@@ -13,12 +13,13 @@ namespace PushLib {
 namespace PushUI {
 
 class PushUIContext;
+class Label;
  
 struct GridWidget : public PushLib::Widget {
     GridWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~GridWidget();
 
-    void paint(PushLib::Painter &painter) override;
+    void paint(PushLib::Painter &p) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
@@ -28,6 +29,11 @@ struct GridWidget : public PushLib::Widget {
     private:
     PushUIContext * const _pUIctx;
 
+    std::unique_ptr<Label> _someText1;
+    std::unique_ptr<Label> _someText2;
+    std::unique_ptr<Label> _someText3;
+    std::unique_ptr<Label> _someText4;
+
     // BUTTONS
     static const PushLib::ButtonCallbackMap<GridWidget> _buttonsCallback;
 
@@ -35,6 +41,7 @@ struct GridWidget : public PushLib::Widget {
     bool downBtnClb(PushLib::ButtonEvent &ev);
     bool leftBtnClb(PushLib::ButtonEvent &ev);
     bool rightBtnClb(PushLib::ButtonEvent &ev);
+    bool newBtnClb(PushLib::ButtonEvent &ev);
 };
 
 }

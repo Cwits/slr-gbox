@@ -30,7 +30,7 @@ struct ControlContext {
             return false;
         }
         
-        int remainedSpace = 9999;
+        std::size_t remainedSpace = 9999;
         if(remainedSpace < size) {
             //return true;
         }

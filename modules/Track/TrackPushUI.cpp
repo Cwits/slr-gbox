@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "modules/Track/TrackPushUI.h"
-
 #include "modules/Track/TrackView.h"
 
 #include "snapshots/AudioUnitView.h"

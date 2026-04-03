@@ -8,6 +8,7 @@
 #include "modules/Track/TrackModule.h"
 #include "modules/Mixer/MixerModule.h"
 #include "modules/SimpleOscillator/SimpleOscModule.h"
+#include "modules/Sampler/SamplerModule.h"
 
 #include <vector>
 #include <string>
@@ -20,6 +21,7 @@ void ModuleManagerFactory::init() {
     inst.registerModule(&TrackModule);
     inst.registerModule(&MixerModule);
     inst.registerModule(&SimpleOscModule);
+    inst.registerModule(&SamplerModule);
 
 
     //inst.discoverModules();

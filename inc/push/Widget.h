@@ -6,6 +6,7 @@
 #include "push/PushLib.h"
 #include "push/PushPainter.h"
 #include "push/BoundingBox.h"
+#include "push/Vec2.h"
 
 #include <vector>
 #include <map>
@@ -13,12 +14,6 @@
 namespace PushLib {
 
 class Painter;
-
-struct Vec2 {
-    Vec2(int x, int y) : _x(x), _y(y) {}
-    int _x;
-    int _y;
-};
 
 struct Widget {
     explicit Widget(Widget * parent = nullptr);
@@ -34,6 +29,7 @@ struct Widget {
     void markDirty() { _dirty = true; }
     void clearDirty() { _dirty = false; }
     void markAllDirty();
+    virtual bool hasAnythingDirty() const;
 
     bool visible() const { return _visible; }
     void show() { _visible = true; markDirty(); }
@@ -63,11 +59,25 @@ struct Widget {
     virtual void color(Color color) { _color = color; markDirty(); }
     virtual Color color() const { return _color; }
     
-    virtual BoundingBox bounds() { return BoundingBox(_x, _y, _width, _height); }
+    BoundingBox bounds() { return BoundingBox(_x, _y, _width, _height); }
     BoundingBox lastBounds() const { return _lastBounds; }
     void updateBounds() { _lastBounds = bounds(); }
 
-    virtual void paint(Painter & painter) = 0;
+    BoundingBox globalBounds() {
+        if(!_parent) return bounds();
+        
+        auto p = _parent->globalBounds();
+        return BoundingBox{ p.x + _x, p.y + _y, _width, _height };
+    }
+
+    BoundingBox lastGlobalBounds() const {
+        if(!_parent) return lastBounds();
+
+        auto p = _parent->globalBounds();
+        return {p.x + _lastBounds.x, p.y + _lastBounds.y, _lastBounds.w, _lastBounds.h};
+    }
+
+    virtual void paint(Painter & painter) {}
     void paintChilds(Painter &painter);
     //in order to mark that redraw is necessary - return true?
     virtual bool handleButton(PushLib::ButtonEvent &ev) { return false; }

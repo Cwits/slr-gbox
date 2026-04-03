@@ -92,6 +92,15 @@ class AudioUnit {
     
     static ID nextAudioUnitId();
 
+    //must be called from RT only
+    // RT_FUNC virtual bool assetLoaded(void *assetStruct) { return false; }
+    // RT_FUNC static Common::Status assetLoaded(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    //     // bool res = ev.unit->assetLoaded(ev.asset);
+    //     // resp.assetLoaded.success = res;
+    //     //...
+    //     return Common::Status::Ok;
+    // }
+
     protected:
     const ID _uniqueId;
 

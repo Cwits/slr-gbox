@@ -10,10 +10,9 @@ namespace PushUI {
 Pointer::Pointer(PushLib::Widget *parent) :
     PushLib::Widget(parent)
 {
-    color(PushLib::COLORS::White);
     _font = PushLib::Font_7x10;
     _newFont = PushLib::Font_7x10;
-    _color = PushLib::COLORS::White;
+    _color = PushLib::Colors::White;
     _x = 0;
     _y = 0;
     markDirty();

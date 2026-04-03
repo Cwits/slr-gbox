@@ -22,6 +22,7 @@ class Button;
 class UIContext;
 class FileView;
 class DefaultGridUI;
+class DefaultModuleUI;
 
 struct UnitUIBase {
     UnitUIBase(slr::AudioUnitView * view, UIContext * uictx);
@@ -31,7 +32,7 @@ struct UnitUIBase {
     virtual bool destroy(UIContext * ctx);
 
     virtual DefaultGridUI * gridUI() = 0;
-    virtual BaseWidget * moduleUI() = 0;
+    virtual DefaultModuleUI * moduleUI() = 0;
     // virtual BaseWidget * patchUI() = 0;
 
     void updateParameter(slr::ID parameterID, float value);
@@ -89,9 +90,11 @@ struct DefaultGridUI : public BaseWidget {
 };
 
 struct DefaultModuleUI : public BaseWidget {
-    DefaultModuleUI(BaseWidget * parent, UnitUIBase *base) 
-            : BaseWidget(parent, true, true) {}
-    virtual ~DefaultModuleUI() {}
+    DefaultModuleUI(BaseWidget * parent, UnitUIBase *base);
+    virtual ~DefaultModuleUI();
+
+    private:
+    std::unique_ptr<FileView> _fileViewUI; //for using in grid
     // std::unique_ptr<FileView> _fileEditorUI;
     /* 
         it should be something like... dunno... several buttons as

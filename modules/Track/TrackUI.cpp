@@ -126,7 +126,7 @@ void TrackUI::TrackGridControlUI::pollUIUpdate() {
 }
 
 TrackUI::TrackModuleUI::TrackModuleUI(BaseWidget *parent, TrackUI * parentUI) 
-    : BaseWidget(parent, true),
+    : DefaultModuleUI(parent, parentUI),
     _parentUI(parentUI)
 {
     setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);

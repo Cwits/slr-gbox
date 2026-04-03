@@ -30,7 +30,7 @@ struct Module {
     //some other parameters??
     std::unique_ptr<slr::AudioUnit> (*createRT)(const ClipContainer *);
     std::unique_ptr<slr::AudioUnitView> (*createView)(slr::AudioUnit *);
-    UI::UnitUIBase * (*createUI)(slr::AudioUnitView *, UI::UIContext *);
+    std::unique_ptr<UI::UnitUIBase> (*createUI)(slr::AudioUnitView *, UI::UIContext *);
     std::unique_ptr<PushUI::UnitUIBase> (*createPushUI)(slr::AudioUnitView *, PushUI::PushUIContext *); 
 };
 

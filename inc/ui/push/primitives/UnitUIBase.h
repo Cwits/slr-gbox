@@ -53,13 +53,20 @@ struct DefaultGridUI : public PushLib::Widget {
     ~DefaultGridUI();
 
     // void pollUIUpdate() override;
-    void paint(PushLib::Painter &painter) override;
+    void paint(PushLib::Painter &p) override;
+
+    void up();
+    void down();
+    void left();
+    void right();
 
     private:
     UnitUIBase * _parentUI;
     // std::vector<std::unique_ptr<FileView>> _fileUIs; //make the simplified version of waveform(as in messengers or smth)
     std::unique_ptr<Label> _label;
     std::unique_ptr<Rectangle> _rectangle;
+    std::unique_ptr<Rectangle> _rectangle2;
+    
 };
 
 struct DefaultUnitUI : public PushLib::Widget {
@@ -67,7 +74,6 @@ struct DefaultUnitUI : public PushLib::Widget {
     ~DefaultUnitUI();
 
     // void pollUIUpdate() override;
-    void paint(PushLib::Painter &painter) override;
 
     private:
     UnitUIBase * _parentUI;

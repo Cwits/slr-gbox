@@ -47,7 +47,7 @@ bool SimpleOscUI::destroy(UIContext * ctx) {
 }
 
 SimpleOscUI::SimpleOscModuleUI::SimpleOscModuleUI(BaseWidget *parent, SimpleOscUI * parentUI) 
-    : BaseWidget(parent, true),
+    : DefaultModuleUI(parent, parentUI),
     _parentUI(parentUI)
 {
     setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);

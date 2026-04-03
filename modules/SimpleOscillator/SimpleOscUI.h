@@ -26,7 +26,7 @@ struct SimpleOscUI : public UnitUIBase {
     bool destroy(UIContext * ctx) override;
 
     DefaultGridUI * gridUI() override { return _gridControl.get(); }
-    BaseWidget * moduleUI() override { return _moduleUI.get(); }
+    DefaultModuleUI * moduleUI() override { return _moduleUI.get(); }
     // BaseWidget * patchUI() override;
  
     private:
@@ -37,7 +37,7 @@ struct SimpleOscUI : public UnitUIBase {
     std::unique_ptr<DefaultGridUI> _gridControl;
     std::unique_ptr<SimpleOscModuleUI> _moduleUI;
 
-    struct SimpleOscModuleUI : public BaseWidget {
+    struct SimpleOscModuleUI : public DefaultModuleUI {
         SimpleOscModuleUI(BaseWidget *parent, SimpleOscUI * parentUI);
         ~SimpleOscModuleUI();
 
