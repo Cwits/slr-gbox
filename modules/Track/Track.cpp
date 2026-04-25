@@ -28,22 +28,12 @@ namespace slr {
 
 
 Track::Track(const ClipContainer * initContainer) : AudioUnit(initContainer) {
-    // _recInt = AudioBufferManager::acquireRegular();
-    // _recExt = AudioBufferManager::acquireRegular();
-    // _preFX = AudioBufferManager::acquireRegular();
-    // _postFX = AudioBufferManager::acquireRegular();
-    // _postPan = AudioBufferManager::acquireRegular();  
-
     _record = false;
     _recordSource = RecordSource::Audio;
     _recordTarget = nullptr;
 }
 
 Track::~Track() {
-    // AudioBufferManager::releaseRegular(_preFX);
-    // AudioBufferManager::releaseRegular(_postFX);
-    // AudioBufferManager::releaseRegular(_postPan);
-
     if(_recordTarget) {
         FileWorker * fw = ControlEngine::fileWorker();
         _recordTarget->release(fw);
