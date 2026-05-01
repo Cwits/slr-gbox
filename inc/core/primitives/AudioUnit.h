@@ -9,7 +9,7 @@
 #include "core/primitives/FileContainer.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/MidiBuffer.h"
-#include "core/FlatEvents.h"
+// #include "core/FlatEvents.h"
 #include "common/Status.h"
 
 #include <vector>
@@ -43,10 +43,10 @@ class AudioUnit {
 
     RT_FUNC virtual frame_t latency() { return 0; }
 
-    RT_FUNC static Common::Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
-    RT_FUNC static Common::Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Common::Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
     struct UnitOutput {
         AudioBuffer * ptr;
@@ -61,11 +61,13 @@ class AudioUnit {
     // void injectMidi(MidiEvent & ev) { _midiQueue.push_back(ev); }
     void clearMidiBuffer();
     MidiBuffer * midiOutputs() { return _midiOutput; }
+
     const bool isMidiThru() const { return _midiThru; }
-    const bool isOmniHwInput() const { return _omniHwInput; }
+    inline void setMidiThru(bool state) { _midiThru = state; }
     
-    // [[deprecated("FOR TEST PURPOSE ONLY")]]
-    // void setMidiThru(bool newState) { _midiThru = newState; } //for test purposes, use events instead
+    const bool isOmniHwInput() const { return _omniHwInput; }
+    inline void setOmniHw(bool state) { _omniHwInput = state; }
+    
     //void injectControl(...);
 
     const ID id() const { return _uniqueId; }
@@ -85,10 +87,15 @@ class AudioUnit {
     const float pan() const { return _pan; }
     const ID panId() const { return _pan.id(); }
 
+    inline void setParameter(ID parameterId, float value) {
+        _flatParameterList[parameterId]->setValue(value);
+    }
+    
     bool hasParameterWithId(ID parameterId);
 
     const ClipContainer * clips() const { return _clipContainer; }
-    RT_FUNC static Common::Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    inline void setClipContainer(const ClipContainer *cont) { _clipContainer = cont; }
+    // RT_FUNC static Common::Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
     static ID nextAudioUnitId();
 

@@ -8,7 +8,7 @@
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
 #include "core/RtEngine.h"
-#include "core/FlatEvents.h"
+// #include "core/FlatEvents.h"
 #include "core/MidiController.h"
 
 #include <iostream>

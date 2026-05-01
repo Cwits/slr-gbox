@@ -10,7 +10,8 @@
 #include "ui/display/primitives/FileView.h"
 #include "ui/display/primitives/UnitUIBase.h"
 
-#include "core/Events.h"
+// #include "core/Events.h"
+#include "core/Actions.h"
 #include "snapshots/FileContainerView.h"
 
 #include "logger.h"
@@ -99,6 +100,7 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
     if(drag.state == GestLib::GestureState::Start) {
 
     } else if(drag.state == GestLib::GestureState::Move) {
+        LOG_INFO("Here");
         if(ctx.dragOnGoing) {
             ctx.updateIconPos(drag.x, drag.y);
         }    
@@ -117,12 +119,12 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
                 UnitUIBase *unit = u.get();
                 if(notAbsY >= unit->gridUI()->gridY() && notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && unit->canLoadFiles()) {
                     LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
-                    slr::Events::OpenFile e = {
-                        .unitId = unit->id(),
-                        .path = *ctx.payload.filePath.path,
-                        .fileStartPosition = 0
-                    };
-                    slr::EmitEvent(e);
+                    auto action = std::make_unique<slr::Actions::LoadAsClip>();
+                    action->targetId = unit->id();
+                    action->data = *ctx.payload.filePath.path;
+                    action->startOffset = 0;
+                    action->makeUnique = false;
+                    slr::EmitAction(std::move(action));
                     break;
                 }
             }

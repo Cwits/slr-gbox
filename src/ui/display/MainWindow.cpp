@@ -27,7 +27,7 @@
 #include "snapshots/TimelineView.h"
 
 #include "core/ModuleManager.h"
-#include "core/Events.h"
+#include "core/Actions.h"
 
 #include "logger.h"
 
@@ -367,10 +367,9 @@ View * MainWindow::getSwitchViewTarget(MainView & view) {
 }
 
 void MainWindow::playheadUpdateCb(lv_timer_t * timer) {
-    slr::Events::RequestPlayhead e;
-    // e.commandId = slr::Events::GenerateEventId();
-    slr::EmitEvent(e);
-    // lv_timer_reset(timer);
+    auto act = std::make_unique<slr::Actions::UpdatePlayhead>();
+    slr::EmitAction(std::move(act));
+    lv_timer_reset(timer);
 }
 
 void MainWindow::updateTimeline(const bool timeSigOrBpm) {

@@ -5,7 +5,6 @@
 
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/AudioBuffer.h"
-#include "core/FlatEvents.h"
 #include "defines.h"
 
 namespace slr {

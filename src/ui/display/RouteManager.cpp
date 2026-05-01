@@ -16,7 +16,8 @@
 #include "core/primitives/MidiRoute.h"
 #include "core/MidiController.h"
 #include "core/ControlEngine.h"
-#include "core/Events.h"
+#include "core/Actions.h"
+// #include "core/Events.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
@@ -88,11 +89,11 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     _midiThru->setCallback([this](bool isChecked) {
         slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
 
-        slr::Events::ToggleMidiThru e = {
-            .targetId = view->id(),
-            .newState = view->isMidiThru() ? false : true
-        };
-        slr::EmitEvent(e);
+        // slr::Events::ToggleMidiThru e = {
+        //     .targetId = view->id(),
+        //     .newState = view->isMidiThru() ? false : true
+        // };
+        // slr::EmitEvent(e);
     });
 
     _midiThruText = new Label(this, "Midi Thru");
@@ -109,11 +110,11 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
             return;
         }
 
-        slr::Events::ToggleOmniHwInput e = {
-            .targetId = view->id(),
-            .newState = view->isOmniHwInput() ? false : true
-        };
-        slr::EmitEvent(e);
+        // slr::Events::ToggleOmniHwInput e = {
+        //     .targetId = view->id(),
+        //     .newState = view->isOmniHwInput() ? false : true
+        // };
+        // slr::EmitEvent(e);
     });
 
     _omniHwInputText = new Label(this, "Omni HW Input");
@@ -565,9 +566,9 @@ void RouteManager::AudioTab::newRoute(bool isInput) {
         newroute._sourceType = slr::AudioRoute::Type::INT;
     }
 
-    slr::Events::AddNewRoute r;
-    r.route = newroute;
-    slr::EmitEvent(r);
+    auto action = std::make_unique<slr::Actions::AddNewAudioRoute>();
+    action->route = newroute;
+    slr::EmitAction(std::move(action));
 }
 
 RouteManager::MidiTab::MidiTab(BaseWidget *parent, const slr::ID &id) 
@@ -984,9 +985,10 @@ void RouteManager::MidiTab::newRoute(bool isInput) {
         newroute._sourceType = slr::MidiRoute::Type::INT;
     }
 
-    slr::Events::AddNewMidiRoute r;
-    r.route = newroute;
-    slr::EmitEvent(r);
+    
+    auto action = std::make_unique<slr::Actions::AddNewMidiRoute>();
+    action->route = newroute;
+    slr::EmitAction(std::move(action));
 }
 
 }

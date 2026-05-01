@@ -33,10 +33,9 @@ class Project {
 
     RT_FUNC const bool isSolo() const { return _isSolo; }
 
-    RT_FUNC static Common::Status swapPlan(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-
+    bool prepareSwappablePlan();
     const RenderPlan * editablePlan() const;
-    void replaceEditablePlan(RenderPlan * plan);
+    RT_FUNC void swapPlans();
     RT_FUNC const RenderPlan * runPlan() const;
     RT_FUNC const RenderPlan * soloPlan() const;
 
@@ -54,8 +53,10 @@ class Project {
     void removeRoute(std::size_t idx) { _routes.erase(_routes.begin() + idx); }
     void removeRoutesForId(ID id);
     bool evaluateRoute(const AudioRoute & route);
+    bool unitHaveRoutes(ID unitId) const;
 
     const std::vector<MidiRoute> & midiRoutes() const { return _midiRoutes; }
+    bool evaluateRoute(const MidiRoute & route) { return true; }
     void addRoute(MidiRoute route) { _midiRoutes.push_back(route); }
 
     Timeline & timeline() { return _timeline; }
@@ -66,14 +67,14 @@ class Project {
     ClipStorage & clipStorage() { return _clipStorage; }
     
     ClipItem * findClipItemById(ID id);
-    static Common::Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // static Common::Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
 
     private:
     bool _isSolo;
     RenderPlan * _soloPlan;
 
-    std::atomic<bool> _planInWork;
+    std::atomic<int> _planInWork;
     RenderPlan * _renderPlan1;
     RenderPlan * _renderPlan2;
     

@@ -17,7 +17,8 @@
 #include "snapshots/AudioUnitView.h"
 
 #include "core/utility/helper.h"
-#include "core/Events.h"
+#include "core/Actions.h"
+// #include "core/Events.h"
 
 #include "logger.h"
 
@@ -60,10 +61,9 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
     _deleteBtn->setCallback([this]() {
         // std::cout << "Delete track: " << (int)_track->id() << std::endl;
         LOG_INFO("Delete track: %i", _currentUnit->id());
-        slr::Events::DeleteModule e = {
-            .targetId = _currentUnit->id()
-        };
-        slr::EmitEvent(e);
+        auto del = std::make_unique<slr::Actions::DeleteUnit>();
+        del->targetId = _currentUnit->id();
+        slr::EmitAction(std::move(del));
 
         this->_uictx->setLastSelected(nullptr);
         this->_uictx->_popManager->disableUnitControl();
@@ -128,12 +128,12 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
                 float vol = std::stof(text);
                 LOG_WARN("No check for volume!");
                 LOG_INFO("Setting volume to: %f", vol);
-                slr::Events::SetParameter e = {
-                    e.targetId = this->_uibase->view()->id(),
-                    e.parameterId = this->_uibase->view()->volumeId(),
-                    e.value = vol
-                };
-                slr::EmitEvent(e);
+                // slr::Events::SetParameter e = {
+                //     e.targetId = this->_uibase->view()->id(),
+                //     e.parameterId = this->_uibase->view()->volumeId(),
+                //     e.value = vol
+                // };
+                // slr::EmitEvent(e);
                 // this->_lblVolume->setText(text);
             }
         );
@@ -147,12 +147,12 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     _btnMute->setFont(&lv_font_montserrat_40);
     _btnMute->setCallback([this]() {
         // std::cout << "Mute track: " << (int)_track->id() << " parid: " << _track->muteId() << std::endl;
-        slr::Events::SetParameter e = {
-            .targetId = _uibase->view()->id(),
-            .parameterId = _uibase->view()->muteId(),
-            .value = (_uibase->view()->mute() ? slr::boolToFloat(false) : slr::boolToFloat(true))
-        };
-        slr::EmitEvent(e);
+        // slr::Events::SetParameter e = {
+        //     .targetId = _uibase->view()->id(),
+        //     .parameterId = _uibase->view()->muteId(),
+        //     .value = (_uibase->view()->mute() ? slr::boolToFloat(false) : slr::boolToFloat(true))
+        // };
+        // slr::EmitEvent(e);
     });
 
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
@@ -224,10 +224,10 @@ void DefaultGridUI::pollFileUpdate() {
                 }
                 //need to erase from _viewItems container as well...
                 for(std::size_t i=0; i<toRemove.size(); ++i) {
-                    slr::Events::ClipUIRemoved e = {
-                        .clipId = toRemove.at(i)->id(),
-                        .unitId = view->id()
-                    };
+                    // slr::Events::ClipUIRemoved e = {
+                    //     .clipId = toRemove.at(i)->id(),
+                    //     .unitId = view->id()
+                    // };
                     
                     for(std::size_t y=0; y<_fileUIs.size(); ++y) {
                         if(_fileUIs.at(y).get() == toRemove.at(i)) {
@@ -237,7 +237,7 @@ void DefaultGridUI::pollFileUpdate() {
                     }
                     delete toRemove.at(i);
 
-                    slr::EmitEvent(e);
+                    // slr::EmitEvent(e);
                 }
             }
 

@@ -82,6 +82,11 @@ RtEngine:
         but what to do with timeline? should RtEngine own timeline, or Project(and pass together with render plan?)? Feels like first option be better...
         But if timeline stored in RtEngine than it would make things as prepareToPlay()\record() more difficult?
 
+[ ] - must obrain buffers through MidiController. Basically - MidiController owning vectors:
+        std::unique_ptr<std::vector<RtMidiBuffer>> and ... etc, rtengine just using them?
+
+MidiController:
+[ ] - MidiController.cpp:101 - //TODO: ugh, this is bad lol :D
 
 Project:
 [ ] - make save and load system(serialization)

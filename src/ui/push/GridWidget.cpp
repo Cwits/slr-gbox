@@ -10,7 +10,7 @@
 #include "ui/push/primitives/UnitUIBase.h"
 #include "ui/push/primitives/Label.h"
 
-#include "core/Events.h"
+// #include "core/Events.h"
 
 #include "logger.h"
 
@@ -121,10 +121,10 @@ bool GridWidget::rightBtnClb(PushLib::ButtonEvent &ev) {
 bool GridWidget::newBtnClb(PushLib::ButtonEvent &ev) {
     if(!PushHelper::isBtnPressed(ev)) return false;
 
-    slr::Events::CreateModule e = {
-        .name = "Track"
-    };
-    slr::EmitEvent(e); 
+    // slr::Events::CreateModule e = {
+    //     .name = "Track"
+    // };
+    // slr::EmitEvent(e); 
     
     return true;
 }

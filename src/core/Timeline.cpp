@@ -169,66 +169,28 @@ uint32_t Timeline::calcFramesPerBar() const {
     return framesPerBeat() * getBarSize()._numerator;
 }
 
-
-/* RT Callbacks */
-Common::Status Timeline::setBpmTimeSig(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ev.changeSigBpm.tl->setBpm(ev.changeSigBpm.bpm);
-    ev.changeSigBpm.tl->setBarSize(ev.changeSigBpm.sig);
-
-    resp.type = FlatEvents::FlatResponse::Type::ChangeSigBpm;
-    resp.status = Common::Status::Ok;
-    resp.changeSigBpm.tl = ev.changeSigBpm.tl;
-    resp.changeSigBpm.bpm = ev.changeSigBpm.bpm;
-    resp.changeSigBpm.sig = ev.changeSigBpm.sig;
-    return Common::Status::Ok;
+void Timeline::setTimelineState(TimelineState state) {
+    switch(state) {
+        case(TimelineState::Stop): stop(); break;
+        case(TimelineState::Play): play(); break;
+        case(TimelineState::Pause): pause(); break;
+        case(TimelineState::StartRecord): record(); break;
+        case(TimelineState::StopRecord): stopRecord(); break;
+    }
 }
 
-Common::Status Timeline::setLoopPosition(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ev.loopPosition.tl->setLoopStartFrame(ev.loopPosition.start);
-    ev.loopPosition.tl->setLoopEndFrame(ev.loopPosition.end);
-
-    resp.type = FlatEvents::FlatResponse::Type::LoopPosition;
-    resp.status = Common::Status::Ok;
-    resp.loopPosition.tl = ev.loopPosition.tl;
-    resp.loopPosition.start = ev.loopPosition.start;
-    resp.loopPosition.end = ev.loopPosition.end;
-    return Common::Status::Ok;
+void Timeline::setLoopPosition(frame_t start, frame_t end) {
+    _loopStartFrame = start;
+    _loopEndFrame = end;
 }
 
-Common::Status Timeline::toggleLoop(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ev.toggleLoop.timeline->setLoop(ev.toggleLoop.newState);
-    if(ev.toggleLoop.newState == true) {
-        ev.toggleLoop.timeline->_lastLoopStamp = 0;
+void Timeline::setLoopState(bool newState) {
+    _isLoop = newState;
+    if(newState == true) {
+        _lastLoopStamp = 0;
     } else {
-        ev.toggleLoop.timeline->_startCountFrame += ev.toggleLoop.timeline->_lastLoopStamp;
+        _startCountFrame += _lastLoopStamp;
     }
-
-    resp.type = FlatEvents::FlatResponse::Type::ToggleLoop;
-    resp.status = Common::Status::Ok;
-    resp.toggleLoop.timeline = ev.toggleLoop.timeline;
-    resp.toggleLoop.newState = ev.toggleLoop.newState;
-    return Common::Status::Ok;
-}
-
-Common::Status Timeline::changeTimelineState(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    resp.type = FlatEvents::FlatResponse::Type::ChangeTimelineState;
-    switch(ev.changeTimelineState.state) {
-        case(TimelineState::Stop): ev.changeTimelineState.timeline->stop(); break;
-        case(TimelineState::Play): ev.changeTimelineState.timeline->play(); break;
-        case(TimelineState::Pause): ev.changeTimelineState.timeline->pause(); break;
-        case(TimelineState::StartRecord): ev.changeTimelineState.timeline->record(); break;
-        case(TimelineState::StopRecord): ev.changeTimelineState.timeline->stopRecord(); break;
-    }
-    resp.changeTimelineState.state = ev.changeTimelineState.state;
-    resp.status = Common::Status::Ok;
-    return resp.status;
-}
-
-Common::Status Timeline::requestPlayhead(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    resp.type = FlatEvents::FlatResponse::Type::RequestPlayhead;
-    resp.requestPlayhead.position = ev.requestPlayhead.timeline->_lastElapsed;
-    resp.status = Common::Status::Ok;
-    return Common::Status::Ok;
 }
 
 }

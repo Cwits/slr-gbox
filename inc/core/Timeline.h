@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "core/FlatEvents.h"
-#include "common/Status.h"
+// #include "core/FlatEvents.h"
+// #include "common/Status.h"
 #include "defines.h"
 
 namespace slr {
@@ -29,10 +29,12 @@ class Timeline {
     const RollState state() const { return _state; }
 
     const frame_t elapsed(frame_t & framesPassed);
+    frame_t lastElapsed() const { return _lastElapsed; }
     const frame_t loopStartFrame() const { return _loopStartFrame; }
     const frame_t loopEndFrame() const { return _loopEndFrame; }
     
     const float bpm() const { return _bpm; }
+
     const int ppqn() const { return _ppqn; }
 
     const BarSize getBarSize() const { return _size; }
@@ -43,22 +45,13 @@ class Timeline {
     const uint32_t framesPerBeat() const { return calcFramesPerBeat(); }
     const uint32_t framesPerBar() const { return calcFramesPerBar(); }
     // frame_t framesToMs(frame_t frames);
+    
+    void setBpm(float newBpm);
+    void setBarSize(BarSize size);
+    void setTimelineState(TimelineState state);
+    void setLoopPosition(frame_t start, frame_t end);
+    void setLoopState(bool newState);
 
-
-    // //per quater note
-    // uint32_t getFramesPerBeat() { return _framesPerBeat; }
-    // frame_t getStartFrame() { return _startCountFrame; }
-    // float getBpm() { return _bpm; }
-    // void setBpm(float newBpm);
-    // int getPpqn() const { return _ppqn; }
-
-    /* RT Callbacks */
-    static Common::Status setBpmTimeSig(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Common::Status setLoopPosition(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Common::Status toggleLoop(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Common::Status changeTimelineState(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    static Common::Status requestPlayhead(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-     
     private:
     float _bpm;
     BarSize _size;
@@ -96,13 +89,6 @@ class Timeline {
     void stop();
     void resumePlay(); //use after pause
     
-    void setLoopStartFrame(frame_t frame) { _loopStartFrame = frame; }
-    void setLoopEndFrame(frame_t frame) { _loopEndFrame = frame; }
-
-    void setLoop(bool newstate) { _isLoop = newstate; }
-    
-    void setBpm(float newBpm);
-    void setBarSize(BarSize size);
 };
 
 }

@@ -153,7 +153,7 @@ void Sampler::clearAllVoices() {
         v.clear();
     });
 }
-
+/*
 Common::Status Sampler::assetOpened(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     ev.assetOpened.sampler->clearAllVoices();
     ev.assetOpened.sampler->_file = ev.assetOpened.file;
@@ -165,6 +165,6 @@ Common::Status Sampler::assetOpened(const FlatEvents::FlatControl &ev, FlatEvent
     resp.assetOpened.file = ev.assetOpened.file;
     return Common::Status::Ok;
 }
-
+*/
 
 }

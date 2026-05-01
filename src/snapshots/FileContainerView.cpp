@@ -10,7 +10,7 @@
 
 namespace slr {
 
-ClipItemView::ClipItemView(ClipItem * container) : 
+ClipItemView::ClipItemView(const ClipItem * container) : 
     _startPosition(container->startPosition()),
     _length(container->length()),
     _fileOffset(container->fileOffset()),
@@ -61,7 +61,7 @@ void ClipContainerView::deleteClipViewItem(ID id) {
 
 ClipViewStorage::~ClipViewStorage() { }
 
-ClipItemView * ClipViewStorage::newClipView(ClipItem *item) {
+ClipItemView * ClipViewStorage::newClipView(const ClipItem *item) {
     ClipItemView *ret = nullptr;
     try {
         std::unique_ptr<ClipItemView> itm = std::make_unique<ClipItemView>(item);

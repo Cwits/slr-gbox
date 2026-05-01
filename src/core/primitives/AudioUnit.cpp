@@ -85,6 +85,7 @@ bool AudioUnit::isMuted(const AudioContext &ctx) {
     return false;
 }
 
+/*
 Common::Status AudioUnit::setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) { 
     AudioUnit * u = ev.setParameter.unit;
     u->_flatParameterList[ev.setParameter.parameterId]->setValue(ev.setParameter.value);
@@ -121,7 +122,7 @@ Common::Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, F
     resp.toggleOmniHwInput.newState = ev.toggleOmniHwInput.newState;
     return Common::Status::Ok;
 }
-
+*/
 void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
 
 }
@@ -199,7 +200,7 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
 }
 
 void AudioUnit::clearMidiBuffer() { _midiInput->clear(); }
-
+/*
 Common::Status AudioUnit::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     resp.swapContainer.oldContainer = ev.swapContainer.unit->_clipContainer;
     
@@ -212,5 +213,5 @@ Common::Status AudioUnit::swapContainer(const FlatEvents::FlatControl &ev, FlatE
     resp.commandId = ev.commandId;
     return Common::Status::Ok;
 }
-
+*/
 }

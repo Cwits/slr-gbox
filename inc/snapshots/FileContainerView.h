@@ -13,7 +13,7 @@ class File;
 class ClipItem;
 
 struct ClipItemView {
-    ClipItemView(ClipItem * container);
+    ClipItemView(const ClipItem * container);
 
     frame_t startPosition() const { return _startPosition; }
     frame_t endPosition() const { return _startPosition + _length; }
@@ -26,6 +26,15 @@ struct ClipItemView {
 
     void update();
     uint64_t version() const { return _version.load(std::memory_order_acquire); }
+
+
+    void update(frame_t startPosition, frame_t length, frame_t fileOffset, bool muted) {
+        _startPosition = startPosition;
+        _length = length;
+        _fileOffset = fileOffset;
+        _muted = muted;
+        incrementVersion();
+    }
 
     private:
     frame_t _startPosition;
@@ -55,7 +64,7 @@ struct ClipContainerView {
 
 struct ClipViewStorage {
     ~ClipViewStorage();
-    ClipItemView * newClipView(ClipItem * item);
+    ClipItemView * newClipView(const ClipItem * item);
     ClipItemView * findClipById(ID id);
     bool deleteClipById(ID id);
     

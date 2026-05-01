@@ -7,9 +7,9 @@
 // #include "core/primitives/AudioBuffer.h"
 // #include "core/primitives/MidiBuffer.h"
 // #include "core/primitives/FileContainer.h"
-#include "core/FlatEvents.h"
+// #include "core/FlatEvents.h"
 #include "defines.h"
-#include "common/Status.h"
+// #include "common/Status.h"
 
 namespace slr {
 
@@ -36,8 +36,8 @@ class Track : public AudioUnit {
 
     // const AudioBuffer * outputs() const { return _postFX; }
 
-    RT_FUNC static Common::Status setRecordArm(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Common::Status reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status setRecordArm(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
     const bool record() const { return _record; }
     const RecordSource recordSource() const { return _recordSource; }

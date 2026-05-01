@@ -12,7 +12,7 @@
 #include "snapshots/AudioUnitView.h"
 
 #include "core/primitives/AudioFile.h"
-#include "core/Events.h"
+// #include "core/Events.h"
 
 
 namespace UI {
@@ -147,11 +147,11 @@ bool SamplerUI::SamplerModuleUI::handleDrag(GestLib::DragGesture & drag) {
             ctx.updateIconPos(drag.x, drag.y);
         }
     } else if(drag.state == GestLib::GestureState::End) {
-        slr::Events::LoadAsset e = {
-            .path = *ctx.payload.filePath.path,
-            .unitId = _parentUI->_sampler->id()
-        };
-        slr::EmitEvent(e);
+        // slr::Events::LoadAsset e = {
+        //     .path = *ctx.payload.filePath.path,
+        //     .unitId = _parentUI->_sampler->id()
+        // };
+        // slr::EmitEvent(e);
             
         ctx.reset();
     }

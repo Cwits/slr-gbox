@@ -6,12 +6,14 @@
 #include "core/drivers/AudioDriver.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/AudioContext.h"
+#include "core/primitives/RtTask.h"
 #include "core/utility/basicAudioManipulation.h"
 
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
 #include "core/RtEngine.h"
-#include "core/RTHandlerTable.h"
+// #include "core/RTHandlerTable.h"
+
 
 #include "core/Project.h"
 #include "core/Timeline.h"
@@ -41,7 +43,7 @@ RtEngine::~RtEngine() {
 }
 
 bool RtEngine::init() {
-    _snapshotCount = 0;
+    // _snapshotCount = 0;
     _isFirstCallback = true;
     
 #if defined(__aarch64__)
@@ -102,13 +104,13 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
     //at this point inputs contains hw input data, and outputs buffers are zeroed out
 
-    FlatEvents::FlatControl ev;
-    while(_inputControl.pop(ev)) {
-        _controlSnapshot[_snapshotCount] = ev;
-        _snapshotCount++;
+    //handle rt control tasks
+    {
+        RtTask * task = nullptr;
+        while(_rtTasks.pop(task)) {
+            task->fn(task->obj);
+        }
     }
-
-    handleControlEvents(_controlSnapshot, framesPassed);
 
     //midi work
     for(RtMidiBuffer &b : *_midiInLocal) {
@@ -199,7 +201,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
                     inputs,
                     outputs,
                     tl,
-                    _outputControl,
+                    // _outputControl,
                     _midiInLocal);
     
     const RenderPlan * plan = (_prj->isSolo() ? _prj->soloPlan() : _prj->runPlan());
@@ -254,6 +256,10 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     return frames;
 }
 
+void RtEngine::addTask(RtTask * task) {
+    _rtTasks.push(task);
+}
+
 const int RtEngine::blockSize() const {
     return _driver->bufferSize();
 }
@@ -262,32 +268,26 @@ const int RtEngine::channels() const {
     return _driver->outputCount();
 }
 
-void RtEngine::handleControlEvents(std::array<FlatEvents::FlatControl, 256> & list, frame_t & framesPassed) {
-    for(int i=0; i<_snapshotCount; ++i) {
-        const FlatEvents::FlatControl & ev = list[i];
-		FlatEvents::FlatResponse resp;
-        Common::Status st = RTHandlers::RTTable[static_cast<size_t>(ev.type)](ev, resp);
-        
-        if(st == Common::Status::Ok)
-            _outputControl.push(resp);
-    }
-
-    _snapshotCount = 0;
-}
-
 void RtEngine::setProject(Project * prj) { 
     prj->timeline().init(_driver->sampleRate(), _driver->bufferSize());
     _prj = prj; 
 }
 
-void RtEngine::addRtControl(const FlatEvents::FlatControl &ctl) {
-    ControlEngine::rtEngine()->FlatControlEvent(ctl);
+void RtEngine::setMidiLocal(std::vector<RtMidiBuffer> *buf) {
+    _midiInLocal = buf;
 }
 
-void RtEngine::addRtResponse(const FlatEvents::FlatResponse & resp) {
-    ControlEngine::rtEngine()->FlatResponseEvent(resp);
+void RtEngine::setMidiIn(std::vector<RtMidiQueue> *buf) {
+    _midiInputMap = buf;
 }
 
+void RtEngine::setMidiOut(std::vector<RtMidiOutput> *buf) {
+    _midiOutputMap = buf;
+}
+
+
+
+/*
 Common::Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     RtEngine * engine = ev.updateMidiMaps.engine;
     
@@ -304,5 +304,6 @@ Common::Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatE
 
     return Common::Status::Ok;
 }
+    */
 
 }

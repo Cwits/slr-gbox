@@ -12,8 +12,6 @@
 
 namespace slr {
 
-class Project;
-
 struct ClipItem {
     ClipItem(const File * const file, frame_t startPos);
     ~ClipItem();
@@ -26,15 +24,20 @@ struct ClipItem {
     ID id() const { return _uniqueId; }
 
     const File * const _file;
-    private:
     
+    void update(frame_t startPosition, frame_t length, frame_t fileOffset, bool muted) {
+        _startPosition = startPosition;
+        _length = length;
+        _fileOffset = fileOffset;
+        _muted = muted;
+    }
+
+    private:
     frame_t _startPosition;
     frame_t _length;
     frame_t _fileOffset; //inside of clip
     bool _muted;
     const ID _uniqueId;
-
-    friend class Project;
 };
 
 //for use in Audio Unit

@@ -7,9 +7,11 @@
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/AudioPeaks.h"
+#include "core/primitives/FileContainer.h"
 #include "core/ControlEngine.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
+// #include "core/Events.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/TimelineView.h"
@@ -206,15 +208,14 @@ bool FileView::handleHold(GestLib::HoldGesture &hold) {
         //TODO: snap to grid
         slr::frame_t res = UIUtility::pixelToFrame(cx, _uictx->gridHorizontalZoom());
         LOG_WARN("File sample pos: %lu", res);
-        slr::Events::ModClipItem e = {
-            .clipId = _clipItem->id(),
-            .startPosition = res,
-            .length = _clipItem->length(),
-            .fileStartOffset = _clipItem->fileOffset(),
-            .muted = _clipItem->muted()
-        };
-        slr::EmitEvent(e);
-        //emit event
+
+        auto action = std::make_unique<slr::Actions::ModifyClipItem>();
+        action->clipId = _clipItem->id();
+        action->startPosition = res;
+        action->length = _clipItem->length();
+        action->fileStartOffset = _clipItem->fileOffset();
+        action->muted = _clipItem->muted();
+        slr::EmitAction(std::move(action));
     }
     
     return true;
@@ -231,12 +232,12 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     _deleteBtn->setFont(&DEFAULT_FONT);
     _deleteBtn->setCallback([this]() {
         LOG_INFO("Remove item event");
-        slr::Events::RemoveClip e {
-            .clipId = this->_item->_clipItem->id(),
-            .unitId = this->_item->parentUI()->id()
-        };
+        // slr::Events::RemoveClip e {
+        //     .clipId = this->_item->_clipItem->id(),
+        //     .unitId = this->_item->parentUI()->id()
+        // };
 
-        slr::EmitEvent(e);
+        // slr::EmitEvent(e);
         this->_uictx->_popManager->disableFilePopup();
     });
 }

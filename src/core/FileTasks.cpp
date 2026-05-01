@@ -6,7 +6,7 @@
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
 #include "core/FileWorker.h"
-#include "core/Events.h"
+// #include "core/Events.h"
 #include "logger.h"
 
 #include <memory>
@@ -50,7 +50,7 @@ void openFile::exec(FileWorker *f) {
                 afile->setPeaks(apk.get());
                 f->appendFile(std::move(apk));
             }
-            finished(success, targetId, afile, path, fileStartPosition);
+            finished(afile, success);
             
         } else {
             LOG_WARN("Failed to open Audio File");

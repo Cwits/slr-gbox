@@ -15,6 +15,7 @@ class TimelineView {
     TimelineView(const Timeline * tl);
     ~TimelineView();
 
+    void setBpm(float bpm) { _bpm = bpm; }
     BarSize getBarSize() const { return _size; }
     void setBarSize(BarSize size) { _size = size; }
     

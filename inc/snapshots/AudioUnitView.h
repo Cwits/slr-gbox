@@ -48,6 +48,9 @@ class AudioUnitView {
     const bool isMidiThru() const { return _midiThru; }
     const bool isOmniHwInput() const { return _omniHwInput; }
 
+    void setMidiThru(bool state) { _midiThru = state; }
+    void setOmniHw(bool state) { _omniHwInput = state; }
+
     void appendClipItem(ClipItemView * item);
 
     ClipContainerView _clipContainer;

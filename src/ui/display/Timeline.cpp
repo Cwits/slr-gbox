@@ -10,7 +10,8 @@
 
 #include "snapshots/TimelineView.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
+// #include "core/Events.h"
 #include "defines.h"
 #include "logger.h"
 
@@ -378,20 +379,16 @@ bool Timeline::loop::loopHandle::handleDrag(GestLib::DragGesture & drag) {
             //TODO: Snap to grid
             slr::TimelineView & tl = slr::TimelineView::getTimelineView();
             if(_isStartHandle) {
-                slr::Events::LoopPosition e = {
-                    .start = res,
-                    .end = tl.loopEndFrame()
-                };
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::LoopPosition>();
+                act->start = res;
+                act->end = tl.loopEndFrame();
+                slr::EmitAction(std::move(act));
             } else {
-                slr::Events::LoopPosition e = {
-                    .start = tl.loopStartFrame(),
-                    .end = res
-                };
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::LoopPosition>();
+                act->start = tl.loopStartFrame();
+                act->end = res;
+                slr::EmitAction(std::move(act));
             }
-            
-            //slr::EmitEvet()
         } break;
     }
     return true;

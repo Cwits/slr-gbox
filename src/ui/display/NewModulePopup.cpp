@@ -5,7 +5,7 @@
 
 #include "ui/display/primitives/Button.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
 #include "logger.h"
 
 namespace UI {
@@ -22,41 +22,36 @@ NewModulePopup::NewModulePopup(BaseWidget *parent, UIContext * const uictx) :
     _btnTrack->setPos(100, 100);
     _btnTrack->setCallback([this]() {
         LOG_INFO("Create New Track Event");
-        // slr::Events::NewTrack e;
-        slr::Events::CreateModule e = {
-            .name = "Track" 
-        };
-        slr::EmitEvent(e); 
+        auto action = std::make_unique<slr::Actions::CreateNewUnit>();
+        action->name = "Track";
+        slr::EmitAction(std::move(action));
     });
 
     _btnMixer = new Button(this, "Mixer");
     _btnMixer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnMixer->setPos(300, 100);
     _btnMixer->setCallback([this]() {
-        slr::Events::CreateModule e = {
-            .name = "Mixer"
-        };
-        slr::EmitEvent(e);
+        auto action = std::make_unique<slr::Actions::CreateNewUnit>();
+        action->name = "Mixer";
+        slr::EmitAction(std::move(action));
     });
 
     _btnOsc = new Button(this, "OSC");
     _btnOsc->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnOsc->setPos(500, 100);
     _btnOsc->setCallback([this]() {
-        slr::Events::CreateModule e = {
-            .name = "OSC"
-        };
-        slr::EmitEvent(e);
+        auto action = std::make_unique<slr::Actions::CreateNewUnit>();
+        action->name = "OSC";
+        slr::EmitAction(std::move(action));
     });
 
     _btnSampler = new Button(this, "Sampler");
     _btnSampler->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnSampler->setPos(100, 200);
     _btnSampler->setCallback([this]() {
-        slr::Events::CreateModule e = {
-            .name = "Sampler"
-        };
-        slr::EmitEvent(e);
+        auto action = std::make_unique<slr::Actions::CreateNewUnit>();
+        action->name = "Sampler";
+        slr::EmitAction(std::move(action));
     });
 }
 

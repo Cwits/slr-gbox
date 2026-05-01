@@ -34,7 +34,7 @@ struct Sampler : public AudioUnit {
     // const AudioBuffer * outputs() const { return _postFX; }
     
     //TODO:: it is incorrect use, now just for test and progress. See TODO2.txt for info
-    RT_FUNC static Common::Status assetOpened(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status assetOpened(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
     const AudioFile * asset() const { return _file; }
 

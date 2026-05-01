@@ -8,6 +8,6 @@
 namespace slr {
 
 class ClipItem;
-using ClipContainer = std::vector<ClipItem*>;
+using ClipContainer = std::vector<const ClipItem*>;
 
 }

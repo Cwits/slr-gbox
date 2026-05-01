@@ -4,10 +4,11 @@
 #pragma once
 #include "defines.h"
 #include "core/primitives/AudioBuffer.h"
-#include "core/FlatEvents.h"
+// #include "core/FlatEvents.h"
 #include "core/primitives/SPSCQueue.h"
 #include "core/primitives/MidiEvent.h"
 #include "core/primitives/MidiBuffer.h"
+#include "core/MidiController.h"
 
 #include <unordered_map>
 #include <vector>
@@ -26,7 +27,7 @@ struct AudioContext {
                 const AudioBuffer * in, 
                 AudioBuffer * const out, 
                 const Timeline & tl,
-                SPSCQueue<FlatEvents::FlatResponse, 256> & outControl,
+                // SPSCQueue<FlatEvents::FlatResponse, 256> & outControl,
                 std::vector<RtMidiBuffer> *midiInputs)
                 :
                 playing(playing),
@@ -37,7 +38,7 @@ struct AudioContext {
                 mainInputs(in), 
                 mainOutputs(out),
                 timeline(tl),
-                outputControl(outControl),
+                // outputControl(outControl),
                 midiInputs(midiInputs)
                  {}
     
@@ -52,7 +53,7 @@ struct AudioContext {
     AudioBuffer * const mainOutputs;
 
     const Timeline & timeline;
-    SPSCQueue<FlatEvents::FlatResponse, 256> & outputControl;
+    // SPSCQueue<FlatEvents::FlatResponse, 256> & outputControl;
     
     const std::vector<RtMidiBuffer> * const midiInputs;
     //array::SPSCQueue<MidiOutputs> _midiOutputs; - hw

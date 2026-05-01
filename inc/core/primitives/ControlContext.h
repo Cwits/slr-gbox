@@ -13,9 +13,11 @@ class RtEngine;
 class MidiController;
 class BufferManager;
 
+struct RtTask;
+
 struct ControlContext {
     ControlContext(Project *prj, FileWorker *fw, RtEngine *rt, ProjectView *pv, MidiController *mc, BufferManager *bm) :
-        project(prj), fileWorker(fw), engine(rt), projectView(pv), midiController(mc), bufferManager(bm) {}
+        project(prj), fileWorker(fw), engine(rt), projectView(pv), midiController(mc), bufferManager(bm), _nonConstEngine(rt) {}
     Project * const project;
     FileWorker * const fileWorker;
     RtEngine * const engine;
@@ -43,6 +45,11 @@ struct ControlContext {
     }
     
     ID nextAudioUnitId() const;
+
+    void EmitRtTask(RtTask * task);
+
+    private:
+    RtEngine * _nonConstEngine;
 };
 
 }

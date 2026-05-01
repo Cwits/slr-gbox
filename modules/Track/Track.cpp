@@ -256,13 +256,14 @@ void Track::stopRecording() {
             _recordTarget->stopRecord();
 
         //reinit only here because if track record is turned off there is no need for reinit
-        FlatEvents::FlatResponse reinit;
-        reinit.type = FlatEvents::FlatResponse::Type::ReinitTrackRecord;
-        reinit.reinitTrackRecord.track = this;
-        RtEngine::addRtResponse(reinit);
+        // FlatEvents::FlatResponse reinit;
+        // reinit.type = FlatEvents::FlatResponse::Type::ReinitTrackRecord;
+        // reinit.reinitTrackRecord.track = this;
+        // RtEngine::addRtResponse(reinit);
     }
 }
 
+/*
 Common::Status Track::setRecordArm(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
     bool record = floatToBool(ev.recordArm.recordState);
     ev.recordArm.track->_record = record;
@@ -283,7 +284,7 @@ Common::Status Track::reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents
     }
     return Common::Status::NotOk; //don't send response
 }
-
+*/
 //latencyToCompensate comes from RecordArm or ReinitRecord events...
 bool Track::prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate) {
     if(_recordTarget != nullptr) {
@@ -448,14 +449,14 @@ void Track::AudioRecord::writeData(void * data, frame_t frames, uint8_t numChann
 }
 
 void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition) {
-    FlatEvents::FlatResponse dump;
-    dump.type = FlatEvents::FlatResponse::Type::DumpRecordedAudio;
-    dump.dumpRecordedAudio.targetBuffer = buffer;
-    dump.dumpRecordedAudio.targetFile = file;
-    dump.dumpRecordedAudio.size = size;
-    dump.dumpRecordedAudio.fileStartPosition = fileStartPosition;
-    dump.dumpRecordedAudio.trackId = _parent->id();
-    RtEngine::addRtResponse(dump);
+    // FlatEvents::FlatResponse dump;
+    // dump.type = FlatEvents::FlatResponse::Type::DumpRecordedAudio;
+    // dump.dumpRecordedAudio.targetBuffer = buffer;
+    // dump.dumpRecordedAudio.targetFile = file;
+    // dump.dumpRecordedAudio.size = size;
+    // dump.dumpRecordedAudio.fileStartPosition = fileStartPosition;
+    // dump.dumpRecordedAudio.trackId = _parent->id();
+    // RtEngine::addRtResponse(dump);
 
     _fileUsed = true;
 }

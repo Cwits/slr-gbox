@@ -3,12 +3,13 @@
 
 #pragma once
 
-#include "core/Events.h"
-#include "core/FlatEvents.h"
+// #include "core/Events.h"
+// #include "core/FlatEvents.h"
 #include "core/primitives/ControlContext.h"
 #include "defines.h"
 
 #include <functional>
+#include <memory>
 
 namespace slr {
 
@@ -17,6 +18,7 @@ class DriverView;
 class RtEngine;
 class FileWorker;
 class MidiController;
+class ActionBase;
 
 namespace ControlEngine {
 
@@ -25,16 +27,8 @@ bool shutdown();
 void emergencyStop();
 
 const ID generateCommandId();
-void EmitEvent(const Events::Event &e);
-// bool EmitEventBlocking(const Events::Event &e, int msTimeout);
-void emitRtControl(FlatEvents::FlatControl &ctl);
-void emitRtResponse(const FlatEvents::FlatResponse &resp);
 
-void awaitRtResult(const FlatEvents::FlatControl &ctl,
-                std::function<void(const ControlContext&, 
-                    const FlatEvents::FlatResponse&)> clb);
-
-void notify();
+void EmitAction(std::unique_ptr<ActionBase> action);
 
 // void checkMidiDevices();
 

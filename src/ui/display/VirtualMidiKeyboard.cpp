@@ -5,7 +5,7 @@
 #include "ui/display/layoutSizes.h"
 #include "ui/display/defaultColors.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
 
 #include "logger.h"
 
@@ -66,23 +66,21 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
         k->note = _defaultWhiteNotes[i];        
         k->setCallback([k, this]() {
             LOG_INFO("Key pressed: %d", (k->note + this->octaveModifier()));
-            slr::Events::VirtualMidiKbdAction e = {
-                .note = k->note + this->octaveModifier(),
-                .velocity = 127,
-                .channel = 0,
-                .isPressed = true
-            };
-            slr::EmitEvent(e);
+            auto act = std::make_unique<slr::Actions::VMKTrigger>();
+            act->note = k->note + this->octaveModifier();
+            act->velocity = 127;
+            act->channel = 0;
+            act->isPressed = true;
+            slr::EmitAction(std::move(act));
         }); 
         k->setTouchUpCallback([k, this]() {
             k->setColor(WHITE_COLOR);
-            slr::Events::VirtualMidiKbdAction e = {
-                .note = k->note + this->octaveModifier(),
-                .velocity = 127,
-                .channel = 0,
-                .isPressed = false
-            };
-            slr::EmitEvent(e);
+            auto act = std::make_unique<slr::Actions::VMKTrigger>();
+            act->note = k->note + this->octaveModifier();
+            act->velocity = 127;
+            act->channel = 0;
+            act->isPressed = false;
+            slr::EmitAction(std::move(act));
         });
 
         _keys.push_back(k);

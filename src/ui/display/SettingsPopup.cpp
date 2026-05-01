@@ -16,6 +16,8 @@
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
 #include "core/MidiController.h"
+#include "core/Actions.h"
+
 #include "logger.h"
 
 #include <vector>
@@ -374,27 +376,19 @@ void SettingsPopup::MidiTab::refreshDevices() {
                         (&sub)->_inputName.c_str(),
                         (isChecked ? "enabled" : "disabled"));
 
-                    slr::Events::ToggleMidiDevice e = {
-                        .device = (&dev),
-                        .subdev = (&sub),
-                        .port = slr::DevicePort::INPUT,
-                        .newState = isChecked,
-                        .completed = [](int res) {
+                    auto act = std::make_unique<slr::Actions::ToggleMidiDevice>();
+                    act->device = (&dev);
+                    act->subdev = (&sub);
+                    act->port = slr::DevicePort::INPUT;
+                    act->newState = isChecked;
+                    act->completed = [](int res) {
+                        if(res == 0)
                             LOG_INFO("Midi Device toggled res %d", res);
-                        }
+                        else 
+                            LOG_ERROR("Midi Device toggled res %d", res);
                     };
-                    slr::EmitEvent(e);
+                    slr::EmitAction(std::move(act));
 
-                    // if(isChecked) {
-                    //     slr::MidiController * ctl = slr::ControlEngine::midiController();
-
-                    //     if(!_testPort) {
-                    //         _testPort = new slr::MidiPort;
-                    //         _testPort->_path = sub._path;
-
-                    //         ctl->openDevice(_testPort, true, false);
-                    //     }
-                    // }
                 });
                 subdev._inputEnabled = subInCheck;
                 posy += (subdevHeight+LayoutDef::DEFAULT_MARGIN);
@@ -421,17 +415,18 @@ void SettingsPopup::MidiTab::refreshDevices() {
                         sub._outputName.c_str(),
                         (isChecked ? "enabled" : "disabled"));
 
-                    
-                    slr::Events::ToggleMidiDevice e = {
-                        .device = (&dev),
-                        .subdev = (&sub),
-                        .port = slr::DevicePort::OUTPUT,
-                        .newState = isChecked,
-                        .completed = [](int res) {
+                    auto act = std::make_unique<slr::Actions::ToggleMidiDevice>();
+                    act->device = (&dev);
+                    act->subdev = (&sub);
+                    act->port = slr::DevicePort::OUTPUT;
+                    act->newState = isChecked;
+                    act->completed = [](int res) {
+                        if(res == 0)
                             LOG_INFO("Midi Device toggled res %d", res);
-                        }
+                        else 
+                            LOG_ERROR("Midi Device toggled res %d", res);
                     };
-                    slr::EmitEvent(e);
+                    slr::EmitAction(std::move(act));
                 });
                 subdev._outputEnabled = subOutCheck;
                 posy += (subdevHeight+LayoutDef::DEFAULT_MARGIN);

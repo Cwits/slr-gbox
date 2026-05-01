@@ -15,7 +15,7 @@
 
 #include "snapshots/AudioUnitView.h"
 #include "core/ModuleManager.h"
-#include "core/Events.h"
+// #include "core/Events.h"
 
 #include "logger.h"
 

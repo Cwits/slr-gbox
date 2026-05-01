@@ -116,11 +116,6 @@ AudioUnit * Project::getUnitById(ID id) {
         if(_unitList.at(i).get()->id() == id) return _unitList.at(i).get();
     }
 
-    // for(int i=0; i<MAXIMUM_TRACKS; ++i) {
-    //     if(_trackList[i] == nullptr) continue;
-    //     if(_trackList[i].get()->getId() == id) return _trackList[i].get();
-    // }
-
     LOG_ERROR("Wrong Unit ID");
     return nullptr;
 }
@@ -162,33 +157,57 @@ bool Project::evaluateRoute(const AudioRoute & route) {
     return true;
 }
 
-void Project::replaceEditablePlan(RenderPlan * plan) {
-    if(editablePlan() == _renderPlan1) {
-        destroyPlan(_renderPlan1);
-        _renderPlan1 = plan;
-    } else {
-        destroyPlan(_renderPlan2);
-        _renderPlan2 = plan;
+bool Project::unitHaveRoutes(ID unitId) const {
+    for(auto &ar : _routes) {
+        if(ar._sourceType == slr::AudioRoute::Type::INT && ar._sourceId == unitId) return true;
+        if(ar._targetType == slr::AudioRoute::Type::INT && ar._targetId == unitId) return true;
     }
+
+    for(auto &mr : _midiRoutes) {
+        if(mr._sourceType == slr::MidiRoute::Type::INT && mr._sourceId == unitId) return true;
+        if(mr._targetType == slr::MidiRoute::Type::INT && mr._targetId == unitId) return true;
+    }
+
+    return false;
 }
 
-Common::Status Project::swapPlan(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    Project * prj = ev.swapRenderPlan.project;
-    
-    prj->_planInWork ? prj->_planInWork = false : prj->_planInWork = true;
-    
-    resp.type = FlatEvents::FlatResponse::Type::SwapRenderPlan;
-    resp.status = Common::Status::Ok;
-    resp.commandId = ev.commandId;
-    return Common::Status::Ok;
+bool Project::prepareSwappablePlan() {
+    RenderPlan * newPlan = buildPlan(this);
+				
+	if(!newPlan) {
+	    return false;
+	}
+	
+    if(_planInWork.load(std::memory_order_acquire) == 0) {
+        _renderPlan2 = newPlan;
+    } else {
+        _renderPlan1 = newPlan;
+    }
+    return true;
+}
+
+void Project::swapPlans() {
+    _planInWork.fetch_xor(1, std::memory_order_release);
 }
 
 const RenderPlan * Project::editablePlan() const {
-    return (_planInWork ? _renderPlan2 : _renderPlan1);
+    const RenderPlan *ret = nullptr;
+    if(_planInWork.load(std::memory_order_acquire) == 0) {
+        ret = _renderPlan2;
+    } else {
+        ret = _renderPlan1;
+    }
+    return ret;
 }
 
 const RenderPlan * Project::runPlan() const {
-    return (_planInWork ? _renderPlan1 : _renderPlan2);
+    const RenderPlan *ret = nullptr;
+    if(_planInWork.load(std::memory_order_acquire) == 0) {
+        ret = _renderPlan1;
+    } else {
+        ret = _renderPlan2;
+    }
+    return ret;
 }
 
 const RenderPlan * Project::soloPlan() const {
@@ -223,26 +242,6 @@ ClipContainerBuffer & Project::getClipContainerBufferById(ID id) {
 
 ClipItem * Project::findClipItemById(ID id) {
     return _clipStorage.findClipById(id);
-}
-
-Common::Status Project::modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    ClipItem * item = ev.modClipItem.item;
-
-    item->_startPosition = ev.modClipItem.startPosition;
-    item->_length = ev.modClipItem.length;
-    item->_fileOffset = ev.modClipItem.fileStartOffset;
-    item->_muted = ev.modClipItem.muted;
-
-    resp.type = FlatEvents::FlatResponse::Type::ModClipItem;
-    resp.commandId = ev.commandId;
-    resp.status = Common::Status::Ok;
-    resp.modClipItem.item = ev.modClipItem.item;
-    resp.modClipItem.startPosition = ev.modClipItem.startPosition;
-    resp.modClipItem.length = ev.modClipItem.length;
-    resp.modClipItem.fileStartOffset = ev.modClipItem.fileStartOffset;
-    resp.modClipItem.muted = ev.modClipItem.muted;
-    
-    return Common::Status::Ok;
 }
 
 }

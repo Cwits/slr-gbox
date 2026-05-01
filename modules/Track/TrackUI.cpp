@@ -17,7 +17,7 @@
 #include "ui/uiutility.h"
 
 #include "core/utility/helper.h"
-#include "core/Events.h"
+// #include "core/Events.h"
 
 #include "logger.h"
 
@@ -60,14 +60,14 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
     _btnRecord->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnRecord->setFont(&lv_font_montserrat_40);
     _btnRecord->setCallback([this]() {
-        slr::Events::RecordArm e = {
-            .targetId = _parentUI->_track->id(),
-            .recordState = (_parentUI->_track->record() ? 0.0f : 1.0f),
-            .recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
-                                slr::RecordSource::Audio : 
-                                slr::RecordSource::Midi
-        };
-        slr::EmitEvent(e);
+        // slr::Events::RecordArm e = {
+        //     .targetId = _parentUI->_track->id(),
+        //     .recordState = (_parentUI->_track->record() ? 0.0f : 1.0f),
+        //     .recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
+        //                         slr::RecordSource::Audio : 
+        //                         slr::RecordSource::Midi
+        // };
+        // slr::EmitEvent(e);
     });
     
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
@@ -81,14 +81,14 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
         
         //prohibit source change during recording
         if(!tl.recording()) {
-            slr::Events::RecordArm e = {
-                .targetId = _parentUI->_track->id(),
-                .recordState = (_parentUI->_track->record() ? 1.0f : 0.0f),
-                .recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
-                                    slr::RecordSource::Midi : 
-                                    slr::RecordSource::Audio
-            };
-            slr::EmitEvent(e);
+            // slr::Events::RecordArm e = {
+            //     .targetId = _parentUI->_track->id(),
+            //     .recordState = (_parentUI->_track->record() ? 1.0f : 0.0f),
+            //     .recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
+            //                         slr::RecordSource::Midi : 
+            //                         slr::RecordSource::Audio
+            // };
+            // slr::EmitEvent(e);
         }
     });
     _btnSource->hide();

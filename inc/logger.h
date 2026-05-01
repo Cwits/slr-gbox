@@ -19,6 +19,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug ./..
 #else
     #define LOG_DEBUG(...)   LOG_F(DEBUG, __VA_ARGS__)
     #define LOG_INFO(...)    LOG_F(INFO, __VA_ARGS__)
+    // #define LOG_SUCCESS(...) LOG_F(INFO, )
     #define LOG_WARN(...)    LOG_F(WARNING, __VA_ARGS__)
     #define LOG_ERROR(...)   LOG_F(ERROR, __VA_ARGS__)
     #define LOG_FATAL(...)   LOG_F(FATAL, __VA_ARGS__)
