@@ -128,12 +128,12 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
                 float vol = std::stof(text);
                 LOG_WARN("No check for volume!");
                 LOG_INFO("Setting volume to: %f", vol);
-                // slr::Events::SetParameter e = {
-                //     e.targetId = this->_uibase->view()->id(),
-                //     e.parameterId = this->_uibase->view()->volumeId(),
-                //     e.value = vol
-                // };
-                // slr::EmitEvent(e);
+                
+                auto act = std::make_unique<slr::Actions::SetParameter>();
+                act->targetId = this->_uibase->view()->id();
+                act->parameterId = this->_uibase->view()->volumeId();
+                act->value = vol;
+                slr::EmitAction(std::move(act));
                 // this->_lblVolume->setText(text);
             }
         );
@@ -146,13 +146,11 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     _btnMute->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnMute->setFont(&lv_font_montserrat_40);
     _btnMute->setCallback([this]() {
-        // std::cout << "Mute track: " << (int)_track->id() << " parid: " << _track->muteId() << std::endl;
-        // slr::Events::SetParameter e = {
-        //     .targetId = _uibase->view()->id(),
-        //     .parameterId = _uibase->view()->muteId(),
-        //     .value = (_uibase->view()->mute() ? slr::boolToFloat(false) : slr::boolToFloat(true))
-        // };
-        // slr::EmitEvent(e);
+        auto act = std::make_unique<slr::Actions::SetParameter>();
+        act->targetId = this->_uibase->view()->id();
+        act->parameterId = this->_uibase->view()->muteId();
+        act->value = (_uibase->view()->mute() ? slr::boolToFloat(false) : slr::boolToFloat(true));
+        slr::EmitAction(std::move(act));
     });
 
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);

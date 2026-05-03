@@ -52,9 +52,9 @@ void AddNewMidiRouteAction::exec(ControlContext &ctx) {
 
             setState(ActionState::Waiting);
             ctx.EmitRtTask(&_task);
-    	} break;
+    	} break; 
     	case(2): {
-            ctx.projectView->updateRoutes(ctx.project->routes());
+            ctx.projectView->updateRoutes(ctx.project->midiRoutes());
             UIControls::updateRouteManager();
 
             markDelete();

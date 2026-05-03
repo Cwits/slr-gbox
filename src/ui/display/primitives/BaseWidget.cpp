@@ -196,6 +196,7 @@ bool BaseWidget::canHandleGesture(GestLib::Gestures gesture) {
 }
 
 bool BaseWidget::handleGesture(GestLib::Gesture & gesture) {
+    LOG_INFO("Some gesture action");
     bool ret = false;
     switch(gesture.type) {
         case(GestLib::Gestures::TouchDown): ret = handleTouchDown(gesture.touchDown); break;
