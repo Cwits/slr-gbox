@@ -3,5 +3,10 @@
 
 #pragma once
 #include "core/ModuleManager.h"
+#include "core/ActionsMap.h"
 
 extern const slr::Module TrackModule;
+
+namespace slr {
+void registerTrackActions(std::map<std::type_index, CreatorFn> &map);
+}

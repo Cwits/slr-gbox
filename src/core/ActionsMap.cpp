@@ -32,34 +32,42 @@
 
 namespace slr {
 
-const std::map<std::type_index, CreatorFn> _actionMap = {
-    //AudioUnit
-    { typeid(Actions::SetParameter), &createSetParameterAction },
-    { typeid(Actions::LoadAsClip), &createLoadAsClipAction },
-    { typeid(Actions::RemoveClip), &createRemoveClipAction },
-    { typeid(Actions::ToggleMidiThru), &createToggleMidiThruAction },
-    { typeid(Actions::ToggleOmniHwInput), &createToggleOmniHwAction },
+void registerDefaultActions() {
+    std::map<std::type_index, CreatorFn> & map = getActionMap();
+
+    map[typeid(Actions::SetParameter)] =  &createSetParameterAction;
+    map[typeid(Actions::LoadAsClip)] =  &createLoadAsClipAction;
+    map[typeid(Actions::RemoveClip)] =  &createRemoveClipAction;
+    map[typeid(Actions::ToggleMidiThru)] =  &createToggleMidiThruAction;
+    map[typeid(Actions::ToggleOmniHwInput)] =  &createToggleOmniHwAction;
 
     //Project
-    { typeid(Actions::CreateNewUnit), &createCreateNewUnitAction },
-    { typeid(Actions::DeleteUnit), &createDeleteUnitAction },
-    { typeid(Actions::AddNewAudioRoute), &createAddNewRouteAction },
-    { typeid(Actions::AddNewMidiRoute), &createAddNewMidiRouteAction },
-    { typeid(Actions::ModifyClipItem), &createModifyClipItemAction },
+    map[typeid(Actions::CreateNewUnit)] = &createCreateNewUnitAction;
+    map[typeid(Actions::DeleteUnit)] = &createDeleteUnitAction;
+    map[typeid(Actions::AddNewAudioRoute)] = &createAddNewRouteAction;
+    map[typeid(Actions::AddNewMidiRoute)] = &createAddNewMidiRouteAction;
+    map[typeid(Actions::ModifyClipItem)] = &createModifyClipItemAction;
 
     //Timeline
-    { typeid(Actions::ChangeSignatureBpm), &createChangeSignatureBpmAction },
-    { typeid(Actions::ChangeTimelineState), &createChangeTimelineStateAction },
-    { typeid(Actions::LoopPosition), &createLoopPositionAction },
-    { typeid(Actions::ToggleLoop), &createToggleLoopAction },
-    { typeid(Actions::UpdatePlayhead), &createUpdatePlayheadAction },
+    map[typeid(Actions::ChangeSignatureBpm)] = &createChangeSignatureBpmAction;
+    map[typeid(Actions::ChangeTimelineState)] = &createChangeTimelineStateAction;
+    map[typeid(Actions::LoopPosition)] = &createLoopPositionAction;
+    map[typeid(Actions::ToggleLoop)] = &createToggleLoopAction;
+    map[typeid(Actions::UpdatePlayhead)] = &createUpdatePlayheadAction;
 
     //MidiController
-    { typeid(Actions::ToggleMidiDevice), &createToggleMidiDeviceAction },
-    { typeid(Actions::VMKTrigger), &createVMKTriggerAction },
+    map[typeid(Actions::ToggleMidiDevice)] = &createToggleMidiDeviceAction;
+    map[typeid(Actions::VMKTrigger)] = &createVMKTriggerAction;
 
     //Metronome
-    { typeid(Actions::ToggleMetronome), &createToggleMetronomeAction }
-};
+    map[typeid(Actions::ToggleMetronome)] = &createToggleMetronomeAction;
+}
+
+std::map<std::type_index, CreatorFn> & getActionMap() {
+    static std::map<std::type_index, CreatorFn> actionMap;
+    return actionMap;
+}
+
+
 
 }

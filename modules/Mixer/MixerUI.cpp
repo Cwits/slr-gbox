@@ -16,6 +16,7 @@
 #include "snapshots/AudioUnitView.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/utility/helper.h"
+#include "core/Actions.h"
 // #include "core/Events.h"
 #include "logger.h"
 
@@ -143,6 +144,11 @@ void MixerUI::MixerModuleUI::checkAddOrDeleteSliders() {
         slw.slider->setPos(sliderXinit, sliderY);
         slw.slider->setColor(lv_color_make(clr.r, clr.g, clr.b));
         slw.slider->onChangeCallback([auv](const float value) {
+            auto act = std::make_unique<slr::Actions::SetParameter>();
+            act->targetId = auv->id();
+            act->parameterId = auv->volumeId();
+            act->value = value;
+            slr::EmitAction(std::move(act));
             // slr::Events::SetParameter e = {
             //     .targetId = auv->id(),
             //     .parameterId = auv->volumeId(),

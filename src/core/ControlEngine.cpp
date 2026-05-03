@@ -10,6 +10,7 @@
 #include "core/primitives/ActionBase.h"
 #include "core/primitives/ActionExecutable.h"
 #include "core/primitives/MidiEvent.h"
+#include "core/primitives/RtTask.h"
 
 #include "core/ActionsMap.h"
 // #include "core/AudioBufferManager.h"
@@ -131,6 +132,15 @@ void processLoop() {
             );
         }
 
+        {
+            //check for responses from RT
+            SPSCQueue<RtTask*, 256> & resps = _engine->getResponses();
+            
+            RtTask * task = nullptr;
+            while(resps.pop(task)) {
+                task->fn(task->obj);
+            }
+        }
         //TODO:check pools for need for expand:
         //e.g. if audiobufferpool::regularsize < 8 than expand
         //      or recordsize < 16 expand
@@ -249,9 +259,10 @@ const ID generateCommandId() {
 }
 
 void EmitAction(std::unique_ptr<ActionBase> action) {
-    assert(_actionMap.count(action->actionType()));
+    const std::map<std::type_index, CreatorFn> &map = getActionMap();
+    assert(map.count(action->actionType()));
 
-    std::unique_ptr<ActionExecutable> actexe = _actionMap.at(action->actionType())(action.get());
+    std::unique_ptr<ActionExecutable> actexe = map.at(action->actionType())(action.get());
 
     std::unique_lock l(_actionMutex);
     _actions.push_back(std::move(actexe));

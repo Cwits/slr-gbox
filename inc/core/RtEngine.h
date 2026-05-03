@@ -53,6 +53,8 @@ class RtEngine {
     void setMidiOut(std::vector<RtMidiOutput> *buf);
     // static Common::Status updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
+    static void addRtResponse(RtTask * task);
+    SPSCQueue<RtTask*, 256> & getResponses() { return _rtResponses; }
     private:
     frame_t processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed);
 
@@ -60,6 +62,7 @@ class RtEngine {
     Project * _prj;
 
     SPSCQueue<RtTask*, 256> _rtTasks;
+    SPSCQueue<RtTask*, 256> _rtResponses;
 
 
     std::vector<RtMidiBuffer> * _midiInLocal;

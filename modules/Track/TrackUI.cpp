@@ -17,7 +17,8 @@
 #include "ui/uiutility.h"
 
 #include "core/utility/helper.h"
-// #include "core/Events.h"
+#include "core/Actions.h"
+#include "modules/Track/TrackActions.h"
 
 #include "logger.h"
 
@@ -60,14 +61,13 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
     _btnRecord->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnRecord->setFont(&lv_font_montserrat_40);
     _btnRecord->setCallback([this]() {
-        // slr::Events::RecordArm e = {
-        //     .targetId = _parentUI->_track->id(),
-        //     .recordState = (_parentUI->_track->record() ? 0.0f : 1.0f),
-        //     .recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
-        //                         slr::RecordSource::Audio : 
-        //                         slr::RecordSource::Midi
-        // };
-        // slr::EmitEvent(e);
+        auto act = std::make_unique<slr::Actions::RecordArm>();
+        act->targetId = _parentUI->_track->id();
+        act->recordState = (_parentUI->_track->record() ? 0.0f : 1.0f);
+        act->recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
+                                slr::RecordSource::Audio : 
+                                slr::RecordSource::Midi;
+        slr::EmitAction(std::move(act));
     });
     
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
@@ -81,14 +81,14 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
         
         //prohibit source change during recording
         if(!tl.recording()) {
-            // slr::Events::RecordArm e = {
-            //     .targetId = _parentUI->_track->id(),
-            //     .recordState = (_parentUI->_track->record() ? 1.0f : 0.0f),
-            //     .recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
-            //                         slr::RecordSource::Midi : 
-            //                         slr::RecordSource::Audio
-            // };
-            // slr::EmitEvent(e);
+            
+            auto act = std::make_unique<slr::Actions::RecordArm>();
+            act->targetId = _parentUI->_track->id();
+            act->recordState = (_parentUI->_track->record() ? 1.0f : 0.0f);
+            act->recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
+                                    slr::RecordSource::Midi :
+                                    slr::RecordSource::Audio; 
+            slr::EmitAction(std::move(act));
         }
     });
     _btnSource->hide();

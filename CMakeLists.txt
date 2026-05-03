@@ -139,6 +139,10 @@ file(GLOB SOURCES
   modules/Track/TrackUI.cpp
   modules/Track/TrackView.cpp
   modules/Track/TrackPushUI.cpp
+  modules/Track/TrackActions.cpp
+  modules/Track/Actions/DumpRecordedAudio.cpp
+  modules/Track/Actions/RecordArm.cpp
+  modules/Track/Actions/ReinitTrackRecord.cpp
 
   modules/Mixer/Mixer.cpp
   modules/Mixer/MixerModule.cpp

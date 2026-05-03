@@ -14,6 +14,11 @@
 #include "modules/Track/TrackView.h"
 #include "modules/Track/TrackPushUI.h"
 
+#include "modules/Track/TrackActions.h"
+#include "modules/Track/Actions/DumpRecordedAudio.h"
+#include "modules/Track/Actions/RecordArm.h"
+#include "modules/Track/Actions/ReinitTrackRecord.h"
+
 #include <memory>
 
 std::unique_ptr<slr::AudioUnit> createTrackRT(const slr::ClipContainer * initContainer) { 
@@ -43,4 +48,10 @@ const slr::Module TrackModule {
     .createPushUI = createTrackPushUI
 };
 
-
+namespace slr {
+void registerTrackActions(std::map<std::type_index, CreatorFn> &map) {
+    map[typeid(Actions::DumpRecordedAudio)] = &createDumpRecAudioAction;
+    map[typeid(Actions::RecordArm)] = &createRecordArmAction;
+    map[typeid(Actions::ReinitTrackRecord)] = &createReinitTrackRecordAction;
+}
+}

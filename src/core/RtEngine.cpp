@@ -285,7 +285,9 @@ void RtEngine::setMidiOut(std::vector<RtMidiOutput> *buf) {
     _midiOutputMap = buf;
 }
 
-
+void RtEngine::addRtResponse(RtTask * task) {
+    ControlEngine::rtEngine()->_rtResponses.push(task);
+}
 
 /*
 Common::Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
