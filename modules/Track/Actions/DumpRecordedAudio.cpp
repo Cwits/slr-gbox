@@ -79,12 +79,6 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
 
             fw->closeTmpAudioFile(target);
 
-            // slr::Events::OpenFile e = {
-            //     .unitId = trackId,
-            //     .path = path,
-            //     .fileStartPosition = startPos
-            // };
-            // slr::EmitEvent(e);
             auto act = std::make_unique<slr::Actions::LoadAsClip>();
             act->data = path;
             act->targetId = trackId;

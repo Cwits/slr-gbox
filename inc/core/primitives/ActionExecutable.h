@@ -17,6 +17,7 @@ struct ActionExecutable {
 	ActionExecutable() {
 		setState(ActionState::Executing);
     	_step = 1;
+		_toDelete = false;
 	}
 	virtual ~ActionExecutable() {}
 	virtual void exec(ControlContext &ctx) = 0;

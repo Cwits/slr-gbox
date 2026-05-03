@@ -151,6 +151,10 @@ other:
         Should modules add popups by themselves?
 [ ] - Must somehow move to modular view, without that much coupling...
 [ ] - Abstract GridControl UI for modules to have basic grid control with files
+[ ] - in MainWindow::transferGesture() you can't use getSwitchViewTarget(at least for grid)
+        because in case of switching from browser to grid during drag(transfer gesture) 
+        target should be _gridView->_grid
+        simply - need some destination dispatcher during drag event
 
 Route Manager:
 [ ] - channel mapping

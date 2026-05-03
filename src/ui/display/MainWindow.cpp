@@ -321,8 +321,10 @@ void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
     if(gesture == GestLib::Gestures::Drag) {
         //TODO: shouldn't be like that... dunno yet how to make it proper way
         
-        // _gestureTarget = _gridView->_grid;
-        _gestureTarget = getSwitchViewTarget(view);
+        _gestureTarget = _gridView->_grid;
+        //ahhh! switch view target and actual target is different thing lol(at least for grid!!!)
+        //in grid there should be depending on context somehow
+        // _gestureTarget = getSwitchViewTarget(view);
         switchToView(view);
     }
 }
