@@ -5,7 +5,7 @@
 #include "core/primitives/MidiEvent.h"
 #include "core/primitives/MidiPort.h"
 #include "core/MidiController.h"
-#include "core/Events.h"
+// #include "core/Events.h"
 
 #include "push/Widget.h"
 #include "push/BoundingBox.h"
@@ -76,14 +76,14 @@ void PushCore::tick(int dt) {
         return;
     }
 
-    bool needRedraw = _midi.dispatchEvents();
+    /*bool needRedraw = */_midi.dispatchEvents();
 
     //animations tick?
     if(_pads.needUpdate()) {
         _pads.update();
     }
     
-    // needRedraw |= _rootWidget->checkForRedraw(); 
+    bool needRedraw = _rootWidget->hasAnythingDirty(); 
 
     if(needRedraw || _manualRedraw) {
         if(!_rootWidget) { 
@@ -91,9 +91,9 @@ void PushCore::tick(int dt) {
             return;
         }
 
-        BoundingBox dirtyRegion = _rootWidget->bounds();
         _rootWidget->paint(_painter);
         
+        BoundingBox dirtyRegion = BoundingBox(0, 0, 0, 0);//_rootWidget->bounds();
         _display.updateFrame(dirtyRegion);
         _manualRedraw = false;
     }

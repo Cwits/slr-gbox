@@ -24,8 +24,6 @@ struct MidiController;
 struct MidiSubdevice;
 class MidiPort;
 
-enum class DevicePort { INPUT, OUTPUT };
-
 struct MidiDevice {
     // MidiDevice(const MidiDevice &other) = delete;
     std::string _name;
@@ -85,9 +83,7 @@ struct RtMidiBuffer {
 };
 
 class ControlContext;
-namespace Events {
-    class VirtualMidiKbdAction;
-}
+struct VMKTriggerAction;
 
 struct MidiController {
     MidiController();
@@ -129,8 +125,8 @@ struct MidiController {
     std::atomic<std::chrono::time_point<std::chrono::steady_clock>> _midiAnchorTimepoint;
     std::atomic<frame_t> _lastSample;
 
-    friend void handleEvent(const ControlContext &ctx, const Events::VirtualMidiKbdAction &e);
     void addVirtualKbdEvent(const MidiEvent ev);
+    friend struct VMKTriggerAction;
 };
 
 }

@@ -19,11 +19,13 @@ struct StaticLabel : public PushLib::Widget {
     void paint(PushLib::Painter &painter) override;
 
     PushLib::Font font() const { return _font; }
-    void font(PushLib::Font font) { _font = font; }
+    void font(PushLib::Font font);
 
     private:
     PushLib::Font _font;
     const std::string_view &_text;
+
+    void recalculateSize();
 };
 
 }

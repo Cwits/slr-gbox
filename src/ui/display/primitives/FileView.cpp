@@ -7,9 +7,11 @@
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/AudioPeaks.h"
+#include "core/primitives/FileContainer.h"
 #include "core/ControlEngine.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
+// #include "core/Events.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/TimelineView.h"
@@ -22,6 +24,7 @@
 #include "ui/display/GridView.h"
 #include "ui/display/layoutSizes.h"
 #include "ui/uiutility.h"
+#include "ui/display/helpers/AudioFileToCanvas.h"
 
 #include "logger.h"
 
@@ -37,7 +40,7 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     _uictx(uictx),
     _parentUI(parentUI),
     _clipItem(clipItem),
-    _uniqueId(clipItem->_uniqueId)
+    _uniqueId(clipItem->id())
 {
 // _lvhost = parent->lvhost();
     _canvas = lv_canvas_create(lvhost());
@@ -52,14 +55,14 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     //calculate width
     slr::TimelineView & tlsnap = slr::TimelineView::getTimelineView();
 
-    slr::frame_t frames = clipItem->_length;// testme.frames();
+    slr::frame_t frames = clipItem->length();// testme.frames();
     int framesPerBar = tlsnap.framesPerBar();
     int pixPerBar = UIUtility::pixelPerBar(_uictx->gridHorizontalZoom());
     float pixelPerFrame = (float)pixPerBar/framesPerBar;
     int pixels = frames * pixelPerFrame;
     
     setSize(pixels, UI::LayoutDef::TRACK_HEIGHT);
-    setPos(0, parentUI->gridY());
+    setPos(0, parentUI->gridUI()->gridY());
     lv_obj_set_pos(_canvas, 0, 0);
     
     _peakColor = lv_color_make(parentUI->color().r, 
@@ -94,12 +97,24 @@ void FileView::update() {
 void FileView::draw() {
     lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
 
-    if(_clipItem->_file->isAudio()) {
-        const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->_file);
+    if(_clipItem->item()->_file->isAudio()) {
+        const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->item()->_file);
+        
+        UIHelpers::audioFileToCanvas(
+            afile,
+            0,
+            _clipItem->length(),
+            _canvas,
+            LayoutDef::TRACK_HEIGHT,
+            _canvasWidth,
+            _peakColor,
+            _fillColor
+        );
+        /*const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->item()->_file);
         const slr::AudioPeakFile * peakFile = afile->peaks();
 
         int xsize = _canvasWidth;
-        float ratio = (float)_clipItem->_length / (float)xsize; 
+        float ratio = (float)_clipItem->length() / (float)xsize; 
         slr::AudioPeaks::LODLevels nearestLvl = slr::AudioPeaks::pickLevel(ratio);
 
         {//draw
@@ -139,10 +154,21 @@ void FileView::draw() {
                     // midpoint += heightPerChannel;
                 }
             }
-        }
-    } else if(_clipItem->_file->isMidi()) {
+        }*/
+    } else if(_clipItem->item()->_file->isMidi()) {
         //draw midi file
     }
+}
+
+void FileView::pollUIUpdate() {    
+    const slr::ClipItemView * const fview = _clipItem;
+
+    uint64_t version = fview->version();
+    if(version == _uiVersion) return;
+    _uiVersion = version;
+
+    float xposition = UIUtility::frameToPixel(fview->startPosition(), _uictx->gridHorizontalZoom());
+    setPos(xposition, _parentUI->gridUI()->gridY());
 }
 
 bool FileView::handleTap(GestLib::TapGesture &tap) {
@@ -170,7 +196,11 @@ bool FileView::handleHold(GestLib::HoldGesture &hold) {
         _originalY = getY();
         setPos(cx, cy);
     } else if(hold.state == GestLib::GestureState::Move) {
-        setPos(cx, cy);
+        setPos(cx, cy); 
+        //somehow position of element still goes to _originalX\Y on grid... :S
+        //i know... it is happening because of UnitUIBase.cpp:115 updates position at 30fps, 
+        //that's why see lag with lv_refr_now and why this stage not working properly
+        lv_refr_now(nullptr);
     } else if(hold.state == GestLib::GestureState::End) {
         // setPos(_originalX, _originalY);
         setPos(cx, _originalY);
@@ -178,16 +208,16 @@ bool FileView::handleHold(GestLib::HoldGesture &hold) {
         //TODO: snap to grid
         slr::frame_t res = UIUtility::pixelToFrame(cx, _uictx->gridHorizontalZoom());
         LOG_WARN("File sample pos: %lu", res);
-        slr::Events::ModClipItem e = {
-            .unitId = _parentUI->view()->id(),
-            .itemId = _clipItem->_uniqueId,
-            .startPosition = res,
-            .length = _clipItem->_length,
-            .muted = _clipItem->_muted
-        };
-        slr::EmitEvent(e);
-        //emit event
+
+        auto action = std::make_unique<slr::Actions::ModifyClipItem>();
+        action->clipId = _clipItem->id();
+        action->startPosition = res;
+        action->length = _clipItem->length();
+        action->fileStartOffset = _clipItem->fileOffset();
+        action->muted = _clipItem->muted();
+        slr::EmitAction(std::move(action));
     }
+    
     return true;
 }
 
@@ -202,12 +232,12 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     _deleteBtn->setFont(&DEFAULT_FONT);
     _deleteBtn->setCallback([this]() {
         LOG_INFO("Remove item event");
-        slr::Events::RemoveFile e {
-            .fileId = this->_item->_clipItem->_uniqueId,
-            .unitId = this->_item->parentUI()->id()
-        };
+        // slr::Events::RemoveClip e {
+        //     .clipId = this->_item->_clipItem->id(),
+        //     .unitId = this->_item->parentUI()->id()
+        // };
 
-        slr::EmitEvent(e);
+        // slr::EmitEvent(e);
         this->_uictx->_popManager->disableFilePopup();
     });
 }

@@ -44,7 +44,13 @@ AudioUnit:
 [ ] - In order to be able to inject midi events to AudioUnit they need some (current frame MidiBuffer) and small SPSCQueue...
         Injecting should work same way as MidiPort::pushEvent(...) in terms of frame calculating.
         (Current frame MidiBuffer - buffer where events for current frame will be stored and manipulated?)
-        
+[ ] - RemoveClip.h:118
+        not deleting Clip and closing file totally.
+        May add some reference counter to file and some kind of clean up process to close and free such memory.
+        otherwise they stay in memory so user can reuse them quickly(need some kind of access procedure for it)
+
+
+
 Metronome:
 [\] - implement one(must live in rt class)(not tested)
 [ ] - //TODO: add simple decay
@@ -76,6 +82,11 @@ RtEngine:
         but what to do with timeline? should RtEngine own timeline, or Project(and pass together with render plan?)? Feels like first option be better...
         But if timeline stored in RtEngine than it would make things as prepareToPlay()\record() more difficult?
 
+[ ] - must obrain buffers through MidiController. Basically - MidiController owning vectors:
+        std::unique_ptr<std::vector<RtMidiBuffer>> and ... etc, rtengine just using them?
+
+MidiController:
+[ ] - MidiController.cpp:101 - //TODO: ugh, this is bad lol :D
 
 Project:
 [ ] - make save and load system(serialization)
@@ -140,6 +151,10 @@ other:
         Should modules add popups by themselves?
 [ ] - Must somehow move to modular view, without that much coupling...
 [ ] - Abstract GridControl UI for modules to have basic grid control with files
+[ ] - in MainWindow::transferGesture() you can't use getSwitchViewTarget(at least for grid)
+        because in case of switching from browser to grid during drag(transfer gesture) 
+        target should be _gridView->_grid
+        simply - need some destination dispatcher during drag event
 
 Route Manager:
 [ ] - channel mapping
@@ -167,6 +182,8 @@ CMakeLists and EvGen
 [ ] - after cmake mod - move template files from evgen folder to regular inc/src folders and modify evgen to parse them
 [ ] - EvGen not working properly with <moduleEventsGen.h> files that aren't located in src/core folder
 [ ] - Clear and structurize CMakeFile better :S
+[ ] - IMPORTANT!!! need to stabilize naming convention - either all parts(track, mixer, sampler, whatever will be called Module or Unit...)
+                ugh... :\
 
 Tests:
 [ ] - tests for Control Engine
@@ -200,6 +217,7 @@ Push:
         [ ] - Sometimes, when things moving quickly - old position struggle to clear
                 (e.g. with Pointer in PadLayoutWidget - sometimes old pointer stays there)
         [ ] - PushPainter drawing algos can be optimised more?
+        [ ] - if Label (or StaticLabel?) overlaps with some moving element than text might drift
 
 /* Notes */
  - As soon as every unit can handle files(especially MIDI files) to prevent midi flooding in long chains of units - 

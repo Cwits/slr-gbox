@@ -3,6 +3,7 @@
 
 #pragma once
 #include "ui/display/primitives/UnitUIBase.h"
+#include <memory>
 
 namespace slr {
     class AudioUnitView;
@@ -18,61 +19,49 @@ class UIContext;
 class Slider;
 
 struct MixerUI : public UnitUIBase {
-    MixerUI(slr::AudioUnitView * mixer, UIContext * uictx);
+    MixerUI(const std::shared_ptr<const slr::AudioUnitView> &mixer, UIContext * uictx);
     ~MixerUI();
 
     bool create(UIContext * ctx) override;
-    bool update(UIContext * ctx) override;
     bool destroy(UIContext * ctx) override;
 
-    BaseWidget * gridUI() override { return _gridControl; }
-    BaseWidget * moduleUI() override { return _moduleUI; }
-
-    // int gridY() override;
-    // void setNudge(slr::frame_t nudge, const float horizontalZoom) override;
-    // void updatePosition(int x, int y) override;
+    DefaultGridUI * gridUI() override { return _gridControl.get(); }
+    DefaultModuleUI * moduleUI() override { return _moduleUI.get(); }
 
     private:
-    slr::MixerView * const _mixer;
+    const std::weak_ptr<const slr::MixerView> _mixer;
     std::vector<FileView*> _viewItems;
 
-    class MixerGridControlUI;
     class MixerModuleUI;
 
-    MixerGridControlUI * _gridControl;
-    MixerModuleUI * _moduleUI;
+    std::unique_ptr<DefaultGridUI> _gridControl;
+    std::unique_ptr<MixerModuleUI> _moduleUI;
 
-    struct MixerGridControlUI : public BaseWidget {
-        MixerGridControlUI(BaseWidget *parent, MixerUI *parentUI);
-        ~MixerGridControlUI();
-
-        private:
-        MixerUI * _parentUI;
-
-        Label * _lblName;
-        Label * _lblVolume;
-        Button * _btnMute;
-        Button * _btnSolo;
-
-        bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
-
-        friend class MixerUI;
-    };
-
-    struct MixerModuleUI : public BaseWidget { 
+    struct MixerModuleUI : public DefaultModuleUI { 
         MixerModuleUI(BaseWidget *parent, MixerUI *parentUI);
         ~MixerModuleUI();
 
         void show() override;
+        void pollUIUpdate() override;
 
         private:
         MixerUI * _parentUI;
 
-        // struct sliderUnit {
-        //     Label * _lblName;
-        //     Slider * _sldVolume;
-        // };
-        std::vector<Slider*> _sliders; // need somehow to update these thing based on routes
+        struct SliderWork {
+            SliderWork();
+            ~SliderWork();
+            std::unique_ptr<Slider> slider;
+            const slr::AudioUnitView * target;
+            uint64_t _lastTargetVersion;
+            bool checked;
+
+            SliderWork(SliderWork&&) = default;
+            SliderWork& operator=(SliderWork&&) = default;
+        };
+
+        std::vector<SliderWork> _sliders;
+        
+        void checkAddOrDeleteSliders();
 
         friend class MixerUI;
     };

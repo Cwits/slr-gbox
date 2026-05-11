@@ -3,13 +3,18 @@
 #include "ui/push/PushUIContext.h"
 
 #include "push/PushLib.h"
+#include "push/PushContext.h"
 
 #include "ui/push/RootWidget.h"
-#include "ui/push/primitives/ModuleUIBase.h"
+#include "ui/push/GridWidget.h"
+#include "ui/push/UnitWidget.h"
+#include "ui/push/primitives/UnitUIBase.h"
+// #include "ui/push/primitives/ModuleUIBase.h"
 
 namespace PushUI {
 
 PushUIContext::PushUIContext() {}
+PushUIContext::~PushUIContext() {}
 
 bool PushUIContext::tryHandleButtonDefault(PushLib::ButtonEvent &ev) {
     return _rootWidget->handleDefaultButton(ev);
@@ -24,5 +29,11 @@ void PushUIContext::goToPreviousView() { _rootWidget->goToPreviousView(); }
 const PushView PushUIContext::currentView() const { return _rootWidget->currentView(); }
 const PushView PushUIContext::previousView() const { return _rootWidget->previousView(); }
 
+PushLib::Widget * PushUIContext::gridWidget() const { return _gridWidget; }
+PushLib::Widget * PushUIContext::unitWidget() const { return _unitWidget; }
+
+void PushUIContext::forceRedraw() {
+    _pctx->forceRedraw();
+}
 
 }

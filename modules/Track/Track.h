@@ -4,12 +4,9 @@
 #pragma once
 
 #include "core/primitives/AudioUnit.h"
-// #include "core/primitives/AudioBuffer.h"
-// #include "core/primitives/MidiBuffer.h"
-#include "core/primitives/FileContainer.h"
-#include "core/FlatEvents.h"
+#include "core/primitives/RtTask.h"
+#include "modules/Track/TrackActions.h"
 #include "defines.h"
-#include "Status.h"
 
 namespace slr {
 
@@ -21,7 +18,7 @@ class MidiFile;
 class Track : public AudioUnit {
     public:
 
-    Track();
+    Track(const ClipContainer * initContainer);
     ~Track();
     
     bool create(BufferManager *man);
@@ -36,12 +33,11 @@ class Track : public AudioUnit {
 
     // const AudioBuffer * outputs() const { return _postFX; }
 
-    RT_FUNC static Status setRecordArm(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-
     const bool record() const { return _record; }
+    inline void setRecord(bool state) { _record = state; }
     const RecordSource recordSource() const { return _recordSource; }
-    
+    inline void setRecordSource(RecordSource src) { _recordSource = src; }
+
     bool prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate);
     bool prepareMidiRecord(FileWorker * fw);
     bool releaseRecordTarget(FileWorker * fw);
@@ -109,6 +105,10 @@ class Track : public AudioUnit {
         frame_t _currentBufferFill = 0;
 
         void dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition/*, const AudioContext &ctx*/);
+    
+        
+        RtTasks::DumpAudioFlat _flat;
+        RtTask _task;
     };
 
     struct MidiRecord : public RecordTarget {
@@ -137,6 +137,9 @@ class Track : public AudioUnit {
     //need to forbid to change source while recording == true
     RecordSource _recordSource = RecordSource::Audio;
     RecordTarget * _recordTarget;
+
+    RtTasks::ReinitTrackFlat _reinitFlat;
+    RtTask _reinitTask;
 
     //monitor arm
 };

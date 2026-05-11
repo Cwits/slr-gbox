@@ -44,6 +44,7 @@ struct MainWindow : public BaseWidget {
     ~MainWindow();
     
     void switchToView(MainView view);
+    MainView currentView() const { return _currentView; }
     MainView previousView() const { return _prevView; }
     void switchToPreviousView();
 
@@ -60,13 +61,13 @@ struct MainWindow : public BaseWidget {
     void clearHittestTarget() { _initialGestureTarget = nullptr; }
     bool cancleGesture(BaseWidget * widget);
 
-    void createUI(const slr::Module * mod, slr::AudioUnitView * view);
-    void updateUI(slr::ID id);
+    void createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view);
     void destroyUI(slr::ID id);
 
-    // void setLastSelected(UnitUIBase * unit);
-    // UnitUIBase * lastSelectedModule() const { return _lastSelectedModule; }
+    void pollUIUpdate() override;
     
+    void registerFrequentUpdate(std::function<void()> clb);
+
     static MainWindow * inst();
     
     std::unique_ptr<TopPanel> _topPanel;
@@ -87,7 +88,6 @@ struct MainWindow : public BaseWidget {
     std::unique_ptr<SettingsPopup> _settingsPopup;
     std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;
     // ViewSelector * _viewSelector; //called only when need to switch from drag to target?
-    //Slider mode popup * //aka AKAI MPC Live 3
 
     private:
     UIContext _uiContext;
@@ -114,7 +114,7 @@ struct MainWindow : public BaseWidget {
     lv_timer_t * _playheadUpdateTimer;
     static void playheadUpdateCb(lv_timer_t * timer);
 
-    UnitUIBase * _lastSelectedModule = nullptr;
+    // std::vector<std::function<void()>> _frequentUpdateCallbacks;
 };
 
 }

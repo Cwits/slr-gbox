@@ -8,7 +8,7 @@
 
 #include "core/primitives/MidiPort.h"
 #include "core/primitives/MidiEvent.h"
-#include "core/Events.h"
+// #include "core/Events.h"
 
 #include "slr_config.h"
 #include "logger.h"
@@ -58,31 +58,31 @@ bool PushMidi::connect(slr::MidiPort * port) {
     int result = 0;
     int result2 = 0;
 
-    slr::Events::ToggleMidiDevice e = {
-        .device = port->_ownerDev,
-        .subdev = port->_ownerSubdev,
-        .port = slr::DevicePort::INPUT,
-        .newState = true,
-        .completed = [bptr = &trigg1, result](int res) mutable {
-                        LOG_INFO("Midi Device toggled res %d", res);
-                        result = res;
-                        bptr->store(true);
-                    }
-    };
-    slr::EmitEvent(e);
+    // slr::Events::ToggleMidiDevice e = {
+    //     .device = port->_ownerDev,
+    //     .subdev = port->_ownerSubdev,
+    //     .port = slr::DevicePort::INPUT,
+    //     .newState = true,
+    //     .completed = [bptr = &trigg1, result](int res) mutable {
+    //                     LOG_INFO("Midi Device toggled res %d", res);
+    //                     result = res;
+    //                     bptr->store(true);
+    //                 }
+    // };
+    // slr::EmitEvent(e);
 
     // if(!slr::EmitEventBlocking(e, 1000*5)) {
     //     LOG_ERROR("Failed to enable Input midi port for push");
     //     return;
     // }
     
-    e.port = slr::DevicePort::OUTPUT;
-    e.completed = [bptr = &trigg2, result2](int res) mutable {
-        LOG_INFO("Midi Device toggled res %d", res);
-        result2 = res;
-        bptr->store(true);
-    };
-    slr::EmitEvent(e);
+    // e.port = slr::DevicePort::OUTPUT;
+    // e.completed = [bptr = &trigg2, result2](int res) mutable {
+    //     LOG_INFO("Midi Device toggled res %d", res);
+    //     result2 = res;
+    //     bptr->store(true);
+    // };
+    // slr::EmitEvent(e);
 
     // if(!slr::EmitEventBlocking(e, 1000*5)) {
     //     LOG_ERROR("Failed to enable Output midi port for push");

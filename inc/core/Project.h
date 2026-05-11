@@ -18,6 +18,8 @@ namespace slr {
 
 class AudioUnit;
 class Metronome;
+class Module;
+class ControlContext;
 
 class Project {
     public:
@@ -31,22 +33,19 @@ class Project {
 
     RT_FUNC const bool isSolo() const { return _isSolo; }
 
-    RT_FUNC static Status swapPlan(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-
+    bool prepareSwappablePlan();
     const RenderPlan * editablePlan() const;
-    void replaceEditablePlan(RenderPlan * plan);
+    RT_FUNC void swapPlans();
     RT_FUNC const RenderPlan * runPlan() const;
     RT_FUNC const RenderPlan * soloPlan() const;
 
     //nonRT
-    bool addUnit(std::unique_ptr<AudioUnit> unit);
-    // bool removeUnit(ID id);
+    AudioUnit * createUnit(const ControlContext &ctx, const Module *mod);
     std::unique_ptr<AudioUnit> removeUnit(ID id);
 
     const int getUnitCount() const { return _unitList.size(); }
     AudioUnit * getUnitById(ID id); //for building track graph???
     const std::vector<std::unique_ptr<AudioUnit>> & getAllUnits() const { return _unitList; }
-
 
     const std::vector<AudioRoute> & routes() const { return _routes; }
     void addRoute(AudioRoute route) { _routes.push_back(route); }
@@ -54,19 +53,28 @@ class Project {
     void removeRoute(std::size_t idx) { _routes.erase(_routes.begin() + idx); }
     void removeRoutesForId(ID id);
     bool evaluateRoute(const AudioRoute & route);
+    bool unitHaveRoutes(ID unitId) const;
 
     const std::vector<MidiRoute> & midiRoutes() const { return _midiRoutes; }
+    bool evaluateRoute(const MidiRoute & route) { return true; }
     void addRoute(MidiRoute route) { _midiRoutes.push_back(route); }
 
     Timeline & timeline() { return _timeline; }
     Metronome * metronome() const;
+
+    ClipContainerBuffer & getClipContainerBufferById(ID id);
     ClipContainerMap & clipContainerMap() { return _clipContainerMap; }
+    ClipStorage & clipStorage() { return _clipStorage; }
     
+    ClipItem * findClipItemById(ID id);
+    // static Common::Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    
+
     private:
     bool _isSolo;
     RenderPlan * _soloPlan;
 
-    std::atomic<bool> _planInWork;
+    std::atomic<int> _planInWork;
     RenderPlan * _renderPlan1;
     RenderPlan * _renderPlan2;
     
@@ -79,6 +87,8 @@ class Project {
     std::unique_ptr<Metronome> _metronome;
 
     ClipContainerMap _clipContainerMap;
+    ClipStorage _clipStorage;
+
     //std::unique_ptr<StepSequencer> _stepSequencer;
     //std::unique_ptr<ModulationEngine> _modEngine;
     //_globalParameterList??

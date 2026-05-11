@@ -34,6 +34,13 @@ struct BoundingBox {
     }
     
     bool empty() const { return w <= 0 || h <= 0; }
+
+    bool operator!=(const BoundingBox &other) const {
+        return (other.x != x ||
+                other.y != y ||
+                other.w != w ||
+                other.h !=  h);  
+    }
 };
 
 }

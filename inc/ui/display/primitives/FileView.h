@@ -18,7 +18,7 @@ class UnitUIBase;
 class Button;
 class UIContext;
 
-struct FileView : public BaseWidget {
+struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     FileView(BaseWidget * parent, UnitUIBase * _parentUI, const slr::ClipItemView * const item, UIContext * const uictx);
     ~FileView();
 
@@ -34,6 +34,8 @@ struct FileView : public BaseWidget {
     lv_color_t _fillColor;
 
     const slr::ClipItemView * const _clipItem;
+
+    void pollUIUpdate() override;
     
     private:
     UIContext * const _uictx;
@@ -43,6 +45,8 @@ struct FileView : public BaseWidget {
 
     int _originalX;
     int _originalY;
+
+    uint64_t _uiVersion;
 
     void draw();
 

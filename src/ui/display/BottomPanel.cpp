@@ -12,7 +12,8 @@
 
 #include "snapshots/TimelineView.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
+// #include "core/Events.h"
 
 #include "logger.h"
 
@@ -35,10 +36,9 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _playButton->setCallback([this]() { 
         // LOG_INFO("Play");
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-        slr::Events::ChangeTimelineState e {
-            .state = (tl.playing() ? slr::TimelineState::Pause : slr::TimelineState::Play)
-        };
-        slr::EmitEvent(e);
+        auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
+        act->state = (tl.playing() ? slr::TimelineState::Pause : slr::TimelineState::Play);
+        slr::EmitAction(std::move(act));
     });
     
     posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
@@ -48,10 +48,11 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _stopButton->setFont(&DEFAULT_FONT);
     _stopButton->setCallback([this]() { 
         // LOG_INFO("Stop");
-        slr::Events::ChangeTimelineState e = {
-            .state = slr::TimelineState::Stop
-        };
-        slr::EmitEvent(e);
+        
+        slr::TimelineView & tl = slr::TimelineView::getTimelineView();
+        auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
+        act->state = slr::TimelineState::Stop;
+        slr::EmitAction(std::move(act));
     });
 
     posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
@@ -62,10 +63,9 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _recButton->setCallback([this]() { 
         // LOG_INFO("Record");
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-        slr::Events::ChangeTimelineState e = {
-            .state = (tl.recording() ? slr::TimelineState::StopRecord : slr::TimelineState::StartRecord)
-        };
-        slr::EmitEvent(e);
+        auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
+        act->state = (tl.recording() ? slr::TimelineState::StopRecord : slr::TimelineState::StartRecord);
+        slr::EmitAction(std::move(act));
     });
 
     posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
@@ -76,10 +76,9 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _loopButton->setCallback([this]() { 
         // LOG_INFO("Toggle loop");
         slr::TimelineView &tl = slr::TimelineView::getTimelineView();
-        slr::Events::ToggleLoop e = {
-            .newState = (tl.looping() ? false : true)
-        };
-        slr::EmitEvent(e);
+        auto act = std::make_unique<slr::Actions::ToggleLoop>();
+        act->newState = (tl.looping() ? false : true);
+        slr::EmitAction(std::move(act));
     });
 
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
@@ -120,11 +119,10 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
                 //event
                 // LOG_WARN("No event to change bpm");
                 slr::TimelineView &tl = slr::TimelineView::getTimelineView();
-                slr::Events::ChangeSigBpm e = {
-                    .bpm = bpm,
-                    .sig = tl.getBarSize()
-                }; 
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::ChangeSignatureBpm>();
+                act->bpm = bpm;
+                act->sig = tl.getBarSize();
+                slr::EmitAction(std::move(act));
             }
         );
     });
@@ -164,11 +162,10 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
                 LOG_INFO("Time signature set text: %s, val: %u/%u", text.c_str(), size._numerator, size._denominator);
                 //event
                 slr::TimelineView &tl = slr::TimelineView::getTimelineView();
-                slr::Events::ChangeSigBpm e = {
-                    .bpm = tl.bpm(),
-                    .sig = size
-                }; 
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::ChangeSignatureBpm>();
+                act->bpm = tl.bpm();
+                act->sig = size;
+                slr::EmitAction(std::move(act));
             }
         );
     });
@@ -212,11 +209,10 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
 
                 LOG_INFO("Loop start set text: %s, res value: %lu", text.c_str(), start);
                 //event
-                slr::Events::LoopPosition e = { 
-                    .start = start,
-                    .end = end
-                };
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::LoopPosition>();
+                act->start = start;
+                act->end = end;
+                slr::EmitAction(std::move(act));
             }
         );
     });
@@ -249,11 +245,10 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
 
                 LOG_INFO("Loop end set text: %s, res value: %lu", text.c_str(), end);
                 //event
-                slr::Events::LoopPosition e = {
-                    .start = start,
-                    .end = end
-                };
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::LoopPosition>();
+                act->start = start;
+                act->end = end;
+                slr::EmitAction(std::move(act));
             }
         );
     });
@@ -274,15 +269,6 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _newButton->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _newButton->setFont(&DEFAULT_FONT);
     _newButton->setCallback([uictx = _uictx]() {
-        /*
-        TODO future: opens popup window that allow to choose what to create:
-        built-in units such as Track, Mixer, Sequence(for step sequencer), 
-        Modulation(for modulation engine), Effect(built-in or external),
-        or input/output nodes(for external in-outs patching - purely visual thing)
-        */
-        // LOG_INFO("Create New Track Event");
-        // slr::Events::NewTrack e;
-        // slr::EmitEvent(e); 
         uictx->_popManager->enableNewModulePopup();
     });
 

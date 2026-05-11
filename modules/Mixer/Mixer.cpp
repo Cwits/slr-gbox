@@ -8,7 +8,7 @@
 
 namespace slr {
 
-Mixer::Mixer() : AudioUnit() {
+Mixer::Mixer(const ClipContainer *initContainer) : AudioUnit(initContainer) {
 
 }
 
@@ -22,9 +22,9 @@ frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs)  {
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);
 
-    // if(ctx.playing) {
-    //     AudioUnit::playbackFiles(ctx, _outputs, _midiInput);
-    // }
+    if(ctx.playing) {
+        playbackFiles(ctx, _outputs, _midiInput);
+    }
 
     for(uint32_t i=0; i<inputs.audioDepsCnt; ++i) {    
         const AudioDependencie &ext = inputs.audio[i];

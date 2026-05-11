@@ -21,29 +21,21 @@
 #include "core/utility/basicMidiManipulation.h"
 #include "core/utility/helper.h"
 
+#include "modules/Track/TrackActions.h"
+
 #include "logger.h"
 #include "defines.h"
 
 namespace slr {
 
 
-Track::Track() : AudioUnit() {
-    // _recInt = AudioBufferManager::acquireRegular();
-    // _recExt = AudioBufferManager::acquireRegular();
-    // _preFX = AudioBufferManager::acquireRegular();
-    // _postFX = AudioBufferManager::acquireRegular();
-    // _postPan = AudioBufferManager::acquireRegular();  
-
+Track::Track(const ClipContainer * initContainer) : AudioUnit(initContainer) {
     _record = false;
     _recordSource = RecordSource::Audio;
     _recordTarget = nullptr;
 }
 
 Track::~Track() {
-    // AudioBufferManager::releaseRegular(_preFX);
-    // AudioBufferManager::releaseRegular(_postFX);
-    // AudioBufferManager::releaseRegular(_postPan);
-
     if(_recordTarget) {
         FileWorker * fw = ControlEngine::fileWorker();
         _recordTarget->release(fw);
@@ -265,33 +257,12 @@ void Track::stopRecording() {
         if(_recordTarget)
             _recordTarget->stopRecord();
 
+        
         //reinit only here because if track record is turned off there is no need for reinit
-        FlatEvents::FlatResponse reinit;
-        reinit.type = FlatEvents::FlatResponse::Type::ReinitTrackRecord;
-        reinit.reinitTrackRecord.track = this;
-        RtEngine::addRtResponse(reinit);
+        _reinitFlat.track = this;
+        _reinitTask = makeRtTask(&_reinitFlat);
+        RtEngine::addRtResponse(&_reinitTask);
     }
-}
-
-Status Track::setRecordArm(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    bool record = floatToBool(ev.recordArm.recordState);
-    ev.recordArm.track->_record = record;
-    ev.recordArm.track->_recordSource = ev.recordArm.recordSource;
-
-    resp.type = FlatEvents::FlatResponse::Type::RecordArm;
-    resp.status = Status::Ok;
-    resp.recordArm.track = ev.recordArm.track;
-    resp.recordArm.recordState = ev.recordArm.recordState;
-    resp.recordArm.recordSource = ev.recordArm.recordSource;
-    return Status::Ok;
-}
-
-Status Track::reinitRecord(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    (void)resp;
-    if(ev.reinitTrackRecord.status == Status::Ok) {
-        ev.reinitTrackRecord.track->_record = true;
-    }
-    return Status::NotOk; //don't send response
 }
 
 //latencyToCompensate comes from RecordArm or ReinitRecord events...
@@ -458,14 +429,15 @@ void Track::AudioRecord::writeData(void * data, frame_t frames, uint8_t numChann
 }
 
 void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition) {
-    FlatEvents::FlatResponse dump;
-    dump.type = FlatEvents::FlatResponse::Type::DumpRecordedAudio;
-    dump.dumpRecordedAudio.targetBuffer = buffer;
-    dump.dumpRecordedAudio.targetFile = file;
-    dump.dumpRecordedAudio.size = size;
-    dump.dumpRecordedAudio.fileStartPosition = fileStartPosition;
-    dump.dumpRecordedAudio.trackId = _parent->id();
-    RtEngine::addRtResponse(dump);
+    //TODO: but there is one problem - if next buffer will be filled before task processed with Control Engine
+    //than we may loose some data
+    _flat.targetBuffer = buffer;
+    _flat.targetFile = file;
+    _flat.size = size;
+    _flat.fileStartPosition = fileStartPosition;
+    _flat.trackId = _parent->id();
+    _task = makeRtTask(&_flat);
+    RtEngine::addRtResponse(&_task);
 
     _fileUsed = true;
 }

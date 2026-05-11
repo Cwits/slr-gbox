@@ -13,7 +13,7 @@
 
 namespace slr {
 
-SimpleOsc::SimpleOsc() : AudioUnit() {
+SimpleOsc::SimpleOsc(const ClipContainer *initContainer) : AudioUnit(initContainer) {
     _phase = 0.0f;
     _deltaTime = 1.0f/(float)SettingsManager::getSampleRate();
     _time = 0.0f;
@@ -74,6 +74,10 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
 
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);
+
+    if(ctx.playing) {
+        playbackFiles(ctx, _outputs, _midiInput);
+    }
 
     //generate
     for(int i=0; i<_activeVoices; ++i) {

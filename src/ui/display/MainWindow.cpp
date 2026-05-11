@@ -27,7 +27,7 @@
 #include "snapshots/TimelineView.h"
 
 #include "core/ModuleManager.h"
-#include "core/Events.h"
+#include "core/Actions.h"
 
 #include "logger.h"
 
@@ -322,6 +322,8 @@ void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
         //TODO: shouldn't be like that... dunno yet how to make it proper way
         
         _gestureTarget = _gridView->_grid;
+        //ahhh! switch view target and actual target is different thing lol(at least for grid!!!)
+        //in grid there should be depending on context somehow
         // _gestureTarget = getSwitchViewTarget(view);
         switchToView(view);
     }
@@ -367,10 +369,9 @@ View * MainWindow::getSwitchViewTarget(MainView & view) {
 }
 
 void MainWindow::playheadUpdateCb(lv_timer_t * timer) {
-    slr::Events::RequestPlayhead e;
-    // e.commandId = slr::Events::GenerateEventId();
-    slr::EmitEvent(e);
-    // lv_timer_reset(timer);
+    auto act = std::make_unique<slr::Actions::UpdatePlayhead>();
+    slr::EmitAction(std::move(act));
+    lv_timer_reset(timer);
 }
 
 void MainWindow::updateTimeline(const bool timeSigOrBpm) {
@@ -434,34 +435,17 @@ std::string gestureToText(GestLib::Gestures &g) {
     return text;
 }
 
-void MainWindow::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
-    UnitUIBase * base = mod->createUI(view, &_uiContext);
+void MainWindow::createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view) {
+    std::unique_ptr<UnitUIBase> base = mod->createUI(view, &_uiContext);
     base->create(&_uiContext);
-    _uiContext._unitsUI.push_back(base);
-}
-
-void MainWindow::updateUI(slr::ID id) {
-    UnitUIBase * ui = nullptr;
-    for(UnitUIBase * u : _uiContext._unitsUI) {
-        if(u->id() == id) {
-            ui = u;
-            break;
-        }
-    }
-
-    if(!ui) {
-        LOG_ERROR("Failed to find UI with id %u", id);
-        return;
-    }
-
-    ui->update(&_uiContext);
+    _uiContext._unitsUI.push_back(std::move(base));
 }
 
 void MainWindow::destroyUI(slr::ID id) {
     UnitUIBase * ui = nullptr;
-    for(UnitUIBase * u : _uiContext._unitsUI) {
-        if(u->id() == id) {
-            ui = u;
+    for(auto &u : _uiContext._unitsUI) {
+        if(u.get()->id() == id) {
+            ui = u.get();
             break;
         }
     }
@@ -475,43 +459,59 @@ void MainWindow::destroyUI(slr::ID id) {
     std::size_t size = _uiContext._unitsUI.size();
     std::size_t idx = 0;
     for(std::size_t i=0; i<size; ++i) {
-        if(_uiContext._unitsUI.at(i)->id() == id) {
+        if(_uiContext._unitsUI.at(i).get()->id() == id) {
             // found = _trackGuiList.at(i).get();
             idx = i;
             break;
         }
     }
 
+    ui->destroy(&_uiContext);
     _uiContext._unitsUI.erase(_uiContext._unitsUI.begin()+idx);
     //move items positions up starting from idx 
     size -= 1;
     for(std::size_t i=0; i<size; ++i) {
-        UnitUIBase * tr = _uiContext._unitsUI.at(i);
+        UnitUIBase * tr = _uiContext._unitsUI.at(i).get();
         int x = 0;
         int y = LayoutDef::calcTrackY(i);
         // int x = tr->getPosX();
         // int y = tr->getPosY();
-        tr->updatePosition(x, y);
+        tr->gridUI()->updatePosition(x, y);
     }
 
     _uiContext.setLastSelected(nullptr);
-    ui->destroy(&_uiContext);
-    delete ui;
+    // ui->destroy(&_uiContext);
+    // delete ui;
 }
 
-// void MainWindow::setLastSelected(UnitUIBase * unit) {
-//     if(unit == nullptr) {
-//         _lastSelectedModule = nullptr;
-//         lv_obj_add_flag(_gridView->_control->_lastSelectedRect, LV_OBJ_FLAG_HIDDEN);
-//     } else {
-//         _lastSelectedModule = unit;
-//     }
+void MainWindow::pollUIUpdate() {
+    //depends on current view -> check updates?
+    //check frequent updates e.g. animated, timeline or smth else
+    
+    // for(auto clb : _frequentUpdateCallbacks) { /// hmm... not the best option i guess?
+    //     clb();
+    // }
 
-//     _moduleView->update();
-//     // for(std::size_t i=0; i<_unitsUI.size(); ++i) {
-//     //     _unitsUI.at(i)->moduleView()->hide();
-//     // }
-//     // unit->moduleView()->show();
-// }
+    //slow updates - roughly  30/15 ~= 2hz
+    // static unsigned char slowdown = 0;
+    // slowdown++;
+    // if(slowdown < 15) return;
+    // slowdown = 0;
+
+    MainView view = currentView();
+    switch(view) {
+        case(MainView::Grid): _gridView->pollUIUpdate(); break;
+        case(MainView::Module): _moduleView->pollUIUpdate(); break;
+        case(MainView::Browser): _browser->pollUIUpdate(); break;
+        case(MainView::Patch): ; break;
+        case(MainView::Editor): ; break;
+        case(MainView::StepSequencer): ; break;
+        case(MainView::ModMatrix): ; break;
+    }
+}
+
+void MainWindow::registerFrequentUpdate(std::function<void()> clb) {
+    // _frequentUpdateCallbacks.push_back(std::move(clb));
+}
 
 } //namespace UI

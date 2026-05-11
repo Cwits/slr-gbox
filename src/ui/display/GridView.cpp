@@ -10,7 +10,8 @@
 #include "ui/display/primitives/FileView.h"
 #include "ui/display/primitives/UnitUIBase.h"
 
-#include "core/Events.h"
+// #include "core/Events.h"
+#include "core/Actions.h"
 #include "snapshots/FileContainerView.h"
 
 #include "logger.h"
@@ -48,10 +49,10 @@ GridControl::~GridControl() {
 bool GridControl::handleTap(GestLib::TapGesture &tap) {
     int notAbsY = tap.y - LayoutDef::TOP_PANEL_HEIGHT;
     UnitUIBase * u = nullptr;
-    const std::vector<UnitUIBase*> &list = _uictx->_unitsUI;
+    const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
     for(std::size_t i=0; i<list.size(); ++i) {
-        UnitUIBase * unit = list.at(i);
-        int cy = unit->gridY();
+        UnitUIBase * unit = list.at(i).get();
+        int cy = unit->gridUI()->gridY();
         if(notAbsY >= cy && notAbsY <= (cy+LayoutDef::TRACK_HEIGHT)) {
             u = unit;
             break;
@@ -60,7 +61,7 @@ bool GridControl::handleTap(GestLib::TapGesture &tap) {
 
     if(u) {
         _uictx->setLastSelected(u);
-        lv_obj_set_pos(_lastSelectedRect, 0, u->gridY());
+        lv_obj_set_pos(_lastSelectedRect, 0, u->gridUI()->gridY());
         lv_obj_clear_flag(_lastSelectedRect, LV_OBJ_FLAG_HIDDEN);
         lv_obj_move_to_index(_lastSelectedRect, -1);
         return true;
@@ -99,6 +100,7 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
     if(drag.state == GestLib::GestureState::Start) {
 
     } else if(drag.state == GestLib::GestureState::Move) {
+        LOG_INFO("Here");
         if(ctx.dragOnGoing) {
             ctx.updateIconPos(drag.x, drag.y);
         }    
@@ -111,17 +113,18 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
             }
             
             //try find appropriate track
-            const std::vector<UnitUIBase*> &list = _uictx->_unitsUI;
+            const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
             int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
-            for(auto & unit : list) {
-                if(notAbsY >= unit->gridY() && notAbsY <= (unit->gridY()+LayoutDef::TRACK_HEIGHT) && unit->canLoadFiles()) {
+            for(const std::unique_ptr<UnitUIBase> &u : list) {
+                UnitUIBase *unit = u.get();
+                if(notAbsY >= unit->gridUI()->gridY() && notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && unit->canLoadFiles()) {
                     LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
-                    slr::Events::OpenFile e = {
-                        .unitId = unit->id(),
-                        .path = *ctx.payload.filePath.path,
-                        .fileStartPosition = 0
-                    };
-                    slr::EmitEvent(e);
+                    auto action = std::make_unique<slr::Actions::LoadAsClip>();
+                    action->targetId = unit->id();
+                    action->data = *ctx.payload.filePath.path;
+                    action->startOffset = 0;
+                    action->makeUnique = false;
+                    slr::EmitAction(std::move(action));
                     break;
                 }
             }
@@ -140,7 +143,7 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx)
     
     _control = new GridControl(this, uictx);
     _grid = new GridGrid(this, uictx);
-    _timeline = new Timeline(_grid);
+    _timeline = new Timeline(_grid, uictx);
     
     _flags.isSwipe = true;
     show();
@@ -183,9 +186,9 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
 
                     _timeline->setNudge(newNudge);
 
-                    const std::vector<UnitUIBase*> &list = _uictx->_unitsUI;
-                    for(auto * base : list) {
-                        base->setNudge(newNudge, _horizontalZoom);
+                    const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+                    for(auto &base : list) {
+                        base.get()->gridUI()->setNudge(newNudge, _horizontalZoom);
                     }
                 }
             } else if(swipe.dx < 0) {
@@ -193,9 +196,9 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
                 slr::frame_t newNudge = oldNudge + std::abs(mul);
                 _timeline->setNudge(newNudge);
                 
-                const std::vector<UnitUIBase*> &list = _uictx->_unitsUI;
-                for(auto * base : list) {
-                    base->setNudge(newNudge, _horizontalZoom);
+                const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+                for(auto &base : list) {
+                    base.get()->gridUI()->setNudge(newNudge, _horizontalZoom);
                 }
             }
 
@@ -203,36 +206,36 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
             //vertical move
             int mul = swipe.dy;
             //make grid(tracks) up-down scroll
-            const std::vector<UnitUIBase*> &list = _uictx->_unitsUI; 
+            const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI; 
             int tmp = LayoutDef::GRID_HEIGHT-LayoutDef::TRACK_HEIGHT;
             if(list.size()*LayoutDef::TRACK_HEIGHT < tmp) return true;
 
 
             if(swipe.dy > 0) {
                 //from top to bottom -> scroll down
-                int tmpgrid = list.at(0)->gridY();
+                int tmpgrid = list.at(0).get()->gridUI()->gridY();
                 int tmpcalc = LayoutDef::calcTrackY(0);
                 // LOG_INFO("%d %d", tmpgrid, tmpcalc);
                 if(tmpgrid < tmpcalc) {
-                    int diff = list.at(0)->gridY() - mul;
+                    int diff = list.at(0)->gridUI()->gridY() - mul;
                     if(diff <= 0) {
                         // mul += diff;
                     }
 
-                    const std::vector<UnitUIBase*> &list = _uictx->_unitsUI;
-                    for(auto * base : list) {
-                        base->updatePosition(0, base->gridY()+mul);
+                    const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+                    for(auto &base : list) {
+                        base.get()->gridUI()->updatePosition(0, base.get()->gridUI()->gridY()+mul);
                     }
                     int cy = lv_obj_get_y(_control->_lastSelectedRect);
                     lv_obj_set_y(_control->_lastSelectedRect, cy+mul);
                 }
             } else if(swipe.dy < 0) {
                 //from bottom to top -> scroll up
-                const std::vector<UnitUIBase*> &list = _uictx->_unitsUI;
-                if(list.back()->gridY() < (LayoutDef::GRID_HEIGHT-LayoutDef::TRACK_HEIGHT)) return true;
+                const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+                if(list.back().get()->gridUI()->gridY() < (LayoutDef::GRID_HEIGHT-LayoutDef::TRACK_HEIGHT)) return true;
                 
-                for(auto * base : list) {
-                    base->updatePosition(0, base->gridY()+mul);
+                for(auto &base : list) {
+                    base.get()->gridUI()->updatePosition(0, base.get()->gridUI()->gridY()+mul);
                 }
                 int cy = lv_obj_get_y(_control->_lastSelectedRect);
                 lv_obj_set_y(_control->_lastSelectedRect, cy+mul);
@@ -246,6 +249,20 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
 
 
     return true;
+}
+
+void GridView::pollUIUpdate() {
+    _control->pollUIUpdate();
+    _grid->pollUIUpdate();
+    _timeline->pollUIUpdate();
+}
+
+void GridControl::pollUIUpdate() {
+    BaseWidget::pollChildsUIUpdate();
+}
+
+void GridGrid::pollUIUpdate() {
+    BaseWidget::pollChildsUIUpdate();
 }
 
 }

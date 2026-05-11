@@ -18,10 +18,20 @@ struct Label : public PushLib::Widget {
 
     void paint(PushLib::Painter &painter) override;
 
+    PushLib::Font font() const { return _font; }
+    void font(PushLib::Font font);
+
+    std::string text() const { return _text; }
+    void text(std::string text);
+
+    void resizeAllowed(bool allowed) { _prohibitedResize = !allowed; }
+
     private:
-    PushLib::Font _font;
-    PushLib::Color _color;
     std::string _text;
+    PushLib::Font _font;
+
+    bool _prohibitedResize = false; 
+    void recalculateSize();
 };
 
 }

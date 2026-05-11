@@ -5,9 +5,12 @@
 #include "core/primitives/AudioUnit.h"
 #include "ui/display/primitives/UnitUIBase.h"
 
+#include "core/ActionsMap.h"
+
 #include "modules/Track/TrackModule.h"
 #include "modules/Mixer/MixerModule.h"
 #include "modules/SimpleOscillator/SimpleOscModule.h"
+#include "modules/Sampler/SamplerModule.h"
 
 #include <vector>
 #include <string>
@@ -17,9 +20,16 @@ namespace slr {
 void ModuleManagerFactory::init() {
     ModuleManagerFactory & inst = ModuleManagerFactory::inst();
     //init default
+    
+    std::map<std::type_index, CreatorFn> &map = getActionMap();
+    
+    registerDefaultActions(map);
+
+    registerTrackActions(map);
     inst.registerModule(&TrackModule);
     inst.registerModule(&MixerModule);
     inst.registerModule(&SimpleOscModule);
+    inst.registerModule(&SamplerModule);
 
 
     //inst.discoverModules();

@@ -7,22 +7,23 @@
 
 #include "core/primitives/ControlContext.h"
 #include "core/primitives/SPSCQueue.h"
+#include "core/primitives/ActionBase.h"
+#include "core/primitives/ActionExecutable.h"
+#include "core/primitives/MidiEvent.h"
+#include "core/primitives/RtTask.h"
 
+#include "core/ActionsMap.h"
 // #include "core/AudioBufferManager.h"
 #include "core/BufferManager.h"
-#include "core/Events.h"
-#include "core/FlatEvents.h"
 #include "core/RtEngine.h"
 #include "core/Project.h"
 #include "core/FileWorker.h"
 #include "core/SettingsManager.h"
-#include "core/CEHandlerTables.h"
 #include "core/ModuleManager.h"
 #include "core/MidiController.h"
 #include "core/Metronome.h"
 
 #include "core/utility/helper.h"
-#include "inc/core/primitives/MidiEvent.h"
 
 #include "logger.h"
 
@@ -32,6 +33,7 @@
 
 #include "ui/uiControls.h"
 
+#include <cassert>
 #include <thread>
 #include <atomic>
 #include <mutex>
@@ -65,21 +67,8 @@ std::unique_ptr<DriverView> _driverView;
 std::thread _midiDiscoverThread;
 std::unique_ptr<MidiController> _midiController;
 
-// SPSCQueue<Events::Event, 256> _controlEventQueue;
-
-std::mutex _controlLock;
-std::vector<Events::Event> _eventQueue;
-std::vector<Events::Event> _eventSnapshot;
-
-std::vector<FlatEvents::FlatResponse> _flatResponseSnapshot;
-
-struct awaitEvent {
-    FlatEvents::FlatControl ctl;
-    std::function<void(const ControlContext&, const FlatEvents::FlatResponse&)> fire;
-    bool deleteEvent = false;
-};
-
-std::vector<awaitEvent> _awaitEvents;
+std::vector<std::unique_ptr<ActionExecutable>> _actions;
+std::shared_mutex _actionMutex;
 
 ID _commandIdCounter = 0;
 
@@ -87,12 +76,21 @@ namespace ControlEngine {
 
 void discoverMidi();
 
+ActionExecutable * getAction(std::size_t &index) {
+    std::shared_lock l(_actionMutex);
+
+    ActionExecutable *ret = nullptr;
+    if(_actions.size() > index) {
+        ret = _actions.at(index).get();
+        index++;
+    }
+    return ret;
+}
 
 void processLoop() {
     bool pendingDeleteEvent = false;
 
     while(!_shutdown) {
-        // Events::Event e;
         ControlContext ctx(_project.get(),
                             _fileWorker.get(),
                             _engine.get(),
@@ -100,63 +98,49 @@ void processLoop() {
                             _midiController.get(),
                             _bufferManager.get());
 
-        if(_engine == nullptr) {
-            LOG_WARN("RT Engine not set!");
-            goto sleep;
+        if(_engine == nullptr || _engine->getState() != RtEngine::RtState::RUN) {
+            LOG_WARN("RT Engine not ready!");
+            // goto sleep;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
         }
 
-        if(_engine->getState() != RtEngine::RtState::RUN) {
-            LOG_WARN("RT Engine not running!");
-            goto sleep;
-        }
-        
-        //handle general Events
-        _eventSnapshot.clear();
-        {
-            std::lock_guard<std::mutex> l(_controlLock);
-            _eventSnapshot = std::move(_eventQueue);
-            // _eventQueue.clear();
-        }
+        std::size_t idx = 0;
+        ActionExecutable * action = nullptr;
+        while( (action = getAction(idx)) != nullptr ) {
+            if(action->toDelete()) continue;
 
-        for(const Events::Event &e : _eventSnapshot) {
-            Handlers::ControlTable[e.index()](ctx, e);
-        }
-
-        //handle Responses from RT Engine
-        _flatResponseSnapshot.clear();
-        {
-            FlatEvents::FlatResponse resp;
-            SPSCQueue<FlatEvents::FlatResponse, 256> &queue = _engine->getOutputQueue();
-            while(queue.pop(resp)) {
-                _flatResponseSnapshot.push_back(resp);
+            switch(action->getState()) {
+                case(ActionState::Executing): action->exec(ctx); break;
+                case(ActionState::Waiting): action->checkWaitingCondition(); break;
+                case(ActionState::Finished): assert(false && "Shouldn't be here"); break;
             }
-        }
+        } 
 
-        pendingDeleteEvent = false;
-        for(FlatEvents::FlatResponse & resp : _flatResponseSnapshot) {
-            Handlers::ResponseTable[static_cast<size_t>(resp.type)](ctx, resp);
-
-            for(awaitEvent &e : _awaitEvents) {
-                if(e.ctl.commandId == resp.commandId) {
-                    e.fire(ctx, resp);
-                    e.deleteEvent = true;
-                    pendingDeleteEvent = true;
-                }
-            }
-        }
-
-        if(pendingDeleteEvent) {
-            _awaitEvents.erase(
+        {
+            //cleaning actions
+            std::unique_lock l(_actionMutex);
+            _actions.erase(
                 std::remove_if(
-                    _awaitEvents.begin(), 
-                    _awaitEvents.end(),
-                    [](const awaitEvent &ev) {
-                        return ev.deleteEvent;
-                    }), 
-                _awaitEvents.end()
+                    _actions.begin(),
+                    _actions.end(),
+                    [](const std::unique_ptr<ActionExecutable> &a) {
+                        return a->toDelete();
+                    }
+                ),
+                _actions.end()
             );
         }
-        
+
+        {
+            //check for responses from RT
+            SPSCQueue<RtTask*, 256> & resps = _engine->getResponses();
+            
+            RtTask * task = nullptr;
+            while(resps.pop(task)) {
+                task->fn(task->obj);
+            }
+        }
         //TODO:check pools for need for expand:
         //e.g. if audiobufferpool::regularsize < 8 than expand
         //      or recordsize < 16 expand
@@ -164,7 +148,7 @@ void processLoop() {
 
         // checkMidiDevices();
 
-        sleep:        
+        // sleep:        
         // std::unique_lock<std::mutex> l(_this->_controlLock);
         // if(_this->_cond.wait_for(l, std::chrono::milliseconds(100)) == std::cv_status::timeout) {
         //     // if(f->_shutdown) {
@@ -180,9 +164,6 @@ bool init() {
     SettingsManager::init();
 
     _shutdown = false;
-    _eventQueue.reserve(QUEUE_INITIAL_SIZE);
-    _eventSnapshot.reserve(QUEUE_INITIAL_SIZE);
-    _flatResponseSnapshot.reserve(256);
 
     _bufferManager = std::make_unique<BufferManager>();
     if(!_bufferManager->init(SettingsManager::getBlockSize(), DEFAULT_BUFFER_CHANNELS)) {
@@ -277,44 +258,14 @@ const ID generateCommandId() {
     return _commandIdCounter++;
 }
 
-void EmitEvent(const Events::Event &e) {
-    std::lock_guard<std::mutex> l(_controlLock);
-    _eventQueue.push_back(e);
-    // _controlEventQueue.push(e);
-}
+void EmitAction(std::unique_ptr<ActionBase> action) {
+    const std::map<std::type_index, CreatorFn> &map = getActionMap();
+    assert(map.count(action->actionType()));
 
-// bool EmitEventBlocking(const Events::Event &e, int msTimeout) {
-//     std::promise<bool> prom;
-//     std::future<bool> f = prom.get_future();
+    std::unique_ptr<ActionExecutable> actexe = map.at(action->actionType())(action.get());
 
-
-// }
-
-void emitRtControl(FlatEvents::FlatControl &ctl) {
-    ctl.commandId = ControlEngine::generateCommandId();
-    _engine->FlatControlEvent(ctl);
-    // _pendingAck.push_back({ctl, false});
-}
-
-void emitRtResponse(const FlatEvents::FlatResponse &resp) {
-    _engine->FlatResponseEvent(resp);
-}
-
-void awaitRtResult(const FlatEvents::FlatControl &ctl,
-                std::function<void(const ControlContext&, 
-                    const FlatEvents::FlatResponse&)> clb) 
-{
-    awaitEvent ev;
-    ev.ctl = ctl;
-    ev.fire = std::move(clb);
-    ev.deleteEvent = false;
-
-    _awaitEvents.push_back(ev);
-    emitRtControl(ev.ctl);
-}
-
-void notify() {
-
+    std::unique_lock l(_actionMutex);
+    _actions.push_back(std::move(actexe));
 }
 
 ProjectView * projectSnapshot() {
@@ -336,95 +287,6 @@ FileWorker * fileWorker() {
 MidiController * midiController() {
     return _midiController.get();
 }
-
-// void aggregateEvents() {
-
-// }
-
-/*
-//#include <libudev.h>
-void checkMidiDevices() {
-    
-        // https://github.com/gavv/snippets/blob/master/udev/udev_list_usb_storage.c
-        // https://github.com/gavv/snippets/blob/master/udev/udev_monitor_usb.c
-        // sooo... for now stay with check via RtMidi::getPortCount();
-        // but, for future need to concider possibility that several similar devices will be connected.
-        // soo, need to properly map path from udev to name/rtmidi port
-
-        // Прямого API “udev path → ALSA порт” нет. Нужно комбинировать несколько слоёв:
-
-        // 1. get sysfx-path of usb device thru udev
-        //     e.g. '/sys/bus/usb/devices/1-1.3/1-1.3:1.0' 
-        // 2. find corresponding hw:x,y in ALSA
-        //     ALSA creating devices in '/proc/asound/' and '/sys/class/sound/':
-            
-        //     * `/proc/asound/cards` — map list, index `x`.
-        //     * `/proc/asound/seq/clients` — sequential clients ALSA MIDI.
-        //     * `/sys/class/sound/cardX/device` → simlink to USB-device (`../../../1-1.3`)
-
-        //     ```
-        //     udev sysfs path: /sys/bus/usb/devices/1-1.3
-        //     ALSA card path: /sys/class/sound/card1/device -> ../../../1-1.3
-        //     ```
-
-        //     Found → `card1` correspond to this USB.
-
-        // 3. MIDI Port
-        //     ALSA MIDI-ports on 'cardX' can have several ports('hw:X,0', 'hw:X,1', 'hw:X,0,0').
-        //     Can get them via 'snd_seq_get_ports()' or via RtMidi 'getPortName(i)'.
-
-        //     * In `/sys/class/sound/cardX/device` can check interfaces (`midi1`, `midi2`) → correspond with ALSA-ports.
-
-        // ... Summary:
-        // 1. From udev path take parent usb-device -> idVendor, idProduct, sysfs path
-        // 2. Go through '/sys/class/sound/card* /device' -> find overlaps with USB sysfs path.
-        // 3. Find cardX, find corresponding MIDI-ports(0..N) -> correspond with RtMidi ports from 'getPortName()'.
-    
-   
-    udev * _udevctx;
-    _udevctx = udev_new();
-
-    struct udev_enumerate* enumerate = udev_enumerate_new(_udevctx);
-
-    udev_enumerate_add_match_subsystem(enumerate, "usb");
-    udev_enumerate_add_match_subsystem(enumerate, "usb_interface");
-    udev_enumerate_scan_devices(enumerate);
-
-    struct udev_list_entry *devices = udev_enumerate_get_list_entry(enumerate);
-    struct udev_list_entry *entry;
-
-    
-    udev_list_entry_foreach(entry, devices) {
-        const char *path = udev_list_entry_get_name(entry);
-        struct udev_device *dev = udev_device_new_from_syspath(_udevctx, path);
-
-        if (!dev)
-            continue;
-
-        const char *cls = udev_device_get_sysattr_value(dev, "bInterfaceClass");
-        const char *subcls = udev_device_get_sysattr_value(dev, "bInterfaceSubClass");
-
-        if (cls && subcls && strcmp(cls, "01") == 0 && strcmp(subcls, "03") == 0) {
-            struct udev_device *parent = udev_device_get_parent_with_subsystem_devtype(dev, "usb", "usb_device");
-            const char *vendor = udev_device_get_sysattr_value(parent, "idVendor");
-            const char *product = udev_device_get_sysattr_value(parent, "idProduct");
-            const char *devnode = udev_device_get_devnode(dev);
-            LOG_INFO("MIDI device: %s %s %s:%s %s\n",
-                    path,
-                    udev_device_get_sysattr_value(parent, "product"),
-                    vendor ? vendor : "0000",
-                    product ? product : "0000",
-                    devnode ? devnode : "(no devnode)");
-        }
-
-        udev_device_unref(dev);
-    }
-
-    udev_enumerate_unref(enumerate);
-    //...
-    udev_unref(_udevctx);
-}
-*/
 
 
 void discoverMidi() {

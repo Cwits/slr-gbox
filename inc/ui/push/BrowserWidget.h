@@ -17,8 +17,8 @@ struct BrowserWidget : public PushLib::Widget {
     BrowserWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~BrowserWidget();
 
-    void paint(PushLib::Painter &painter) override;
-
+    void paint(PushLib::Painter &p) override;
+    
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
 

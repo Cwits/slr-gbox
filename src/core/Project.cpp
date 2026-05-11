@@ -4,6 +4,8 @@
 #include "core/Project.h"
 #include "core/primitives/AudioUnit.h"
 #include "core/Metronome.h"
+#include "core/ModuleManager.h"
+#include "core/primitives/ControlContext.h"
 #include "logger.h"
 
 #include <algorithm>
@@ -46,11 +48,50 @@ Project::~Project() {
     destroyPlan(_renderPlan2);
 }
 
-bool Project::addUnit(std::unique_ptr<AudioUnit> unit) {
-    AudioUnit * u = unit.get();
-    _unitList.push_back(std::move(unit));
+AudioUnit * Project::createUnit(const ControlContext &ctx, const Module *mod) {
+    AudioUnit * au = nullptr;
+    try {
+        slr::ID nextId = ctx.nextAudioUnitId();
+        ClipContainerMap &map = _clipContainerMap; //.project->clipContainerMap();
+        auto [it, inserted] = map.try_emplace(nextId);
+        ClipContainerBuffer & storage = it->second;
 
-    return true;
+        if(!inserted) {
+            /*
+                is this situation even possible? 
+                i guess like... when there was attempt to create unit and it failed -> container wasn't deleted...
+                just clear it and... ?
+            */
+            LOG_WARN("ClipStorage for id %d existed already. Checking if unit with similar id exists");
+            AudioUnit * exists = getUnitById(nextId); //.project->getUnitById(nextId);
+            if(exists) {
+                //unit associated with this ID exists, can't touch that container.
+                LOG_ERROR("Something really serious went off");
+                LOG_ERROR("Expected next ID to be %d but it already taken", nextId);
+                return nullptr;
+            }
+            LOG_WARN("Unit doesn't exist, safe to proceed, but may be some skew");
+            storage.clear();
+        }
+        
+        std::unique_ptr<AudioUnit> unit = mod->createRT(storage.inUseContainer());
+        au = unit.get();
+
+        if(au->id() != nextId) {
+            LOG_ERROR("Something went wrong... expected next unit id was %d but got %d", nextId, au->id());
+            return nullptr;
+        }
+
+        if(!unit->create(ctx.bufferManager)) {
+            LOG_ERROR("Failed to create unit for some reasons");
+            return nullptr;
+        }
+
+        _unitList.push_back(std::move(unit)); //ctx.project->addUnit(std::move(unit));
+    } catch(...) {
+        LOG_ERROR("Failed to create module %s", mod->_name->data());
+    }
+    return au;
 }
 
 std::unique_ptr<AudioUnit> Project::removeUnit(ID id) {
@@ -74,11 +115,6 @@ AudioUnit * Project::getUnitById(ID id) {
     for(std::size_t i=0; i<size; ++i) {
         if(_unitList.at(i).get()->id() == id) return _unitList.at(i).get();
     }
-
-    // for(int i=0; i<MAXIMUM_TRACKS; ++i) {
-    //     if(_trackList[i] == nullptr) continue;
-    //     if(_trackList[i].get()->getId() == id) return _trackList[i].get();
-    // }
 
     LOG_ERROR("Wrong Unit ID");
     return nullptr;
@@ -121,33 +157,57 @@ bool Project::evaluateRoute(const AudioRoute & route) {
     return true;
 }
 
-void Project::replaceEditablePlan(RenderPlan * plan) {
-    if(editablePlan() == _renderPlan1) {
-        destroyPlan(_renderPlan1);
-        _renderPlan1 = plan;
-    } else {
-        destroyPlan(_renderPlan2);
-        _renderPlan2 = plan;
+bool Project::unitHaveRoutes(ID unitId) const {
+    for(auto &ar : _routes) {
+        if(ar._sourceType == slr::AudioRoute::Type::INT && ar._sourceId == unitId) return true;
+        if(ar._targetType == slr::AudioRoute::Type::INT && ar._targetId == unitId) return true;
     }
+
+    for(auto &mr : _midiRoutes) {
+        if(mr._sourceType == slr::MidiRoute::Type::INT && mr._sourceId == unitId) return true;
+        if(mr._targetType == slr::MidiRoute::Type::INT && mr._targetId == unitId) return true;
+    }
+
+    return false;
 }
 
-Status Project::swapPlan(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    Project * prj = ev.swapRenderPlan.project;
-    
-    prj->_planInWork ? prj->_planInWork = false : prj->_planInWork = true;
-    
-    resp.type = FlatEvents::FlatResponse::Type::SwapRenderPlan;
-    resp.status = Status::Ok;
-    resp.commandId = ev.commandId;
-    return Status::Ok;
+bool Project::prepareSwappablePlan() {
+    RenderPlan * newPlan = buildPlan(this);
+				
+	if(!newPlan) {
+	    return false;
+	}
+	
+    if(_planInWork.load(std::memory_order_acquire) == 0) {
+        _renderPlan2 = newPlan;
+    } else {
+        _renderPlan1 = newPlan;
+    }
+    return true;
+}
+
+void Project::swapPlans() {
+    _planInWork.fetch_xor(1, std::memory_order_release);
 }
 
 const RenderPlan * Project::editablePlan() const {
-    return (_planInWork ? _renderPlan2 : _renderPlan1);
+    const RenderPlan *ret = nullptr;
+    if(_planInWork.load(std::memory_order_acquire) == 0) {
+        ret = _renderPlan2;
+    } else {
+        ret = _renderPlan1;
+    }
+    return ret;
 }
 
 const RenderPlan * Project::runPlan() const {
-    return (_planInWork ? _renderPlan1 : _renderPlan2);
+    const RenderPlan *ret = nullptr;
+    if(_planInWork.load(std::memory_order_acquire) == 0) {
+        ret = _renderPlan1;
+    } else {
+        ret = _renderPlan2;
+    }
+    return ret;
 }
 
 const RenderPlan * Project::soloPlan() const {
@@ -174,6 +234,14 @@ void Project::removeRoutesForId(ID id) {
 
             return false;
     }), _midiRoutes.end());
+}
+
+ClipContainerBuffer & Project::getClipContainerBufferById(ID id) {
+    return _clipContainerMap.at(id);
+}
+
+ClipItem * Project::findClipItemById(ID id) {
+    return _clipStorage.findClipById(id);
 }
 
 }

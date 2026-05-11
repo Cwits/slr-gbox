@@ -3,6 +3,7 @@
 
 #pragma once
 #include <string>
+#include <memory>
 #include "defines.h"
 
 namespace slr {
@@ -22,8 +23,7 @@ void floatingInfo(std::string text);
 void floatingWarning(std::string text);
 
 /* Module related */
-void addModuleUI(const slr::Module * mod, slr::AudioUnitView * view);
-void updateModuleUI(slr::ID id);
+void addModuleUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> view);
 void destroyModuleUI(slr::ID id);
 
 /* Timeline */

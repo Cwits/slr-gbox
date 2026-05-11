@@ -96,67 +96,26 @@ PadLayoutWidget::PadLayoutWidget(PushLib::Widget *parent, PushUIContext * const 
         intToXY(x, y, i+1);
         x += 20;
         lbl->position(x, y);
-        lbl->size(200, 18);
         lbl->font(f);
         _scaleNames.push_back(std::move(lbl));
     }
 
     _pointer = std::make_unique<Pointer>(this);
     intToXY(x, y, _pointerPos);
-    _pointer->position(x, y); //0x7fff6c09d890
+    _pointer->position(x, y);
     _pointer->size(7, 10);
+
+    _lblChromatic = std::make_unique<StaticLabel>(this, CHROMATIC_TEXT);
+    _lblChromatic->position(10, PushLib::DISPLAY_HEIGHT-15);
+    _lblChromatic->color(PushLib::Colors::Red);
 }
 
 PadLayoutWidget::~PadLayoutWidget() {
 
 }
 
-void PadLayoutWidget::paint(PushLib::Painter &painter) {
-    // if(dirty()) {
-        // clearDirty();
-        // painter.clearRegion(bounds());
-
-        // //do whatever you need to do(e.g. fill background)
-        // int xl = 20;
-        // int yl = PushUIDefines::DefaultMargin;
-        // PushLib::Font f = PushUIDefines::DefaultFont;
-        // PushLib::Color c = PushLib::COLORS::White;
-
-        // // painter.clear();
-        
-        // xl = PushUIDefines::DisplayButtonWidth + (PushUIDefines::DisplayButtonWidth/2);;
-        // painter.writeChar(xl, yl, 'C', f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeChar(xl, yl, 'D', f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeChar(xl, yl, 'E', f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeChar(xl, yl, 'F', f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeChar(xl, yl, 'G', f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeChar(xl, yl, 'A', f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeChar(xl, yl, 'B', f, c);
-
-        // xl = 10;
-        // yl = PushLib::DISPLAY_HEIGHT-PushUIDefines::DefaultMargin-f.FontWidth;
-        // bool chromatic = _padNotes->chromatic();
-        // painter.writeString(xl, yl, std::string("Chromatic"), f, chromatic ? PushLib::COLORS::Red : c);
-        // xl = PushUIDefines::DisplayButtonWidth + (PushUIDefines::DisplayButtonWidth/2);;
-        // painter.writeString(xl, yl, std::string("C#"), f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeString(xl, yl, std::string("D#"), f, c);
-        // xl += (PushUIDefines::DisplayButtonWidth*2);
-        // painter.writeString(xl, yl, std::string("F#"), f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeString(xl, yl, std::string("G#"), f, c);
-        // xl += PushUIDefines::DisplayButtonWidth;
-        // painter.writeString(xl, yl, std::string("A#"), f, c);
-
-    // }
-    painter.clear();
-    painter.writeString(50, 70, std::string("ARIERGJWEPOFwpifwoiejfwpaWERF"), PushLib::Font_11x18, PushLib::COLORS::White);
+void PadLayoutWidget::paint(PushLib::Painter &p) {
+    p.clearScreen();
 }
 
 bool PadLayoutWidget::handleButton(PushLib::ButtonEvent &ev) {
@@ -209,11 +168,8 @@ bool PadLayoutWidget::toggleChromatic(PushLib::ButtonEvent &ev) {
     bool chroma = _padNotes->chromatic();
     _padNotes->setChromatic(!chroma);
 
-    // if(chroma) _chroma->color(PushLib::COLORS::Red);
-    // else _chroma->color(PushLib::COLORS::White);
-
-    // _chroma->markDirty();
-    // markDirty();
+    if(!chroma) _lblChromatic->color(PushLib::Colors::Red);
+    else _lblChromatic->color(PushLib::Colors::White);
 
     return true;
 }
@@ -244,6 +200,9 @@ bool PadLayoutWidget::pointerTestInc(PushLib::ButtonEvent &ev) {
     _pointerPos++;
     intToXY(x, y, _pointerPos);
     _pointer->position(x, y);
+    
+    Scales sk = static_cast<Scales>(_pointerPos-1);
+    _padNotes->setScale(sk);
     return true;
 }
 
@@ -254,6 +213,10 @@ bool PadLayoutWidget::pointerTestDec(PushLib::ButtonEvent &ev) {
     if(_pointerPos > 1) _pointerPos--;
     intToXY(x, y, _pointerPos);
     _pointer->position(x, y);
+
+    Scales sk = static_cast<Scales>(_pointerPos-1);
+    _padNotes->setScale(sk);
+    
     return true;
 }
 

@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ui/display/Timeline.h"
+
+#include "ui/display/primitives/UIContext.h"
 #include "ui/display/layoutSizes.h"
 #include "ui/display/defaultStyles.h"
 #include "ui/uiutility.h"
 
 #include "snapshots/TimelineView.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
+// #include "core/Events.h"
 #include "defines.h"
 #include "logger.h"
 
@@ -16,7 +19,7 @@
 
 namespace UI {
 
-Timeline::Timeline(BaseWidget * parent) : BaseWidget(parent, true) {
+Timeline::Timeline(BaseWidget * parent, UIContext * uictx) : BaseWidget(parent, true), _uictx(uictx) {
     setPos(LayoutDef::TIMELINE_X, LayoutDef::TIMELINE_Y);
     setSize(LayoutDef::TIMELINE_WIDTH, LayoutDef::TIMELINE_HEIGHT);
     lv_obj_add_style(_lvhost, &workspace, 0);
@@ -36,6 +39,10 @@ Timeline::Timeline(BaseWidget * parent) : BaseWidget(parent, true) {
     _firstTime = false;
 
     _flags.isDrag = true;
+
+    // _uictx->registerFrequentUpdate([this]() {
+    //     this->updatePlayhead(0);
+    // });
 
     show();
 }
@@ -110,6 +117,7 @@ void Timeline::update() {
 
 void Timeline::updatePlayhead(slr::frame_t position) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
+    // position = tl.elapsed();
     // int framesPerBar = tl.framesPerBar();
     int pixPerBar = UIUtility::pixelPerBar(_horizontalZoom);
     float framesPerPixel = (float)pixPerBar / tl.framesPerBar();
@@ -120,7 +128,6 @@ void Timeline::updatePlayhead(slr::frame_t position) {
     lv_line_set_points(_playhead._line, &_playhead._points[0], 2);
 
     lv_obj_invalidate(_playhead._line);
-
 }
 
 void Timeline::updatePlayheadZ() {
@@ -169,6 +176,11 @@ void Timeline::showLoopMarkers(bool onoff) {
 
 void Timeline::updateLoopMarkers() {
     _loop.update(_horizontalZoom, false);
+}
+
+
+void Timeline::pollUIUpdate() {
+    
 }
 
 void Timeline::loop::update(float hZoom, bool firstTime) {
@@ -367,20 +379,16 @@ bool Timeline::loop::loopHandle::handleDrag(GestLib::DragGesture & drag) {
             //TODO: Snap to grid
             slr::TimelineView & tl = slr::TimelineView::getTimelineView();
             if(_isStartHandle) {
-                slr::Events::LoopPosition e = {
-                    .start = res,
-                    .end = tl.loopEndFrame()
-                };
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::LoopPosition>();
+                act->start = res;
+                act->end = tl.loopEndFrame();
+                slr::EmitAction(std::move(act));
             } else {
-                slr::Events::LoopPosition e = {
-                    .start = tl.loopStartFrame(),
-                    .end = res
-                };
-                slr::EmitEvent(e);
+                auto act = std::make_unique<slr::Actions::LoopPosition>();
+                act->start = tl.loopStartFrame();
+                act->end = res;
+                slr::EmitAction(std::move(act));
             }
-            
-            //slr::EmitEvet()
         } break;
     }
     return true;

@@ -22,7 +22,7 @@ struct PadLayoutWidget : public PushLib::Widget {
     PadLayoutWidget(PushLib::Widget *parent, PushUIContext * const puictx);
     ~PadLayoutWidget();
 
-    void paint(PushLib::Painter &painter) override;
+    void paint(PushLib::Painter &p) override;
 
     bool handleButton(PushLib::ButtonEvent &ev) override;
     bool handleEncoder(PushLib::EncoderEvent &ev) override;
@@ -43,6 +43,7 @@ struct PadLayoutWidget : public PushLib::Widget {
 
     std::unique_ptr<Pointer> _pointer;
     std::vector<std::unique_ptr<StaticLabel>> _scaleNames;
+    std::unique_ptr<StaticLabel> _lblChromatic;
 
     bool toggleChromatic(PushLib::ButtonEvent &ev);
     bool setRootNote(PushLib::ButtonEvent &ev);

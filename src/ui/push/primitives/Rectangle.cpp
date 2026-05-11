@@ -18,7 +18,7 @@ Rectangle::~Rectangle() {
 void Rectangle::paint(PushLib::Painter &painter) {
     // painter.filledRectangle(_x, _y, _width, _height, PushLib::COLORS::Blue);
     if(_filled) painter.filledRectangle(_x, _y, _width, _height, _color);
-    else painter.rectangle(_x, _y, _width, _height, 1, _color);
+    // else painter.rectangle(_x, _y, _width, _height, 1, _color);
 }
 
 

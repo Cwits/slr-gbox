@@ -10,7 +10,7 @@
 #include "ui/display/primitives/Button.h"
 #include "ui/display/PopupManager.h"
 
-#include "core/Events.h"
+#include "core/Actions.h"
 
 #include "logger.h"
 
@@ -105,9 +105,8 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnToggleMetronome->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnToggleMetronome->setFont(&DEFAULT_FONT);
     _btnToggleMetronome->setCallback([]() {
-        // LOG_WARN("Metronome on/off not here yet");
-        slr::Events::ToggleMetronome e;
-        slr::EmitEvent(e);
+        auto act = std::make_unique<slr::Actions::ToggleMetronome>();
+        slr::EmitAction(std::move(act));
     });
 
     posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);

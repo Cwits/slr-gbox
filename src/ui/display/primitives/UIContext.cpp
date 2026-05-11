@@ -56,6 +56,11 @@ float UIContext::gridHorizontalZoom() {
     return _gridView->hZoom();
 }
 
+
+void UIContext::registerFrequentUpdate(std::function<void()> clb) {
+    _mainWindow->registerFrequentUpdate(std::move(clb));
+}
+
 BaseWidget * UIContext::topPanel() { return _topPanel; }
 BaseWidget * UIContext::bottomPanel() { return _bottomPanel; }
 BaseWidget * UIContext::gridControl() { return _gridView->_control; }

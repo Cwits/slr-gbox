@@ -11,8 +11,14 @@
 
 namespace UI {
 
+class UIContext;
+
+// struct TimeGrid : public BaseWidget {...
+
+// struct TimelineTexts { // - e.g. at bottom panel 
+
 struct Timeline : public BaseWidget {
-    Timeline(BaseWidget * parent);
+    Timeline(BaseWidget * parent, UIContext * uictx);
     ~Timeline();
 
     void setNudge(slr::frame_t nudge);
@@ -24,7 +30,12 @@ struct Timeline : public BaseWidget {
 
     void showLoopMarkers(bool onoff);
     void updateLoopMarkers();
+
+    void pollUIUpdate() override;
+
     private:
+    UIContext * const _uictx;
+
     lv_style_t _font;
     
     struct line {

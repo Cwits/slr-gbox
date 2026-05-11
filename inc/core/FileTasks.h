@@ -18,13 +18,19 @@ class File;
 namespace Tasks {
 
 /* Generic Tasks */
+//open, callback, close
+struct OneShotOpen : public Task {
+    /* like for e.g. preset loading - you don't need keep file with preset always opened? */
+    void exec(FileWorker *f) override {}
+};
+
 struct openFile : public Task {
     void exec(FileWorker *f) override;
 
     std::string path;
     ID targetId;
     frame_t fileStartPosition;
-    std::function<void(bool success, const ID targetId, const File * file, const std::string & path, const frame_t fileStartPosition)> finished;
+    std::function<void(const File * file, bool success)> finished;
 };
 
 struct closeFile : public Task {

@@ -3,35 +3,43 @@
 #include "modules/SimpleOscillator/SimpleOscModule.h"
 
 #include "core/ModuleManager.h"
+#include "core/primitives/ClipContainer.h"
 
 #include "ui/display/primitives/UnitUIBase.h"
+#include "ui/push/primitives/UnitUIBase.h"
 
 #include "modules/SimpleOscillator/SimpleOsc.h"
 #include "modules/SimpleOscillator/SimpleOscUI.h"
 #include "modules/SimpleOscillator/SimpleOscView.h"
+#include "modules/SimpleOscillator/SimpleOscPushUI.h"
 
 #include <memory>
 
-std::unique_ptr<slr::AudioUnit> createSimpleOscRT() { 
-    return std::make_unique<slr::SimpleOsc>();
+std::unique_ptr<slr::AudioUnit> createSimpleOscRT(const slr::ClipContainer *initContainer) { 
+    return std::make_unique<slr::SimpleOsc>(initContainer);
 }
 
-slr::AudioUnitView * createSimpleOscView(slr::AudioUnit * osc) {
-    return new slr::SimpleOscView(static_cast<slr::SimpleOsc*>(osc));
+std::shared_ptr<slr::AudioUnitView> createSimpleOscView(slr::AudioUnit * osc) {
+    return std::make_shared<slr::SimpleOscView>(static_cast<slr::SimpleOsc*>(osc));
 }
 
-UI::UnitUIBase * createSimpleOscUI(slr::AudioUnitView * osc, UI::UIContext * uictx) {
-    return new UI::SimpleOscUI(osc, uictx);
+std::unique_ptr<UI::UnitUIBase> createSimpleOscUI(const std::shared_ptr<const slr::AudioUnitView> &osc, UI::UIContext * uictx) {
+    return std::make_unique<UI::SimpleOscUI>(osc, uictx);
 }
 
-std::string _simpleOscName = "OSC";
+std::unique_ptr<PushUI::UnitUIBase> createSimpleOscPushUI(const std::shared_ptr<const slr::AudioUnitView> &osc, PushUI::PushUIContext * uictx) {
+    return std::make_unique<PushUI::SimpleOscPushUI>(osc, uictx);
+}
+
+const std::string_view _simpleOscName = "OSC";
 
 const slr::Module SimpleOscModule {
     ._name = &_simpleOscName,
     ._type = slr::ModuleType::Basic,
     .createRT = createSimpleOscRT,
     .createView = createSimpleOscView,
-    .createUI = createSimpleOscUI
+    .createUI = createSimpleOscUI,
+    .createPushUI = createSimpleOscPushUI
 };
 
 

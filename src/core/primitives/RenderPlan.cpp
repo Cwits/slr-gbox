@@ -213,13 +213,14 @@ RenderPlan * buildPlan(Project *prj) {
         return &dummyPlan; 
     }
 
+    /*
     LOG_WARN("Render Order: ");
     for(ID & id : order) {
         std::cout << id << " ";
     }
     std::cout << std::endl;
     LOG_WARN("End Render order");
-
+    */
     //build plan
     RenderPlan * plan = new RenderPlan;
     if(audioRoutes.size() + midiRoutes.size() == 0) {

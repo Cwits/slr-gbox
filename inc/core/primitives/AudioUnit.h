@@ -9,8 +9,8 @@
 #include "core/primitives/FileContainer.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/MidiBuffer.h"
-#include "core/FlatEvents.h"
-#include "Status.h"
+// #include "core/FlatEvents.h"
+#include "common/Status.h"
 
 #include <vector>
 
@@ -26,8 +26,7 @@ class BufferManager;
 
 class AudioUnit {
     public:
-    explicit AudioUnit();
-    //explicit AudioUnit(ClipContainer & container, bool needsAudioOutput = true);
+    AudioUnit(const ClipContainer *initialContainer);
     virtual ~AudioUnit();
 
     virtual bool create(BufferManager *man);
@@ -44,10 +43,10 @@ class AudioUnit {
 
     RT_FUNC virtual frame_t latency() { return 0; }
 
-    RT_FUNC static Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
-    RT_FUNC static Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    // RT_FUNC static Common::Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
     struct UnitOutput {
         AudioBuffer * ptr;
@@ -62,11 +61,13 @@ class AudioUnit {
     // void injectMidi(MidiEvent & ev) { _midiQueue.push_back(ev); }
     void clearMidiBuffer();
     MidiBuffer * midiOutputs() { return _midiOutput; }
+
     const bool isMidiThru() const { return _midiThru; }
-    const bool isOmniHwInput() const { return _omniHwInput; }
+    inline void setMidiThru(bool state) { _midiThru = state; }
     
-    // [[deprecated("FOR TEST PURPOSE ONLY")]]
-    // void setMidiThru(bool newState) { _midiThru = newState; } //for test purposes, use events instead
+    const bool isOmniHwInput() const { return _omniHwInput; }
+    inline void setOmniHw(bool state) { _omniHwInput = state; }
+    
     //void injectControl(...);
 
     const ID id() const { return _uniqueId; }
@@ -86,20 +87,29 @@ class AudioUnit {
     const float pan() const { return _pan; }
     const ID panId() const { return _pan.id(); }
 
+    inline void setParameter(ID parameterId, float value) {
+        _flatParameterList[parameterId]->setValue(value);
+    }
+    
     bool hasParameterWithId(ID parameterId);
 
-    bool checkFileContainerNeedResize();
-    void resizeFileContainer();
-
-    const std::vector<ClipItem*> * clips() const { return _clipContainer.clips(); }
-    RT_FUNC static Status appendItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    RT_FUNC static Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
+    const ClipContainer * clips() const { return _clipContainer; }
+    inline void setClipContainer(const ClipContainer *cont) { _clipContainer = cont; }
+    // RT_FUNC static Common::Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
-    void setClips(std::vector<ClipItem*> * ptr) { _clipContainer._clips = ptr; }
+    static ID nextAudioUnitId();
+
+    //must be called from RT only
+    // RT_FUNC virtual bool assetLoaded(void *assetStruct) { return false; }
+    // RT_FUNC static Common::Status assetLoaded(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
+    //     // bool res = ev.unit->assetLoaded(ev.asset);
+    //     // resp.assetLoaded.success = res;
+    //     //...
+    //     return Common::Status::Ok;
+    // }
 
     protected:
-    const ID _uniqueId = -1;
+    const ID _uniqueId;
 
     bool _solo;
     
@@ -128,10 +138,9 @@ class AudioUnit {
     RT_FUNC void applyMidiEvents(MidiBuffer *buf);
 
     RT_FUNC void playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid);
-    ClipContainer _clipContainer;
+    const ClipContainer *_clipContainer;
     
     friend class AudioUnitView;
 };
-
     
 }

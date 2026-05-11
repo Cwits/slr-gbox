@@ -4,35 +4,43 @@
 #include "modules/Mixer/MixerModule.h"
 
 #include "core/ModuleManager.h"
+#include "core/primitives/ClipContainer.h"
 
 #include "ui/display/primitives/UnitUIBase.h"
+#include "ui/push/primitives/UnitUIBase.h"
 
 #include "modules/Mixer/Mixer.h"
 #include "modules/Mixer/MixerUI.h"
 #include "modules/Mixer/MixerView.h"
+#include "modules/Mixer/MixerPushUI.h"
 
 #include <memory>
 
-std::unique_ptr<slr::AudioUnit> createMixerRT() { 
-    return std::make_unique<slr::Mixer>();
+std::unique_ptr<slr::AudioUnit> createMixerRT(const slr::ClipContainer * initContainer) { 
+    return std::make_unique<slr::Mixer>(initContainer);
 }
 
-slr::AudioUnitView * createMixerView(slr::AudioUnit * mixer) {
-    return new slr::MixerView(static_cast<slr::Mixer*>(mixer));
+std::shared_ptr<slr::AudioUnitView> createMixerView(slr::AudioUnit * mixer) {
+    return std::make_shared<slr::MixerView>(static_cast<slr::Mixer*>(mixer));
 }
 
-UI::UnitUIBase * createMixerUI(slr::AudioUnitView * mixer, UI::UIContext * uictx) {
-    return new UI::MixerUI(mixer, uictx);
+std::unique_ptr<UI::UnitUIBase> createMixerUI(const std::shared_ptr<const slr::AudioUnitView> &mixer, UI::UIContext * uictx) {
+    return std::make_unique<UI::MixerUI>(mixer, uictx);
 }
 
-std::string _mixerName = "Mixer";
+std::unique_ptr<PushUI::UnitUIBase> createMixerPushUI(const std::shared_ptr<const slr::AudioUnitView> &mixer, PushUI::PushUIContext * uictx) {
+    return std::make_unique<PushUI::MixerPushUI>(mixer, uictx);
+}
+
+const std::string_view _mixerName = "Mixer";
 
 const slr::Module MixerModule {
     ._name = &_mixerName,
     ._type = slr::ModuleType::Basic,
     .createRT = createMixerRT,
     .createView = createMixerView,
-    .createUI = createMixerUI
+    .createUI = createMixerUI,
+    .createPushUI = createMixerPushUI
 };
 
 

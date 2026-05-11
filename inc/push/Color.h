@@ -5,13 +5,14 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "common/Color.h"
 
 namespace PushLib {
 
 using Color = uint16_t;
 using Pixel = uint16_t;
 
-namespace COLORS {
+namespace Colors {
     constexpr Color Black   = 0x0000;
     constexpr Color Red     = 0x001F;
     constexpr Color Green   = 0x07E0;
@@ -38,6 +39,10 @@ inline Color rgb(int r, int g, int b) {
     tmpb = (b * 31 / 255) & 0x1F;
 
     return (tmpb << 11) | (tmpg << 5) | tmpr;
+}
+
+inline Color rgb(slr::Color color) {
+    return rgb(color.r, color.g, color.b);
 }
 
 inline Color invert(Color color) { return (color ^ 0xFFFF); }

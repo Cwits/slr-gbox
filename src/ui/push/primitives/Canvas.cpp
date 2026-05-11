@@ -12,9 +12,9 @@ Canvas::Canvas(PushLib::Widget *parent, int w, int h) :
     // color(PushLib::COLORS::White);
     _width = w;
     _height = h;
-    markDirty();
     _canvas = std::unique_ptr<PushLib::Pixel>(new PushLib::Pixel[w*h]);
     update();
+    markDirty();
 }
 
 Canvas::~Canvas() {
@@ -41,6 +41,7 @@ void Canvas::update() {
         // painter.drawPixel(i, amp, PushLib::COLORS::Red);
         cnv[(amp*_width)+i] = gray;
     }
+    markDirty();
 }
 
 }

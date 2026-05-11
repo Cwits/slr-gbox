@@ -7,11 +7,12 @@
 #include "snapshots/ParameterArrayView.h"
 #include "snapshots/FileContainerView.h"
 #include "defines.h"
-#include "Color.h"
+#include "common/Color.h"
 
 #include <vector>
 #include <functional>
 #include <unordered_map>
+#include <atomic>
 
 namespace slr {
 
@@ -21,24 +22,24 @@ class AudioUnitView {
     public:
     AudioUnitView(AudioUnit * au);
     virtual ~AudioUnitView();
-    
-    void addParameter(ParameterBaseView * base);
+
     void setParameter(ID parameterId, float value);
 
-    virtual void update();
+    virtual void update() {}
 
     const std::string & name() const { return _name; }
-    void setName(const std::string &name) { _name = name; }
+    void setName(const std::string &name) { _name = name; incrementVersion(); }
 
-    const bool mute() const { return static_cast<float>(*_mute); }
-    void setMute(bool mute) { *_mute = mute; }
+    const bool mute() const { return *_mute; }
     const ID muteId() const { return _mute->id(); }
-    const float volume() const { return static_cast<float>(*_volume); }
-    void setVolume(float volume) { *_volume = volume; }
+    const float volume() const { return *_volume; }
     const ID volumeId() const { return _volume->id(); }
-    const float pan() const { return static_cast<float>(*_pan); }
-    void setPan(float pan) { *_pan = pan; }
+    const float pan() const { return *_pan; }
     const ID panId() const { return _pan->id(); }
+
+    // void setMute(bool mute);
+    // void setVolume(float volume);
+    // void setPan(float pan);
     
     const ID id() const { return _uniqueId; }
     
@@ -47,15 +48,28 @@ class AudioUnitView {
     const bool isMidiThru() const { return _midiThru; }
     const bool isOmniHwInput() const { return _omniHwInput; }
 
+    void setMidiThru(bool state) { _midiThru = state; }
+    void setOmniHw(bool state) { _omniHwInput = state; }
+
+    void appendClipItem(ClipItemView * item);
+
     ClipContainerView _clipContainer;
+
+    uint64_t version() const;
 
     protected:
     const AudioUnit * _au;
     const ID _uniqueId;
+
+    
+    std::atomic<uint64_t> _version;
+    void incrementVersion();
+    
     bool _solo;
     
     Color _uniqueColor;
-
+    
+    void addParameter(ParameterBaseView * base);
     ParameterFloatView * _volume;
     ParameterFloatView * _pan;
     ParameterBoolView * _mute;

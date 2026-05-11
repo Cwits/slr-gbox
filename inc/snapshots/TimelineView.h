@@ -6,6 +6,8 @@
 #include "defines.h"
 #include "core/Timeline.h"
 
+#include <atomic>
+
 namespace slr {
 
 class TimelineView {
@@ -13,6 +15,7 @@ class TimelineView {
     TimelineView(const Timeline * tl);
     ~TimelineView();
 
+    void setBpm(float bpm) { _bpm = bpm; }
     BarSize getBarSize() const { return _size; }
     void setBarSize(BarSize size) { _size = size; }
     
@@ -47,6 +50,8 @@ class TimelineView {
     void update();
     void clone(TimelineView & other);
 
+    uint64_t version() const { return _version.load(std::memory_order_acquire); }
+
     static TimelineView & getTimelineView();
 
     private:
@@ -66,6 +71,9 @@ class TimelineView {
     uint32_t _framesPerBar;
 
     const Timeline * _timeline;
+
+    std::atomic<uint64_t> _version;
+    void incrementVersion() { _version.fetch_add(1, std::memory_order_release); }
 };
 
 }

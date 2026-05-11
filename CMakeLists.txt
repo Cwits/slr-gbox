@@ -50,16 +50,41 @@ include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/shared)
 
 #generate events and handles
-add_custom_target(
-    run_codegen
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/GenaV3/main.py
-    COMMENT "Running code generator...(always)"
-    # VERBATIM
-)
+#add_custom_target(
+#    run_codegen
+#    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/GenaV3/main.py
+#    COMMENT "Running code generator...(always)"
+#    # VERBATIM
+#)
 
 add_subdirectory(external)
 
 file(GLOB SOURCES
+  #actions
+  src/core/Actions/AudioUnit/LoadAsClip.cpp
+  src/core/Actions/AudioUnit/RemoveClip.cpp
+  src/core/Actions/AudioUnit/SetParameter.cpp
+  src/core/Actions/AudioUnit/ToggleMidiThru.cpp
+  src/core/Actions/AudioUnit/ToggleOmniHwInput.cpp
+  src/core/Actions/AudioUnit/SetName.cpp
+
+  src/core/Actions/Project/CreateNewUnit.cpp
+  src/core/Actions/Project/DeleteUnit.cpp
+  src/core/Actions/Project/AddNewAudioRoute.cpp
+  src/core/Actions/Project/AddNewMidiRoute.cpp
+  src/core/Actions/Project/ModifyClipItem.cpp
+
+  src/core/Actions/Timeline/ChangeSignatureBpm.cpp
+  src/core/Actions/Timeline/ChangeTimelineState.cpp
+  src/core/Actions/Timeline/LoopPosition.cpp
+  src/core/Actions/Timeline/ToggleLoop.cpp
+  src/core/Actions/Timeline/UpdatePlayhead.cpp
+  
+  src/core/Actions/MidiController/ToggleMidiDevice.cpp
+  src/core/Actions/MidiController/VirtualMidiKbdAction.cpp
+  
+  src/core/Actions/Metronome/ToggleMetronome.cpp
+
   #core
   inc/core/drivers/AudioDriver.h
   src/core/drivers/AudioDriver.cpp
@@ -77,14 +102,19 @@ file(GLOB SOURCES
   src/core/primitives/ParameterArray.cpp
   src/core/primitives/RenderPlan.cpp
   src/core/primitives/MidiPort.cpp
+  src/core/primitives/FileContainer.cpp
+  src/core/primitives/ControlContext.cpp
+  src/core/primitives/RtTask.cpp
 
   src/core/utility/basicAudioManipulation.cpp
   src/core/utility/basicMidiManipulation.cpp
 
+  src/core/Actions.cpp
+  src/core/ActionsMap.cpp
   src/core/BufferManager.cpp
   src/core/AudioPeakBuilder.cpp
   src/core/ControlEngine.cpp
-  src/core/Events.cpp
+  #src/core/Events.cpp
   src/core/FileTasks.cpp
   src/core/FileWorker.cpp
   src/core/Project.cpp
@@ -109,16 +139,29 @@ file(GLOB SOURCES
   modules/Track/TrackModule.cpp
   modules/Track/TrackUI.cpp
   modules/Track/TrackView.cpp
+  modules/Track/TrackPushUI.cpp
+  modules/Track/TrackActions.cpp
+  modules/Track/Actions/DumpRecordedAudio.cpp
+  modules/Track/Actions/RecordArm.cpp
+  modules/Track/Actions/ReinitTrackRecord.cpp
 
   modules/Mixer/Mixer.cpp
   modules/Mixer/MixerModule.cpp
   modules/Mixer/MixerUI.cpp
   modules/Mixer/MixerView.cpp
+  modules/Mixer/MixerPushUI.cpp
 
   modules/SimpleOscillator/SimpleOsc.cpp
   modules/SimpleOscillator/SimpleOscModule.cpp
   modules/SimpleOscillator/SimpleOscUI.cpp
   modules/SimpleOscillator/SimpleOscView.cpp
+  modules/SimpleOscillator/SimpleOscPushUI.cpp
+
+  modules/Sampler/Sampler.cpp
+  modules/Sampler/SamplerModule.cpp
+  modules/Sampler/SamplerView.cpp
+  modules/Sampler/SamplerUI.cpp
+  modules/Sampler/SamplerPushUI.cpp
 
   #ui
   src/ui/display/primitives/BaseWidget.cpp
@@ -156,6 +199,8 @@ file(GLOB SOURCES
   src/ui/uiControls.cpp
   src/ui/guiThread.cpp
 
+  src/ui/display/helpers/AudioFileToCanvas.cpp
+
   #push core
   src/push/PushFaker.cpp
   src/push/PushCore.cpp
@@ -174,11 +219,13 @@ file(GLOB SOURCES
   src/ui/push/primitives/StaticLabel.cpp
   src/ui/push/primitives/Canvas.cpp
   src/ui/push/primitives/Rectangle.cpp
+  src/ui/push/primitives/UnitUIBase.cpp
+  src/ui/push/primitives/Label.cpp
 
   src/ui/push/PushUIContext.cpp
   src/ui/push/RootWidget.cpp
   src/ui/push/GridWidget.cpp
-  src/ui/push/ModuleWidget.cpp
+  src/ui/push/UnitWidget.cpp
   src/ui/push/BrowserWidget.cpp
   
   src/ui/push/PadLayoutWidget.cpp
@@ -200,7 +247,7 @@ file(GLOB SOURCES
 
 add_library(slrlib ${SOURCES})
 
-add_dependencies(slrlib run_codegen)
+#add_dependencies(slrlib run_codegen)
 
 add_executable(slr src/main.cpp)
 

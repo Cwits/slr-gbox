@@ -5,11 +5,11 @@
 
 #include "ui/display/primitives/BaseWidget.h"
 #include "ui/display/primitives/Popup.h"
-#include "Color.h"
+#include "common/Color.h"
 #include "defines.h"
 
 #include <vector>
-#include <functional>
+#include <memory>
 
 namespace slr {
     class AudioUnitView;
@@ -17,32 +17,22 @@ namespace slr {
 
 namespace UI {
 
+class Label;
 class Button;
 class UIContext;
 class FileView;
-
-struct GridBase : public BaseWidget {
-    GridBase(BaseWidget * parent, bool hasHost, bool addAsChild) 
-            : BaseWidget(parent, hasHost, addAsChild) {}
-    virtual ~GridBase() {}
-};
-
-struct ModuleBase : public BaseWidget {
-    ModuleBase(BaseWidget * parent, bool hasHost, bool addAsChild) 
-            : BaseWidget(parent, hasHost, addAsChild) {}
-    virtual ~ModuleBase() {}
-};
+class DefaultGridUI;
+class DefaultModuleUI;
 
 struct UnitUIBase {
-    UnitUIBase(slr::AudioUnitView * view, UIContext * uictx);
+    UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, UIContext * uictx);
     virtual ~UnitUIBase();
 
     virtual bool create(UIContext * ctx) = 0;
-    virtual bool update(UIContext * ctx);
     virtual bool destroy(UIContext * ctx);
 
-    virtual BaseWidget * gridUI() = 0;
-    virtual BaseWidget * moduleUI() = 0;
+    virtual DefaultGridUI * gridUI() = 0;
+    virtual DefaultModuleUI * moduleUI() = 0;
     // virtual BaseWidget * patchUI() = 0;
 
     void updateParameter(slr::ID parameterID, float value);
@@ -50,29 +40,15 @@ struct UnitUIBase {
     const slr::Color & color() const;
     const bool canLoadFiles() const { return _canLoadFiles; }
 
-    //there should be better solution for this things...
-    virtual int gridY();
-    virtual void setNudge(slr::frame_t nudge, const float horizontalZoom);
-    virtual void updatePosition(int x, int y);
+    const slr::AudioUnitView * view() const { return _view.get(); }
+    // slr::AudioUnitView * nonconstview() { return _view.get(); }
 
-    const slr::AudioUnitView * view() const { return _view; }
-
-    // virtual GridBase * grid() = 0;
-    // virtual ModuleBase * module() = 0;
-    
-    void registerExternalUpdate(std::function<void()> clb) { _externalUpdates.push_back(std::move(clb)); }
-
-    std::vector<FileView*> & fileList() { return _viewItems; }
+    UIContext * uictx() const { return _uictx; }
 
     protected:
-
     UIContext * const _uictx;
     bool _canLoadFiles = false;
-    slr::AudioUnitView * _view;
-    
-    std::vector<FileView*> _viewItems;
-
-    std::vector<std::function<void()>> _externalUpdates;
+    const std::shared_ptr<const slr::AudioUnitView> _view;
 };
 
 
@@ -84,6 +60,71 @@ struct UnitControlPopup : public Popup {
     
     Button * _deleteBtn;
     Button * _routeManagerBtn;
+};
+
+struct DefaultGridUI : public BaseWidget {
+    DefaultGridUI(BaseWidget * parent, UnitUIBase *base);
+    virtual ~DefaultGridUI();
+
+    void pollFileUpdate();
+    virtual void pollUIUpdate();
+
+    virtual int gridY();
+    virtual void setNudge(slr::frame_t nudge, const float horizontalZoom);
+    virtual void updatePosition(int x, int y);
+
+    std::vector<FileView*> fileList();
+
+    protected:
+    UnitUIBase * const _uibase;
+
+    std::unique_ptr<Label> _lblName;
+    std::unique_ptr<Label> _lblVolume;
+    std::unique_ptr<Button> _btnMute;
+    std::unique_ptr<Button> _btnSolo;
+
+    std::vector<std::unique_ptr<FileView>> _fileUIs;
+    uint64_t _fileContainerVersion;
+    
+    bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
+};
+
+struct DefaultModuleUI : public BaseWidget {
+    DefaultModuleUI(BaseWidget * parent, UnitUIBase *base);
+    virtual ~DefaultModuleUI();
+
+    private:
+    std::unique_ptr<FileView> _fileViewUI; //for using in grid
+    // std::unique_ptr<FileView> _fileEditorUI;
+    /* 
+        it should be something like... dunno... several buttons as
+            - clips - where you can manipulate each clip that is associated with current unit individually
+                        (e.g. if there is 3 clips than you select only one of them and can stretch/move/cut/crop/duplicate or whatever)
+            
+                        but for clips editing it should be somewhat unified interface for all modules. Than, on clip switching - 
+                            redraw canvas i guess?
+
+                        so it would be separate things - Clip Edito and File Editor?
+                            Editor in general, but there should be than:
+                            clips, audio files, midi files, automations, emm... smth else?
+
+                        Plus some simplified timeline
+
+            - modules settings itself - e.g. for Mixer it would be sliders, for OSC it would be some voice controls, adsr, or whatever.
+                                        (dunno what to do for track)
+                                        
+            - something else? mby alternative route mapping menu? where on one side is inputs and on another is outputs
+
+                                Inputs  |        |  Outputs
+                                 unit   |        |    unit
+                                 unit   |  Unit  |     +
+                                  +     |        |
+                                        |        |
+                maybe :)
+
+            - dunno...
+    
+    */
 };
 
 }

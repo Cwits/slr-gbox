@@ -11,7 +11,7 @@ namespace PushLib {
 namespace PushUI {
 
 struct Rectangle : public PushLib::Widget {
-    Rectangle(PushLib::Widget *parent, bool filled);
+    Rectangle(PushLib::Widget *parent, bool filled = true);
     ~Rectangle();
 
     void paint(PushLib::Painter &painter) override;
