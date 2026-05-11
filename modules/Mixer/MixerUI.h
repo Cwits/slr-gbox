@@ -19,7 +19,7 @@ class UIContext;
 class Slider;
 
 struct MixerUI : public UnitUIBase {
-    MixerUI(slr::AudioUnitView * mixer, UIContext * uictx);
+    MixerUI(const std::shared_ptr<const slr::AudioUnitView> &mixer, UIContext * uictx);
     ~MixerUI();
 
     bool create(UIContext * ctx) override;
@@ -29,7 +29,7 @@ struct MixerUI : public UnitUIBase {
     DefaultModuleUI * moduleUI() override { return _moduleUI.get(); }
 
     private:
-    slr::MixerView * const _mixer;
+    const std::weak_ptr<const slr::MixerView> _mixer;
     std::vector<FileView*> _viewItems;
 
     class MixerModuleUI;

@@ -66,6 +66,7 @@ file(GLOB SOURCES
   src/core/Actions/AudioUnit/SetParameter.cpp
   src/core/Actions/AudioUnit/ToggleMidiThru.cpp
   src/core/Actions/AudioUnit/ToggleOmniHwInput.cpp
+  src/core/Actions/AudioUnit/SetName.cpp
 
   src/core/Actions/Project/CreateNewUnit.cpp
   src/core/Actions/Project/DeleteUnit.cpp

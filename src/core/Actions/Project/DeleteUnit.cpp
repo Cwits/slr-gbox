@@ -57,8 +57,8 @@ void DeleteUnitAction::exec(ControlContext &ctx) {
 		case(2): {
 			bool res = true;
 			
-			res = ctx.projectView->removeUnitView(_action.targetId);
-			if(!res) {
+			std::shared_ptr<AudioUnitView> unitview = ctx.projectView->removeUnitView(_action.targetId);
+			if(!unitview) {
 				abortAction();
 				return;
 			}

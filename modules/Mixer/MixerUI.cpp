@@ -22,14 +22,15 @@
 
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 namespace UI {
 
-MixerUI::MixerUI(slr::AudioUnitView * mixer, UIContext * uictx) :
+MixerUI::MixerUI(const std::shared_ptr<const slr::AudioUnitView> &mixer, UIContext * uictx) :
     UnitUIBase(mixer, uictx),
-    _mixer(static_cast<slr::MixerView*>(mixer))
+    _mixer(std::dynamic_pointer_cast<const slr::MixerView>(mixer))
 {
-
+    assert(!_mixer.expired() && "Unable to cast pointer");
 }
 
 MixerUI::~MixerUI() {
@@ -55,7 +56,7 @@ MixerUI::MixerModuleUI::MixerModuleUI(BaseWidget *parent, MixerUI *parentUI) :
 {
     setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
     setPos(0, 0);
-    slr::MixerView *m = _parentUI->_mixer;
+    const std::shared_ptr<const slr::MixerView> m = _parentUI->_mixer.lock();
     slr::Color clr = m->color();
     setColor(lv_color_make(clr.r, clr.g, clr.b));
 
@@ -87,13 +88,13 @@ void MixerUI::MixerModuleUI::pollUIUpdate() {
     }
 
     //check mixer itself...
-    slr::MixerView *view = _parentUI->_mixer;
+    const std::shared_ptr<const slr::MixerView> view = _parentUI->_mixer.lock();
     if(isSameUIVersion(view->version())) return;
 
 }
 
 void MixerUI::MixerModuleUI::checkAddOrDeleteSliders() {
-    const std::vector<slr::AudioRoute> srcs = slr::ProjectView::getProjectView().sourcesForId(_parentUI->_mixer->id());
+    const std::vector<slr::AudioRoute> srcs = slr::ProjectView::getProjectView().sourcesForId(_parentUI->_mixer.lock()->id());
     
     bool needUpdate = false;
     std::vector<slr::ID> toCreate;
@@ -149,12 +150,6 @@ void MixerUI::MixerModuleUI::checkAddOrDeleteSliders() {
             act->parameterId = auv->volumeId();
             act->value = value;
             slr::EmitAction(std::move(act));
-            // slr::Events::SetParameter e = {
-            //     .targetId = auv->id(),
-            //     .parameterId = auv->volumeId(),
-            //     .value = value
-            // };
-            // slr::EmitEvent(e);
         });
         slw.slider->setCap(auv->volume());
 

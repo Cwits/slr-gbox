@@ -16,7 +16,7 @@ class Button;
 class UIContext;
 
 struct TrackUI : public UnitUIBase {
-    TrackUI(slr::AudioUnitView * track, UIContext * uictx);
+    TrackUI(const std::shared_ptr<const slr::AudioUnitView> &track, UIContext * uictx);
     ~TrackUI();
     
     bool create(UIContext * ctx) override;
@@ -27,7 +27,7 @@ struct TrackUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::TrackView * const _track;
+    const std::weak_ptr<const slr::TrackView> _track;
 
     class TrackGridControlUI;
     class TrackModuleUI;

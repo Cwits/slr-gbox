@@ -44,7 +44,7 @@ struct TrackUnitUI : public DefaultUnitUI {
 
 
 struct TrackPushUI : public UnitUIBase {
-    TrackPushUI(slr::AudioUnitView * track, PushUIContext * uictx);
+    TrackPushUI(const std::shared_ptr<const slr::AudioUnitView> &track, PushUIContext * uictx);
     ~TrackPushUI();
     
     bool create(PushUIContext * ctx) override;
@@ -55,7 +55,7 @@ struct TrackPushUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::TrackView * const _track;
+    const std::weak_ptr<const slr::TrackView> _track;
 
     std::unique_ptr<TrackGridUI> _gridUI;
     std::unique_ptr<TrackUnitUI> _unitUI;

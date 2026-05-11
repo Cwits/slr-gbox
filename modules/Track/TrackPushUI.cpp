@@ -7,13 +7,15 @@
 
 #include "ui/push/PushUIContext.h"
 
+#include <cassert>
+
 namespace PushUI {
 
-TrackPushUI::TrackPushUI(slr::AudioUnitView * track, PushUIContext * uictx)
+TrackPushUI::TrackPushUI(const std::shared_ptr<const slr::AudioUnitView> &track, PushUIContext * uictx)
     : UnitUIBase(track, uictx),
-    _track(static_cast<slr::TrackView*>(track))
+    _track(std::dynamic_pointer_cast<const slr::TrackView>(track))
 {
-
+    assert(!_track.expired() && "Unable to cast pointer");
 }
 
 TrackPushUI::~TrackPushUI() {

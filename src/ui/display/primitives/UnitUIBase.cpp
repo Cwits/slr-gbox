@@ -26,7 +26,7 @@
 
 namespace UI {
 
-UnitUIBase::UnitUIBase(slr::AudioUnitView * view, UIContext * uictx) : 
+UnitUIBase::UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, UIContext * uictx) : 
     _view(view),
     _uictx(uictx)
 {
@@ -34,7 +34,7 @@ UnitUIBase::UnitUIBase(slr::AudioUnitView * view, UIContext * uictx) :
 }
 
 UnitUIBase::~UnitUIBase() {
-
+    LOG_INFO("Display Unit UI deleted");
 }
 
 const slr::ID UnitUIBase::id() const {
@@ -110,9 +110,11 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
         this->_uibase->uictx()->_popManager->enableKeyboard(
             this->_uibase->view()->name(), 
             [this](const std::string & text) {
-                LOG_INFO("New track name: %s for id: %d", text.c_str(), this->_uibase->view()->id());
-                this->_uibase->nonconstview()->setName(text);
-                // this->_lblName->setText(text);
+                LOG_INFO("New unit name: %s for id: %d", text.c_str(), this->_uibase->view()->id());
+                auto act = std::make_unique<slr::Actions::SetName>();
+                act->targetId = this->_uibase->id();
+                act->newName = text;
+                slr::EmitAction(std::move(act));
             }
         );
     });

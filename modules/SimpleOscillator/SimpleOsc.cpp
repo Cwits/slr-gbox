@@ -75,6 +75,10 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
     clearAudioBuffer((*_outputs)[0], ctx.frames);
     clearAudioBuffer((*_outputs)[1], ctx.frames);
 
+    if(ctx.playing) {
+        playbackFiles(ctx, _outputs, _midiInput);
+    }
+
     //generate
     for(int i=0; i<_activeVoices; ++i) {
         voice &v = _voices[i];

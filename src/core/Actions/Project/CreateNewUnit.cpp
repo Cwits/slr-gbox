@@ -45,7 +45,7 @@ void CreateNewUnitAction::exec(ControlContext &ctx) {
         return;
     }
 
-    AudioUnitView *view = ctx.projectView->createUnitView(ctx, mod, au);
+    std::shared_ptr<AudioUnitView> view = ctx.projectView->createUnitView(ctx, mod, au);
     if(!view) {
         LOG_ERROR("Failed to create unit view %s", _action.name);
         abortAction();

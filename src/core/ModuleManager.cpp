@@ -21,9 +21,9 @@ void ModuleManagerFactory::init() {
     ModuleManagerFactory & inst = ModuleManagerFactory::inst();
     //init default
     
-    registerDefaultActions();
-
     std::map<std::type_index, CreatorFn> &map = getActionMap();
+    
+    registerDefaultActions(map);
 
     registerTrackActions(map);
     inst.registerModule(&TrackModule);

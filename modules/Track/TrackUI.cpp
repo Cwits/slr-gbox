@@ -22,12 +22,15 @@
 
 #include "logger.h"
 
+#include <cassert>
+
 namespace UI {
 
-TrackUI::TrackUI(slr::AudioUnitView * track, UIContext * uictx) 
+TrackUI::TrackUI(const std::shared_ptr<const slr::AudioUnitView> &track, UIContext * uictx) 
     : UnitUIBase(track, uictx), 
-    _track(static_cast<slr::TrackView*>(track))
+    _track(std::dynamic_pointer_cast<const slr::TrackView>(track))
 {
+    assert(!_track.expired() && "Failed to cast pointer");
 }
 
 TrackUI::~TrackUI() {
@@ -62,9 +65,10 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
     _btnRecord->setFont(&lv_font_montserrat_40);
     _btnRecord->setCallback([this]() {
         auto act = std::make_unique<slr::Actions::RecordArm>();
-        act->targetId = _parentUI->_track->id();
-        act->recordState = (_parentUI->_track->record() ? 0.0f : 1.0f);
-        act->recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
+        const std::shared_ptr<const slr::TrackView> track = _parentUI->_track.lock();
+        act->targetId = track->id();
+        act->recordState = (track->record() ? 0.0f : 1.0f);
+        act->recordSource = (track->recordSource() == slr::RecordSource::Audio) ? 
                                 slr::RecordSource::Audio : 
                                 slr::RecordSource::Midi;
         slr::EmitAction(std::move(act));
@@ -83,9 +87,10 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
         if(!tl.recording()) {
             
             auto act = std::make_unique<slr::Actions::RecordArm>();
-            act->targetId = _parentUI->_track->id();
-            act->recordState = (_parentUI->_track->record() ? 1.0f : 0.0f);
-            act->recordSource = (_parentUI->_track->recordSource() == slr::RecordSource::Audio) ? 
+            const std::shared_ptr<const slr::TrackView> track = _parentUI->_track.lock();
+            act->targetId = track->id();
+            act->recordState = (track->record() ? 1.0f : 0.0f);
+            act->recordSource = (track->recordSource() == slr::RecordSource::Audio) ? 
                                     slr::RecordSource::Midi :
                                     slr::RecordSource::Audio; 
             slr::EmitAction(std::move(act));
@@ -103,7 +108,7 @@ TrackUI::TrackGridControlUI::~TrackGridControlUI() {
 void TrackUI::TrackGridControlUI::pollUIUpdate() {
     DefaultGridUI::pollFileUpdate();
 
-    slr::TrackView * view = _parentUI->_track;
+    const std::shared_ptr<const slr::TrackView> view = _parentUI->_track.lock();
     uint64_t v = view->version();
     if(_customVersion == v) return;
     _customVersion = v;
@@ -136,8 +141,8 @@ TrackUI::TrackModuleUI::TrackModuleUI(BaseWidget *parent, TrackUI * parentUI)
     _testRect = lv_obj_create(lvhost());
     lv_obj_set_size(_testRect, 200, 200);
     lv_obj_set_pos(_testRect, 100, 100);
-    slr::TrackView *tr = _parentUI->_track;
-    slr::Color clr = tr->color();
+    const std::shared_ptr<const slr::TrackView> track = _parentUI->_track.lock();
+    slr::Color clr = track->color();
     lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
     hide();
 }
@@ -147,7 +152,8 @@ TrackUI::TrackModuleUI::~TrackModuleUI() {
 }
 
 void TrackUI::TrackModuleUI::pollUIUpdate() {
-    slr::TrackView * view = _parentUI->_track;
+    // slr::TrackView * view = _parentUI->_track;
+    const std::shared_ptr<const slr::TrackView> view = _parentUI->_track.lock();
     if(isSameUIVersion(view->version())) return;
     
 }

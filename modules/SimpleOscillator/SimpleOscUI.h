@@ -19,7 +19,7 @@ class UIContext;
 class FileView;
 
 struct SimpleOscUI : public UnitUIBase {
-    SimpleOscUI(slr::AudioUnitView * osc, UIContext * uictx);
+    SimpleOscUI(const std::shared_ptr<const slr::AudioUnitView> &osc, UIContext * uictx);
     ~SimpleOscUI();
     
     bool create(UIContext * ctx) override;
@@ -30,7 +30,7 @@ struct SimpleOscUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::SimpleOscView * _osc;
+    const std::weak_ptr<const slr::SimpleOscView> _osc;
 
     class SimpleOscModuleUI;
 

@@ -17,7 +17,7 @@ class Button;
 class UIContext;
 
 struct SamplerUI : public UnitUIBase {
-    SamplerUI(slr::AudioUnitView * sampler, UIContext * uictx);
+    SamplerUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, UIContext * uictx);
     ~SamplerUI();
     
     bool create(UIContext * ctx) override;
@@ -28,7 +28,7 @@ struct SamplerUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::SamplerView * const _sampler;
+    const std::weak_ptr<const slr::SamplerView> _sampler;
 
     class SamplerGridControlUI;
     class SamplerModuleUI;

@@ -89,7 +89,9 @@ frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) {
     
     // sortEventsInMidiBuffer(_midiRecord);
 
-
+    if(ctx.playing) {
+        playbackFiles(ctx, _outputs, _midiInput);
+    }
 
     if(_activeVoiceCount > 0) {
         for(uint8_t v=0; v<_activeVoiceCount; ++v) {

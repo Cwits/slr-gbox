@@ -20,13 +20,15 @@
 // #include "core/Events.h"
 
 #include "logger.h"
+#include <cassert>
 
 namespace UI {
 
-SimpleOscUI::SimpleOscUI(slr::AudioUnitView * osc, UIContext * uictx) 
+SimpleOscUI::SimpleOscUI(const std::shared_ptr<const slr::AudioUnitView> &osc, UIContext * uictx) 
     : UnitUIBase(osc, uictx), 
-    _osc(static_cast<slr::SimpleOscView*>(osc))
+    _osc(std::dynamic_pointer_cast<const slr::SimpleOscView>(osc))
 {
+    assert(!_osc.expired() && "Unable to cast pointer");
 }
 
 SimpleOscUI::~SimpleOscUI() {
@@ -57,7 +59,7 @@ SimpleOscUI::SimpleOscModuleUI::SimpleOscModuleUI(BaseWidget *parent, SimpleOscU
     _testRect = lv_obj_create(lvhost());
     lv_obj_set_size(_testRect, 200, 200);
     lv_obj_set_pos(_testRect, 100, 100);
-    slr::SimpleOscView *tr = _parentUI->_osc;
+    const std::shared_ptr<const slr::SimpleOscView> tr = _parentUI->_osc.lock();
     slr::Color clr = tr->color();
     lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
     hide();

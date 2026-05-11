@@ -58,7 +58,7 @@ void floatingWarning(std::string text) {
 }
 
 /* Module Related */
-void addModuleUI(const slr::Module * mod, slr::AudioUnitView * view) {
+void addModuleUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> view) {
     postToLvgl([mod, view]() {
         UI::MainWindow::inst()->createUI(mod, view);
     });

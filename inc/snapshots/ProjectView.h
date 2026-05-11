@@ -25,11 +25,11 @@ class ProjectView {
     ProjectView(Timeline * tl);
     ~ProjectView();
 
-    AudioUnitView * createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au);
+    std::shared_ptr<AudioUnitView> createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au);
     const std::size_t unitCount() const { return _unitViewList.size(); }
     std::vector<AudioUnitView*> unitList();
     AudioUnitView * getUnitById(ID id);
-    bool removeUnitView(ID id);
+    std::shared_ptr<AudioUnitView> removeUnitView(ID id);
 
     void updateRoutes(const std::vector<AudioRoute> & routes);
     const std::vector<AudioRoute> & audioRoutes() const { return _routes; }
@@ -51,7 +51,7 @@ class ProjectView {
     bool deleteClipViewById(ID id);
 
     private:
-    std::vector<std::unique_ptr<AudioUnitView>> _unitViewList;
+    std::vector<std::shared_ptr<AudioUnitView>> _unitViewList;
 
     TimelineView _timeline;
     std::vector<AudioRoute> _routes;

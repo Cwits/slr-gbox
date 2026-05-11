@@ -13,9 +13,8 @@ struct ActionExecutable;
 struct ActionBase;
 
 using CreatorFn = std::unique_ptr<ActionExecutable>(*)(const ActionBase*);
-// extern std::map<std::type_index, CreatorFn> _actionMap;
 
-void registerDefaultActions();
+void registerDefaultActions(std::map<std::type_index, CreatorFn> & map);
 std::map<std::type_index, CreatorFn> & getActionMap();
 
 

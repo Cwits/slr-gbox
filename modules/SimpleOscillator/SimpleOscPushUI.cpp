@@ -7,13 +7,15 @@
 
 #include "ui/push/PushUIContext.h"
 
+#include <cassert>
+
 namespace PushUI {
 
-SimpleOscPushUI::SimpleOscPushUI(slr::AudioUnitView * osc, PushUIContext * uictx)
+SimpleOscPushUI::SimpleOscPushUI(const std::shared_ptr<const slr::AudioUnitView> &osc, PushUIContext * uictx)
     : UnitUIBase(osc, uictx),
-    _simpleOsc(static_cast<slr::SimpleOscView*>(osc))
+    _simpleOsc(std::dynamic_pointer_cast<const slr::SimpleOscView>(osc))
 {
-
+    assert(!_simpleOsc.expired() && "Unable to cast pointer");
 }
 
 SimpleOscPushUI::~SimpleOscPushUI() {

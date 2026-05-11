@@ -43,7 +43,7 @@ struct MixerUnitUI : public DefaultUnitUI {
 
 
 struct MixerPushUI : public UnitUIBase {
-    MixerPushUI(slr::AudioUnitView * mix, PushUIContext * uictx);
+    MixerPushUI(const std::shared_ptr<const slr::AudioUnitView> &mix, PushUIContext * uictx);
     ~MixerPushUI();
     
     bool create(PushUIContext * ctx) override;
@@ -54,7 +54,7 @@ struct MixerPushUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::MixerView * const _mixer;
+    const std::weak_ptr<const slr::MixerView>_mixer;
 
     std::unique_ptr<MixerGridUI> _gridUI;
     std::unique_ptr<MixerUnitUI> _unitUI;

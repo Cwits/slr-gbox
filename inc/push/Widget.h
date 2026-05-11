@@ -45,6 +45,7 @@ struct Widget {
     virtual int z() const { return _z; }
 
     virtual void position(int x, int y) { _lastBounds = bounds(); _x = x; _y = y; markDirty(); }
+    virtual void position(Vec2 &pos) { position(pos.x(), pos.y()); }
     virtual Vec2 position() const { return Vec2(_x, _y); }
 
     virtual void width(int width) { _lastBounds = bounds(); _width = width; markDirty(); }

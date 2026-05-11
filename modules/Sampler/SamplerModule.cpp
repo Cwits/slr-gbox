@@ -20,15 +20,15 @@ std::unique_ptr<slr::AudioUnit> createSamplerRT(const slr::ClipContainer * initC
     return std::make_unique<slr::Sampler>(initContainer);
 }
 
-std::unique_ptr<slr::AudioUnitView> createSamplerView(slr::AudioUnit * sampler) {
-    return std::make_unique<slr::SamplerView>(static_cast<slr::Sampler*>(sampler));
+std::shared_ptr<slr::AudioUnitView> createSamplerView(slr::AudioUnit * sampler) {
+    return std::make_shared<slr::SamplerView>(static_cast<slr::Sampler*>(sampler));
 }
 
-std::unique_ptr<UI::UnitUIBase> createSamplerUI(slr::AudioUnitView * sampler, UI::UIContext * uictx) {
+std::unique_ptr<UI::UnitUIBase> createSamplerUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, UI::UIContext * uictx) {
     return std::make_unique<UI::SamplerUI>(sampler, uictx);
 }
 
-std::unique_ptr<PushUI::UnitUIBase> createSamplerPushUI(slr::AudioUnitView * sampler, PushUI::PushUIContext * uictx) {
+std::unique_ptr<PushUI::UnitUIBase> createSamplerPushUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, PushUI::PushUIContext * uictx) {
     return std::make_unique<PushUI::SamplerPushUI>(sampler, uictx);
 }
 

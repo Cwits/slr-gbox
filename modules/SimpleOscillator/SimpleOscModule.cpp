@@ -19,15 +19,15 @@ std::unique_ptr<slr::AudioUnit> createSimpleOscRT(const slr::ClipContainer *init
     return std::make_unique<slr::SimpleOsc>(initContainer);
 }
 
-std::unique_ptr<slr::AudioUnitView> createSimpleOscView(slr::AudioUnit * osc) {
-    return std::make_unique<slr::SimpleOscView>(static_cast<slr::SimpleOsc*>(osc));
+std::shared_ptr<slr::AudioUnitView> createSimpleOscView(slr::AudioUnit * osc) {
+    return std::make_shared<slr::SimpleOscView>(static_cast<slr::SimpleOsc*>(osc));
 }
 
-std::unique_ptr<UI::UnitUIBase> createSimpleOscUI(slr::AudioUnitView * osc, UI::UIContext * uictx) {
+std::unique_ptr<UI::UnitUIBase> createSimpleOscUI(const std::shared_ptr<const slr::AudioUnitView> &osc, UI::UIContext * uictx) {
     return std::make_unique<UI::SimpleOscUI>(osc, uictx);
 }
 
-std::unique_ptr<PushUI::UnitUIBase> createSimpleOscPushUI(slr::AudioUnitView * osc, PushUI::PushUIContext * uictx) {
+std::unique_ptr<PushUI::UnitUIBase> createSimpleOscPushUI(const std::shared_ptr<const slr::AudioUnitView> &osc, PushUI::PushUIContext * uictx) {
     return std::make_unique<PushUI::SimpleOscPushUI>(osc, uictx);
 }
 

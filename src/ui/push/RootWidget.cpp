@@ -20,6 +20,7 @@
 #include "logger.h"
 
 #include <string>
+#include <algorithm>
 
 namespace PushUI {
 
@@ -225,7 +226,7 @@ std::vector<PushLib::ButtonColor> RootWidget::buttonsColors() {
     return PushHelper::buttonColorsFromMap<RootWidget>(RootWidget::_buttonsCallback);
 }
 
-void RootWidget::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
+void RootWidget::createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view) {
     // UnitUIBase * base = mod->createUI(view, &_uiContext);
     // base->create(&_uiContext);
     // _uiContext._unitsUI.push_back(base);
@@ -279,7 +280,37 @@ void RootWidget::destroyUI(slr::ID id) {
     // _uiContext.setLastSelected(nullptr);
     // ui->destroy(&_uiContext);
     // delete ui;
-    LOG_INFO("Push destroy UI for id %d", id);
+    
+    // std::vector<std::unique_ptr<UnitUIBase>> & units() { return _unitUIs; }
+    // _puictx;
+
+    auto it = std::find_if(
+            _puictx._unitUIs.begin(),
+            _puictx._unitUIs.end(),
+            [id](const auto & ui) {
+                return id == ui->id();
+            }
+    );
+
+    if(it == _puictx._unitUIs.end()) {
+        LOG_ERROR("Failed to find such UI for id %u", id);
+        return;
+    }
+    std::unique_ptr<UnitUIBase> ui = std::move(*it);
+    ui->destroy(&_puictx);
+    _puictx._unitUIs.erase(it);
+
+    int y = 0;
+    for(auto &ui : _puictx._unitUIs) {
+        DefaultGridUI * grid = ui->gridUI();
+        PushLib::Vec2 oldPos = grid->position();
+        int newy = (70 * y) + (5*y) + 13;
+        PushLib::Vec2 newPos = PushLib::Vec2(oldPos.x(), newy);
+        grid->position(newPos);
+        y++;
+    }
+
+    // LOG_INFO("Push destroy UI for id %d", id);
 }
 
 bool RootWidget::hasAnythingDirty() const {

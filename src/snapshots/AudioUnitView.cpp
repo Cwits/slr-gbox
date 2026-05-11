@@ -4,6 +4,8 @@
 #include "snapshots/AudioUnitView.h"
 #include "core/primitives/AudioUnit.h"
 
+#include "logger.h"
+
 namespace slr {
 
 AudioUnitView::AudioUnitView(AudioUnit * au) : 
@@ -28,7 +30,6 @@ AudioUnitView::AudioUnitView(AudioUnit * au) :
 }
 
 AudioUnitView::~AudioUnitView() {
-    
 }
 
 void AudioUnitView::addParameter(ParameterBaseView * base) {

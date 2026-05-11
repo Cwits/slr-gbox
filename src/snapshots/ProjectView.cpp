@@ -23,19 +23,19 @@ ProjectView::~ProjectView() {
 
 std::vector<AudioUnitView*> ProjectView::unitList() {
     std::vector<AudioUnitView*> ret;
-    for(std::unique_ptr<AudioUnitView>& v : _unitViewList) {
+    for(std::shared_ptr<AudioUnitView>& v : _unitViewList) {
         ret.push_back(v.get());
     }
 
     return ret;
 }
 
-AudioUnitView * ProjectView::createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au) {
-    AudioUnitView * view = nullptr;
+std::shared_ptr<AudioUnitView> ProjectView::createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au) {
+    std::shared_ptr<AudioUnitView> view;
     try {
-        std::unique_ptr<AudioUnitView> v = mod->createView(au);
-        view = v.get();
-        _unitViewList.push_back(std::move(v));
+        std::shared_ptr<AudioUnitView> v = mod->createView(au);
+        view = v;
+        _unitViewList.push_back(v);
         incrementVersion();
     } catch(...) {
         LOG_ERROR("Failed to create %s", mod->_name->data());
@@ -55,7 +55,7 @@ AudioUnitView * ProjectView::getUnitById(ID id) {
     return unit;
 }
 
-bool ProjectView::removeUnitView(ID id) {
+std::shared_ptr<AudioUnitView> ProjectView::removeUnitView(ID id) {
     std::size_t pos = 0;
     bool found = false;
     for(std::size_t i=0; i<_unitViewList.size(); ++i) {
@@ -66,15 +66,15 @@ bool ProjectView::removeUnitView(ID id) {
         }
     }
 
-    AudioUnitView * unit = nullptr;
+    // AudioUnitView * unit = nullptr;
     if(found) {
-        unit = _unitViewList.at(pos).get();
+        std::shared_ptr<AudioUnitView> unit = _unitViewList.at(pos);
         _unitViewList.erase(_unitViewList.begin() + pos);
         incrementVersion();
-        return true;
+        return std::move(unit);
     } else {
         LOG_ERROR("Failed to find unit with id %u", id);
-        return false;
+        return std::shared_ptr<AudioUnitView>();
     }
 }
 

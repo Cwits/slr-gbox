@@ -14,14 +14,15 @@
 #include "core/primitives/AudioFile.h"
 // #include "core/Events.h"
 
+#include <cassert>
 
 namespace UI {
 
-SamplerUI::SamplerUI(slr::AudioUnitView * sampler, UIContext * uictx) 
+SamplerUI::SamplerUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, UIContext * uictx) 
     : UnitUIBase(sampler, uictx), 
-    _sampler(static_cast<slr::SamplerView*>(sampler))
+    _sampler(std::dynamic_pointer_cast<const slr::SamplerView>(sampler))
 {
-
+    assert(!_sampler.expired() && "Unable to cast pointer");
 }
 
 SamplerUI::~SamplerUI() {
@@ -57,7 +58,7 @@ SamplerUI::SamplerGridControlUI::~SamplerGridControlUI() {
 void SamplerUI::SamplerGridControlUI::pollUIUpdate() {
     DefaultGridUI::pollFileUpdate();
 
-    slr::SamplerView * view = _parentUI->_sampler;
+    const std::shared_ptr<const slr::SamplerView> view = _parentUI->_sampler.lock();
     uint64_t v = view->version();
     if(_customVersion == v) return;
     _customVersion = v;
@@ -78,7 +79,7 @@ SamplerUI::SamplerModuleUI::SamplerModuleUI(BaseWidget *parent, SamplerUI * pare
     _testRect = lv_obj_create(lvhost());
     lv_obj_set_size(_testRect, 200, 200);
     lv_obj_set_pos(_testRect, 100, 10);
-    slr::SamplerView *tr = _parentUI->_sampler;
+    const std::shared_ptr<const slr::SamplerView> tr = _parentUI->_sampler.lock();
     slr::Color clr = tr->color();
     lv_obj_set_style_bg_color(_testRect, lv_color_make(255-clr.r, 255-clr.g, 255-clr.b), 0);
     setColor(lv_color_make(clr.r, clr.g, clr.b));
@@ -112,12 +113,13 @@ SamplerUI::SamplerModuleUI::~SamplerModuleUI() {
 }
 
 void SamplerUI::SamplerModuleUI::pollUIUpdate() {
-    if(_parentUI->_sampler->asset() && !_lastAssetState) {
+    const std::shared_ptr<const slr::SamplerView> sampler = _parentUI->_sampler.lock();
+    if(sampler->asset() && !_lastAssetState) {
         _lastAssetState = true;
-        std::string text = _parentUI->_sampler->asset()->name();
+        std::string text = sampler->asset()->name();
         _lblAsset->setText(text);
 
-        const slr::AudioFile * const afile = _parentUI->_sampler->asset();
+        const slr::AudioFile * const afile = sampler->asset();
         lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
         UIHelpers::audioFileToCanvas(
             afile,
@@ -129,7 +131,7 @@ void SamplerUI::SamplerModuleUI::pollUIUpdate() {
             _peakColor,
             _fillColor
         );
-    } else if(!_parentUI->_sampler->asset() && _lastAssetState) {
+    } else if(!sampler->asset() && _lastAssetState) {
         _lastAssetState = false;
         _lblAsset->setText("No asset");
         

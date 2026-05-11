@@ -25,7 +25,7 @@ class DefaultGridUI;
 class DefaultModuleUI;
 
 struct UnitUIBase {
-    UnitUIBase(slr::AudioUnitView * view, UIContext * uictx);
+    UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, UIContext * uictx);
     virtual ~UnitUIBase();
 
     virtual bool create(UIContext * ctx) = 0;
@@ -40,15 +40,15 @@ struct UnitUIBase {
     const slr::Color & color() const;
     const bool canLoadFiles() const { return _canLoadFiles; }
 
-    const slr::AudioUnitView * view() const { return _view; }
-    slr::AudioUnitView * nonconstview() { return _view; }
+    const slr::AudioUnitView * view() const { return _view.get(); }
+    // slr::AudioUnitView * nonconstview() { return _view.get(); }
 
     UIContext * uictx() const { return _uictx; }
 
     protected:
     UIContext * const _uictx;
     bool _canLoadFiles = false;
-    slr::AudioUnitView * _view;
+    const std::shared_ptr<const slr::AudioUnitView> _view;
 };
 
 

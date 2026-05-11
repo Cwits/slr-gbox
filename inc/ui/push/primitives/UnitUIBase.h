@@ -25,8 +25,8 @@ class DefaultGridUI;
 class DefaultUnitUI;
 
 struct UnitUIBase {
-    UnitUIBase(slr::AudioUnitView *view, PushUIContext * const puictx);
-    ~UnitUIBase();
+    UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, PushUIContext * const puictx);
+    virtual ~UnitUIBase();
 
     virtual bool create(PushUIContext * ctx) = 0;
     virtual bool destroy(PushUIContext * ctx) = 0;
@@ -34,14 +34,18 @@ struct UnitUIBase {
     virtual DefaultGridUI * gridUI() = 0;
     virtual DefaultUnitUI * unitUI() = 0;
 
-    const slr::AudioUnitView * view() const { return _view; }
-    slr::AudioUnitView * view() { return _view; }
+    const slr::AudioUnitView * view() const { return _view.get(); }
+    // slr::AudioUnitView * view() { return _view.get(); }
 
     PushUIContext * uictx() const { return _puictx; }
 
+    const slr::ID id() const { return _uniqueId; }
+
     private:
-    slr::AudioUnitView * _view;
+    const std::shared_ptr<const slr::AudioUnitView> _view;
     PushUIContext * const _puictx;
+
+    const slr::ID _uniqueId;
 };
 
 

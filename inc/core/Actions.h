@@ -94,7 +94,18 @@ struct ToggleOmniHwInput : public ActionBase {
     bool newState;
 };
 
+struct SetName : public ActionBase {
+    SetName() {}
+    SetName(const SetName &rhs) :
+        ActionBase(rhs),
+        targetId(rhs.targetId),
+        newName(rhs.newName) {}
 
+    std::type_index actionType() const override { return typeid(SetName); }
+
+    ID targetId;
+    std::string newName;
+};
 
 /* Project Actions */
 struct CreateNewUnit : public ActionBase {

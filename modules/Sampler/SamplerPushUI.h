@@ -42,7 +42,7 @@ struct SamplerUnitUI : public DefaultUnitUI {
 
 
 struct SamplerPushUI : public UnitUIBase {
-    SamplerPushUI(slr::AudioUnitView * sampler, PushUIContext * uictx);
+    SamplerPushUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, PushUIContext * uictx);
     ~SamplerPushUI();
     
     bool create(PushUIContext * ctx) override;
@@ -53,7 +53,7 @@ struct SamplerPushUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::SamplerView * const _sampler;
+    const std::weak_ptr<const slr::SamplerView> _sampler;
 
     std::unique_ptr<SamplerGridUI> _gridUI;
     std::unique_ptr<SamplerUnitUI> _unitUI;

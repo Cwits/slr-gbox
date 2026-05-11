@@ -43,7 +43,7 @@ struct SimpleOscUnitUI : public DefaultUnitUI {
 
 
 struct SimpleOscPushUI : public UnitUIBase {
-    SimpleOscPushUI(slr::AudioUnitView * osc, PushUIContext * uictx);
+    SimpleOscPushUI(const std::shared_ptr<const slr::AudioUnitView> &osc, PushUIContext * uictx);
     ~SimpleOscPushUI();
     
     bool create(PushUIContext * ctx) override;
@@ -54,7 +54,7 @@ struct SimpleOscPushUI : public UnitUIBase {
     // BaseWidget * patchUI() override;
  
     private:
-    slr::SimpleOscView * const _simpleOsc;
+    const std::weak_ptr<const slr::SimpleOscView> _simpleOsc;
 
     std::unique_ptr<SimpleOscGridUI> _gridUI;
     std::unique_ptr<SimpleOscUnitUI> _unitUI;

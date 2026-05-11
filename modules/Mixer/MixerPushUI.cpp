@@ -7,13 +7,15 @@
 
 #include "ui/push/PushUIContext.h"
 
+#include <cassert>
+
 namespace PushUI {
 
-MixerPushUI::MixerPushUI(slr::AudioUnitView * mix, PushUIContext * uictx)
+MixerPushUI::MixerPushUI(const std::shared_ptr<const slr::AudioUnitView> &mix, PushUIContext * uictx)
     : UnitUIBase(mix, uictx),
-    _mixer(static_cast<slr::MixerView*>(mix))
+    _mixer(std::dynamic_pointer_cast<const slr::MixerView>(mix))
 {
-
+    assert(!_mixer.expired() && "Unable to convert pointer");
 }
 
 MixerPushUI::~MixerPushUI() {

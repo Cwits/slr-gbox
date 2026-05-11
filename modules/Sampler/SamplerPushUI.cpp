@@ -7,6 +7,8 @@
 
 #include "ui/push/PushUIContext.h"
 
+#include <cassert>
+
 namespace PushUI {
 
 SamplerGridUI::SamplerGridUI(PushLib::Widget *parent, SamplerPushUI * parentUI) 
@@ -39,11 +41,11 @@ void SamplerUnitUI::paint(PushLib::Painter &painter) {
 }
 
 
-SamplerPushUI::SamplerPushUI(slr::AudioUnitView * sampler, PushUIContext * uictx) 
+SamplerPushUI::SamplerPushUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, PushUIContext * uictx) 
     : UnitUIBase(sampler, uictx),
-    _sampler(static_cast<slr::SamplerView*>(sampler))
+    _sampler(std::dynamic_pointer_cast<const slr::SamplerView>(sampler))
 {
-
+    assert(!_sampler.expired() && "Unable to cast pointer");
 }
 
 SamplerPushUI::~SamplerPushUI() {

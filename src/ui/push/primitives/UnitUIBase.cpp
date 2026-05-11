@@ -11,15 +11,16 @@
 
 namespace PushUI {
 
-UnitUIBase::UnitUIBase(slr::AudioUnitView *view, PushUIContext * const puictx)
+UnitUIBase::UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, PushUIContext * const puictx)
     : _view(view),
-    _puictx(puictx)
+    _puictx(puictx),
+    _uniqueId(view->id())
 {
 
 }
 
 UnitUIBase::~UnitUIBase() {
-
+    LOG_INFO("Push Unit UI deleted");
 }
 
 DefaultGridUI::DefaultGridUI(PushLib::Widget *parent, UnitUIBase *parentUI)

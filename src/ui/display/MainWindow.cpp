@@ -435,7 +435,7 @@ std::string gestureToText(GestLib::Gestures &g) {
     return text;
 }
 
-void MainWindow::createUI(const slr::Module * mod, slr::AudioUnitView * view) {
+void MainWindow::createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view) {
     std::unique_ptr<UnitUIBase> base = mod->createUI(view, &_uiContext);
     base->create(&_uiContext);
     _uiContext._unitsUI.push_back(std::move(base));

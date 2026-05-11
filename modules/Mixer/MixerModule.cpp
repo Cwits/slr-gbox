@@ -20,15 +20,15 @@ std::unique_ptr<slr::AudioUnit> createMixerRT(const slr::ClipContainer * initCon
     return std::make_unique<slr::Mixer>(initContainer);
 }
 
-std::unique_ptr<slr::AudioUnitView> createMixerView(slr::AudioUnit * mixer) {
-    return std::make_unique<slr::MixerView>(static_cast<slr::Mixer*>(mixer));
+std::shared_ptr<slr::AudioUnitView> createMixerView(slr::AudioUnit * mixer) {
+    return std::make_shared<slr::MixerView>(static_cast<slr::Mixer*>(mixer));
 }
 
-std::unique_ptr<UI::UnitUIBase> createMixerUI(slr::AudioUnitView * mixer, UI::UIContext * uictx) {
+std::unique_ptr<UI::UnitUIBase> createMixerUI(const std::shared_ptr<const slr::AudioUnitView> &mixer, UI::UIContext * uictx) {
     return std::make_unique<UI::MixerUI>(mixer, uictx);
 }
 
-std::unique_ptr<PushUI::UnitUIBase> createMixerPushUI(slr::AudioUnitView * mixer, PushUI::PushUIContext * uictx) {
+std::unique_ptr<PushUI::UnitUIBase> createMixerPushUI(const std::shared_ptr<const slr::AudioUnitView> &mixer, PushUI::PushUIContext * uictx) {
     return std::make_unique<PushUI::MixerPushUI>(mixer, uictx);
 }
 

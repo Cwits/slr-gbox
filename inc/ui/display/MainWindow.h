@@ -61,7 +61,7 @@ struct MainWindow : public BaseWidget {
     void clearHittestTarget() { _initialGestureTarget = nullptr; }
     bool cancleGesture(BaseWidget * widget);
 
-    void createUI(const slr::Module * mod, slr::AudioUnitView * view);
+    void createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view);
     void destroyUI(slr::ID id);
 
     void pollUIUpdate() override;

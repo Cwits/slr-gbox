@@ -12,6 +12,7 @@
 #include "core/Actions/AudioUnit/RemoveClip.h"
 #include "core/Actions/AudioUnit/ToggleMidiThru.h"
 #include "core/Actions/AudioUnit/ToggleOmniHwInput.h"
+#include "core/Actions/AudioUnit/SetName.h"
 
 #include "core/Actions/Project/CreateNewUnit.h"
 #include "core/Actions/Project/DeleteUnit.h"
@@ -32,14 +33,16 @@
 
 namespace slr {
 
-void registerDefaultActions() {
-    std::map<std::type_index, CreatorFn> & map = getActionMap();
+void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
+    // std::map<std::type_index, CreatorFn> & map = getActionMap();
 
+    //AudioUnit
     map[typeid(Actions::SetParameter)] =  &createSetParameterAction;
     map[typeid(Actions::LoadAsClip)] =  &createLoadAsClipAction;
     map[typeid(Actions::RemoveClip)] =  &createRemoveClipAction;
     map[typeid(Actions::ToggleMidiThru)] =  &createToggleMidiThruAction;
     map[typeid(Actions::ToggleOmniHwInput)] =  &createToggleOmniHwAction;
+    map[typeid(Actions::SetName)] = &createSetNameAction;
 
     //Project
     map[typeid(Actions::CreateNewUnit)] = &createCreateNewUnitAction;
