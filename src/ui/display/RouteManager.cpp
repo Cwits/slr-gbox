@@ -139,6 +139,8 @@ RouteManager::~RouteManager() {
 }
 
 void RouteManager::update() {
+    if(!active()) return;
+    
     std::string text = "Routings for ";
     slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
     text.append(view->name());
