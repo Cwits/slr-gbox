@@ -178,6 +178,7 @@ void LoadProjectAction::exec(ControlContext &ctx) {
                     act->clipForcedId = clipId;
                     act->fileForcedId = fileId;
 
+                    /*
                     // LOG_INFO("file %s with: \n \
                     //             start offset: %lu \n \
                     //             length: %lu \n \
@@ -192,7 +193,7 @@ void LoadProjectAction::exec(ControlContext &ctx) {
                     //     (act->isMuted.value() ? "true" : "false"),
                     //     act->clipForcedId.value(),
                     //     act->fileForcedId.value()
-                    // );
+                    // ); */
                     EmitAction(std::move(act));
                 }
             }
@@ -212,9 +213,13 @@ void LoadProjectAction::exec(ControlContext &ctx) {
 
                 auto act = std::make_unique<Actions::AddNewAudioRoute>();
                 act->route = r;
-                act->swapPlan = counter+1 == routeCount ? true : false;
+                act->swapPlan = false;
                 EmitAction(std::move(act));
                 counter++;
+            }
+
+            if(counter != routeCount) {
+                LOG_WARN("Wrong created routes count");
             }
 
             routeCount = _dataToLoad["Midi Routes Count"];
@@ -230,14 +235,21 @@ void LoadProjectAction::exec(ControlContext &ctx) {
                 
                 auto act = std::make_unique<Actions::AddNewMidiRoute>();
                 act->route = r;
-                act->swapPlan = counter+1 == routeCount ? true : false;
+                act->swapPlan = false;
                 EmitAction(std::move(act));
                 counter++;
             }
 
+            if(counter != routeCount) {
+                LOG_WARN("Wrong created routes count");
+            }
+            
             setState(ActionState::Waiting);
         } break;
         case(3): {
+            //have to wait till all routes created than need to update plan...
+            auto act = std::make_unique<Actions::UpdateRenderPlan>();
+            EmitAction(std::move(act));
 
             markDelete();
             setState(ActionState::Finished);
@@ -258,9 +270,17 @@ void LoadProjectAction::checkWaitingCondition(ControlContext &ctx) {
             }
         } break;
         case(2): {
+            std::size_t arouteCount = _dataToLoad["Audio Routes Count"];
+            std::size_t mrouteCount = _dataToLoad["Midi Routes Count"];
+            
+            std::size_t aroutes = ctx.project->routes().size();
+            std::size_t mroutes = ctx.project->midiRoutes().size();
 
-            _step = 3;
-            setState(ActionState::Executing);
+            if(aroutes+mroutes == arouteCount+mrouteCount) {
+                _step = 3;
+                setState(ActionState::Executing);
+            }
+
         } break;
         default: assert(false && "Unreachable"); break;
     }

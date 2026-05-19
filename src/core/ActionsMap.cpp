@@ -22,6 +22,7 @@
 #include "core/Actions/Project/ModifyClipItem.h"
 #include "core/Actions/Project/SaveProject.h"
 #include "core/Actions/Project/LoadProject.h"
+#include "core/Actions/Project/UpdateRenderPlan.h"
 
 #include "core/Actions/Timeline/ChangeSignatureBpm.h"
 #include "core/Actions/Timeline/ChangeTimelineState.h"
@@ -56,6 +57,7 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
     map[typeid(Actions::ModifyClipItem)] = &createModifyClipItemAction;
     map[typeid(Actions::SaveProject)] = &createSaveProjectAction;
     map[typeid(Actions::LoadProject)] = &createLoadProjectAction;
+    map[typeid(Actions::UpdateRenderPlan)] = &createUpdateRenderPlanAction;
 
     //Timeline
     map[typeid(Actions::ChangeSignatureBpm)] = &createChangeSignatureBpmAction;

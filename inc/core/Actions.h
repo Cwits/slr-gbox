@@ -212,6 +212,14 @@ struct LoadProject : public ActionBase {
     std::string path;
 };
 
+struct UpdateRenderPlan : public ActionBase {
+    UpdateRenderPlan() {}
+    UpdateRenderPlan(const UpdateRenderPlan &rhs) :
+        ActionBase(rhs) {}
+
+    std::type_index actionType() const override { return typeid(UpdateRenderPlan); }
+};
+
 
 /* Timeline */
 struct ChangeSignatureBpm : public ActionBase {

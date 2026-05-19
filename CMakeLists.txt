@@ -76,6 +76,7 @@ file(GLOB SOURCES
   src/core/Actions/Project/ModifyClipItem.cpp
   src/core/Actions/Project/SaveProject.cpp
   src/core/Actions/Project/LoadProject.cpp
+  src/core/Actions/Project/UpdateRenderPlan.cpp
 
   src/core/Actions/Timeline/ChangeSignatureBpm.cpp
   src/core/Actions/Timeline/ChangeTimelineState.cpp
