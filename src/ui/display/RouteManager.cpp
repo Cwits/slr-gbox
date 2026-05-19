@@ -139,10 +139,15 @@ RouteManager::~RouteManager() {
 }
 
 void RouteManager::update() {
-    if(!active()) return;
-    
+    // if(!active()) return;
+
     std::string text = "Routings for ";
     slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
+    if(!view) {
+        LOG_ERROR("Empty view");
+        return;
+    }
+    
     text.append(view->name());
     _text->setText(text);
 
