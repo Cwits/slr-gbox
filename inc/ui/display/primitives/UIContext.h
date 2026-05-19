@@ -20,12 +20,12 @@ class BottomPanel;
 class GridView;
 class GridControl;
 class GridGrid;
-class ModuleView;
+class UnitView;
 class Browser;
 
 enum class MainView {
     Grid,
-    Module, 
+    Unit, 
     Browser,
     Patch,
     Editor, //audio or midi or automation
@@ -45,7 +45,7 @@ struct UIContext {
     BaseWidget * bottomPanel();
     BaseWidget * gridControl();
     BaseWidget * grid();
-    BaseWidget * moduleView();
+    BaseWidget * unitView();
     BaseWidget * browser();
 
     void switchToView(MainView view);
@@ -71,7 +71,7 @@ struct UIContext {
     TopPanel * _topPanel;
     BottomPanel * _bottomPanel;
     GridView * _gridView;
-    ModuleView * _module;
+    UnitView * _unitView;
     Browser * _browser;
     //BaseWidget * _patch;
 

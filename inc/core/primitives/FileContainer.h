@@ -13,7 +13,7 @@
 namespace slr {
 
 struct ClipItem {
-    ClipItem(const File * const file, frame_t startPos);
+    ClipItem(const File * const file, frame_t startPos, long forcedId = -1);
     ~ClipItem();
 
     frame_t startPosition() const { return _startPosition; }
@@ -62,11 +62,12 @@ using ClipContainerMap = std::unordered_map<ID, ClipContainerBuffer>;
 
 struct ClipStorage {
     ~ClipStorage();
-    ClipItem * newClip(const File *const file, frame_t startPosition);
+    ClipItem * newClip(const File *const file, frame_t startPosition, long forcedId = -1);
     // ClipItem * duplicateFrom(const ClipItem *item);
 
     ClipItem * findClipById(ID id);
     void deleteClipById(ID id);
+    const std::vector<ClipItem*> items();
 
     ClipItem * makeUniqueFrom(const ClipItem *other);
     

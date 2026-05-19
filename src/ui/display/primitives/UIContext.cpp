@@ -7,7 +7,7 @@
 #include "ui/display/TopPanel.h"
 #include "ui/display/BottomPanel.h"
 #include "ui/display/GridView.h"
-#include "ui/display/ModuleView.h"
+#include "ui/display/UnitView.h"
 #include "ui/display/Browser.h"
 
 namespace UI {
@@ -63,9 +63,9 @@ void UIContext::registerFrequentUpdate(std::function<void()> clb) {
 
 BaseWidget * UIContext::topPanel() { return _topPanel; }
 BaseWidget * UIContext::bottomPanel() { return _bottomPanel; }
-BaseWidget * UIContext::gridControl() { return _gridView->_control; }
-BaseWidget * UIContext::grid() { return _gridView->_grid; }
-BaseWidget * UIContext::moduleView() { return _module; }
+BaseWidget * UIContext::gridControl() { return _gridView->_control.get(); }
+BaseWidget * UIContext::grid() { return _gridView->_grid.get(); }
+BaseWidget * UIContext::unitView() { return _unitView; }
 BaseWidget * UIContext::browser() { return _browser; }
 
 }

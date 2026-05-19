@@ -50,7 +50,7 @@ void LoopPositionAction::exec(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
 	}
 }
-void LoopPositionAction::checkWaitingCondition() {
+void LoopPositionAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {

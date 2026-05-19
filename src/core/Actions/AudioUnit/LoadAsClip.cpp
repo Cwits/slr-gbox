@@ -38,6 +38,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
             if(std::holds_alternative<std::string>(_action.data)) {
                 auto task = std::make_unique<Tasks::openFile>();
                 task->path = std::get<std::string>(_action.data);
+                if(_action.fileForcedId) task->forcedId = _action.fileForcedId.value();
                 task->finished = [opened = &_opened](const File *file, bool success) {
                     opened->file = file;
                     opened->result = success;
@@ -75,7 +76,18 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            _clip = ctx.project->clipStorage().newClip(_file, _action.startOffset);
+            if(_action.clipForcedId)
+                _clip = ctx.project->clipStorage().newClip(
+                    _file, 
+                    _action.startOffset, 
+                    _action.clipForcedId.value()
+                );
+            else 
+                _clip = ctx.project->clipStorage().newClip(
+                    _file, 
+                    _action.startOffset
+                );
+            
             _step = 3;
         } break;
         case(3): {
@@ -161,7 +173,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
     }
 }
 
-void LoadAsClipAction::checkWaitingCondition() {
+void LoadAsClipAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {
@@ -189,6 +201,15 @@ void LoadAsClipAction::checkWaitingCondition() {
         default: assert(false && "Unreachable"); break;
     }
 }
+
+void LoadAsClipAction::undo(ControlContext &ctx) {
+
+}
+
+void LoadAsClipAction::redo(ControlContext &ctx) {
+
+}
+
 
 std::unique_ptr<ActionExecutable> createLoadAsClipAction(const ActionBase*base) {
     return std::make_unique<LoadAsClipAction>(base);

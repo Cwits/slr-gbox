@@ -4,8 +4,7 @@
 #pragma once
 
 #include "ui/display/primitives/View.h"
-// #include "ui/display/primitives/Button.h"
-// #include "ui/display/primitives/Label.h"
+#include <memory>
 
 namespace UI {
 
@@ -20,22 +19,22 @@ struct BottomPanel : public View {
     void updateTimelineRelated(const bool timeSigOrBpm);
     void update() override {}
     // private:
-    Button * _newButton;
-    Button * _playButton;
-    Button * _stopButton;
-    Button * _recButton;
-    Button * _loopButton;
+    std::unique_ptr<Button> _btnNewUnit;
+    std::unique_ptr<Button> _btnPlay;
+    std::unique_ptr<Button> _btnStop;
+    std::unique_ptr<Button> _btnRec;
+    std::unique_ptr<Button> _btnLoop;
 
-    Label * _posText;
-    Label * _testPlayhead;
+    std::unique_ptr<Label> _lblPosText;
+    std::unique_ptr<Label> _lblTestPlayhead;
     
-    Label * _bpmText;
-    Label * _barSizeText;
+    std::unique_ptr<Label> _lblBpmText;
+    std::unique_ptr<Label> _lblBarSizeText;
 
-    Label * _loopStartText;
-    Label * _loopStart;
-    Label * _loopEndText;
-    Label * _loopEnd;
+    std::unique_ptr<Label> _lblLoopStartText;
+    std::unique_ptr<Label> _lblLoopStart;
+    std::unique_ptr<Label> _lblLoopEndText;
+    std::unique_ptr<Label> _lblLoopEnd;
 };
 
 }

@@ -233,7 +233,7 @@ void ToggleMidiDeviceAction::exec(ControlContext &ctx) {
     }
 }
 
-void ToggleMidiDeviceAction::checkWaitingCondition() {
+void ToggleMidiDeviceAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

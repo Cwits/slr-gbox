@@ -15,7 +15,7 @@ namespace PushLib {
 
 namespace slr {
     class AudioUnitView;
-    class Module;
+    class UnitDescriptor;
 }
 
 namespace PushUI {
@@ -47,8 +47,9 @@ struct RootWidget : public PushLib::Widget {
 
     std::vector<PushLib::ButtonColor> buttonsColors() override;
 
-    void createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view);
+    void createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view);
     void destroyUI(slr::ID id);
+    void clearUI();
 
     bool hasAnythingDirty() const override;
 

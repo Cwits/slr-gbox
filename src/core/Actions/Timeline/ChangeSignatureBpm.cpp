@@ -50,7 +50,7 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
 	}
 }
-void ChangeSignatureBpmAction::checkWaitingCondition() {
+void ChangeSignatureBpmAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {

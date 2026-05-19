@@ -64,6 +64,11 @@ bool BufferManager::shutdown() {
     return true;
 }
 
+bool BufferManager::clear() {
+    LOG_FATAL("Not implemented");
+    return false;
+}
+
 AudioBuffer* BufferManager::acquireAudioRegular() {
     if(_regularAudioFree.size() == 0) {
         LOG_FATAL("Run out of free Regular Buffers");

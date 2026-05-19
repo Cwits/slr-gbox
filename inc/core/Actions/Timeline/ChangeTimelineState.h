@@ -22,7 +22,7 @@ struct ChangeTimelineStateAction : public ActionExecutable {
     ~ChangeTimelineStateAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::ChangeTimelineState _action;

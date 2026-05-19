@@ -11,6 +11,14 @@ struct Color {
     int g; 
     int b;
     int a;
+
+    Color & operator=(const Color &other) {
+        r = other.r;
+        g = other.g;
+        b = other.b;
+        a = other.a;
+        return *this;
+    }
 };
 
 }

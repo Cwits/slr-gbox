@@ -40,6 +40,12 @@ void AddNewMidiRouteAction::exec(ControlContext &ctx) {
     
     		ctx.project->addRoute(_action.route);
             
+            if(!_action.swapPlan) {
+                LOG_WARN("Plan won't be swapped");
+                abortAction();
+                return;
+            }
+
             if(!ctx.project->prepareSwappablePlan()) {
                 LOG_ERROR("Failed to create swappable plan");
                 abortAction();
@@ -64,7 +70,7 @@ void AddNewMidiRouteAction::exec(ControlContext &ctx) {
     }
 }
 
-void AddNewMidiRouteAction::checkWaitingCondition() {
+void AddNewMidiRouteAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

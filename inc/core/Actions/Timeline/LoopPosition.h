@@ -22,7 +22,7 @@ struct LoopPositionAction : public ActionExecutable {
     ~LoopPositionAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::LoopPosition _action;

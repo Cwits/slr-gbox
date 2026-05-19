@@ -19,7 +19,7 @@ struct ToggleOmniHwAction : public ActionExecutable {
     ~ToggleOmniHwAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::ToggleOmniHwInput _action;

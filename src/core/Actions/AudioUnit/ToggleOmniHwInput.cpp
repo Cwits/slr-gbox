@@ -71,7 +71,7 @@ void ToggleOmniHwAction::exec(ControlContext &ctx) {
     }
 }
 
-void ToggleOmniHwAction::checkWaitingCondition() {
+void ToggleOmniHwAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

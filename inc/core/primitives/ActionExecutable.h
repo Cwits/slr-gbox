@@ -13,6 +13,12 @@ enum class ActionState {
 };
 
 struct ControlContext;
+
+struct Undoable {
+	virtual void undo(ControlContext &ctx) = 0;
+	virtual void redo(ControlContext &ctx) = 0;
+};
+
 struct ActionExecutable {
 	ActionExecutable() {
 		setState(ActionState::Executing);
@@ -21,7 +27,7 @@ struct ActionExecutable {
 	}
 	virtual ~ActionExecutable() {}
 	virtual void exec(ControlContext &ctx) = 0;
-	virtual void checkWaitingCondition() = 0;
+	virtual void checkWaitingCondition(ControlContext &ctx) = 0;
 	
 	ActionState getState() const {
 		return state.load(std::memory_order_acquire);

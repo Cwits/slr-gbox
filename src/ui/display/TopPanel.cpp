@@ -30,7 +30,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     // lv_obj_set_style_text_color(_lb, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
     // lv_obj_set_style_text_font(_lb, &lv_font_montserrat_40, 0);
 
-    _lblProjectName = new Label(this, "Untitled Project");
+    _lblProjectName = std::make_unique<Label>(this, "Untitled Project");
     _lblProjectName->setPos(10, 15);
     _lblProjectName->setSize(400, lv_font_get_line_height(&lv_font_montserrat_40));
     _lblProjectName->setTextColor(lv_color_hex(0xffffff));
@@ -45,8 +45,28 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
         );
     });
 
-    int posx = 600;
-    _btnGrid = new Button(this, "Grid");
+    _btnSave = std::make_unique<Button>(this, "Save");
+    _btnSave->setPos(450, 0);
+    _btnSave->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnSave->setFont(&DEFAULT_FONT);
+    _btnSave->setCallback([]() {
+        auto act = std::make_unique<slr::Actions::SaveProject>();
+        slr::EmitAction(std::move(act));
+    });
+
+    _btnLoad = std::make_unique<Button>(this, "Load");
+    _btnLoad->setPos(450+LayoutDef::BUTTON_SIZE+20, 0);
+    _btnLoad->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnLoad->setFont(&DEFAULT_FONT);
+    _btnLoad->setCallback([]() {
+        // auto act = std::make_unique<slr::Actions::SaveProject>();
+        // slr::EmitAction(std::move(act));
+        LOG_WARN("Not ready");
+    });
+    
+
+    int posx = 750;
+    _btnGrid = std::make_unique<Button>(this, "Grid");
     _btnGrid->setPos(posx, 0);
     _btnGrid->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnGrid->setFont(&DEFAULT_FONT);
@@ -55,16 +75,16 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
-    _btnTrack = new Button(this, "Last Unit");
+    _btnTrack = std::make_unique<Button>(this, "Unit");
     _btnTrack->setPos(posx, 0);
     _btnTrack->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnTrack->setFont(&DEFAULT_FONT);
     _btnTrack->setCallback([uictx = _uictx]() {
-        uictx->switchToView(MainView::Module);
+        uictx->switchToView(MainView::Unit);
     });
     
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
-    _btnBrowser = new Button(this, LV_SYMBOL_FILE);
+    _btnBrowser = std::make_unique<Button>(this, LV_SYMBOL_FILE);
     _btnBrowser->setPos(posx, 0);
     _btnBrowser->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnBrowser->setFont(&DEFAULT_FONT);
@@ -73,7 +93,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
-    _btnStepSequencer = new Button(this, "StepS");
+    _btnStepSequencer = std::make_unique<Button>(this, "StepS");
     _btnStepSequencer->setPos(posx, 0);
     _btnStepSequencer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnStepSequencer->setFont(&DEFAULT_FONT);
@@ -82,7 +102,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
-    _btnModEngine = new Button(this, "ModE");
+    _btnModEngine = std::make_unique<Button>(this, "ModE");
     _btnModEngine->setPos(posx, 0);
     _btnModEngine->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnModEngine->setFont(&DEFAULT_FONT);
@@ -91,7 +111,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
       
     posx = parent->width()-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN;
-    _btnSettings = new Button(this, LV_SYMBOL_SETTINGS);
+    _btnSettings = std::make_unique<Button>(this, LV_SYMBOL_SETTINGS);
     _btnSettings->setPos(posx, 0);
     _btnSettings->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnSettings->setFont(&DEFAULT_FONT);
@@ -100,7 +120,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
-    _btnToggleMetronome = new Button(this, LV_SYMBOL_BELL);
+    _btnToggleMetronome = std::make_unique<Button>(this, LV_SYMBOL_BELL);
     _btnToggleMetronome->setPos(posx, 0);
     _btnToggleMetronome->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnToggleMetronome->setFont(&DEFAULT_FONT);
@@ -110,7 +130,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
-    _btnMidiKbd = new Button(this, "MIDI Kbd");
+    _btnMidiKbd = std::make_unique<Button>(this, "MIDI Kbd");
     _btnMidiKbd->setPos(posx, 0);
     _btnMidiKbd->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnMidiKbd->setFont(&DEFAULT_FONT);
@@ -118,20 +138,28 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
         this->_uictx->_popManager->enableMidiKeyboard();
     });
 
+    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    _btnRedo = std::make_unique<Button>(this, LV_SYMBOL_RIGHT);
+    _btnRedo->setPos(posx, 0);
+    _btnRedo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRedo->setFont(&DEFAULT_FONT);
+    _btnRedo->setCallback([this]() {
+        LOG_INFO("Redo action");
+    });
 
+    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    _btnUndo = std::make_unique<Button>(this, LV_SYMBOL_LEFT);
+    _btnUndo->setPos(posx, 0);
+    _btnUndo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnUndo->setFont(&DEFAULT_FONT);
+    _btnUndo->setCallback([this]() {
+        LOG_INFO("Undo action");
+    });
+    
     show();
 }
 
 TopPanel::~TopPanel() {
-    delete _lblProjectName;
-    delete _btnGrid;
-    delete _btnTrack;
-    delete _btnBrowser;
-    delete _btnStepSequencer;
-    delete _btnModEngine;
-    delete _btnSettings;
-    delete _btnToggleMetronome;
-    delete _btnMidiKbd;
 }
 
 void TopPanel::setMetroColor(lv_color_t color) {

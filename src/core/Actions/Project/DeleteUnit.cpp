@@ -30,11 +30,14 @@ void DeleteUnitAction::exec(ControlContext &ctx) {
 	
 	switch(_step) {
 		case(1): {
-			UIControls::destroyModuleUI(_action.targetId);
+			/* 
+				serialize everything related to this targetId(routes, paths to clips, parameters and etc...) to some blob or smth... 
+				only than delete
+			*/
+			UIControls::destroyUnitUI(_action.targetId);
 			
 			
 			if(ctx.project->unitHaveRoutes(_action.targetId)) {
-				
 				ctx.project->removeRoutesForId(_action.targetId);
 				ctx.projectView->updateRoutes(ctx.project->routes());
 				
@@ -88,7 +91,7 @@ void DeleteUnitAction::exec(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
 	}
 }
-void DeleteUnitAction::checkWaitingCondition() {
+void DeleteUnitAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {
@@ -103,6 +106,18 @@ void DeleteUnitAction::checkWaitingCondition() {
 	}
 }
 
+void DeleteUnitAction::undo(ControlContext &ctx) {
+	//huh??
+	/*
+		restore unit (with original id) from serialized blob
+	*/
+}
+
+void DeleteUnitAction::redo(ControlContext &ctx) {
+	/* 
+		create new delete action
+	*/
+}
 
 std::unique_ptr<ActionExecutable> createDeleteUnitAction(const ActionBase*base) {
     return std::make_unique<DeleteUnitAction>(base);

@@ -6,7 +6,8 @@
 #include "core/primitives/ControlContext.h"
 
 #include "core/Project.h"
-#include "core/ModuleManager.h"
+#include "core/UnitManager.h"
+#include "core/Actions.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
@@ -22,6 +23,7 @@ namespace slr {
 CreateNewUnitAction::CreateNewUnitAction(const ActionBase *base) :
     _action( *(static_cast<const Actions::CreateNewUnit*>(base)) )
 {
+    _createdUnitId = 0;
 }
 
 CreateNewUnitAction::~CreateNewUnitAction() {
@@ -31,35 +33,48 @@ CreateNewUnitAction::~CreateNewUnitAction() {
 void CreateNewUnitAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
 
-    const Module *mod = ModuleManagerFactory::findModule(_action.name);
-    if(!mod) {
-        LOG_ERROR("Failed to find module %s", _action.name);
+    const UnitDescriptor *desc = UnitManagerFactory::findUnit(_action.name);
+    if(!desc) {
+        LOG_ERROR("Failed to find module %s", _action.name.c_str());
         abortAction();
         return;
     }
 
-    AudioUnit * au = ctx.project->createUnit(ctx, mod);
+    AudioUnit * au = ctx.project->createUnit(ctx, desc, _action.forcedId);
     if(!au) {
-        LOG_ERROR("Failed to create RT Unit %s", _action.name);
+        LOG_ERROR("Failed to create RT Unit %s", _action.name.c_str());
         abortAction();
         return;
     }
 
-    std::shared_ptr<AudioUnitView> view = ctx.projectView->createUnitView(ctx, mod, au);
+    std::shared_ptr<AudioUnitView> view = ctx.projectView->createUnitView(ctx, desc, au);
     if(!view) {
-        LOG_ERROR("Failed to create unit view %s", _action.name);
+        LOG_ERROR("Failed to create unit view %s", _action.name.c_str());
         abortAction();
         return;
     }
 
-    UIControls::addModuleUI(mod, view);
+    UIControls::addUnitUI(desc, view);
 
+    _createdUnitId = au->id();
     markDelete();
     setState(ActionState::Finished);
 }
 
-void CreateNewUnitAction::checkWaitingCondition() {
+void CreateNewUnitAction::checkWaitingCondition(ControlContext &ctx) {
 
+}
+
+void CreateNewUnitAction::undo(ControlContext &ctx) {
+    auto act = std::make_unique<Actions::DeleteUnit>();
+    act->targetId = _createdUnitId;
+    EmitAction(std::move(act));
+}
+
+void CreateNewUnitAction::redo(ControlContext &ctx) {
+    auto act = std::make_unique<Actions::CreateNewUnit>();
+    *act = _action;
+    EmitAction(std::move(act));
 }
 
 std::unique_ptr<ActionExecutable> createCreateNewUnitAction(const ActionBase *base) {

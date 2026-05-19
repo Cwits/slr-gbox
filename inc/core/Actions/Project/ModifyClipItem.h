@@ -21,7 +21,7 @@ struct ModifyClipItemAction : public ActionExecutable {
     ~ModifyClipItemAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::ModifyClipItem _action;

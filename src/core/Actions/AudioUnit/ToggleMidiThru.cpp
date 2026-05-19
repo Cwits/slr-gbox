@@ -71,7 +71,7 @@ void ToggleMidiThruAction::exec(ControlContext &ctx) {
     }
 }
 
-void ToggleMidiThruAction::checkWaitingCondition() {
+void ToggleMidiThruAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

@@ -29,6 +29,10 @@
 
 std::atomic<bool> _running;
 
+namespace slr {
+extern std::atomic<bool> _shutdown;
+}
+
 lv_display_t *lvDisplay;
 UI::SplashScreen * _splash;
 lv_obj_t * _main_screen;
@@ -206,6 +210,7 @@ void runGui() {
 
 void shutdown() {
     _running = false;
+    slr::_shutdown = true;
 }
 
 

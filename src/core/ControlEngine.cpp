@@ -19,7 +19,7 @@
 #include "core/Project.h"
 #include "core/FileWorker.h"
 #include "core/SettingsManager.h"
-#include "core/ModuleManager.h"
+#include "core/UnitManager.h"
 #include "core/MidiController.h"
 #include "core/Metronome.h"
 
@@ -45,6 +45,7 @@
 #include <condition_variable>
 #include <unordered_map>
 #include <future>
+#include <queue>
 
 #define QUEUE_INITIAL_SIZE 128
 
@@ -70,7 +71,10 @@ std::unique_ptr<MidiController> _midiController;
 std::vector<std::unique_ptr<ActionExecutable>> _actions;
 std::shared_mutex _actionMutex;
 
-ID _commandIdCounter = 0;
+std::queue<std::unique_ptr<ActionExecutable>> _undoList;
+std::queue<std::unique_ptr<ActionExecutable>> _redoList;
+
+// ID _commandIdCounter = 0;
 
 namespace ControlEngine {
 
@@ -112,13 +116,19 @@ void processLoop() {
 
             switch(action->getState()) {
                 case(ActionState::Executing): action->exec(ctx); break;
-                case(ActionState::Waiting): action->checkWaitingCondition(); break;
+                case(ActionState::Waiting): action->checkWaitingCondition(ctx); break;
                 case(ActionState::Finished): assert(false && "Shouldn't be here"); break;
             }
         } 
 
         {
             //cleaning actions
+            //check if action is finished
+            //if finished - check if action can be undoable
+            //if can - put it into undo list
+            //if can't - just delete
+            
+            
             std::unique_lock l(_actionMutex);
             _actions.erase(
                 std::remove_if(
@@ -189,7 +199,7 @@ bool init() {
         return false;
     }
 
-    ModuleManagerFactory::init();
+    UnitManagerFactory::init();
 
     _midiController = std::make_unique<MidiController>();
 
@@ -228,6 +238,7 @@ bool shutdown() {
     _engine.reset();
 
     /* save project? */
+    _projectSnapshot.reset();
     _project.reset();
     
     if(!_fileWorker->shutdown()) {
@@ -254,8 +265,35 @@ void emergencyStop() {
 
 }
 
-const ID generateCommandId() {
-    return _commandIdCounter++;
+void prepareForProjectLoading() {
+    if(!_engine->stop()) {
+        LOG_FATAL("Failed to stop Engine");
+    }
+
+    UIControls::clearUI();
+
+    //TODO: need some method to clear some global data(ed ID counters and etc...);
+    _projectSnapshot.reset();
+    _project.reset();
+
+    LOG_ERROR("Enable this two guys");
+    // _fileWorker->clear();
+    // _bufferManager->clear();
+
+
+    _project = std::make_unique<Project>();
+    _project->metronome()->create(_bufferManager.get());
+    _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
+
+    _engine->setProject(_project.get());
+    if(!_engine->start([ctl = _midiController.get()](frame_t framesPassed) {
+        ctl->setAnchor(framesPassed);
+    })) {
+        LOG_ERROR("Failed to start RT Engine");
+        return;
+    }
+    
+
 }
 
 void EmitAction(std::unique_ptr<ActionBase> action) {
@@ -288,6 +326,9 @@ MidiController * midiController() {
     return _midiController.get();
 }
 
+BufferManager * bufferManager() {
+    return _bufferManager.get();
+}
 
 void discoverMidi() {
     while(!_shutdown) {

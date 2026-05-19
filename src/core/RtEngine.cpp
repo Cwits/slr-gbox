@@ -72,9 +72,9 @@ bool RtEngine::start(std::function<void(frame_t)> anchorLambda) {
         return this->processNextBlock(inputs, outputs, frames, framesPassed);
     })) {
         //error
-        _state = RtState::ERROR;
+        _state.store(RtState::ERROR, std::memory_order_release);
     } else {
-        _state = RtState::RUN;
+        _state.store(RtState::RUN, std::memory_order_release);
     }
 
     if(_state == RtState::RUN) return true;
@@ -85,6 +85,7 @@ bool RtEngine::stop() {
     if(_state != RtState::RUN) return false;
 
     if(_driver->stop()) {
+        _state.store(RtState::STOP, std::memory_order_release);
         return true;
     } else {
         return false;

@@ -47,7 +47,7 @@ void UpdatePlayheadAction::exec(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
 	}
 }
-void UpdatePlayheadAction::checkWaitingCondition() {
+void UpdatePlayheadAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {

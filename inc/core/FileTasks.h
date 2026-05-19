@@ -8,12 +8,16 @@
 
 #include <string>
 #include <functional>
+#include <optional>
 
 namespace slr {
 
 // class AudioBuffer;
 class AudioFile;
 class File;
+struct FileWorker;
+struct FileWorkerContext;
+
 
 namespace Tasks {
 
@@ -21,39 +25,40 @@ namespace Tasks {
 //open, callback, close
 struct OneShotOpen : public Task {
     /* like for e.g. preset loading - you don't need keep file with preset always opened? */
-    void exec(FileWorker *f) override {}
+    void exec(FileWorkerContext &ctx) override {}
 };
 
 struct openFile : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     std::string path;
-    ID targetId;
-    frame_t fileStartPosition;
+    // ID targetId;
+    // frame_t fileStartPosition;
+    std::optional<ID> forcedId;
     std::function<void(const File * file, bool success)> finished;
 };
 
 struct closeFile : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     File * file;  
 };
 
 struct saveFile : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
-    File * file;
+    ID fileId;
 };
 
 /* Audio Tasks */
 struct dumpAudio : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     AudioBuffer * buffer;
     AudioFile * file;
     frame_t size;
 
-    std::function<void(FileWorker*, bool)> callback;
+    std::function<void(FileWorker*const, bool)> callback;
     //check AudioFile.cpp for more detailed info
 };
 
@@ -75,7 +80,7 @@ struct dumpAudio : public Task {
 // Cut, Copy, Paste, Delete, Silence, Reverse, ReversePhase };
 
 struct cutAudio : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     frame_t start;
     frame_t end;
@@ -85,7 +90,7 @@ struct cutAudio : public Task {
 };
 
 struct copyAudio : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     frame_t start;
     frame_t end;
@@ -95,7 +100,7 @@ struct copyAudio : public Task {
 };
 
 struct pasteAudio : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     frame_t start;
     frame_t end;
@@ -105,7 +110,7 @@ struct pasteAudio : public Task {
 };
 
 struct deleteAudio : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     frame_t start;
     frame_t end;
@@ -115,7 +120,7 @@ struct deleteAudio : public Task {
 };
 
 struct silenceAudio : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     frame_t start;
     frame_t end;
@@ -125,7 +130,7 @@ struct silenceAudio : public Task {
 };
 
 struct reverseAudio : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     frame_t start;
     frame_t end;
@@ -135,7 +140,7 @@ struct reverseAudio : public Task {
 };
 
 struct reverseAudioPhase : public Task {
-    void exec(FileWorker *f) override;
+    void exec(FileWorkerContext &ctx) override;
 
     frame_t start;
     frame_t end;

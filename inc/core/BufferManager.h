@@ -16,6 +16,7 @@ struct BufferManager {
 
     bool init(int blockSize, int channels);
     bool shutdown();
+    bool clear();
 
     AudioBuffer* acquireAudioRegular();
     AudioBuffer* acquireAudioRecord();

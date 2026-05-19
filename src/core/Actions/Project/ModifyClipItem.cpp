@@ -70,7 +70,7 @@ void ModifyClipItemAction::exec(ControlContext &ctx) {
     }   
 }
 
-void ModifyClipItemAction::checkWaitingCondition() {
+void ModifyClipItemAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

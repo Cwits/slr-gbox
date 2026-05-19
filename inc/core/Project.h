@@ -18,7 +18,7 @@ namespace slr {
 
 class AudioUnit;
 class Metronome;
-class Module;
+class UnitDescriptor;
 class ControlContext;
 
 class Project {
@@ -40,10 +40,10 @@ class Project {
     RT_FUNC const RenderPlan * soloPlan() const;
 
     //nonRT
-    AudioUnit * createUnit(const ControlContext &ctx, const Module *mod);
+    AudioUnit * createUnit(const ControlContext &ctx, const UnitDescriptor *desc, const ID forcedId);
     std::unique_ptr<AudioUnit> removeUnit(ID id);
 
-    const int getUnitCount() const { return _unitList.size(); }
+    const std::size_t getUnitCount() const { return _unitList.size(); }
     AudioUnit * getUnitById(ID id); //for building track graph???
     const std::vector<std::unique_ptr<AudioUnit>> & getAllUnits() const { return _unitList; }
 
@@ -68,7 +68,6 @@ class Project {
     
     ClipItem * findClipItemById(ID id);
     // static Common::Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    
 
     private:
     bool _isSolo;
@@ -92,6 +91,8 @@ class Project {
     //std::unique_ptr<StepSequencer> _stepSequencer;
     //std::unique_ptr<ModulationEngine> _modEngine;
     //_globalParameterList??
+
+    
 };
 
 }

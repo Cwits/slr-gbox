@@ -13,7 +13,7 @@ class AudioPeakFile;
 // class AudioBuffer;
 class AudioFile : public File {
     public:
-    AudioFile();
+    AudioFile(long forcedId = -1);
     ~AudioFile();
 
     //temporary meaned for recording only -> creates new file, don't allocate buffer for getData()

@@ -7,10 +7,10 @@
 
 namespace slr {
 
-class FileWorker;
+struct FileWorkerContext;
 struct Task {
     virtual ~Task() = default;
-    virtual void exec(FileWorker * f) = 0;
+    virtual void exec(FileWorkerContext &ctx) = 0;
 };
 
 }

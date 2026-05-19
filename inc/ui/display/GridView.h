@@ -6,7 +6,6 @@
 #include "lvgl.h"
 #include "ui/display/primitives/BaseWidget.h"
 #include "ui/display/primitives/View.h"
-#include "ui/display/Timeline.h"
 
 #include <vector>
 #include <memory>
@@ -19,6 +18,7 @@ namespace slr {
 namespace UI {
 // class TrackGui;
 class GridView;
+struct Timeline;
 
 struct GridControl : public BaseWidget {
     GridControl(GridView * parent, UIContext * const uictx);
@@ -56,9 +56,9 @@ struct GridView : public View {
     const float hZoom() const { return _horizontalZoom; }
     void pollUIUpdate() override;
 
-    GridControl * _control;
-    GridGrid * _grid;
-    Timeline * _timeline;
+    std::unique_ptr<GridControl> _control;
+    std::unique_ptr<GridGrid> _grid;
+    std::unique_ptr<Timeline> _timeline;
     
     private:
     float _horizontalZoom = 1.0f;

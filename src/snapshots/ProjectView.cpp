@@ -7,7 +7,8 @@
 #include "core/Timeline.h"
 #include "core/ControlEngine.h"
 #include "core/primitives/ControlContext.h"
-#include "core/ModuleManager.h"
+#include "core/UnitManager.h"
+#include "core/SettingsManager.h"
 
 #include "logger.h"
 
@@ -16,6 +17,7 @@ namespace slr {
 
 ProjectView::ProjectView(Timeline *tl) : _timeline(tl) {
     // _playheadPosition = 0;
+    _name = "Untitled Project";
 }
 
 ProjectView::~ProjectView() {
@@ -30,15 +32,15 @@ std::vector<AudioUnitView*> ProjectView::unitList() {
     return ret;
 }
 
-std::shared_ptr<AudioUnitView> ProjectView::createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au) {
+std::shared_ptr<AudioUnitView> ProjectView::createUnitView(const ControlContext &ctx, const UnitDescriptor *desc, AudioUnit * au) {
     std::shared_ptr<AudioUnitView> view;
     try {
-        std::shared_ptr<AudioUnitView> v = mod->createView(au);
+        std::shared_ptr<AudioUnitView> v = desc->createView(au);
         view = v;
         _unitViewList.push_back(v);
         incrementVersion();
     } catch(...) {
-        LOG_ERROR("Failed to create %s", mod->_name->data());
+        LOG_ERROR("Failed to create %s", desc->_name->data());
     }
     return view;
 }
@@ -71,7 +73,7 @@ std::shared_ptr<AudioUnitView> ProjectView::removeUnitView(ID id) {
         std::shared_ptr<AudioUnitView> unit = _unitViewList.at(pos);
         _unitViewList.erase(_unitViewList.begin() + pos);
         incrementVersion();
-        return std::move(unit);
+        return unit;
     } else {
         LOG_ERROR("Failed to find unit with id %u", id);
         return std::shared_ptr<AudioUnitView>();

@@ -6,6 +6,7 @@
 #include "core/primitives/File.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/MidiFile.h"
+#include "core/primitives/FileWorkerContext.h"
 #include "core/ControlEngine.h"
 #include "logger.h"
 
@@ -45,6 +46,11 @@ bool FileWorker::shutdown() {
     return true;
 }
 
+bool FileWorker::clear() {
+    LOG_FATAL("Not implemented");
+    return false;
+}
+
 void FileWorker::run(FileWorker * f) {
     while(!f->_shutdown) {
         std::unique_lock<std::mutex> lock(f->_mutex);
@@ -61,7 +67,9 @@ void FileWorker::run(FileWorker * f) {
         f->_queue.pop();
         lock.unlock();
 
-        task->exec(f);
+        FileWorkerContext ctx(f, f->_fileList);
+
+        task->exec(ctx);
     }
 
     exit:

@@ -29,11 +29,11 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     int posy = 10;
     int posx = 10;
 
-    _playButton = new Button(this, LV_SYMBOL_PLAY);
-    _playButton->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _playButton->setPos(posx, posy);
-    _playButton->setFont(&DEFAULT_FONT);
-    _playButton->setCallback([this]() { 
+    _btnPlay = std::make_unique<Button>(this, LV_SYMBOL_PLAY);
+    _btnPlay->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnPlay->setPos(posx, posy);
+    _btnPlay->setFont(&DEFAULT_FONT);
+    _btnPlay->setCallback([this]() { 
         // LOG_INFO("Play");
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
         auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
@@ -42,11 +42,11 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     });
     
     posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
-    _stopButton = new Button(this, LV_SYMBOL_STOP);
-    _stopButton->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _stopButton->setPos(posx, posy);
-    _stopButton->setFont(&DEFAULT_FONT);
-    _stopButton->setCallback([this]() { 
+    _btnStop = std::make_unique<Button>(this, LV_SYMBOL_STOP);
+    _btnStop->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnStop->setPos(posx, posy);
+    _btnStop->setFont(&DEFAULT_FONT);
+    _btnStop->setCallback([this]() { 
         // LOG_INFO("Stop");
         
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
@@ -56,11 +56,11 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     });
 
     posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
-    _recButton = new Button(this, LV_SYMBOL_EDIT);
-    _recButton->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _recButton->setPos(posx, posy);
-    _recButton->setFont(&DEFAULT_FONT);
-    _recButton->setCallback([this]() { 
+    _btnRec = std::make_unique<Button>(this, LV_SYMBOL_EDIT);
+    _btnRec->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRec->setPos(posx, posy);
+    _btnRec->setFont(&DEFAULT_FONT);
+    _btnRec->setCallback([this]() { 
         // LOG_INFO("Record");
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
         auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
@@ -69,11 +69,11 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     });
 
     posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
-    _loopButton = new Button(this, LV_SYMBOL_LOOP);
-    _loopButton->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _loopButton->setPos(posx, posy);
-    _loopButton->setFont(&DEFAULT_FONT);
-    _loopButton->setCallback([this]() { 
+    _btnLoop = std::make_unique<Button>(this, LV_SYMBOL_LOOP);
+    _btnLoop->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnLoop->setPos(posx, posy);
+    _btnLoop->setFont(&DEFAULT_FONT);
+    _btnLoop->setCallback([this]() { 
         // LOG_INFO("Toggle loop");
         slr::TimelineView &tl = slr::TimelineView::getTimelineView();
         auto act = std::make_unique<slr::Actions::ToggleLoop>();
@@ -83,13 +83,13 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
 
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
 
-    _bpmText = new Label(this, UIUtility::bpmToString(tl.bpm()));
-    _bpmText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
-    _bpmText->setFont(&DEFAULT_FONT);
-    _bpmText->setPos(450, 5);
-    _bpmText->setTapCallback([this]() {
+    _lblBpmText = std::make_unique<Label>(this, UIUtility::bpmToString(tl.bpm()));
+    _lblBpmText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblBpmText->setFont(&DEFAULT_FONT);
+    _lblBpmText->setPos(450, 5);
+    _lblBpmText->setTapCallback([this]() {
         this->_uictx->_popManager->enableKeyboard(
-            this->_bpmText->text(),
+            this->_lblBpmText->text(),
             [uictx = this->_uictx](const std::string &text) {
                 //TODO: extract validation to separate UIUtility function ( bpm = validateBpm(string, uictx); )          
                 float bpm = UIUtility::stringToBpm(text);
@@ -127,14 +127,14 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
         );
     });
 
-    _barSizeText = new Label(this);
-    _barSizeText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
-    _barSizeText->setFont(&DEFAULT_FONT);
-    _barSizeText->setPos(450, 55);
-    _barSizeText->setText(UIUtility::signatureToString(tl.getBarSize()));
-    _barSizeText->setTapCallback([this]() {
+    _lblBarSizeText = std::make_unique<Label>(this);
+    _lblBarSizeText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblBarSizeText->setFont(&DEFAULT_FONT);
+    _lblBarSizeText->setPos(450, 55);
+    _lblBarSizeText->setText(UIUtility::signatureToString(tl.getBarSize()));
+    _lblBarSizeText->setTapCallback([this]() {
         this->_uictx->_popManager->enableKeyboard(
-            this->_barSizeText->text(),
+            this->_lblBarSizeText->text(),
             [uictx = this->_uictx](const std::string &text) {
                 //TODO: extract validation to separate UIUtility function ( bpm = validateBarSize(string, uictx); )
                 slr::BarSize size = UIUtility::stringToSig(text);
@@ -171,23 +171,23 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     });
 
     //loop
-    _loopStartText = new Label(this, "Loop Start");
-    _loopStartText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
-    _loopStartText->setPos(600, 5);
-    _loopStartText->setFont(&DEFAULT_FONT);
+    _lblLoopStartText = std::make_unique<Label>(this, "Loop Start");
+    _lblLoopStartText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblLoopStartText->setPos(600, 5);
+    _lblLoopStartText->setFont(&DEFAULT_FONT);
     
-    _loopEndText = new Label(this, "Loop End");
-    _loopEndText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
-    _loopEndText->setPos(600, 55);
-    _loopEndText->setFont(&DEFAULT_FONT);
+    _lblLoopEndText = std::make_unique<Label>(this, "Loop End");
+    _lblLoopEndText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblLoopEndText->setPos(600, 55);
+    _lblLoopEndText->setFont(&DEFAULT_FONT);
 
-    _loopStart = new Label(this, std::to_string(tl.loopStartFrame()));
-    _loopStart->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
-    _loopStart->setPos(800, 5);
-    _loopStart->setFont(&DEFAULT_FONT);
-    _loopStart->setTapCallback([this]() {
+    _lblLoopStart = std::make_unique<Label>(this, std::to_string(tl.loopStartFrame()));
+    _lblLoopStart->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblLoopStart->setPos(800, 5);
+    _lblLoopStart->setFont(&DEFAULT_FONT);
+    _lblLoopStart->setTapCallback([this]() {
         this->_uictx->_popManager->enableKeyboard(
-            this->_loopStart->text(),
+            this->_lblLoopStart->text(),
             [uictx = this->_uictx](const std::string &text) {          
                 slr::TimelineView &tl = slr::TimelineView::getTimelineView();
                 bool failed = false;
@@ -217,13 +217,13 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
         );
     });
 
-    _loopEnd = new Label(this, std::to_string(tl.loopEndFrame()));
-    _loopEnd->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
-    _loopEnd->setPos(800, 55);
-    _loopEnd->setFont(&DEFAULT_FONT);
-    _loopEnd->setTapCallback([this]() {
+    _lblLoopEnd = std::make_unique<Label>(this, std::to_string(tl.loopEndFrame()));
+    _lblLoopEnd->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblLoopEnd->setPos(800, 55);
+    _lblLoopEnd->setFont(&DEFAULT_FONT);
+    _lblLoopEnd->setTapCallback([this]() {
         this->_uictx->_popManager->enableKeyboard(
-            this->_loopEnd->text(),
+            this->_lblLoopEnd->text(),
             [uictx = this->_uictx](const std::string &text) {          
                 slr::TimelineView &tl = slr::TimelineView::getTimelineView();
                 bool failed = false;
@@ -254,84 +254,71 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     });
 
     //frames
-    _posText = new Label(this, "frames: ");
-    _posText->setSize(150, lv_font_get_line_height(&DEFAULT_FONT));
-    _posText->setPos(1000, 5);
-    _posText->setFont(&DEFAULT_FONT);
+    _lblPosText = std::make_unique<Label>(this, "frames: ");
+    _lblPosText->setSize(150, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblPosText->setPos(1000, 5);
+    _lblPosText->setFont(&DEFAULT_FONT);
 
-    _testPlayhead = new Label(this, "0");
-    _testPlayhead->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
-    _testPlayhead->setPos(1120, 5); //120 diff
-    _testPlayhead->setFont(&DEFAULT_FONT);
+    _lblTestPlayhead = std::make_unique<Label>(this, "0");
+    _lblTestPlayhead->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblTestPlayhead->setPos(1120, 5); //120 diff
+    _lblTestPlayhead->setFont(&DEFAULT_FONT);
 
-    _newButton = new Button(this, LV_SYMBOL_PLUS);
-    _newButton->setPos(LayoutDef::BOTTOM_PANEL_WIDTH-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN, posy);
-    _newButton->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _newButton->setFont(&DEFAULT_FONT);
-    _newButton->setCallback([uictx = _uictx]() {
-        uictx->_popManager->enableNewModulePopup();
+    _btnNewUnit = std::make_unique<Button>(this, LV_SYMBOL_PLUS);
+    _btnNewUnit->setPos(LayoutDef::BOTTOM_PANEL_WIDTH-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN, posy);
+    _btnNewUnit->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnNewUnit->setFont(&DEFAULT_FONT);
+    _btnNewUnit->setCallback([uictx = _uictx]() {
+        uictx->_popManager->enableNewUnitPopup();
     });
 
     show();
 }
 
 BottomPanel::~BottomPanel() {
-    delete _playButton;
-    delete _stopButton;
-    delete _recButton;
-
-    delete _loopButton;
-    delete _testPlayhead;
-    
-    delete _loopStartText;
-    delete _loopStart;
-    delete _loopEndText;
-    delete _loopEnd;
-    
-    delete _newButton;
 }
 
 void BottomPanel::updateTimelineRelated(const bool timeSigOrBpm) {
     slr::TimelineView &tl = slr::TimelineView::getTimelineView();
 
     if(timeSigOrBpm) {
-        _bpmText->setText(UIUtility::bpmToString(tl.bpm()));
-        _barSizeText->setText(UIUtility::signatureToString(tl.getBarSize()));
+        _lblBpmText->setText(UIUtility::bpmToString(tl.bpm()));
+        _lblBarSizeText->setText(UIUtility::signatureToString(tl.getBarSize()));
         //update bpm
         //update barsize
     }
 
     switch(tl.state()) {
         case(slr::Timeline::RollState::Play): {
-            _playButton->setColor(PLAY_ON_COLOR);
-            _playButton->setText(LV_SYMBOL_PAUSE);
+            _btnPlay->setColor(PLAY_ON_COLOR);
+            _btnPlay->setText(LV_SYMBOL_PAUSE);
         } break;
         case(slr::Timeline::RollState::Pause): {
-            _playButton->setColor(PLAY_PAUSE_COLOR);
-            _playButton->setText(LV_SYMBOL_PLAY);
+            _btnPlay->setColor(PLAY_PAUSE_COLOR);
+            _btnPlay->setText(LV_SYMBOL_PLAY);
         } break;
         case(slr::Timeline::RollState::Stop): {
-            _playButton->setColor(BUTTON_DEFAULT_COLOR);
-            _playButton->setText(LV_SYMBOL_PLAY);
+            _btnPlay->setColor(BUTTON_DEFAULT_COLOR);
+            _btnPlay->setText(LV_SYMBOL_PLAY);
         }
         case(slr::Timeline::RollState::Preparing): break;
     }
 
     if(tl.recording()) {
-        _recButton->setColor(REC_ON_COLOR);
+        _btnRec->setColor(REC_ON_COLOR);
     } else {
-        _recButton->setColor(BUTTON_DEFAULT_COLOR);
+        _btnRec->setColor(BUTTON_DEFAULT_COLOR);
     }
 
     if(tl.looping()) {
-        _loopButton->setColor(LOOP_ON_COLOR);
+        _btnLoop->setColor(LOOP_ON_COLOR);
     } else {
-        _loopButton->setColor(BUTTON_DEFAULT_COLOR);
+        _btnLoop->setColor(BUTTON_DEFAULT_COLOR);
     }
 
     
-    _loopStart->setText(std::to_string(tl.loopStartFrame()));
-    _loopEnd->setText(std::to_string(tl.loopEndFrame()));
+    _lblLoopStart->setText(std::to_string(tl.loopStartFrame()));
+    _lblLoopEnd->setText(std::to_string(tl.loopEndFrame()));
 
     //...?
 }

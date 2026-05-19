@@ -20,7 +20,7 @@ struct SetParameterAction : public ActionExecutable {
     ~SetParameterAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::SetParameter _action;

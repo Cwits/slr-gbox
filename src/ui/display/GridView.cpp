@@ -9,6 +9,7 @@
 #include "ui/display/primitives/DragContext.h"
 #include "ui/display/primitives/FileView.h"
 #include "ui/display/primitives/UnitUIBase.h"
+#include "ui/display/Timeline.h"
 
 // #include "core/Events.h"
 #include "core/Actions.h"
@@ -100,7 +101,7 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
     if(drag.state == GestLib::GestureState::Start) {
 
     } else if(drag.state == GestLib::GestureState::Move) {
-        LOG_INFO("Here");
+        // LOG_INFO("Here");
         if(ctx.dragOnGoing) {
             ctx.updateIconPos(drag.x, drag.y);
         }    
@@ -112,20 +113,31 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
                 return true;
             }
             
-            //try find appropriate track
-            const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
-            int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
-            for(const std::unique_ptr<UnitUIBase> &u : list) {
-                UnitUIBase *unit = u.get();
-                if(notAbsY >= unit->gridUI()->gridY() && notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && unit->canLoadFiles()) {
-                    LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
-                    auto action = std::make_unique<slr::Actions::LoadAsClip>();
-                    action->targetId = unit->id();
-                    action->data = *ctx.payload.filePath.path;
-                    action->startOffset = 0;
-                    action->makeUnique = false;
-                    slr::EmitAction(std::move(action));
-                    break;
+            std::string * target = ctx.payload.filePath.path;
+            if(target->substr(target->size()-5) == ".json") {
+                //assuume it is Project File to load
+                auto act = std::make_unique<slr::Actions::LoadProject>();
+                act->path = *target;
+                slr::EmitAction(std::move(act));
+            } else {
+                //try find appropriate track
+                const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+                int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
+                for(const std::unique_ptr<UnitUIBase> &u : list) {
+                    UnitUIBase *unit = u.get();
+                    if(notAbsY >= unit->gridUI()->gridY() && 
+                        notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && 
+                        unit->canLoadFiles()) {
+                        LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
+                        
+                        auto action = std::make_unique<slr::Actions::LoadAsClip>();
+                        action->targetId = unit->id();
+                        action->data = *ctx.payload.filePath.path;
+                        action->startOffset = 0;
+                        action->makeUnique = false;
+                        slr::EmitAction(std::move(action));
+                        break;
+                    }
                 }
             }
         }
@@ -141,9 +153,9 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx)
     setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT); 
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
     
-    _control = new GridControl(this, uictx);
-    _grid = new GridGrid(this, uictx);
-    _timeline = new Timeline(_grid, uictx);
+    _control = std::make_unique<GridControl>(this, uictx);
+    _grid = std::make_unique<GridGrid>(this, uictx);
+    _timeline = std::make_unique<Timeline>(_grid.get(), uictx);
     
     _flags.isSwipe = true;
     show();
@@ -151,10 +163,6 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx)
 
 GridView::~GridView() {
     //have to call explicitly before deleting _control and _grid
-
-    delete _timeline;
-    delete _control;
-    delete _grid;
 }
 
 bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {

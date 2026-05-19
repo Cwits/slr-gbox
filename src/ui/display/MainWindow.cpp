@@ -12,7 +12,7 @@
 #include "ui/display/primitives/DragContext.h"
 
 #include "ui/display/GridView.h"
-#include "ui/display/ModuleView.h"
+#include "ui/display/UnitView.h"
 #include "ui/display/Browser.h"
 #include "ui/display/TopPanel.h"
 #include "ui/display/BottomPanel.h"
@@ -20,13 +20,14 @@
 #include "ui/display/RouteManager.h"
 #include "ui/display/TimelinePopup.h"
 #include "ui/display/ScreenKeyboard.h"
-#include "ui/display/NewModulePopup.h"
+#include "ui/display/NewUnitPopup.h"
 #include "ui/display/SettingsPopup.h"
 #include "ui/display/VirtualMidiKeyboard.h"
+#include "ui/display/Timeline.h"
 
 #include "snapshots/TimelineView.h"
 
-#include "core/ModuleManager.h"
+#include "core/UnitManager.h"
 #include "core/Actions.h"
 
 #include "logger.h"
@@ -52,16 +53,16 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _topPanel = std::make_unique<TopPanel>(this, &_uiContext);
     _bottomPanel = std::make_unique<BottomPanel>(this, &_uiContext);
     _gridView = std::make_unique<GridView>(this, &_uiContext);
-    _moduleView = std::make_unique<ModuleView>(this, &_uiContext);
+    _unitView = std::make_unique<UnitView>(this, &_uiContext);
     _browser = std::make_unique<Browser>(this, &_uiContext);
     
     //TODO: set context values...
     _uiContext._topPanel = _topPanel.get();
     _uiContext._bottomPanel = _bottomPanel.get();
     _uiContext._gridView = _gridView.get();
-    _uiContext._module = _moduleView.get();
+    _uiContext._unitView = _unitView.get();
     _uiContext._browser = _browser.get();
-    _uiContext._gridTimeline = _gridView->_timeline;
+    _uiContext._gridTimeline = _gridView->_timeline.get();
 
     _playheadUpdateTimer = lv_timer_create(&MainWindow::playheadUpdateCb, LV_DEF_REFR_PERIOD, nullptr);
     lv_timer_pause(_playheadUpdateTimer);
@@ -84,8 +85,8 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popups.push_back(_keyboard.get());
     _filePopup = std::make_unique<FilePopup>(this, &_uiContext);
     _popups.push_back(_filePopup.get());
-    _newModulePopup = std::make_unique<NewModulePopup>(this, &_uiContext);
-    _popups.push_back(_newModulePopup.get());
+    _newUnitPopup = std::make_unique<NewUnitPopup>(this, &_uiContext);
+    _popups.push_back(_newUnitPopup.get());
     _settingsPopup = std::make_unique<SettingsPopup>(this, &_uiContext);
     _popups.push_back(_settingsPopup.get());
     _virtualMidiKeyboard = std::make_unique<VirtualMidiKeyboard>(this, &_uiContext);
@@ -96,7 +97,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popManager._timelinePopup = _timelinePopup.get();
     _popManager._screenKeyboard = _keyboard.get();
     _popManager._filePopup = _filePopup.get();
-    _popManager._newModulePopup = _newModulePopup.get();
+    _popManager._newUnitPopup = _newUnitPopup.get();
     _popManager._settingsPopup = _settingsPopup.get();
     _popManager._virtualMidiKeyboard = _virtualMidiKeyboard.get();
 
@@ -119,26 +120,11 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
 
 MainWindow::~MainWindow() {
     //but no clean of lvgl object - would be cleaned on main exit
-    // delete _btnAddTrack;
-    // delete _gridView;
-    // delete _moduleView;
-    // delete _browser;
-    // delete _bottomPanel;
-    // delete _topPanel;
-    // delete _unitControlPopup;
-    // delete _routeManager;
-    // delete _timelinePopup;
-    // delete _keyboard;
-    // delete _filePopup;
-    // delete _newModulePopup;
-    // delete _settingsPopup;
-    // delete _virtualMidiKeyboard;
-    // delete _uiContext;
 }
 
 void MainWindow::switchToView(MainView view) {
     _gridView->hide();
-    _moduleView->hide();
+    _unitView->hide();
     _browser->hide();
 
     View * target = getSwitchViewTarget(view);
@@ -193,12 +179,12 @@ bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
                 node = _topPanel.get();
             } else if(y > LayoutDef::TOP_PANEL_HEIGHT && y < (LayoutDef::WORKSPACE_HEIGHT+LayoutDef::TOP_PANEL_HEIGHT)) {
                 //look in workspace
-                switch(_currentView) {
-                    case(MainView::Grid): node = _gridView.get(); break;
-                    case(MainView::Module): node = _moduleView.get(); break;
-                    case(MainView::Browser): node = _browser.get(); break;
-                }
-
+                // switch(_currentView) {
+                //     case(MainView::Grid): node = _gridView.get(); break;
+                //     case(MainView::Unit): node = _unitView.get(); break;
+                //     case(MainView::Browser): node = _browser.get(); break;
+                // }
+                node = getSwitchViewTarget(_currentView);
             } else {
                 //look in bottom panel
                 //node = _bottomPanel;
@@ -321,7 +307,7 @@ void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
     if(gesture == GestLib::Gestures::Drag) {
         //TODO: shouldn't be like that... dunno yet how to make it proper way
         
-        _gestureTarget = _gridView->_grid;
+        _gestureTarget = _gridView->_grid.get();
         //ahhh! switch view target and actual target is different thing lol(at least for grid!!!)
         //in grid there should be depending on context somehow
         // _gestureTarget = getSwitchViewTarget(view);
@@ -358,7 +344,7 @@ View * MainWindow::getSwitchViewTarget(MainView & view) {
     View * ret = nullptr;
     switch(view) {
         case(MainView::Grid): ret = _gridView.get(); break;
-        case(MainView::Module): ret = _moduleView.get(); break;
+        case(MainView::Unit): ret = _unitView.get(); break;
         case(MainView::Browser): ret = _browser.get(); break;
         case(MainView::Patch): ; break;
         case(MainView::Editor): ; break;
@@ -402,7 +388,7 @@ void MainWindow::updateTimeline(const bool timeSigOrBpm) {
 }
 
 void MainWindow::updatePlayheadPosition(slr::frame_t position) {
-    _bottomPanel->_testPlayhead->setText(std::to_string(position));
+    _bottomPanel->_lblTestPlayhead->setText(std::to_string(position));
     _gridView->_timeline->updatePlayhead(position);
 }
 
@@ -435,8 +421,8 @@ std::string gestureToText(GestLib::Gestures &g) {
     return text;
 }
 
-void MainWindow::createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view) {
-    std::unique_ptr<UnitUIBase> base = mod->createUI(view, &_uiContext);
+void MainWindow::createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view) {
+    std::unique_ptr<UnitUIBase> base = desc->createUI(view, &_uiContext);
     base->create(&_uiContext);
     _uiContext._unitsUI.push_back(std::move(base));
 }
@@ -484,6 +470,10 @@ void MainWindow::destroyUI(slr::ID id) {
     // delete ui;
 }
 
+void MainWindow::clearUI() {
+    _uiContext._unitsUI.clear();
+}
+
 void MainWindow::pollUIUpdate() {
     //depends on current view -> check updates?
     //check frequent updates e.g. animated, timeline or smth else
@@ -499,15 +489,16 @@ void MainWindow::pollUIUpdate() {
     // slowdown = 0;
 
     MainView view = currentView();
-    switch(view) {
-        case(MainView::Grid): _gridView->pollUIUpdate(); break;
-        case(MainView::Module): _moduleView->pollUIUpdate(); break;
-        case(MainView::Browser): _browser->pollUIUpdate(); break;
-        case(MainView::Patch): ; break;
-        case(MainView::Editor): ; break;
-        case(MainView::StepSequencer): ; break;
-        case(MainView::ModMatrix): ; break;
-    }
+    getSwitchViewTarget(view)->pollUIUpdate();
+    // switch(view) {
+    //     case(MainView::Grid): _gridView->pollUIUpdate(); break;
+    //     case(MainView::Module): _moduleView->pollUIUpdate(); break;
+    //     case(MainView::Browser): _browser->pollUIUpdate(); break;
+    //     case(MainView::Patch): ; break;
+    //     case(MainView::Editor): ; break;
+    //     case(MainView::StepSequencer): ; break;
+    //     case(MainView::ModMatrix): ; break;
+    // }
 }
 
 void MainWindow::registerFrequentUpdate(std::function<void()> clb) {

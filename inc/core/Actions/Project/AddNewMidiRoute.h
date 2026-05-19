@@ -20,7 +20,7 @@ struct AddNewMidiRouteAction : public ActionExecutable {
     ~AddNewMidiRouteAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::AddNewMidiRoute _action;

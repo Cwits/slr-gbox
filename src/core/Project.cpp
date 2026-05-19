@@ -4,8 +4,9 @@
 #include "core/Project.h"
 #include "core/primitives/AudioUnit.h"
 #include "core/Metronome.h"
-#include "core/ModuleManager.h"
+#include "core/UnitManager.h"
 #include "core/primitives/ControlContext.h"
+#include "core/ControlEngine.h"
 #include "logger.h"
 
 #include <algorithm>
@@ -46,12 +47,18 @@ Project::~Project() {
     destroyPlan(_soloPlan);
     destroyPlan(_renderPlan1);
     destroyPlan(_renderPlan2);
+
+    BufferManager * man = ControlEngine::bufferManager();
+    for(auto & unit : _unitList) {
+        unit->destroy(man);
+    }
 }
 
-AudioUnit * Project::createUnit(const ControlContext &ctx, const Module *mod) {
+AudioUnit * Project::createUnit(const ControlContext &ctx, const UnitDescriptor *desc, const ID forcedId) {
     AudioUnit * au = nullptr;
     try {
-        slr::ID nextId = ctx.nextAudioUnitId();
+
+        slr::ID nextId = forcedId == 0 ? ctx.nextAudioUnitId() : forcedId;
         ClipContainerMap &map = _clipContainerMap; //.project->clipContainerMap();
         auto [it, inserted] = map.try_emplace(nextId);
         ClipContainerBuffer & storage = it->second;
@@ -74,7 +81,7 @@ AudioUnit * Project::createUnit(const ControlContext &ctx, const Module *mod) {
             storage.clear();
         }
         
-        std::unique_ptr<AudioUnit> unit = mod->createRT(storage.inUseContainer());
+        std::unique_ptr<AudioUnit> unit = desc->createRT(storage.inUseContainer(), nextId);
         au = unit.get();
 
         if(au->id() != nextId) {
@@ -89,8 +96,9 @@ AudioUnit * Project::createUnit(const ControlContext &ctx, const Module *mod) {
 
         _unitList.push_back(std::move(unit)); //ctx.project->addUnit(std::move(unit));
     } catch(...) {
-        LOG_ERROR("Failed to create module %s", mod->_name->data());
+        LOG_ERROR("Failed to create module %s", desc->_name->data());
     }
+
     return au;
 }
 

@@ -18,7 +18,7 @@ struct SetNameAction : public ActionExecutable {
     ~SetNameAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::SetName _action;

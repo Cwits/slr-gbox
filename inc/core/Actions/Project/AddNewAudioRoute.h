@@ -20,7 +20,7 @@ struct AddNewRouteAction : public ActionExecutable {
     ~AddNewRouteAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::AddNewAudioRoute _action;

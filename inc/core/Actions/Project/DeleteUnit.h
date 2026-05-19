@@ -16,12 +16,15 @@ struct ActionBase;
 struct AudioUnit;
 struct Project;
 
-struct DeleteUnitAction : public ActionExecutable {
+struct DeleteUnitAction : public ActionExecutable, public Undoable {
     DeleteUnitAction(const ActionBase *base);
     ~DeleteUnitAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
+
+    void undo(ControlContext &ctx) override;
+    void redo(ControlContext &ctx) override;
 
     private:
     const Actions::DeleteUnit _action;

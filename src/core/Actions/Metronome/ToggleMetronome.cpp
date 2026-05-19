@@ -57,7 +57,7 @@ void ToggleMetronomeAction::exec(ControlContext &ctx) {
     }
 }
 
-void ToggleMetronomeAction::checkWaitingCondition() {
+void ToggleMetronomeAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

@@ -47,7 +47,7 @@ void ToggleLoopAction::exec(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
 	}
 }
-void ToggleLoopAction::checkWaitingCondition() {
+void ToggleLoopAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {

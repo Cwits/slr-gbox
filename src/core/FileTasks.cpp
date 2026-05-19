@@ -5,24 +5,28 @@
 #include "core/utility/helper.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
+#include "core/primitives/FileWorkerContext.h"
 #include "core/FileWorker.h"
 // #include "core/Events.h"
 #include "logger.h"
 
 #include <memory>
+#include <algorithm>
 
 namespace slr {
 
 namespace Tasks {
 
 /* Generic Tasks */
-void openFile::exec(FileWorker *f) {
+void openFile::exec(FileWorkerContext &ctx) {
     if(pathHasExtention(Extention::Audio, path)) {
-        std::unique_ptr<AudioFile> file = std::make_unique<AudioFile>();
+        std::unique_ptr<AudioFile> file;
+        if(forcedId) file = std::make_unique<AudioFile>(forcedId.value());
+        else file = std::make_unique<AudioFile>();
 
         if(file->open(path)) {
             AudioFile * afile = file.get();
-            f->appendFile(std::move(file));
+            ctx.worker->appendFile(std::move(file));
 
             std::unique_ptr<AudioPeakFile> apk = std::make_unique<AudioPeakFile>();
             bool success = false;
@@ -48,7 +52,7 @@ void openFile::exec(FileWorker *f) {
 
             if(success) {
                 afile->setPeaks(apk.get());
-                f->appendFile(std::move(apk));
+                ctx.worker->appendFile(std::move(apk));
             }
             finished(afile, success);
             
@@ -61,18 +65,32 @@ void openFile::exec(FileWorker *f) {
     }
 }
 
-void closeFile::exec(FileWorker *f) {
+void closeFile::exec(FileWorkerContext &ctx) {
     if(!file->close()) LOG_WARN("Failed to close file");
     
-    if(!f->removeFile(file)) LOG_WARN("Failed to remove file");
+    if(!ctx.worker->removeFile(file)) LOG_WARN("Failed to remove file");
 }
 
-void saveFile::exec(FileWorker *f) {
-    if(!file->save()) LOG_WARN("Failed to save file");
+void saveFile::exec(FileWorkerContext &ctx) {
+    // std::vector<File*> list = f->listFiles;
+    auto it = std::find_if(
+        ctx.files.begin(),
+        ctx.files.end(),
+        [id = fileId](const std::unique_ptr<File> &f) {
+            return f->id() == id;
+        }
+    );
+
+    if(it == ctx.files.end()) {
+        LOG_ERROR("Failed to find file with id %u", fileId);
+        return;
+    }
+
+    (*it)->save();
 }
 
 /* Audio Tasks */
-void dumpAudio::exec(FileWorker *f) {
+void dumpAudio::exec(FileWorkerContext &ctx) {
     //check testFileWorker.cpp for example
     LOG_INFO("Dumping data to file %s", file->name().c_str());
     bool res = file->dumpRecordedData(buffer);
@@ -85,7 +103,7 @@ void dumpAudio::exec(FileWorker *f) {
     }
 
     //emit event
-    callback(f, res);
+    callback(ctx.worker, res);
 }
 
 /* Audio Buffer Editing */
@@ -100,31 +118,31 @@ void dumpAudio::exec(FileWorker *f) {
         (it will automatically apply for each of clipitems
         because clipitems has pointers)
 */
-void cutAudio::exec(FileWorker *f) {
+void cutAudio::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }
 
-void copyAudio::exec(FileWorker *f) {
+void copyAudio::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }
 
-void pasteAudio::exec(FileWorker *f) {
+void pasteAudio::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }
 
-void deleteAudio::exec(FileWorker *f) {
+void deleteAudio::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }
 
-void silenceAudio::exec(FileWorker *f) {
+void silenceAudio::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }
 
-void reverseAudio::exec(FileWorker *f) {
+void reverseAudio::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }
 
-void reverseAudioPhase::exec(FileWorker *f) {
+void reverseAudioPhase::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }
 

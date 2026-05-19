@@ -10,7 +10,7 @@ namespace slr {
     class AudioUnitView;
     class TrackView;
     class ContainerItemView;
-    class Module;
+    class UnitDescriptor;
 }
 
 namespace UI {
@@ -23,8 +23,8 @@ void floatingInfo(std::string text);
 void floatingWarning(std::string text);
 
 /* Module related */
-void addModuleUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> view);
-void destroyModuleUI(slr::ID id);
+void addUnitUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> view);
+void destroyUnitUI(slr::ID id);
 
 /* Timeline */
 void updateTimeline(const bool timeSigOrBpm);
@@ -35,5 +35,7 @@ void updateRouteManager();
 
 /* Metronome */
 void updateMetronomeState(bool onoff);
+
+void clearUI();
 
 }

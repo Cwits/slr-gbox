@@ -6,12 +6,14 @@
 #include "core/primitives/ActionBase.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
+#include "common/Color.h"
 #include "defines.h"
 
 #include <variant>
 #include <string>
 #include <memory>
 #include <functional>
+#include <optional>
 
 namespace slr {
 
@@ -42,17 +44,22 @@ struct LoadAsClip : public ActionBase {
     LoadAsClip() {}
     LoadAsClip(const LoadAsClip &rhs) :
         ActionBase(rhs),
-        data(rhs.data),
-        targetId(rhs.targetId),
-        startOffset(rhs.startOffset),
-        makeUnique(rhs.makeUnique) {}
+        data(rhs.data), targetId(rhs.targetId), startOffset(rhs.startOffset),
+        fileOffset(rhs.fileOffset), makeUnique(rhs.makeUnique), length(rhs.length),
+        isMuted(rhs.isMuted), clipForcedId(rhs.clipForcedId), fileForcedId(rhs.fileForcedId) {}
 
     std::type_index actionType() const override { return typeid(LoadAsClip); }
 
     std::variant<std::string, File*, ClipItem*> data;
     ID targetId;
     frame_t startOffset;
-    bool makeUnique;
+
+    std::optional<frame_t> fileOffset;
+    std::optional<bool> makeUnique;
+    std::optional<frame_t> length;
+    std::optional<bool> isMuted;
+    std::optional<ID> clipForcedId;
+    std::optional<ID> fileForcedId;
 };
 
 struct RemoveClip : public ActionBase {
@@ -107,15 +114,30 @@ struct SetName : public ActionBase {
     std::string newName;
 };
 
+struct SetColor : public ActionBase {
+    SetColor() {}
+    SetColor(const SetColor &rhs) :
+        ActionBase(rhs),
+        targetId(rhs.targetId),
+        color(rhs.color) {}
+    
+    std::type_index actionType() const override { return typeid(SetColor); }
+
+    ID targetId;
+    Color color;
+};
+
+
 /* Project Actions */
 struct CreateNewUnit : public ActionBase {
-    CreateNewUnit() {}
+    CreateNewUnit() : forcedId(0) {}
     CreateNewUnit(const CreateNewUnit &rhs) :
-        ActionBase(rhs), name(rhs.name) {}
+        ActionBase(rhs), name(rhs.name), forcedId(rhs.forcedId) {}
 
     std::type_index actionType() const override { return typeid(CreateNewUnit); }
 
     std::string name;
+    slr::ID forcedId;
 };
 
 
@@ -132,21 +154,23 @@ struct DeleteUnit : public ActionBase {
 struct AddNewAudioRoute : public ActionBase {
 	AddNewAudioRoute() {}
 	AddNewAudioRoute(const AddNewAudioRoute &rhs) : 
-		ActionBase(rhs), route(rhs.route) {}
+		ActionBase(rhs), route(rhs.route), swapPlan(rhs.swapPlan) {}
 		
 	std::type_index actionType() const override { return typeid(AddNewAudioRoute); }
 	
     AudioRoute route;
+    bool swapPlan = true;
 };
 
 struct AddNewMidiRoute : public ActionBase {
 	AddNewMidiRoute() {}
 	AddNewMidiRoute(const AddNewMidiRoute &rhs) : 
-		ActionBase(rhs), route(rhs.route) {}
+		ActionBase(rhs), route(rhs.route), swapPlan(rhs.swapPlan) {}
 		
 	std::type_index actionType() const override { return typeid(AddNewMidiRoute); }
 	
     MidiRoute route;
+    bool swapPlan = true;
 };
 
 struct ModifyClipItem : public ActionBase {
@@ -166,6 +190,26 @@ struct ModifyClipItem : public ActionBase {
     frame_t length;
     frame_t fileStartOffset;
     bool muted;
+};
+
+struct SaveProject : public ActionBase { 
+    SaveProject() {}
+    SaveProject(const SaveProject &rhs) : 
+        ActionBase(rhs) {}
+
+    std::type_index actionType() const override { return typeid(SaveProject); }
+
+};
+
+struct LoadProject : public ActionBase {
+    LoadProject() {}
+    LoadProject(const LoadProject &rhs) :
+        ActionBase(rhs),
+        path(rhs.path) {}
+
+    std::type_index actionType() const override { return typeid(LoadProject); }
+
+    std::string path;
 };
 
 

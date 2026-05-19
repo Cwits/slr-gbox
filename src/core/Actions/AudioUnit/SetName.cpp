@@ -39,7 +39,7 @@ void SetNameAction::exec(ControlContext &ctx) {
     setState(ActionState::Finished);
 }
 
-void SetNameAction::checkWaitingCondition() {
+void SetNameAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
     assert(false);
 }

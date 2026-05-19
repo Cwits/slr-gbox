@@ -21,7 +21,7 @@ struct ChangeSignatureBpmAction : public ActionExecutable {
     ~ChangeSignatureBpmAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::ChangeSignatureBpm _action;

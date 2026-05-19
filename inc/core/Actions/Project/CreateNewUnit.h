@@ -15,15 +15,19 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct CreateNewUnitAction : public ActionExecutable {
+struct CreateNewUnitAction : public ActionExecutable, public Undoable {
     CreateNewUnitAction(const ActionBase *base);
     ~CreateNewUnitAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
+
+    void undo(ControlContext &ctx) override;
+    void redo(ControlContext &ctx) override;
 
     private:
     const Actions::CreateNewUnit _action;
+    ID _createdUnitId;
 };
 
 std::unique_ptr<ActionExecutable> createCreateNewUnitAction(const ActionBase*);

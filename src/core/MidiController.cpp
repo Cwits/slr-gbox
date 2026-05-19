@@ -144,7 +144,8 @@ MidiController::MidiController() {
 
 MidiController::~MidiController() {
 #if (USE_PUSH == 1)
-    PushThread::shutdown();
+    if(PushThread::isRunning())
+        PushThread::shutdown();
 #endif
 
     for(std::unique_ptr<MidiPort> &port : _activePorts) {

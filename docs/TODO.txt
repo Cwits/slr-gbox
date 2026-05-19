@@ -20,8 +20,6 @@ Parameters:
         as soon as all the parameters are prepared in NRT and doesn't change dynamically - should be no problems
         Now list is a vector, not array
 
-Events:
-[ ] - Events 3.0: outside they stay same way, but internal mechanism must work by stages, full isolation from outer world(kinda)...
 
 AudioUnit:
 [ ] - make ::outputs() to give back not the AudioBuffer * but list of 

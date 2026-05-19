@@ -76,7 +76,7 @@ void SetParameterAction::exec(ControlContext &ctx) {
     }
 }
 
-void SetParameterAction::checkWaitingCondition() {
+void SetParameterAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
     if(_step == 1) {
         bool res = _flat.completed.load(std::memory_order_acquire);

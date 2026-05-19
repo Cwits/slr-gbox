@@ -58,7 +58,7 @@ void VMKTriggerAction::exec(ControlContext &ctx) {
     setState(ActionState::Finished);
 }
 
-void VMKTriggerAction::checkWaitingCondition() {
+void VMKTriggerAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
 }

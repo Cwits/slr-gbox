@@ -22,7 +22,7 @@ class Button;
 class UIContext;
 class FileView;
 class DefaultGridUI;
-class DefaultModuleUI;
+class DefaultUnitUI;
 
 struct UnitUIBase {
     UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, UIContext * uictx);
@@ -32,7 +32,7 @@ struct UnitUIBase {
     virtual bool destroy(UIContext * ctx);
 
     virtual DefaultGridUI * gridUI() = 0;
-    virtual DefaultModuleUI * moduleUI() = 0;
+    virtual DefaultUnitUI * unitUI() = 0;
     // virtual BaseWidget * patchUI() = 0;
 
     void updateParameter(slr::ID parameterID, float value);
@@ -58,8 +58,8 @@ struct UnitControlPopup : public Popup {
 
     UnitUIBase * _currentUnit;
     
-    Button * _deleteBtn;
-    Button * _routeManagerBtn;
+    std::unique_ptr<Button> _btnDelete;
+    std::unique_ptr<Button> _btnRouteManager;
 };
 
 struct DefaultGridUI : public BaseWidget {
@@ -89,9 +89,9 @@ struct DefaultGridUI : public BaseWidget {
     bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
 };
 
-struct DefaultModuleUI : public BaseWidget {
-    DefaultModuleUI(BaseWidget * parent, UnitUIBase *base);
-    virtual ~DefaultModuleUI();
+struct DefaultUnitUI : public BaseWidget {
+    DefaultUnitUI(BaseWidget * parent, UnitUIBase *base);
+    virtual ~DefaultUnitUI();
 
     private:
     std::unique_ptr<FileView> _fileViewUI; //for using in grid

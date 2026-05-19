@@ -18,7 +18,8 @@ ClipItemView::ClipItemView(const ClipItem * container) :
     // _file(container->_file),
     _item(container),
     _uniqueId(container->id()) {
-
+    
+    _version.store(0);
 } 
 
 void ClipItemView::update() {
@@ -31,6 +32,10 @@ void ClipItemView::update() {
     _fileOffset = _item->fileOffset();
     _muted = _item->isMuted();
     incrementVersion();
+}
+
+ClipContainerView::ClipContainerView() {
+    _version.store(0);
 }
 
 void ClipContainerView::addClipItem(const ClipItemView *item) {

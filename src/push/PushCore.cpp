@@ -66,7 +66,8 @@ void PushCore::reconnect() {
 
 void PushCore::disconnect() {
     #if (USE_FAKE_PUSH == 0)
-    _display.disconnect();
+    if(_connected)
+        _display.disconnect();
     #endif
 }
 

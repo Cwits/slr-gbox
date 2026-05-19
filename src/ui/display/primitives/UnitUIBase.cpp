@@ -34,7 +34,7 @@ UnitUIBase::UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, UI
 }
 
 UnitUIBase::~UnitUIBase() {
-    LOG_INFO("Display Unit UI deleted");
+    // LOG_INFO("Display Unit UI deleted");
 }
 
 const slr::ID UnitUIBase::id() const {
@@ -54,11 +54,11 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
     setSize(300, 300);
     setPos(LayoutDef::TRACK_CONTROL_PANEL_WIDTH-100, 150);
 
-    _deleteBtn = new Button(this, LV_SYMBOL_TRASH);
-    _deleteBtn->setPos(10, 10);
-    _deleteBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _deleteBtn->setFont(&DEFAULT_FONT);
-    _deleteBtn->setCallback([this]() {
+    _btnDelete = std::make_unique<Button>(this, LV_SYMBOL_TRASH);
+    _btnDelete->setPos(10, 10);
+    _btnDelete->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnDelete->setFont(&DEFAULT_FONT);
+    _btnDelete->setCallback([this]() {
         // std::cout << "Delete track: " << (int)_track->id() << std::endl;
         LOG_INFO("Delete track: %i", _currentUnit->id());
         auto del = std::make_unique<slr::Actions::DeleteUnit>();
@@ -69,11 +69,11 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
         this->_uictx->_popManager->disableUnitControl();
     });
 
-    _routeManagerBtn = new Button(this, "Routes");
-    _routeManagerBtn->setPos(LayoutDef::BUTTON_SIZE+20, 10);
-    _routeManagerBtn->setFont(&DEFAULT_FONT);
-    _routeManagerBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _routeManagerBtn->setCallback([this]() {
+    _btnRouteManager = std::make_unique<Button>(this, "Routes");
+    _btnRouteManager->setPos(LayoutDef::BUTTON_SIZE+20, 10);
+    _btnRouteManager->setFont(&DEFAULT_FONT);
+    _btnRouteManager->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRouteManager->setCallback([this]() {
         // LOG_INFO("Call the manager!!! track %i", _currentTrack->id());
         this->_uictx->_popManager->disableUnitControl();
         this->_uictx->_popManager->enableRouteManager(this->_currentUnit->id());
@@ -81,8 +81,6 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
 }
 
 UnitControlPopup::~UnitControlPopup() {
-    delete _deleteBtn;
-    delete _routeManagerBtn;
 }
 
 
@@ -323,7 +321,7 @@ bool DefaultGridUI::handleDoubleTap(GestLib::DoubleTapGesture & dt) {
     return true;
 }
 
-DefaultModuleUI::DefaultModuleUI(BaseWidget * parent, UnitUIBase *base) 
+DefaultUnitUI::DefaultUnitUI(BaseWidget * parent, UnitUIBase *base) 
             : BaseWidget(parent, true, true) {}
-DefaultModuleUI::~DefaultModuleUI() {}
+DefaultUnitUI::~DefaultUnitUI() {}
 }

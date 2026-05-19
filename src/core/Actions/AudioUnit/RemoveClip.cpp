@@ -128,7 +128,7 @@ void RemoveClipAction::exec(ControlContext &ctx) {
     }
 }
 
-void RemoveClipAction::checkWaitingCondition() {
+void RemoveClipAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {
@@ -141,6 +141,14 @@ void RemoveClipAction::checkWaitingCondition() {
         } break;
         default: assert(false && "Unreachable"); break;
     }
+}
+
+void RemoveClipAction::undo(ControlContext &ctx) {
+
+}
+
+void RemoveClipAction::redo(ControlContext &ctx) {
+
 }
 
 std::unique_ptr<ActionExecutable> createRemoveClipAction(const ActionBase *base) {

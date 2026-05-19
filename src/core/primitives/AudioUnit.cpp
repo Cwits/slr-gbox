@@ -12,28 +12,28 @@
 #include "core/BufferManager.h"
 #include "logger.h"
 
+#include <cmath>
+
 namespace slr {
 
-/* 
-//use 1024 this as starting point for counting ID's for now, 
-because there is some problem with getSourcesForId() and getTargetsForId() ->
-result yelds not existing routes(at least for midi...)
-*/    
-constexpr int FirstUnitId = 0;
-static ID uniqueIdCounter = FirstUnitId; 
+// constexpr int FirstUnitId = 1;
+static ID uniqueIdCounter = 0; 
 
 ID AudioUnit::nextAudioUnitId() {
     return uniqueIdCounter;
 }
 
-AudioUnit::AudioUnit(const ClipContainer * initialContainer) :
-    _uniqueId(uniqueIdCounter++),
+AudioUnit::AudioUnit(const ClipContainer * initialContainer, ID id) :
+    _uniqueId(id),
     _volume(ParameterFloat("Volume", 1.0f, 0.f, 1.f)),
     _pan(ParameterFloat("Pan", 0.5f, 0.f, 1.f)),
     _mute(ParameterBool("Mute", 0.f, 0.f, 1.f)),
     _clipContainer(initialContainer)
 {
-
+    //to ensure that counter never be less than last id(usefull when loading project) - update value if ID is forced
+    ID testres = std::max(_uniqueId, uniqueIdCounter);
+    if(testres == uniqueIdCounter) uniqueIdCounter = testres+1;
+    else uniqueIdCounter = testres;
 }
 
 AudioUnit::~AudioUnit() {

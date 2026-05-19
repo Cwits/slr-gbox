@@ -49,6 +49,7 @@ struct ClipItemView {
 };
 
 struct ClipContainerView {
+    ClipContainerView();
     void addClipItem(const ClipItemView *item);
     const std::vector<const ClipItemView*> & clips() const;
     void deleteClipViewItem(ID id);

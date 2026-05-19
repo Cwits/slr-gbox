@@ -13,7 +13,7 @@
 
 namespace slr {
     class AudioUnitView;
-    class Module;
+    class UnitDescriptor;
 }
 
 namespace UI {
@@ -24,7 +24,7 @@ class View;
 class TopPanel;
 class BottomPanel;
 class GridView;
-class ModuleView;
+class UnitView;
 class Browser;
 
 class Popup;
@@ -33,7 +33,7 @@ class RouteManager;
 class TimelinePopup;
 class ScreenKeyboard;
 class FilePopup;
-class NewModulePopup;
+class NewUnitPopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
 
@@ -61,8 +61,10 @@ struct MainWindow : public BaseWidget {
     void clearHittestTarget() { _initialGestureTarget = nullptr; }
     bool cancleGesture(BaseWidget * widget);
 
-    void createUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> &view);
+    void createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view);
     void destroyUI(slr::ID id);
+
+    void clearUI();
 
     void pollUIUpdate() override;
     
@@ -75,7 +77,7 @@ struct MainWindow : public BaseWidget {
 
     //Main views
     std::unique_ptr<GridView> _gridView;
-    std::unique_ptr<ModuleView> _moduleView; //TODO: last selected unit view
+    std::unique_ptr<UnitView> _unitView; //TODO: last selected unit view
     std::unique_ptr<Browser> _browser;;
 
     //popups
@@ -84,7 +86,7 @@ struct MainWindow : public BaseWidget {
     std::unique_ptr<TimelinePopup> _timelinePopup;
     std::unique_ptr<ScreenKeyboard> _keyboard;
     std::unique_ptr<FilePopup> _filePopup;
-    std::unique_ptr<NewModulePopup> _newModulePopup;
+    std::unique_ptr<NewUnitPopup> _newUnitPopup;
     std::unique_ptr<SettingsPopup> _settingsPopup;
     std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;
     // ViewSelector * _viewSelector; //called only when need to switch from drag to target?

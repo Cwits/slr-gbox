@@ -27,7 +27,7 @@ std::unique_ptr<PushLib::PushCore> _pushDev;
 std::unique_ptr<PushUI::RootWidget> _pushMainWidget;
 
 std::thread _pushRunner;
-std::atomic<bool> _threadRunning;
+std::atomic<bool> _threadRunning = false;
 
 std::mutex _taskMutex;
 std::deque<std::unique_ptr<std::function<void()>> > _taskQueue;

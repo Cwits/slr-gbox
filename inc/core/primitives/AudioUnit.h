@@ -26,7 +26,7 @@ class BufferManager;
 
 class AudioUnit {
     public:
-    AudioUnit(const ClipContainer *initialContainer);
+    AudioUnit(const ClipContainer *initialContainer, ID id);
     virtual ~AudioUnit();
 
     virtual bool create(BufferManager *man);
@@ -141,6 +141,7 @@ class AudioUnit {
     const ClipContainer *_clipContainer;
     
     friend class AudioUnitView;
+    friend class LoadProject;
 };
     
 }

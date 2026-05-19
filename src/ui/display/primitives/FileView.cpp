@@ -62,7 +62,9 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     int pixels = frames * pixelPerFrame;
     
     setSize(pixels, UI::LayoutDef::TRACK_HEIGHT);
-    setPos(0, parentUI->gridUI()->gridY());
+    
+    float xposition = UIUtility::frameToPixel(_clipItem->startPosition(), _uictx->gridHorizontalZoom());
+    setPos(xposition, parentUI->gridUI()->gridY());
     lv_obj_set_pos(_canvas, 0, 0);
     
     _peakColor = lv_color_make(parentUI->color().r, 
@@ -102,7 +104,7 @@ void FileView::draw() {
         
         UIHelpers::audioFileToCanvas(
             afile,
-            0,
+            _clipItem->fileOffset(),
             _clipItem->length(),
             _canvas,
             LayoutDef::TRACK_HEIGHT,
@@ -231,13 +233,11 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     _deleteBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _deleteBtn->setFont(&DEFAULT_FONT);
     _deleteBtn->setCallback([this]() {
-        LOG_INFO("Remove item event");
-        // slr::Events::RemoveClip e {
-        //     .clipId = this->_item->_clipItem->id(),
-        //     .unitId = this->_item->parentUI()->id()
-        // };
-
-        // slr::EmitEvent(e);
+        // LOG_INFO("Remove item event");
+        auto act = std::make_unique<slr::Actions::RemoveClip>();
+        act->targetId = this->_item->parentUI()->id();
+        act->clipId = this->_item->_clipItem->id();
+        slr::EmitAction(std::move(act));
         this->_uictx->_popManager->disableFilePopup();
     });
 }
