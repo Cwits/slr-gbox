@@ -40,25 +40,23 @@ void AddNewRouteAction::exec(ControlContext &ctx) {
     
     		ctx.project->addRoute(_action.route);
             
-            if(!_action.swapPlan) {
-                LOG_WARN("Plan won't be swapped");
-                abortAction();
-                return;
-            }
+            if(_action.swapPlan) {
+                if(!ctx.project->prepareSwappablePlan()) {
+                    LOG_ERROR("Failed to create swappable plan");
+                    abortAction();
+                    return;
+                }
+                
+                _flat.project = ctx.project;
+                _flat.completed.store(false);
+                _task = makeRtTask(&_flat);
 
-            if(!ctx.project->prepareSwappablePlan()) {
-                LOG_ERROR("Failed to create swappable plan");
-                abortAction();
-                return;
+                setState(ActionState::Waiting);
+                ctx.EmitRtTask(&_task);
+            } else {
+                _step = 2;
             }
-            
-            _flat.project = ctx.project;
-            _flat.completed.store(false);
-            _task = makeRtTask(&_flat);
-
-            setState(ActionState::Waiting);
-            ctx.EmitRtTask(&_task);
-    	} break;
+        } break;
     	case(2): {
             ctx.projectView->updateRoutes(ctx.project->routes());
             UIControls::updateRouteManager();
