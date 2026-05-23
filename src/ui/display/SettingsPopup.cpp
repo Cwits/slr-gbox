@@ -27,8 +27,6 @@ namespace UI {
 constexpr int TAB_BUTTON_W = 150;
 constexpr int TAB_BUTTON_H = 120;
 
-slr::MidiPort * _testPort = nullptr;
-
 SettingsPopup::SettingsPopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx)
 {
@@ -107,8 +105,6 @@ SettingsPopup::~SettingsPopup() {
     delete _btnAudio;
     delete _btnMidi;
     delete _btnUI;
-
-    if(_testPort) delete _testPort;
 }
 
 void SettingsPopup::update() {

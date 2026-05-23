@@ -200,7 +200,7 @@ void DefaultGridUI::pollFileUpdate() {
 
                 //add to grid
                 for(std::size_t i=0; i<toAdd.size(); ++i) {
-                    std::unique_ptr<FileView> fw = std::make_unique<FileView>(uictx->grid(), _uibase, toAdd.at(i), uictx);
+                    std::unique_ptr<FileView> fw = std::make_unique<FileView>(uictx->gridGrid(), _uibase, toAdd.at(i), uictx);
                     _fileUIs.push_back(std::move(fw));
                 }
 

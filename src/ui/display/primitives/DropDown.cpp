@@ -96,8 +96,8 @@ void DropDown::setItems(std::vector<std::string> &items) {
 
     // lv_label_set_text(_lastSelected, items.at(0).c_str());
     // lv_obj_set_size(_lastSelected, lv_obj_get_width(lvhost()), height);
-    if(size != 0) _btn->setText(items.at(0));
-    else _btn->setText("No Items");
+    // if(size != 0) _btn->setText(items.at(0));
+    // else _btn->setText("No Items");
 }
 
 void DropDown::setTextColor(lv_color_t & color) {

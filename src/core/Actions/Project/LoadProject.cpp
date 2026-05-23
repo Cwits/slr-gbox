@@ -50,7 +50,41 @@ void LoadProjectAction::exec(ControlContext &ctx) {
             std::string path = _action.path.substr(0, pos);
             ctx.projectView->path(path);
             ctx.projectView->name(name.substr(0, name.find_last_of('.')));
-            //restore timeline settings
+
+            //restore timeline state
+            {
+                const auto &tl = _dataToLoad["Timeline"];
+                float bpm = tl["BPM"].get<float>();
+                uint8_t numerator = tl["Bar Size"]["Numerator"].get<uint8_t>();
+                uint8_t denominator = tl["Bar Size"]["Denominator"].get<uint8_t>();
+                frame_t loopStart = tl["Loop Start"].get<frame_t>();
+                frame_t loopEnd = tl["Loop End"].get<frame_t>();
+                bool isLooping = tl["Loop Enabled"].get<bool>();
+                int sampleRate = tl["Sample Rate"].get<int>();
+                int blockSize = tl["Block Size"].get<int>();
+
+                //if sampleRate or blockSize differnet than need to restart engine -> extra step
+                LOG_WARN("For now assuming that sample rate and block size is same as default");
+                
+                auto actbpm = std::make_unique<Actions::ChangeSignatureBpm>();
+                actbpm->bpm = bpm;
+                BarSize bsize;
+                bsize._numerator = numerator;
+                bsize._denominator = denominator;
+                actbpm->sig = bsize;
+                EmitAction(std::move(actbpm));
+
+                auto actlooppos = std::make_unique<Actions::LoopPosition>();
+                actlooppos->start = loopStart;
+                actlooppos->end = loopEnd;
+                EmitAction(std::move(actlooppos));
+
+                if(isLooping) {
+                    auto actloop = std::make_unique<Actions::ToggleLoop>();
+                    actloop->newState = isLooping;
+                    EmitAction(std::move(actloop));
+                }
+            }
 
             //create all units
             for(const auto& sub : _dataToLoad["Units"]) {

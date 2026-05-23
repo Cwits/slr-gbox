@@ -24,6 +24,7 @@
 #include "ui/display/SettingsPopup.h"
 #include "ui/display/VirtualMidiKeyboard.h"
 #include "ui/display/Timeline.h"
+#include "ui/display/DragViewSelector.h"
 
 #include "snapshots/TimelineView.h"
 
@@ -55,6 +56,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _gridView = std::make_unique<GridView>(this, &_uiContext);
     _unitView = std::make_unique<UnitView>(this, &_uiContext);
     _browser = std::make_unique<Browser>(this, &_uiContext);
+    _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
     
     //TODO: set context values...
     _uiContext._topPanel = _topPanel.get();
@@ -63,6 +65,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _uiContext._unitView = _unitView.get();
     _uiContext._browser = _browser.get();
     _uiContext._gridTimeline = _gridView->_timeline.get();
+    _uiContext._dragSelector = _dragViewSelector.get();
 
     _playheadUpdateTimer = lv_timer_create(&MainWindow::playheadUpdateCb, LV_DEF_REFR_PERIOD, nullptr);
     lv_timer_pause(_playheadUpdateTimer);
@@ -92,6 +95,8 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _virtualMidiKeyboard = std::make_unique<VirtualMidiKeyboard>(this, &_uiContext);
     _popups.push_back(_virtualMidiKeyboard.get());
 
+    _popups.push_back(_dragViewSelector.get());
+
     _popManager._unitControlPopup = _unitControlPopup.get();
     _popManager._routeManager = _routeManager.get();
     _popManager._timelinePopup = _timelinePopup.get();
@@ -100,6 +105,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popManager._newUnitPopup = _newUnitPopup.get();
     _popManager._settingsPopup = _settingsPopup.get();
     _popManager._virtualMidiKeyboard = _virtualMidiKeyboard.get();
+    _popManager._dragViewSelector = _dragViewSelector.get();
 
     _uiContext._popManager = &_popManager;
 
@@ -303,15 +309,18 @@ BaseWidget * MainWindow::hitTest(BaseWidget * node, int x, int y) {
 
 
 //transfers ongoing gesture to different view(e.g. from browser to grid)
-void MainWindow::transferGesture(MainView view, GestLib::Gestures gesture) {
-    if(gesture == GestLib::Gestures::Drag) {
-        //TODO: shouldn't be like that... dunno yet how to make it proper way
-        
-        _gestureTarget = _gridView->_grid.get();
-        //ahhh! switch view target and actual target is different thing lol(at least for grid!!!)
-        //in grid there should be depending on context somehow
-        // _gestureTarget = getSwitchViewTarget(view);
-        switchToView(view);
+void MainWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture) {
+    if(!target->canHandleGesture(gesture)) {
+        LOG_WARN("Target can't handle gesture %s", gestureToText(gesture).c_str());
+        return;
+    }
+
+    if(target == _dragViewSelector.get()) {
+        _gestureTarget = _dragViewSelector.get();
+    } else if(target == _gridView.get()) {
+        _gestureTarget = _gridView.get();
+    } else if(target == _browser.get()) {
+        _gestureTarget = _browser.get();
     }
 }
 

@@ -87,9 +87,10 @@ struct RouteManager : public Popup {
     Label * _inputsText;
     Label * _outputsText;
 
+    DropDown * _ddCurrentUnit;
+
     Button * _btnAudioTab;
     Button * _btnMidiTab;
-    Button * _btnApply;
 
     Label * _midiThruText;
     Checkbox * _midiThru;

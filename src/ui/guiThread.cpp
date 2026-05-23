@@ -45,6 +45,8 @@ FakeGestures _fakeGestures;
 
 std::ofstream _logFile;
 
+const std::string_view windowTitle = "SampleLoopRepeat"; 
+
 //from uiControls.cpp
 extern std::mutex g_async_mtx;
 extern std::deque<std::unique_ptr<std::function<void()>>> g_async_queue;
@@ -68,7 +70,7 @@ void initGui() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
     // the name is set in lv_sdl_window.c:378
     lvDisplay = lv_sdl_window_create(SDL_HOR_RES, SDL_VER_RES);
-    
+    lv_sdl_window_set_title(lvDisplay, windowTitle.data());
     {
         //if output "opengles2" или "opengl" than accelerated 
         SDL_RendererInfo info;

@@ -47,6 +47,7 @@ std::shared_ptr<AudioUnitView> ProjectView::createUnitView(const ControlContext 
 
 AudioUnitView * ProjectView::getUnitById(ID id) {
     AudioUnitView * unit = nullptr;
+    if(id == 0) return unit; //id == 0 is metronome
     for(std::size_t i=0; i<_unitViewList.size(); ++i) {
         AudioUnitView * potential = _unitViewList.at(i).get();
         if(potential->id() == id) {

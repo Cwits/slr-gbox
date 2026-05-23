@@ -200,6 +200,7 @@ file(GLOB SOURCES
   src/ui/display/SettingsPopup.cpp
   src/ui/display/VirtualMidiKeyboard.cpp
   src/ui/display/DialogWindows.cpp
+  src/ui/display/DragViewSelector.cpp
 
   src/ui/FakeGestures.cpp
   src/ui/uiControls.cpp

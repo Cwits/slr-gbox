@@ -119,6 +119,7 @@ std::unique_ptr<AudioUnit> Project::removeUnit(ID id) {
 }
 
 AudioUnit * Project::getUnitById(ID id) {
+    if(id == 0) return nullptr; //id == 0 is metronome
     std::size_t size = _unitList.size();
     for(std::size_t i=0; i<size; ++i) {
         if(_unitList.at(i).get()->id() == id) return _unitList.at(i).get();

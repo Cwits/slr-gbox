@@ -84,7 +84,7 @@ GridGrid::GridGrid(GridView * parent, UIContext * const uictx)
     
     lv_obj_add_style(_lvhost, &workspace, 0);
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
-    _flags.isDrag = true;
+    // _flags.isDrag = true;
 
     // lv_obj_set_style_bg_color(lvhost(), )
     // lv_obj_set_style_bg_opa(lvhost(), LV_OPA_100, 0);
@@ -97,52 +97,52 @@ GridGrid::~GridGrid() {
 }
 
 bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
-    DragContext & ctx = *_uictx->dragContext();
-    if(drag.state == GestLib::GestureState::Start) {
+    // DragContext & ctx = *_uictx->dragContext();
+    // if(drag.state == GestLib::GestureState::Start) {
 
-    } else if(drag.state == GestLib::GestureState::Move) {
-        // LOG_INFO("Here");
-        if(ctx.dragOnGoing) {
-            ctx.updateIconPos(drag.x, drag.y);
-        }    
-    } else if(drag.state == GestLib::GestureState::End) {
-        LOG_INFO("Drag End x: %d, y: %d", drag.x, drag.y);
+    // } else if(drag.state == GestLib::GestureState::Move) {
+    //     // LOG_INFO("Here");
+    //     if(ctx.dragOnGoing) {
+    //         ctx.updateIconPos(drag.x, drag.y);
+    //     }    
+    // } else if(drag.state == GestLib::GestureState::End) {
+    //     LOG_INFO("Drag End x: %d, y: %d", drag.x, drag.y);
         
-        if(ctx.dragOnGoing && ctx.origin != nullptr) {
-            if(ctx.payload.type != DragPayload::DataType::FilePath) {
-                return true;
-            }
+    //     if(ctx.dragOnGoing && ctx.origin != nullptr) {
+    //         if(ctx.payload.type != DragPayload::DataType::FilePath) {
+    //             return true;
+    //         }
             
-            std::string * target = ctx.payload.filePath.path;
-            if(target->substr(target->size()-5) == ".json") {
-                //assuume it is Project File to load
-                auto act = std::make_unique<slr::Actions::LoadProject>();
-                act->path = *target;
-                slr::EmitAction(std::move(act));
-            } else {
-                //try find appropriate track
-                const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
-                int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
-                for(const std::unique_ptr<UnitUIBase> &u : list) {
-                    UnitUIBase *unit = u.get();
-                    if(notAbsY >= unit->gridUI()->gridY() && 
-                        notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && 
-                        unit->canLoadFiles()) {
-                        LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
+    //         std::string * target = ctx.payload.filePath.path;
+    //         if(target->substr(target->size()-5) == ".json") {
+    //             //assuume it is Project File to load
+    //             auto act = std::make_unique<slr::Actions::LoadProject>();
+    //             act->path = *target;
+    //             slr::EmitAction(std::move(act));
+    //         } else {
+    //             //try find appropriate track
+    //             const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+    //             int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
+    //             for(const std::unique_ptr<UnitUIBase> &u : list) {
+    //                 UnitUIBase *unit = u.get();
+    //                 if(notAbsY >= unit->gridUI()->gridY() && 
+    //                     notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && 
+    //                     unit->canLoadFiles()) {
+    //                     LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
                         
-                        auto action = std::make_unique<slr::Actions::LoadAsClip>();
-                        action->targetId = unit->id();
-                        action->data = *ctx.payload.filePath.path;
-                        action->startOffset = 0;
-                        action->makeUnique = false;
-                        slr::EmitAction(std::move(action));
-                        break;
-                    }
-                }
-            }
-        }
-        ctx.reset();
-    }
+    //                     auto action = std::make_unique<slr::Actions::LoadAsClip>();
+    //                     action->targetId = unit->id();
+    //                     action->data = *ctx.payload.filePath.path;
+    //                     action->startOffset = 0;
+    //                     action->makeUnique = false;
+    //                     slr::EmitAction(std::move(action));
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     ctx.reset();
+    // }
 
     return true;
 }
@@ -158,6 +158,7 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx)
     _timeline = std::make_unique<Timeline>(_grid.get(), uictx);
     
     _flags.isSwipe = true;
+    _flags.isDrag = true;
     show();
 }
 
@@ -166,7 +167,6 @@ GridView::~GridView() {
 }
 
 bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
-    
     if(swipe.state == GestLib::GestureState::Start) {
         // LOG_INFO("Swipe start from grid view x: %d, y: %d, dx: %d, dy: %d", 
             // swipe.x, swipe.y, swipe.dx, swipe.dy);
@@ -258,6 +258,58 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
 
     return true;
 }
+
+bool GridView::handleDrag(GestLib::DragGesture &drag) {
+    DragContext & ctx = *_uictx->dragContext();
+    if(drag.state == GestLib::GestureState::Start) {
+
+    } else if(drag.state == GestLib::GestureState::Move) {
+        // LOG_INFO("Here");
+        if(ctx.dragOnGoing) {
+            ctx.updateIconPos(drag.x, drag.y);
+        }    
+    } else if(drag.state == GestLib::GestureState::End) {
+        LOG_INFO("Drag End x: %d, y: %d", drag.x, drag.y);
+        
+        if(ctx.dragOnGoing && ctx.origin != nullptr) {
+            if(ctx.payload.type != DragPayload::DataType::FilePath) {
+                return true;
+            }
+            
+            std::string * target = ctx.payload.filePath.path;
+            if(target->substr(target->size()-5) == ".json") {
+                //assuume it is Project File to load
+                auto act = std::make_unique<slr::Actions::LoadProject>();
+                act->path = *target;
+                slr::EmitAction(std::move(act));
+            } else {
+                //try find appropriate track
+                const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+                int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
+                for(const std::unique_ptr<UnitUIBase> &u : list) {
+                    UnitUIBase *unit = u.get();
+                    if(notAbsY >= unit->gridUI()->gridY() && 
+                        notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && 
+                        unit->canLoadFiles()) {
+                        LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
+                        
+                        auto action = std::make_unique<slr::Actions::LoadAsClip>();
+                        action->targetId = unit->id();
+                        action->data = *ctx.payload.filePath.path;
+                        action->startOffset = 0;
+                        action->makeUnique = false;
+                        slr::EmitAction(std::move(action));
+                        break;
+                    }
+                }
+            }
+        }
+        ctx.reset();
+    }
+    
+    return true;
+}
+
 
 void GridView::pollUIUpdate() {
     _control->pollUIUpdate();

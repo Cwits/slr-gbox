@@ -64,6 +64,7 @@ struct GridView : public View {
     float _horizontalZoom = 1.0f;
 
     bool handleSwipe(GestLib::SwipeGesture & swipe) override;
+    bool handleDrag(GestLib::DragGesture &drag) override;
 };
 
 }

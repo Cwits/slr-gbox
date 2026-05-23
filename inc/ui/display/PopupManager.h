@@ -20,6 +20,7 @@ class FileView;
 class NewUnitPopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
+class DragViewSelector;
 
 struct PopupManager {
     PopupManager();
@@ -50,6 +51,9 @@ struct PopupManager {
     void enableMidiKeyboard();
     void disableMidiKeyboard();
 
+    void enableDragSelector();
+    void disableDragSelector();
+    
     private:
     UnitControlPopup * _unitControlPopup;
     ScreenKeyboard * _screenKeyboard;
@@ -58,6 +62,7 @@ struct PopupManager {
     NewUnitPopup * _newUnitPopup;
     SettingsPopup * _settingsPopup;
     VirtualMidiKeyboard * _virtualMidiKeyboard;
+    DragViewSelector * _dragViewSelector;
 
     friend class MainWindow;
 };

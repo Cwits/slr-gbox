@@ -63,8 +63,9 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
         
         posx += WHITE_WIDTH;
 
-        k->note = _defaultWhiteNotes[i];        
-        k->setCallback([k, this]() {
+        k->note = _defaultWhiteNotes[i];
+        k->setTouchDownCallback([k, this]() {
+            k->setColor(BUTTON_DEFAULT_PRESSED);
             LOG_INFO("Key pressed: %d", (k->note + this->octaveModifier()));
             auto act = std::make_unique<slr::Actions::VMKTrigger>();
             act->note = k->note + this->octaveModifier();

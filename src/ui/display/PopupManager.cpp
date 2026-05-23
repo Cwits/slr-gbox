@@ -10,6 +10,7 @@
 #include "ui/display/NewUnitPopup.h"
 #include "ui/display/SettingsPopup.h"
 #include "ui/display/VirtualMidiKeyboard.h"
+#include "ui/display/DragViewSelector.h"
 
 namespace UI {
 
@@ -108,6 +109,18 @@ void PopupManager::disableMidiKeyboard() {
     _virtualMidiKeyboard->deactivate();
     _virtualMidiKeyboard->hide();
 }
+
+void PopupManager::enableDragSelector() {
+    _dragViewSelector->activate();
+    _dragViewSelector->show();
+}
+
+void PopupManager::disableDragSelector() {
+    _dragViewSelector->deactivate();
+    _dragViewSelector->hide();
+}
+
+    
 
 
 }

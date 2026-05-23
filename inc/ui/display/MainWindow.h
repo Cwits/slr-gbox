@@ -36,6 +36,7 @@ class FilePopup;
 class NewUnitPopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
+class DragViewSelector;
 
 class DragContext;
 
@@ -49,7 +50,7 @@ struct MainWindow : public BaseWidget {
     void switchToPreviousView();
 
     bool handleGesture(GestLib::Gesture & gesture);
-    void transferGesture(MainView view, GestLib::Gestures gesture);
+    void transferGesture(BaseWidget * target, GestLib::Gestures gesture);
 
     void floatingText(bool warning, const std::string &text);
 
@@ -89,6 +90,7 @@ struct MainWindow : public BaseWidget {
     std::unique_ptr<NewUnitPopup> _newUnitPopup;
     std::unique_ptr<SettingsPopup> _settingsPopup;
     std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;
+    std::unique_ptr<DragViewSelector> _dragViewSelector;
     // ViewSelector * _viewSelector; //called only when need to switch from drag to target?
 
     private:
