@@ -34,6 +34,15 @@ void LoadProjectAction::exec(ControlContext &ctx) {
 
     switch(_step) {
         case(1): {
+            /* 
+                sequence should be bit different - have to check that necessary files, units(plugins, etc) exists and paths is correct.
+                if not - suggest to find them
+                than check and load correct sample rate and block size
+                than load rest of project?
+
+                soo... have to ensure that all necessary things to restore project - exists
+                and somehow check that there will be enough memory for loading everything?
+            */
             ControlEngine::prepareForProjectLoading();
             
             //acquire json

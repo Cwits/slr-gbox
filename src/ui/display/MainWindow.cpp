@@ -321,6 +321,10 @@ void MainWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture)
         _gestureTarget = _gridView.get();
     } else if(target == _browser.get()) {
         _gestureTarget = _browser.get();
+    } else if(target == _unitView.get()) {
+        _gestureTarget = _unitView.get();
+    } else {
+        LOG_ERROR("Target not handled");
     }
 }
 

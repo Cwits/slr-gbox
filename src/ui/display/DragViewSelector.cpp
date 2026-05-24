@@ -94,7 +94,7 @@ void DragViewSelector::update() {
 void DragViewSelector::reset() {
     _lastDragX = -1;
     _lastDragY = -1;
-    lv_timer_reset(_timDrag);
+    // lv_timer_reset(_timDrag);
     lv_timer_pause(_timDrag);
 
 }

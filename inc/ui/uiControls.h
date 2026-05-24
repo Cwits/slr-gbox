@@ -22,6 +22,23 @@ namespace UIControls {
 void floatingInfo(std::string text);
 void floatingWarning(std::string text);
 
+/*
+enum class DialogWindowFlags : unsigned int {
+    DW_OK               = 0x00000001L,
+    DW_OKCANCLE         = 0x00000002L,
+    // DW_CANCLEIGNOREFIND = 0x00000003L,
+
+};
+
+enum class DialogWindowResponse : unsigned int {
+    DWR_OK                  = 0x00000001L,
+    DWR_CANCLE              = 0x00000002L,
+    // DWR_FIND                = 0x00000003L, //if this in response than data contains std::string with path to file
+};
+
+void DialogWindow(std::string text, std::function<void(unsigned int res)> clb, unsigned int flags);
+*/
+
 /* Module related */
 void addUnitUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> view);
 void destroyUnitUI(slr::ID id);
