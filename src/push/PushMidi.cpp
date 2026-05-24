@@ -72,16 +72,16 @@ bool PushMidi::connect(slr::MidiPort * port) {
     slr::EmitAction(std::move(act));
 
     auto act2 = std::make_unique<slr::Actions::ToggleMidiDevice>();
-    act->device = port->_ownerDev;
-    act->subdev = port->_ownerSubdev;
-    act->port = slr::DevicePort::OUTPUT;
-    act->newState = true;
-    act->completed = [bptr = &trigg2, result2](int res) mutable {
+    act2->device = port->_ownerDev;
+    act2->subdev = port->_ownerSubdev;
+    act2->port = slr::DevicePort::OUTPUT;
+    act2->newState = true;
+    act2->completed = [bptr = &trigg2, result2](int res) mutable {
         LOG_INFO("Midi Device toggled res %d", res);
         result2 = res;
         bptr->store(true);
     };
-    slr::EmitAction(std::move(act));
+    slr::EmitAction(std::move(act2));
 
     while(!trigg1 && !trigg2) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
