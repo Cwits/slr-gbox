@@ -102,14 +102,6 @@ MidiController::MidiController() {
         engine->setMidiLocal(local);
         engine->setMidiIn(inMap);
         engine->setMidiOut(outMap);
-        // FlatEvents::FlatControl ctrl;
-        // ctrl.type = FlatEvents::FlatControl::Type::UpdateMidiMaps;
-        // ctrl.commandId = ControlEngine::generateCommandId();
-        // ctrl.updateMidiMaps.engine = engine;
-        // ctrl.updateMidiMaps.inputMap = inMap;
-        // ctrl.updateMidiMaps.outputMap = outMap;
-        // ctrl.updateMidiMaps.localBuffers = local;
-        // ControlEngine::emitRtControl(ctrl);
     }
 
 #if (USE_PUSH == 1 && USE_FAKE_PUSH == 1)
