@@ -9,7 +9,6 @@
 #include "core/primitives/FileContainer.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/MidiBuffer.h"
-// #include "core/FlatEvents.h"
 #include "common/Status.h"
 
 #include <vector>
@@ -43,11 +42,6 @@ class AudioUnit {
 
     RT_FUNC virtual frame_t latency() { return 0; }
 
-    // RT_FUNC static Common::Status setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-
-    // RT_FUNC static Common::Status toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    // RT_FUNC static Common::Status toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
-    
     struct UnitOutput {
         AudioBuffer * ptr;
         std::string &name;
@@ -95,18 +89,8 @@ class AudioUnit {
 
     const ClipContainer * clips() const { return _clipContainer; }
     inline void setClipContainer(const ClipContainer *cont) { _clipContainer = cont; }
-    // RT_FUNC static Common::Status swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
     
     static ID nextAudioUnitId();
-
-    //must be called from RT only
-    // RT_FUNC virtual bool assetLoaded(void *assetStruct) { return false; }
-    // RT_FUNC static Common::Status assetLoaded(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    //     // bool res = ev.unit->assetLoaded(ev.asset);
-    //     // resp.assetLoaded.success = res;
-    //     //...
-    //     return Common::Status::Ok;
-    // }
 
     protected:
     const ID _uniqueId;

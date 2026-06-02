@@ -144,7 +144,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnRedo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnRedo->setFont(&DEFAULT_FONT);
     _btnRedo->setCallback([this]() {
-        LOG_INFO("Redo action");
+        // LOG_INFO("Redo action");
+        auto act = std::make_unique<slr::Actions::Redo>();
+        slr::EmitAction(std::move(act));
     });
 
     posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
@@ -153,7 +155,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnUndo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnUndo->setFont(&DEFAULT_FONT);
     _btnUndo->setCallback([this]() {
-        LOG_INFO("Undo action");
+        // LOG_INFO("Undo action");
+        auto act = std::make_unique<slr::Actions::Undo>();
+        slr::EmitAction(std::move(act));
     });
     
     show();

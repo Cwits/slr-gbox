@@ -50,6 +50,13 @@ struct saveFile : public Task {
     ID fileId;
 };
 
+struct closeAllFiles : public Task {
+    void exec(FileWorkerContext &ctx) override;
+
+    bool saveFiles;
+    std::function<void()> completed;
+};
+
 /* Audio Tasks */
 struct dumpAudio : public Task {
     void exec(FileWorkerContext &ctx) override;

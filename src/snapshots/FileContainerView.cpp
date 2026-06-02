@@ -3,6 +3,7 @@
 
 #include "snapshots/FileContainerView.h"
 #include "core/primitives/FileContainer.h"
+#include "core/primitives/File.h"
 
 #include "logger.h"
 
@@ -32,6 +33,10 @@ void ClipItemView::update() {
     _fileOffset = _item->fileOffset();
     _muted = _item->isMuted();
     incrementVersion();
+}
+
+const File * ClipItemView::file() const {
+    return _item->_file;
 }
 
 ClipContainerView::ClipContainerView() {

@@ -8,6 +8,7 @@
 #include "core/primitives/MidiFile.h"
 #include "core/primitives/FileWorkerContext.h"
 #include "core/ControlEngine.h"
+#include "core/FileTasks.h"
 #include "logger.h"
 
 #include <iomanip>  //for getDateTime
@@ -47,8 +48,23 @@ bool FileWorker::shutdown() {
 }
 
 bool FileWorker::clear() {
-    LOG_FATAL("Not implemented");
-    return false;
+    // LOG_FATAL("Not implemented");
+    std::atomic<bool> finished;
+    finished.store(false);
+    auto close = std::make_unique<Tasks::closeAllFiles>();
+    close->saveFiles = false;
+    close->completed = [&finished]() {
+        finished.store(true, std::memory_order_release);
+    };
+    addTask(std::move(close));
+
+
+    LOG_ERROR("Must implement temporary files cleaning as well!");
+    while( !(finished.load(std::memory_order_acquire) == true)  ) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    return true;
 }
 
 void FileWorker::run(FileWorker * f) {

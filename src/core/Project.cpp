@@ -10,6 +10,7 @@
 #include "logger.h"
 
 #include <algorithm>
+#include <cmath>
 
 #define INITIAL_UNIT_SIZE 10
 
@@ -35,12 +36,17 @@ Project::Project() : _timeline(*this) {
     _renderPlan2 = &dummyPlan;
 
     _metronome = std::make_unique<Metronome>();
-    // _renderPlan1 = buildPlan(this);
-    // _renderPlan2 = buildPlan(this);
-    // _soloPlan = buildPlan(this);
 
     _isSolo = false;
     _planInWork = false;
+
+    
+    _unitIDCounter = 0;
+    _clipIDCounter = 0;
+    _audioRouteIDCounter = 0;
+    _midiRouteIDCounter = 0;
+    _sequenceIDCounter = 0;
+    _modulationIDCounter = 0;
 }
 
 Project::~Project() {
@@ -54,11 +60,13 @@ Project::~Project() {
     }
 }
 
-AudioUnit * Project::createUnit(const ControlContext &ctx, const UnitDescriptor *desc, const ID forcedId) {
+// AudioUnit * Project::createUnit(const ControlContext &ctx, const UnitDescriptor *desc, const ID forcedId) {
+AudioUnit * Project::createUnit(BufferManager * bmem, const UnitDescriptor *desc, const ID forcedId) {
     AudioUnit * au = nullptr;
     try {
 
-        slr::ID nextId = forcedId == 0 ? ctx.nextAudioUnitId() : forcedId;
+        // slr::ID nextId = forcedId == 0 ? ctx.nextAudioUnitId() : forcedId;
+        ID nextId = forcedId;
         ClipContainerMap &map = _clipContainerMap; //.project->clipContainerMap();
         auto [it, inserted] = map.try_emplace(nextId);
         ClipContainerBuffer & storage = it->second;
@@ -69,7 +77,7 @@ AudioUnit * Project::createUnit(const ControlContext &ctx, const UnitDescriptor 
                 i guess like... when there was attempt to create unit and it failed -> container wasn't deleted...
                 just clear it and... ?
             */
-            LOG_WARN("ClipStorage for id %d existed already. Checking if unit with similar id exists");
+            LOG_WARN("ClipStorage for id %d existed already. Checking if unit with similar id exists", nextId);
             AudioUnit * exists = getUnitById(nextId); //.project->getUnitById(nextId);
             if(exists) {
                 //unit associated with this ID exists, can't touch that container.
@@ -89,7 +97,7 @@ AudioUnit * Project::createUnit(const ControlContext &ctx, const UnitDescriptor 
             return nullptr;
         }
 
-        if(!unit->create(ctx.bufferManager)) {
+        if(!unit->create(bmem)) {
             LOG_ERROR("Failed to create unit for some reasons");
             return nullptr;
         }
@@ -99,6 +107,7 @@ AudioUnit * Project::createUnit(const ControlContext &ctx, const UnitDescriptor 
         LOG_ERROR("Failed to create module %s", desc->_name->data());
     }
 
+    _unitIDCounter = std::max(_unitIDCounter+1, forcedId);
     return au;
 }
 
@@ -118,6 +127,10 @@ std::unique_ptr<AudioUnit> Project::removeUnit(ID id) {
     return nullptr;
 }
 
+void Project::appendUnit(std::unique_ptr<AudioUnit> unit) { //for delete undo??
+    _unitList.push_back(std::move(unit));
+}
+
 AudioUnit * Project::getUnitById(ID id) {
     if(id == 0) return nullptr; //id == 0 is metronome
     std::size_t size = _unitList.size();
@@ -127,6 +140,10 @@ AudioUnit * Project::getUnitById(ID id) {
 
     LOG_ERROR("Wrong Unit ID");
     return nullptr;
+}
+
+ID Project::getNextUnitId() const {
+    return _unitIDCounter+1;
 }
 
 Metronome * Project::metronome() const {

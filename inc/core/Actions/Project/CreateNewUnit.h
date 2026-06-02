@@ -14,6 +14,7 @@ namespace slr {
 
 struct ActionBase;
 struct AudioUnit;
+struct AudioUnitView;
 
 struct CreateNewUnitAction : public ActionExecutable, public Undoable {
     CreateNewUnitAction(const ActionBase *base);
@@ -28,6 +29,8 @@ struct CreateNewUnitAction : public ActionExecutable, public Undoable {
     private:
     const Actions::CreateNewUnit _action;
     ID _createdUnitId;
+
+    AudioUnitView * _view;
 };
 
 std::unique_ptr<ActionExecutable> createCreateNewUnitAction(const ActionBase*);

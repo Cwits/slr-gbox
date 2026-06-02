@@ -45,7 +45,7 @@
 #include <condition_variable>
 #include <unordered_map>
 #include <future>
-#include <queue>
+#include <deque>
 
 #define QUEUE_INITIAL_SIZE 128
 
@@ -71,8 +71,8 @@ std::unique_ptr<MidiController> _midiController;
 std::vector<std::unique_ptr<ActionExecutable>> _actions;
 std::shared_mutex _actionMutex;
 
-std::queue<std::unique_ptr<ActionExecutable>> _undoList;
-std::queue<std::unique_ptr<ActionExecutable>> _redoList;
+std::deque<std::unique_ptr<Undoable>> _undoList;
+std::deque<std::unique_ptr<Undoable>> _redoList;
 
 // ID _commandIdCounter = 0;
 
@@ -95,12 +95,16 @@ void processLoop() {
     bool pendingDeleteEvent = false;
 
     while(!_shutdown) {
-        ControlContext ctx(_project.get(),
-                            _fileWorker.get(),
-                            _engine.get(),
-                            _projectSnapshot.get(),
-                            _midiController.get(),
-                            _bufferManager.get());
+        ControlContext ctx(
+            _project.get(),
+            _fileWorker.get(),
+            _engine.get(),
+            _projectSnapshot.get(),
+            _midiController.get(),
+            _bufferManager.get(),
+            &_undoList,
+            &_redoList
+        );
 
         if(_engine == nullptr || _engine->getState() != RtEngine::RtState::RUN) {
             LOG_WARN("RT Engine not ready!");
@@ -121,25 +125,72 @@ void processLoop() {
             }
         } 
 
+        //go for undoable actions, is this lock correct?
         {
-            //cleaning actions
-            //check if action is finished
-            //if finished - check if action can be undoable
-            //if can - put it into undo list
-            //if can't - just delete
-            
-            
+            std::shared_lock<std::shared_mutex> l(_actionMutex);
+            for(std::unique_ptr<ActionExecutable> &a : _actions) {
+                if(!a->toDelete()) continue;
+                if(a->getState() != ActionState::Finished) continue;
+                //add only finished actions...
+                
+                Undoable * undoable = dynamic_cast<Undoable*>(a.get());
+                if(!undoable) continue; //action is not undoable
+                
+                a.release();
+                std::unique_ptr<Undoable> undo( undoable );
+                
+                //action is undoable
+                if(_undoList.size() >= 64) _undoList.pop_front();
+                _undoList.push_back(std::move(undo));
+            }
+            // for(auto it = _actions.begin(); it != _actions.end(); ) {
+            //     std::unique_ptr<ActionExecutable> &a = *it;
+            //     if(!a->toDelete()) { ++it; continue; }
+            //     if(a->getState() != ActionState::Finished) { ++it; continue; }
+
+            //     Undoable * undoable = dynamic_cast<Undoable*>(a.get());
+            //     if(!undoable) continue;
+
+            //     a.release();
+            //     std::unique_ptr<Undoable> undo(undoable);
+
+            //     if(_undoList.size() >= 64) _undoList.pop_front();
+            //     _undoList.push_back(std::move(undo));
+
+            //     // it = _actions.erase(it);
+            // }
+        }
+
+        //clean up actions
+        {
             std::unique_lock l(_actionMutex);
-            _actions.erase(
-                std::remove_if(
-                    _actions.begin(),
-                    _actions.end(),
-                    [](const std::unique_ptr<ActionExecutable> &a) {
-                        return a->toDelete();
-                    }
-                ),
-                _actions.end()
-            );
+            for(std::size_t i=0; i<_actions.size(); ) {
+                std::unique_ptr<ActionExecutable> & p = _actions.at(i);
+                if(p == nullptr) {
+                    _actions.erase(_actions.begin()+i);
+                    i=0;
+                    continue;
+                }
+
+                if(p->toDelete()) {
+                    _actions.erase(_actions.begin()+i);
+                    i=0;
+                    continue;
+                }
+
+                ++i;
+            }
+            
+            // _actions.erase(
+            //     std::remove_if(
+            //         _actions.begin(),
+            //         _actions.end(),
+            //         [](const std::unique_ptr<ActionExecutable> &a) {
+            //             return a->toDelete();
+            //         }
+            //     ),
+            //     _actions.end()
+            // );
         }
 
         {
@@ -172,6 +223,8 @@ void processLoop() {
 
 bool init() {
     SettingsManager::init();
+    // _undoList.resize(64);
+    // _redoList.resize(64);
 
     _shutdown = false;
 
@@ -276,10 +329,8 @@ void prepareForProjectLoading() {
     _projectSnapshot.reset();
     _project.reset();
 
-    LOG_ERROR("Enable this two guys");
-    // _fileWorker->clear();
-    // _bufferManager->clear();
-
+    _fileWorker->clear();
+    _bufferManager->clear();
 
     _project = std::make_unique<Project>();
     _project->metronome()->create(_bufferManager.get());

@@ -34,12 +34,17 @@
 #include "logger.h"
 
 #include <iostream>
+#include <algorithm>
+#include <vector>
+#include <memory>
 
 namespace UI {
 
 constexpr int FLOATING_TEXT_TIMEOUT = 5000;
 
 MainWindow * _inst = nullptr;
+
+std::vector<std::unique_ptr<UnitUIBase>> _removedUnits;
 
 std::string gestureToText(GestLib::Gestures &g);
 
@@ -126,6 +131,13 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
 
 MainWindow::~MainWindow() {
     //but no clean of lvgl object - would be cleaned on main exit
+    for(std::unique_ptr<UnitUIBase> &b : _uiContext._unitsUI) {
+        b->destroy(&_uiContext);
+    }
+
+    for(std::unique_ptr<UnitUIBase> &b : _removedUnits) {
+        b->destroy(&_uiContext);
+    }
 }
 
 void MainWindow::switchToView(MainView view) {
@@ -440,47 +452,85 @@ void MainWindow::createUI(const slr::UnitDescriptor * desc, const std::shared_pt
     _uiContext._unitsUI.push_back(std::move(base));
 }
 
-void MainWindow::destroyUI(slr::ID id) {
-    UnitUIBase * ui = nullptr;
-    for(auto &u : _uiContext._unitsUI) {
-        if(u.get()->id() == id) {
-            ui = u.get();
-            break;
+void MainWindow::restoreUI(slr::ID id) {
+    // UnitUIBase * ptr = ui.get();
+    auto it = std::find_if(
+        _removedUnits.begin(),
+        _removedUnits.end(),
+        [id](std::unique_ptr<UnitUIBase> &b) {
+            return id == b->id();
         }
-    }
+    );
 
-    if(!ui) {
-        LOG_ERROR("Failed to find UI with id %u", id);
+    if(it == _removedUnits.end()) {
+        LOG_ERROR("Failed to restore unit ui for id %u", id);
         return;
     }
 
+    UnitUIBase *ptr = (*it).get();
+    _uiContext._unitsUI.push_back(std::move(*it));
+    _removedUnits.erase(it);
 
     std::size_t size = _uiContext._unitsUI.size();
-    std::size_t idx = 0;
-    for(std::size_t i=0; i<size; ++i) {
-        if(_uiContext._unitsUI.at(i).get()->id() == id) {
-            // found = _trackGuiList.at(i).get();
-            idx = i;
-            break;
-        }
-    }
-
-    ui->destroy(&_uiContext);
-    _uiContext._unitsUI.erase(_uiContext._unitsUI.begin()+idx);
-    //move items positions up starting from idx 
-    size -= 1;
     for(std::size_t i=0; i<size; ++i) {
         UnitUIBase * tr = _uiContext._unitsUI.at(i).get();
         int x = 0;
         int y = LayoutDef::calcTrackY(i);
-        // int x = tr->getPosX();
-        // int y = tr->getPosY();
+        tr->gridUI()->updatePosition(x, y);
+    }
+
+    ptr->show();
+    _uiContext.setLastSelected(nullptr);
+}
+
+void MainWindow::removeUI(slr::ID id) {
+    auto it = std::find_if(
+        _uiContext._unitsUI.begin(),
+        _uiContext._unitsUI.end(),
+        [id](const std::unique_ptr<UnitUIBase> &b) {
+            return b->id() == id;
+        }
+    );
+    if(it == _uiContext._unitsUI.end()) {
+        LOG_ERROR("Failed to find UI with id %u", id);
+        return;
+    }
+
+    (*it)->hide();
+    _removedUnits.push_back(std::move(*it));
+    // ui->hide();
+    // ui->destroy(&_uiContext);
+    _uiContext._unitsUI.erase(it);
+
+    //move items positions up starting from idx 
+    std::size_t size = _uiContext._unitsUI.size();
+    for(std::size_t i=0; i<size; ++i) {
+        UnitUIBase * tr = _uiContext._unitsUI.at(i).get();
+        int x = 0;
+        int y = LayoutDef::calcTrackY(i);
         tr->gridUI()->updatePosition(x, y);
     }
 
     _uiContext.setLastSelected(nullptr);
-    // ui->destroy(&_uiContext);
-    // delete ui;
+}
+
+void MainWindow::deleteUI(slr::ID id) {
+    // base->destroy(&_uiContext);
+    auto it = std::find_if(
+        _removedUnits.begin(),
+        _removedUnits.end(),
+        [id](std::unique_ptr<UnitUIBase> &b) {
+            return id == b->id();
+        }
+    );
+
+    if(it == _removedUnits.end()) {
+        LOG_ERROR("Failed to delete unit ui for id %u", id);
+        return;
+    }
+
+    (*it)->destroy(&_uiContext);
+    _removedUnits.erase(it);
 }
 
 void MainWindow::clearUI() {
@@ -503,15 +553,6 @@ void MainWindow::pollUIUpdate() {
 
     MainView view = currentView();
     getSwitchViewTarget(view)->pollUIUpdate();
-    // switch(view) {
-    //     case(MainView::Grid): _gridView->pollUIUpdate(); break;
-    //     case(MainView::Module): _moduleView->pollUIUpdate(); break;
-    //     case(MainView::Browser): _browser->pollUIUpdate(); break;
-    //     case(MainView::Patch): ; break;
-    //     case(MainView::Editor): ; break;
-    //     case(MainView::StepSequencer): ; break;
-    //     case(MainView::ModMatrix): ; break;
-    // }
 }
 
 void MainWindow::registerFrequentUpdate(std::function<void()> clb) {

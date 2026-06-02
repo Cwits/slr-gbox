@@ -23,7 +23,7 @@ SaveProjectAction::~SaveProjectAction() {
 void SaveProjectAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
 
-    if(!serialize(ctx)) {
+    if(!Serializer::serialize(ctx)) {
         LOG_ERROR("Failed to save project");
     }
 

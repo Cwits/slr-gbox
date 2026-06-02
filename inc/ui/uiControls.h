@@ -13,10 +13,6 @@ namespace slr {
     class UnitDescriptor;
 }
 
-namespace UI {
-    class UnitUIBase;
-}
-
 namespace UIControls {
 
 void floatingInfo(std::string text);
@@ -41,7 +37,9 @@ void DialogWindow(std::string text, std::function<void(unsigned int res)> clb, u
 
 /* Module related */
 void addUnitUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> view);
-void destroyUnitUI(slr::ID id);
+void removeUI(slr::ID id);
+void restoreUI(slr::ID id);
+void deleteUI(slr::ID id);
 
 /* Timeline */
 void updateTimeline(const bool timeSigOrBpm);

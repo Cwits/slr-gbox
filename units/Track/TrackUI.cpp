@@ -4,6 +4,7 @@
 #include "units/Track/TrackUI.h"
 
 #include "units/Track/TrackView.h"
+#include "units/Track/TrackActions.h"
 #include "snapshots/AudioUnitView.h"
 
 #include "ui/display/Timeline.h"
@@ -18,7 +19,6 @@
 
 #include "core/utility/helper.h"
 #include "core/Actions.h"
-#include "units/Track/TrackActions.h"
 
 #include "logger.h"
 

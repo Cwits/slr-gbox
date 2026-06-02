@@ -202,13 +202,13 @@ void LoadAsClipAction::checkWaitingCondition(ControlContext &ctx) {
     }
 }
 
-void LoadAsClipAction::undo(ControlContext &ctx) {
+// void LoadAsClipAction::undo(ControlContext &ctx) {
 
-}
+// }
 
-void LoadAsClipAction::redo(ControlContext &ctx) {
+// void LoadAsClipAction::redo(ControlContext &ctx) {
 
-}
+// }
 
 
 std::unique_ptr<ActionExecutable> createLoadAsClipAction(const ActionBase*base) {

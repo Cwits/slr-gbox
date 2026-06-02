@@ -89,6 +89,19 @@ void saveFile::exec(FileWorkerContext &ctx) {
     (*it)->save();
 }
 
+void closeAllFiles::exec(FileWorkerContext &ctx) {
+    // bool saveFiles;
+    // std::function<void()> completed;
+
+    for(auto &f : ctx.files) {
+        if(saveFiles) f->save();
+
+        f.reset();
+    }
+
+    completed();
+};
+
 /* Audio Tasks */
 void dumpAudio::exec(FileWorkerContext &ctx) {
     //check testFileWorker.cpp for example

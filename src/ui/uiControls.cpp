@@ -70,14 +70,38 @@ void addUnitUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr
     }
 }
 
-void destroyUnitUI(slr::ID id) {
+void removeUI(slr::ID id) {
     postToLvgl([id]() {
-        UI::MainWindow::inst()->destroyUI(id);
+        UI::MainWindow::inst()->removeUI(id);
     });
     
     if(PushThread::isRunning()) {
         PushThread::postTask([id]() {
-            PushUI::RootWidget::inst()->destroyUI(id);
+            PushUI::RootWidget::inst()->removeUI(id);
+        });
+    }
+}
+
+void restoreUI(slr::ID id) {
+    postToLvgl([id]() {
+        UI::MainWindow::inst()->restoreUI(id);
+    });
+
+    if(PushThread::isRunning()) {
+        PushThread::postTask([id]() {
+            PushUI::RootWidget::inst()->restoreUI(id);
+        });
+    }
+}
+
+void deleteUI(slr::ID id) {
+    postToLvgl([id]() {
+        UI::MainWindow::inst()->deleteUI(id);
+    });
+
+    if(PushThread::isRunning()) {
+        PushThread::postTask([id]() {
+            PushUI::RootWidget::inst()->deleteUI(id);
         });
     }
 }

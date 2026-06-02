@@ -49,6 +49,18 @@ bool UnitUIBase::destroy(UIContext * ctx) {
     return true;
 }
 
+void UnitUIBase::show() {
+    gridUI()->showFiles();
+    gridUI()->show();
+    unitUI()->show();
+}
+
+void UnitUIBase::hide() {
+    gridUI()->hideFiles();
+    gridUI()->hide();
+    unitUI()->hide();
+}
+
 UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx) {
     setSize(300, 300);
@@ -92,6 +104,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
 
     setSize(LayoutDef::TRACK_CONTROL_PANEL_WIDTH, LayoutDef::TRACK_HEIGHT);
     int y = LayoutDef::calcTrackY(_uibase->uictx()->_unitsUI.size());
+    LOG_INFO("Setting grid y position of %u to %i", _uibase->id(), y);
     setPos(0, y);
 
     lv_obj_set_style_bg_color(lvhost(),
@@ -162,11 +175,22 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
         // std::cout << "Solo track: " << (int)_track->id() << " parid: " << "1" << std::endl;
     });
     
+    _fileContainerVersion = 0;
     show();
 }
 
 DefaultGridUI::~DefaultGridUI() {
 
+}
+
+void DefaultGridUI::showFiles() {
+    for(std::unique_ptr<FileView> &fw : _fileUIs)
+        fw->show();
+}
+
+void DefaultGridUI::hideFiles() {
+    for(std::unique_ptr<FileView> &fw : _fileUIs)
+        fw->hide();
 }
 
 void DefaultGridUI::pollFileUpdate() {
@@ -275,9 +299,9 @@ void DefaultGridUI::pollUIUpdate() {
     _lblName->setText(view->name());
 }
 
-int DefaultGridUI::gridY() {
-    return lv_obj_get_y(lvhost());
-}
+// int DefaultGridUI::gridY() {
+//     return lv_obj_get_y(lvhost());
+// }
 
 void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();

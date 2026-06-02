@@ -15,6 +15,7 @@ enum class ActionState {
 struct ControlContext;
 
 struct Undoable {
+	virtual ~Undoable() = default;
 	virtual void undo(ControlContext &ctx) = 0;
 	virtual void redo(ControlContext &ctx) = 0;
 };

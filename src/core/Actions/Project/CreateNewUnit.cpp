@@ -24,6 +24,7 @@ CreateNewUnitAction::CreateNewUnitAction(const ActionBase *base) :
     _action( *(static_cast<const Actions::CreateNewUnit*>(base)) )
 {
     _createdUnitId = 0;
+    _view = nullptr;
 }
 
 CreateNewUnitAction::~CreateNewUnitAction() {
@@ -32,7 +33,7 @@ CreateNewUnitAction::~CreateNewUnitAction() {
 
 void CreateNewUnitAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
-
+    
     const UnitDescriptor *desc = UnitManagerFactory::findUnit(_action.name);
     if(!desc) {
         LOG_ERROR("Failed to find module %s", _action.name.c_str());
@@ -40,7 +41,14 @@ void CreateNewUnitAction::exec(ControlContext &ctx) {
         return;
     }
 
-    AudioUnit * au = ctx.project->createUnit(ctx, desc, _action.forcedId);
+    ID nextId = 0;
+    if(!_action.forcedId) {
+        nextId = ctx.project->getNextUnitId();
+    } else {
+        nextId = _action.forcedId.value();
+    }
+
+    AudioUnit * au = ctx.project->createUnit(ctx.bufferManager, desc, nextId);
     if(!au) {
         LOG_ERROR("Failed to create RT Unit %s", _action.name.c_str());
         abortAction();
@@ -54,15 +62,17 @@ void CreateNewUnitAction::exec(ControlContext &ctx) {
         return;
     }
 
+    _view = view.get();
     UIControls::addUnitUI(desc, view);
 
     _createdUnitId = au->id();
+
     markDelete();
     setState(ActionState::Finished);
 }
 
 void CreateNewUnitAction::checkWaitingCondition(ControlContext &ctx) {
-
+    assert(getState() == ActionState::Waiting);
 }
 
 void CreateNewUnitAction::undo(ControlContext &ctx) {
@@ -75,6 +85,7 @@ void CreateNewUnitAction::redo(ControlContext &ctx) {
     auto act = std::make_unique<Actions::CreateNewUnit>();
     *act = _action;
     EmitAction(std::move(act));
+    // setState(ActionState::Executing);
 }
 
 std::unique_ptr<ActionExecutable> createCreateNewUnitAction(const ActionBase *base) {

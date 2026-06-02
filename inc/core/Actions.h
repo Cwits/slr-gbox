@@ -14,6 +14,7 @@
 #include <memory>
 #include <functional>
 #include <optional>
+#include <nlohmann/json.hpp>
 
 namespace slr {
 
@@ -130,14 +131,16 @@ struct SetColor : public ActionBase {
 
 /* Project Actions */
 struct CreateNewUnit : public ActionBase {
-    CreateNewUnit() : forcedId(0) {}
+    CreateNewUnit() {}
     CreateNewUnit(const CreateNewUnit &rhs) :
-        ActionBase(rhs), name(rhs.name), forcedId(rhs.forcedId) {}
+        ActionBase(rhs), name(rhs.name), forcedId(rhs.forcedId), restoredUnit(rhs.restoredUnit) {}
 
     std::type_index actionType() const override { return typeid(CreateNewUnit); }
 
     std::string name;
-    slr::ID forcedId;
+    
+    std::optional<slr::ID> forcedId;
+    std::optional<nlohmann::ordered_json> restoredUnit;
 };
 
 
@@ -220,6 +223,21 @@ struct UpdateRenderPlan : public ActionBase {
     std::type_index actionType() const override { return typeid(UpdateRenderPlan); }
 };
 
+struct Undo : public ActionBase {
+    Undo() {}
+    Undo(const Undo &rhs) : 
+        ActionBase(rhs) {}
+    
+    std::type_index actionType() const override { return typeid(Undo); }
+};
+
+struct Redo : public ActionBase {
+    Redo() {}
+    Redo(const Redo &rhs) : 
+        ActionBase(rhs) {}
+    
+    std::type_index actionType() const override { return typeid(Redo); }
+};
 
 /* Timeline */
 struct ChangeSignatureBpm : public ActionBase {

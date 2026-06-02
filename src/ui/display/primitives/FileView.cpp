@@ -64,7 +64,10 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     setSize(pixels, UI::LayoutDef::TRACK_HEIGHT);
     
     float xposition = UIUtility::frameToPixel(_clipItem->startPosition(), _uictx->gridHorizontalZoom());
-    setPos(xposition, parentUI->gridUI()->gridY());
+    int ypos = parentUI->gridUI()->getY();
+    
+    LOG_INFO("Setting grid y position of file %u to %i", clipItem->id(), ypos);
+    setPos(xposition, parentUI->gridUI()->getY());
     lv_obj_set_pos(_canvas, 0, 0);
     
     _peakColor = lv_color_make(parentUI->color().r, 
@@ -170,7 +173,7 @@ void FileView::pollUIUpdate() {
     _uiVersion = version;
 
     float xposition = UIUtility::frameToPixel(fview->startPosition(), _uictx->gridHorizontalZoom());
-    setPos(xposition, _parentUI->gridUI()->gridY());
+    setPos(xposition, _parentUI->gridUI()->getY());
 }
 
 bool FileView::handleTap(GestLib::TapGesture &tap) {

@@ -15,6 +15,8 @@
 #include "core/Actions.h"
 #include "units/Sampler/SamplerActions.h"
 
+#include "logger.h"
+
 #include <cassert>
 
 namespace UI {

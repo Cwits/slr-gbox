@@ -31,6 +31,7 @@ class ProjectView {
     std::vector<AudioUnitView*> unitList();
     AudioUnitView * getUnitById(ID id);
     std::shared_ptr<AudioUnitView> removeUnitView(ID id);
+    void appendUnit(std::shared_ptr<AudioUnitView> view);
 
     void updateRoutes(const std::vector<AudioRoute> & routes);
     const std::vector<AudioRoute> & audioRoutes() const { return _routes; }

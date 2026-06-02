@@ -11,9 +11,21 @@ namespace slr {
 
 // struct Project;
 struct ControlContext;
+struct ClipItem;
+struct ClipItemView;
+struct File;
 
+
+namespace Serializer {
+    
 bool serialize(ControlContext &ctx);
-// bool deserialize(std::string path);
+
+nlohmann::ordered_json saveClip(const ClipItem *clip);
+nlohmann::ordered_json saveClip(const ClipItemView *clip);
+nlohmann::ordered_json saveFile(const File *file);
+
+}
+
 
 namespace Deserializer {
 

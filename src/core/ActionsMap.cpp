@@ -23,6 +23,8 @@
 #include "core/Actions/Project/SaveProject.h"
 #include "core/Actions/Project/LoadProject.h"
 #include "core/Actions/Project/UpdateRenderPlan.h"
+#include "core/Actions/Project/Undo.h"
+#include "core/Actions/Project/Redo.h"
 
 #include "core/Actions/Timeline/ChangeSignatureBpm.h"
 #include "core/Actions/Timeline/ChangeTimelineState.h"
@@ -58,6 +60,8 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
     map[typeid(Actions::SaveProject)] = &createSaveProjectAction;
     map[typeid(Actions::LoadProject)] = &createLoadProjectAction;
     map[typeid(Actions::UpdateRenderPlan)] = &createUpdateRenderPlanAction;
+    map[typeid(Actions::Undo)] = &createUndoAction;
+    map[typeid(Actions::Redo)] = &createRedoAction;   
 
     //Timeline
     map[typeid(Actions::ChangeSignatureBpm)] = &createChangeSignatureBpmAction;

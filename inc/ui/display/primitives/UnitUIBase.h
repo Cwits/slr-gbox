@@ -35,6 +35,9 @@ struct UnitUIBase {
     virtual DefaultUnitUI * unitUI() = 0;
     // virtual BaseWidget * patchUI() = 0;
 
+    void show();
+    void hide();
+
     void updateParameter(slr::ID parameterID, float value);
     const slr::ID id() const;
     const slr::Color & color() const;
@@ -69,9 +72,12 @@ struct DefaultGridUI : public BaseWidget {
     void pollFileUpdate();
     virtual void pollUIUpdate();
 
-    virtual int gridY();
+    // virtual int gridY();
     virtual void setNudge(slr::frame_t nudge, const float horizontalZoom);
     virtual void updatePosition(int x, int y);
+
+    void showFiles();
+    void hideFiles();
 
     std::vector<FileView*> fileList();
 

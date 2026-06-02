@@ -63,7 +63,9 @@ struct MainWindow : public BaseWidget {
     bool cancleGesture(BaseWidget * widget);
 
     void createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view);
-    void destroyUI(slr::ID id);
+    void restoreUI(slr::ID id);
+    void removeUI(slr::ID id);
+    void deleteUI(slr::ID id);
 
     void clearUI();
 

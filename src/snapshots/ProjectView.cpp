@@ -81,6 +81,10 @@ std::shared_ptr<AudioUnitView> ProjectView::removeUnitView(ID id) {
     }
 }
 
+void ProjectView::appendUnit(std::shared_ptr<AudioUnitView> view) {
+    _unitViewList.push_back(view);
+}
+
 ProjectView & ProjectView::getProjectView() {
     return *ControlEngine::projectSnapshot();
 }

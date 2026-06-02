@@ -20,6 +20,7 @@ class AudioUnit;
 class Metronome;
 class UnitDescriptor;
 class ControlContext;
+struct BufferManager;
 
 class Project {
     public:
@@ -40,12 +41,16 @@ class Project {
     RT_FUNC const RenderPlan * soloPlan() const;
 
     //nonRT
-    AudioUnit * createUnit(const ControlContext &ctx, const UnitDescriptor *desc, const ID forcedId);
+    // AudioUnit * createUnit(const ControlContext &ctx, const UnitDescriptor *desc, const ID forcedId);
+    AudioUnit * createUnit(BufferManager * bmem, const UnitDescriptor *desc, const ID forcedId);
     std::unique_ptr<AudioUnit> removeUnit(ID id);
+    void appendUnit(std::unique_ptr<AudioUnit> unit); //for delete undo??
 
     const std::size_t getUnitCount() const { return _unitList.size(); }
     AudioUnit * getUnitById(ID id); //for building track graph???
     const std::vector<std::unique_ptr<AudioUnit>> & getAllUnits() const { return _unitList; }
+
+    ID getNextUnitId() const;
 
     const std::vector<AudioRoute> & routes() const { return _routes; }
     void addRoute(AudioRoute route) { _routes.push_back(route); }
@@ -67,7 +72,6 @@ class Project {
     ClipStorage & clipStorage() { return _clipStorage; }
     
     ClipItem * findClipItemById(ID id);
-    // static Common::Status modifyClipItem(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp);
 
     private:
     bool _isSolo;
@@ -78,7 +82,14 @@ class Project {
     RenderPlan * _renderPlan2;
     
     Timeline _timeline;
-    
+
+    ID _unitIDCounter;
+    ID _clipIDCounter;
+    ID _audioRouteIDCounter;
+    ID _midiRouteIDCounter;
+    ID _sequenceIDCounter;
+    ID _modulationIDCounter;
+
     std::vector<std::unique_ptr<AudioUnit>> _unitList;
     std::vector<AudioRoute> _routes;
     std::vector<MidiRoute> _midiRoutes;

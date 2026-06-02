@@ -21,6 +21,7 @@
 
 #include <string>
 #include <algorithm>
+#include <vector>
 
 namespace PushUI {
 
@@ -48,6 +49,8 @@ const std::vector<PushLib::ButtonColor> _colors = {
 static int playColor = 1;
 
 static RootWidget * _rootInstance = nullptr;
+
+std::vector<std::unique_ptr<UnitUIBase>> _removedUnits;
 
 std::vector<PushLib::BoundingBox> _dirtyRegions;
 
@@ -236,7 +239,38 @@ void RootWidget::createUI(const slr::UnitDescriptor *desc, const std::shared_ptr
     // LOG_INFO("Push create UI for %s", mod->_name->data());
 }
 
-void RootWidget::destroyUI(slr::ID id) {
+void RootWidget::restoreUI(slr::ID id) {
+    auto it = std::find_if(
+        _puictx._unitUIs.begin(),
+        _puictx._unitUIs.end(),
+        [id](const auto & ui) {
+            return id == ui->id();
+        }
+    );
+
+    if(it == _puictx._unitUIs.end()) {
+        LOG_ERROR("Failed to find such UI for id %u", id);
+        return;
+    }
+
+    UnitUIBase * ptr = (*it).get();
+    _puictx._unitUIs.push_back(std::move(*it));
+
+    int y = 0;
+    for(auto &ui : _puictx._unitUIs) {
+        DefaultGridUI * grid = ui->gridUI();
+        PushLib::Vec2 oldPos = grid->position();
+        int newy = (70 * y) + (5*y) + 13;
+        PushLib::Vec2 newPos = PushLib::Vec2(oldPos.x(), newy);
+        grid->position(newPos);
+        y++;
+    }
+
+    ptr->show();
+    // _uiContext.setLastSelected(nullptr);
+}
+
+void RootWidget::removeUI(slr::ID id) {
     auto it = std::find_if(
             _puictx._unitUIs.begin(),
             _puictx._unitUIs.end(),
@@ -250,8 +284,8 @@ void RootWidget::destroyUI(slr::ID id) {
         return;
     }
     
-    std::unique_ptr<UnitUIBase> ui = std::move(*it);
-    ui->destroy(&_puictx);
+    (*it)->hide();
+    _removedUnits.push_back(std::move(*it));
     _puictx._unitUIs.erase(it);
 
     int y = 0;
@@ -265,6 +299,25 @@ void RootWidget::destroyUI(slr::ID id) {
     }
 
     // LOG_INFO("Push destroy UI for id %d", id);
+}
+
+void RootWidget::deleteUI(slr::ID id) {
+    // base->destroy(&_puictx);
+    auto it = std::find_if(
+            _puictx._unitUIs.begin(),
+            _puictx._unitUIs.end(),
+            [id](const auto & ui) {
+                return id == ui->id();
+            }
+    );
+
+    if(it == _puictx._unitUIs.end()) {
+        LOG_ERROR("Failed to find UI to delete id %u", id);
+        return;
+    }
+    
+    (*it)->destroy(&_puictx);
+    _removedUnits.erase(it);
 }
 
 void RootWidget::clearUI() {

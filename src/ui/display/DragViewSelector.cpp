@@ -47,12 +47,10 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
     _lastDragX = -1;
     _lastDragY = -1;
 
-    // _timDrag = std::unique_ptr(lv_create_timer(&DragViewSelector::timerClb, 200, this), [](lv_obj_t *obj) {
-    //     lv_obj_delete(obj);
-    // });
-    _timDrag = lv_timer_create(&DragViewSelector::timerClb, 2000, this);
+    _timDrag = lv_timer_create(&DragViewSelector::timerClb, 1500, this);
     lv_timer_pause(_timDrag);
     lv_timer_set_auto_delete(_timDrag, false);
+    // lv_timer_set_repeat_count(_timDrag, 1);
 
     _gridZoneRect = lv_obj_create(lvhost());
     lv_obj_set_size(_gridZoneRect, gridZone.w, gridZone.h);
@@ -94,7 +92,7 @@ void DragViewSelector::update() {
 void DragViewSelector::reset() {
     _lastDragX = -1;
     _lastDragY = -1;
-    // lv_timer_reset(_timDrag);
+    lv_timer_reset(_timDrag);
     lv_timer_pause(_timDrag);
 
 }
@@ -118,7 +116,6 @@ bool DragViewSelector::handleDrag(GestLib::DragGesture & drag) {
         }
     } else if(drag.state == GestLib::GestureState::End) {
         LOG_INFO("Drag End x: %d, y: %d", drag.x, drag.y);
-        
         ctx.reset();
     }
 
@@ -129,6 +126,7 @@ void DragViewSelector::timerClb(lv_timer_t * timer) {
     DragViewSelector * _this = static_cast<DragViewSelector*>(lv_timer_get_user_data(timer));
     if(_this->_lastDragX == -1 || _this->_lastDragY == -1) {
         //oops
+        LOG_ERROR("Unexpected Drag Selector timer callback");
         return;
     }
 

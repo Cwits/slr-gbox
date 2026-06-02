@@ -30,6 +30,9 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
 	
 	switch(_step) {
 		case(1): {
+            _oldValues.bpm = ctx.project->timeline().bpm();
+            _oldValues.sig = ctx.project->timeline().getBarSize();
+
             _flat.tl = &ctx.project->timeline();
             _flat.bpm = _action.bpm;
             _flat.sig = _action.sig;
@@ -69,6 +72,28 @@ void ChangeSignatureBpmAction::ChangeSigBpm::execRT() {
     tl->setBpm(bpm);
     tl->setBarSize(sig);
     completed.store(true, std::memory_order_release);
+}
+
+void ChangeSignatureBpmAction::undo(ControlContext &ctx) {
+    // Actions::ChangeSignatureBpm tmp = _action;
+    // _action = _oldValues;
+    // _oldValues = tmp;
+    // _step = 1;
+    // setState(ActionState::Executing);
+    auto act = std::make_unique<Actions::ChangeSignatureBpm>();
+    *act = _oldValues;
+    EmitAction(std::move(act));
+}
+
+void ChangeSignatureBpmAction::redo(ControlContext &ctx) {
+    // Actions::ChangeSignatureBpm tmp = _action;
+    // _action = _oldValues;
+    // _oldValues = tmp;
+    // _step = 1;
+    // setState(ActionState::Executing);
+    auto act = std::make_unique<Actions::ChangeSignatureBpm>();
+    *act = _action;
+    EmitAction(std::move(act));
 }
 
 std::unique_ptr<ActionExecutable> createChangeSignatureBpmAction(const ActionBase*base) {

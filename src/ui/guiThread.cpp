@@ -162,6 +162,7 @@ void runGui() {
             // print_sdl_event(event);
         }
 #endif
+        uint32_t mills = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTick).count();
 
         {
             while(true) {
@@ -175,13 +176,11 @@ void runGui() {
             }
         }
 
-        uint32_t mills = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTick).count();
-        
-        main->pollUIUpdate();
-
         lastTick = now;
         lv_tick_inc(mills); // Update the tick timer. Tick is new for LVGL 9
         uint32_t ret = lv_timer_handler(); // Update the UI-
+
+        main->pollUIUpdate();
 
         elapsed = std::chrono::steady_clock::now();
         mills = std::chrono::duration_cast<std::chrono::microseconds>(elapsed - now).count();

@@ -85,44 +85,6 @@ bool AudioUnit::isMuted(const AudioContext &ctx) {
     return false;
 }
 
-/*
-Common::Status AudioUnit::setParameter(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) { 
-    AudioUnit * u = ev.setParameter.unit;
-    u->_flatParameterList[ev.setParameter.parameterId]->setValue(ev.setParameter.value);
-    
-    resp.type = FlatEvents::FlatResponse::Type::SetParameter;
-    resp.status = Common::Status::Ok;
-    resp.commandId = ev.commandId;
-    resp.setParameter.unit = u;
-    resp.setParameter.parameterId = ev.setParameter.parameterId;
-    resp.setParameter.value = ev.setParameter.value;
-    return Common::Status::Ok;
-}
-
-Common::Status AudioUnit::toggleMidiThru(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    AudioUnit *u = ev.toggleMidiThru.unit;
-    u->_midiThru = ev.toggleMidiThru.newState;
-
-    resp.type = FlatEvents::FlatResponse::Type::ToggleMidiThru;
-    resp.status = Common::Status::Ok;
-    resp.commandId = ev.commandId;
-    resp.toggleMidiThru.unit = u;
-    resp.toggleMidiThru.newState = ev.toggleMidiThru.newState;
-    return Common::Status::Ok;
-}
-
-Common::Status AudioUnit::toggleOmniHwInput(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    AudioUnit *u = ev.toggleOmniHwInput.unit;
-    u->_omniHwInput = ev.toggleOmniHwInput.newState;
-
-    resp.type = FlatEvents::FlatResponse::Type::ToggleOmniHwInput;
-    resp.status = Common::Status::Ok;
-    resp.commandId = ev.commandId;
-    resp.toggleOmniHwInput.unit = u;
-    resp.toggleOmniHwInput.newState = ev.toggleOmniHwInput.newState;
-    return Common::Status::Ok;
-}
-*/
 void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
 
 }
@@ -200,18 +162,5 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
 }
 
 void AudioUnit::clearMidiBuffer() { _midiInput->clear(); }
-/*
-Common::Status AudioUnit::swapContainer(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    resp.swapContainer.oldContainer = ev.swapContainer.unit->_clipContainer;
-    
-    ev.swapContainer.unit->_clipContainer = ev.swapContainer.container;
-    
-    resp.type = FlatEvents::FlatResponse::Type::SwapContainer;
-    resp.status = Common::Status::Ok;
-    resp.swapContainer.unit = ev.swapContainer.unit;
-    resp.swapContainer.newContainer = ev.swapContainer.container;
-    resp.commandId = ev.commandId;
-    return Common::Status::Ok;
-}
-*/
+
 }

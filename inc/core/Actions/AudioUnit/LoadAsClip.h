@@ -17,15 +17,15 @@ struct ActionBase;
 struct AudioUnit;
 // struct ClipContainer;
 
-struct LoadAsClipAction : public ActionExecutable, public Undoable {
+struct LoadAsClipAction : public ActionExecutable {
     LoadAsClipAction(const ActionBase *base);
     ~LoadAsClipAction();
 
     void exec(ControlContext &ctx) override;
     void checkWaitingCondition(ControlContext &ctx) override;
 
-    void undo(ControlContext &ctx) override;
-    void redo(ControlContext &ctx) override;
+    // void undo(ControlContext &ctx) override;
+    // void redo(ControlContext &ctx) override;
 
     private:
     const Actions::LoadAsClip _action;

@@ -24,6 +24,7 @@
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
+#include "snapshots/FileContainerView.h"
 
 #include "logger.h"
 
@@ -36,7 +37,7 @@ namespace slr {
 
 
 
-bool serialize(ControlContext &ctx) {
+bool Serializer::serialize(ControlContext &ctx) {
     //assume project has name(but it might not be unique)
 
     //if path.empty() than this is new project and never was saved before
@@ -79,6 +80,7 @@ bool serialize(ControlContext &ctx) {
     json["MAGIC"] = "SLRProject";
     json["Version"] = 0.01;
     json["Project Name"] = ctx.projectView->name();
+
     json["Timeline"]["BPM"] = timeline.bpm();
     json["Timeline"]["Bar Size"]["Numerator"] = timeline.getBarSize()._numerator;
     json["Timeline"]["Bar Size"]["Denominator"] = timeline.getBarSize()._denominator;
@@ -111,22 +113,11 @@ bool serialize(ControlContext &ctx) {
     json["Files Count"] = files.size();
 
     for(const File *f : files) {
-        nlohmann::ordered_json filesub;
-
         auto saveTask = std::make_unique<Tasks::saveFile>();
         saveTask->fileId = f->id();
         ctx.fileWorker->addTask(std::move(saveTask));
 
-        filesub["ID"] = f->id();
-        // std::string fullpath = f->path();
-        // if(fullpath.at(fullpath.size()) != '/') {
-        //     fullpath += '/';
-        // }
-
-        // fullpath += f->name();
-
-        filesub["Full Path"] = f->path();
-        filesub["Offline"] = f->offline();
+        nlohmann::ordered_json filesub = saveFile(f);
         json["Files"].push_back(filesub);
     }
 
@@ -135,14 +126,8 @@ bool serialize(ControlContext &ctx) {
     const std::vector<ClipItem*> items = storage.items();
     json["Clips Count"] = items.size();
     for(const ClipItem *clip : items) {
-        nlohmann::ordered_json subclip;
+        nlohmann::ordered_json subclip = saveClip(clip);
 
-        subclip["ID"] = clip->id();
-        subclip["Start"] = clip->startPosition();
-        subclip["Length"] = clip->length();
-        subclip["File Offset"] = clip->fileOffset();
-        subclip["Is Muted"] = clip->isMuted();
-        subclip["File ID"] = clip->_file->id();
         json["Clips"].push_back(subclip);
     }
 
@@ -189,6 +174,41 @@ bool serialize(ControlContext &ctx) {
     f.close();
 
     return true;
+}
+
+nlohmann::ordered_json Serializer::saveClip(const ClipItem *clip) {
+    nlohmann::ordered_json ret;
+
+    ret["ID"] = clip->id();
+    ret["Start"] = clip->startPosition();
+    ret["Length"] = clip->length();
+    ret["File Offset"] = clip->fileOffset();
+    ret["Is Muted"] = clip->isMuted();
+    ret["File ID"] = clip->_file->id();
+    return ret;
+}
+
+nlohmann::ordered_json Serializer::saveClip(const ClipItemView *clip) {
+    nlohmann::ordered_json ret;
+
+    ret["ID"] = clip->id();
+    ret["Start"] = clip->startPosition();
+    ret["Length"] = clip->length();
+    ret["File Offset"] = clip->fileOffset();
+    ret["Is Muted"] = clip->muted();
+    ret["File ID"] = clip->file()->id();
+    return ret;
+}
+
+//saves only file id and full path
+nlohmann::ordered_json Serializer::saveFile(const File *file) {
+    nlohmann::ordered_json ret;
+
+    ret["ID"] = file->id();
+    ret["Full Path"] = file->path();
+    ret["Offline"] = file->offline();
+    
+    return ret;
 }
 
 nlohmann::json Deserializer::loadJson(const std::string &path) {

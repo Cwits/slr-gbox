@@ -65,7 +65,8 @@ bool BufferManager::shutdown() {
 }
 
 bool BufferManager::clear() {
-    LOG_FATAL("Not implemented");
+    // LOG_FATAL("Not implemented");
+    LOG_ERROR("Buffer Manager Clearing not implemented yet!");
     return false;
 }
 

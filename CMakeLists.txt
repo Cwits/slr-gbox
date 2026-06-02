@@ -49,15 +49,32 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/shared)
 
-#generate events and handles
-#add_custom_target(
-#    run_codegen
-#    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/GenaV3/main.py
-#    COMMENT "Running code generator...(always)"
-#    # VERBATIM
-#)
-
 add_subdirectory(external)
+
+
+set(LIBRARIES lvgl::lvgl
+              SDL2::SDL2
+              ${LIBSNDFILE_LIBRARIES}
+              PkgConfig::JACK
+              loguru::loguru
+              GestLib
+              ALSA::ALSA
+              ${LIBUSB_LIBRARY})
+
+
+### Grab all our units to compile ###
+#add_subdirectory(units)
+
+#grab all targets
+#set(FXTARGETS )
+#get_property(_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/units PROPERTY SUBDIRECTORIES)
+#foreach(_dir IN LISTS _dirs)
+#    get_property(FX DIRECTORY ${_dir} PROPERTY BUILDSYSTEM_TARGETS)
+#    list(APPEND FXTARGETS "${FX}")
+#endforeach()
+
+#message("List of units to build:")
+#message("${FXTARGETS}")
 
 file(GLOB SOURCES
   #actions
@@ -77,6 +94,8 @@ file(GLOB SOURCES
   src/core/Actions/Project/SaveProject.cpp
   src/core/Actions/Project/LoadProject.cpp
   src/core/Actions/Project/UpdateRenderPlan.cpp
+  src/core/Actions/Project/Undo.cpp
+  src/core/Actions/Project/Redo.cpp
 
   src/core/Actions/Timeline/ChangeSignatureBpm.cpp
   src/core/Actions/Timeline/ChangeTimelineState.cpp
@@ -257,16 +276,6 @@ add_library(slrlib ${SOURCES})
 #add_dependencies(slrlib run_codegen)
 
 add_executable(slr src/main.cpp)
-
-set(LIBRARIES lvgl::lvgl
-              SDL2::SDL2
-              ${LIBSNDFILE_LIBRARIES}
-              PkgConfig::JACK
-              loguru::loguru
-              GestLib
-              ALSA::ALSA
-              ${LIBUSB_LIBRARY})
-
 
 target_link_libraries(slrlib ${LIBRARIES})
 
