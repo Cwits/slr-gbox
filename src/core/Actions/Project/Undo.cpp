@@ -35,13 +35,16 @@ void UndoAction::exec(ControlContext &ctx) {
         std::unique_ptr<Undoable> a = std::move(ctx._undo->back());
         ctx._undo->pop_back();
 
-        a->undo(ctx);
+        ActionExecutable * exec = dynamic_cast<ActionExecutable*>(a.get());
+        
+        a->undo(ctx, exec);
 
+        a.release();
+        std::unique_ptr<ActionExecutable> ex(exec);
         {
             //block mutex, add event to queue again
-            ActionExecutable * exec = dynamic_cast<ActionExecutable*>(a.get());
-            a.release();
-            std::unique_ptr<ActionExecutable> ex(exec);
+
+
             std::unique_lock l(*ctx._actionMutex);
             ctx._actions->push_back(std::move(ex));
         }

@@ -74,27 +74,27 @@ void ChangeSignatureBpmAction::ChangeSigBpm::execRT() {
     completed.store(true, std::memory_order_release);
 }
 
-void ChangeSignatureBpmAction::undo(ControlContext &ctx) {
-    // Actions::ChangeSignatureBpm tmp = _action;
-    // _action = _oldValues;
-    // _oldValues = tmp;
-    // _step = 1;
-    // setState(ActionState::Executing);
-    auto act = std::make_unique<Actions::ChangeSignatureBpm>();
-    *act = _oldValues;
-    EmitAction(std::move(act));
-}
+// void ChangeSignatureBpmAction::undo(ControlContext &ctx) {
+//     // Actions::ChangeSignatureBpm tmp = _action;
+//     // _action = _oldValues;
+//     // _oldValues = tmp;
+//     // _step = 1;
+//     // setState(ActionState::Executing);
+//     auto act = std::make_unique<Actions::ChangeSignatureBpm>();
+//     *act = _oldValues;
+//     EmitAction(std::move(act));
+// }
 
-void ChangeSignatureBpmAction::redo(ControlContext &ctx) {
-    // Actions::ChangeSignatureBpm tmp = _action;
-    // _action = _oldValues;
-    // _oldValues = tmp;
-    // _step = 1;
-    // setState(ActionState::Executing);
-    auto act = std::make_unique<Actions::ChangeSignatureBpm>();
-    *act = _action;
-    EmitAction(std::move(act));
-}
+// void ChangeSignatureBpmAction::redo(ControlContext &ctx) {
+//     // Actions::ChangeSignatureBpm tmp = _action;
+//     // _action = _oldValues;
+//     // _oldValues = tmp;
+//     // _step = 1;
+//     // setState(ActionState::Executing);
+//     auto act = std::make_unique<Actions::ChangeSignatureBpm>();
+//     *act = _action;
+//     EmitAction(std::move(act));
+// }
 
 std::unique_ptr<ActionExecutable> createChangeSignatureBpmAction(const ActionBase*base) {
     return std::make_unique<ChangeSignatureBpmAction>(base);

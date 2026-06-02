@@ -35,14 +35,15 @@ void RedoAction::exec(ControlContext &ctx) {
         std::unique_ptr<Undoable> a = std::move(ctx._redo->back());
         ctx._redo->pop_back();
 
-        a->redo(ctx);
+        ActionExecutable * exec = dynamic_cast<ActionExecutable*>(a.get());
+        
+        a->redo(ctx, exec);
 
+        a.release();
+        std::unique_ptr<ActionExecutable> ex(exec);
         
         {
             //block mutex, add event to queue again
-            ActionExecutable * exec = dynamic_cast<ActionExecutable*>(a.get());
-            a.release();
-            std::unique_ptr<ActionExecutable> ex(exec);
             std::unique_lock l(*ctx._actionMutex);
             ctx._actions->push_back(std::move(ex));
         }

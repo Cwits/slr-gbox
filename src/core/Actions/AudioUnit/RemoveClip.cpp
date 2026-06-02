@@ -142,13 +142,13 @@ void RemoveClipAction::checkWaitingCondition(ControlContext &ctx) {
     }
 }
 
-void RemoveClipAction::undo(ControlContext &ctx) {
+// void RemoveClipAction::undo(ControlContext &ctx) {
 
-}
+// }
 
-void RemoveClipAction::redo(ControlContext &ctx) {
+// void RemoveClipAction::redo(ControlContext &ctx) {
 
-}
+// }
 
 std::unique_ptr<ActionExecutable> createRemoveClipAction(const ActionBase *base) {
     return std::make_unique<RemoveClipAction>(base);

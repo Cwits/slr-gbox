@@ -20,8 +20,8 @@ struct RemoveClipAction : public ActionExecutable, public Undoable {
     void exec(ControlContext &ctx) override;
     void checkWaitingCondition(ControlContext &ctx) override;
 
-    void undo(ControlContext &ctx) override;
-    void redo(ControlContext &ctx) override;
+    // void undo(ControlContext &ctx) override;
+    // void redo(ControlContext &ctx) override;
 
     private:
     const Actions::RemoveClip _action;

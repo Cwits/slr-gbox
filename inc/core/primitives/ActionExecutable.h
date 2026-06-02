@@ -20,12 +20,7 @@ enum class ActionDirection {
 	Backward
 };
 
-
-struct Undoable {
-	virtual ~Undoable() = default;
-	virtual void undo(ControlContext &ctx) = 0;
-	virtual void redo(ControlContext &ctx) = 0;
-};
+struct Undoable;
 
 struct ActionExecutable {
 	ActionExecutable() {
@@ -55,6 +50,22 @@ struct ActionExecutable {
 	
 	private:
 	std::atomic<ActionState> state;
+
+	friend class Undoable;
+};
+
+struct Undoable {
+	virtual ~Undoable() = default;
+	void undo(ControlContext &ctx, ActionExecutable *self) {
+		self->_step = 1;
+		self->_direction = ActionDirection::Backward;
+		self->setState(ActionState::Executing);
+	}
+	void redo(ControlContext &ctx, ActionExecutable *self) {
+		self->_step = 1;
+		self->_direction = ActionDirection::Forward;
+		self->setState(ActionState::Executing);
+	}
 };
 
 }

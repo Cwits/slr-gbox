@@ -148,17 +148,17 @@ void DeleteUnitAction::checkWaitingCondition(ControlContext &ctx) {
 	}
 }
 
-void DeleteUnitAction::undo(ControlContext &ctx) {
-	_step = 1;
-	_direction = ActionDirection::Backward;
-	setState(ActionState::Executing);
-}
+// void DeleteUnitAction::undo(ControlContext &ctx) {
+// 	_step = 1;
+// 	_direction = ActionDirection::Backward;
+// 	setState(ActionState::Executing);
+// }
 
-void DeleteUnitAction::redo(ControlContext &ctx) {
-	_step = 1;
-	_direction = ActionDirection::Forward;
-	setState(ActionState::Executing);
-}
+// void DeleteUnitAction::redo(ControlContext &ctx) {
+// 	_step = 1;
+// 	_direction = ActionDirection::Forward;
+// 	setState(ActionState::Executing);
+// }
 
 std::unique_ptr<ActionExecutable> createDeleteUnitAction(const ActionBase*base) {
     return std::make_unique<DeleteUnitAction>(base);
