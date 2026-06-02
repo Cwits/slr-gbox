@@ -64,7 +64,6 @@ void ToggleOmniHwAction::exec(ControlContext &ctx) {
             view->setOmniHw(_action.newState);
             UIControls::updateRouteManager();
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

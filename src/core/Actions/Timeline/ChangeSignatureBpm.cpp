@@ -47,7 +47,7 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
             ctx.projectView->timeline().setBarSize(_action.sig);
             UIControls::updateTimeline(true);
 
-        	markDelete();
+        	 
         	setState(ActionState::Finished);
 		} break;
         default: assert(false && "Unreachable"); break;

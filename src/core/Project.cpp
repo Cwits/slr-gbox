@@ -112,19 +112,36 @@ AudioUnit * Project::createUnit(BufferManager * bmem, const UnitDescriptor *desc
 }
 
 std::unique_ptr<AudioUnit> Project::removeUnit(ID id) {
-    std::size_t size = _unitList.size();
-    for(std::size_t i=0; i<size; ++i) {
-        // if(_trackList.at(i) == nullptr) continue;
-        if(_unitList.at(i).get()->id() == id) {
-            // _unitList.erase(_unitList.begin()+i);
-            std::unique_ptr<AudioUnit> ret = std::move(_unitList.at(i));
-            _unitList.erase(_unitList.begin()+i);
-            return std::move(ret);
-            // return true;
+    auto it = std::find_if(
+        _unitList.begin(),
+        _unitList.end(),
+        [id](const std::unique_ptr<AudioUnit> &p) {
+            return id == p->id();
         }
+    );
+
+    if(it == _unitList.end()) {
+        LOG_ERROR("No unit with id %u found", id);
+        return std::unique_ptr<AudioUnit>();
     }
-    // return false;
-    return nullptr;
+
+    std::unique_ptr<AudioUnit> ret = std::move(*it);
+    _unitList.erase(it);
+    return std::move(ret);
+
+    // std::size_t size = _unitList.size();
+    // for(std::size_t i=0; i<size; ++i) {
+    //     // if(_trackList.at(i) == nullptr) continue;
+    //     if(_unitList.at(i).get()->id() == id) {
+    //         // _unitList.erase(_unitList.begin()+i);
+    //         std::unique_ptr<AudioUnit> ret = std::move(_unitList.at(i));
+    //         _unitList.erase(_unitList.begin()+i);
+    //         return std::move(ret);
+    //         // return true;
+    //     }
+    // }
+    // // return false;
+    // return nullptr;
 }
 
 void Project::appendUnit(std::unique_ptr<AudioUnit> unit) { //for delete undo??

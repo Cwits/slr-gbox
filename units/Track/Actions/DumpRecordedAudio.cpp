@@ -90,7 +90,6 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
 
     ctx.fileWorker->addTask(std::move(task));
 
-    markDelete();
     setState(ActionState::Finished);
 }
 

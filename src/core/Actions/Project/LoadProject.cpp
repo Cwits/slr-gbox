@@ -294,7 +294,7 @@ void LoadProjectAction::exec(ControlContext &ctx) {
             auto act = std::make_unique<Actions::UpdateRenderPlan>();
             EmitAction(std::move(act));
 
-            markDelete();
+            ctx._undo->clear();
             setState(ActionState::Finished);
         } break;
         default: assert(false && "Unreachable"); break;

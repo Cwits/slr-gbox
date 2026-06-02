@@ -34,41 +34,57 @@ CreateNewUnitAction::~CreateNewUnitAction() {
 void CreateNewUnitAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
     
-    const UnitDescriptor *desc = UnitManagerFactory::findUnit(_action.name);
-    if(!desc) {
-        LOG_ERROR("Failed to find module %s", _action.name.c_str());
-        abortAction();
-        return;
+    if(_direction == ActionDirection::Forward) {
+        const UnitDescriptor *desc = UnitManagerFactory::findUnit(_action.name);
+        if(!desc) {
+            LOG_ERROR("Failed to find module %s", _action.name.c_str());
+            abortAction();
+            return;
+        }
+
+        ID nextId = 0;
+        if(!_action.forcedId) {
+            if(_createdUnitId == 0)
+                nextId = ctx.project->getNextUnitId();
+            else 
+                nextId = _createdUnitId;    
+        } else {
+            nextId = _action.forcedId.value();
+        }
+
+        AudioUnit * au = ctx.project->createUnit(ctx.bufferManager, desc, nextId);
+        if(!au) {
+            LOG_ERROR("Failed to create RT Unit %s", _action.name.c_str());
+            abortAction();
+            return;
+        }
+
+        std::shared_ptr<AudioUnitView> view = ctx.projectView->createUnitView(ctx, desc, au);
+        if(!view) {
+            LOG_ERROR("Failed to create unit view %s", _action.name.c_str());
+            abortAction();
+            return;
+        }
+
+        _view = view.get();
+        UIControls::addUnitUI(desc, view);
+
+        _createdUnitId = au->id();
+
+        setState(ActionState::Finished);
+    } else if(_direction == ActionDirection::Backward) {
+        UIControls::removeUI(_createdUnitId);
+
+        std::unique_ptr<AudioUnit> unit = ctx.project->removeUnit(_createdUnitId);
+        unit->destroy(ctx.bufferManager);
+
+        std::shared_ptr<AudioUnitView> uview = ctx.projectView->removeUnitView(_createdUnitId);
+
+        UIControls::deleteUI(_createdUnitId); //possible dangling unit ui??
+
+
+        setState(ActionState::Finished);
     }
-
-    ID nextId = 0;
-    if(!_action.forcedId) {
-        nextId = ctx.project->getNextUnitId();
-    } else {
-        nextId = _action.forcedId.value();
-    }
-
-    AudioUnit * au = ctx.project->createUnit(ctx.bufferManager, desc, nextId);
-    if(!au) {
-        LOG_ERROR("Failed to create RT Unit %s", _action.name.c_str());
-        abortAction();
-        return;
-    }
-
-    std::shared_ptr<AudioUnitView> view = ctx.projectView->createUnitView(ctx, desc, au);
-    if(!view) {
-        LOG_ERROR("Failed to create unit view %s", _action.name.c_str());
-        abortAction();
-        return;
-    }
-
-    _view = view.get();
-    UIControls::addUnitUI(desc, view);
-
-    _createdUnitId = au->id();
-
-    markDelete();
-    setState(ActionState::Finished);
 }
 
 void CreateNewUnitAction::checkWaitingCondition(ControlContext &ctx) {
@@ -76,16 +92,22 @@ void CreateNewUnitAction::checkWaitingCondition(ControlContext &ctx) {
 }
 
 void CreateNewUnitAction::undo(ControlContext &ctx) {
-    auto act = std::make_unique<Actions::DeleteUnit>();
-    act->targetId = _createdUnitId;
-    EmitAction(std::move(act));
+    // auto act = std::make_unique<Actions::DeleteUnit>();
+    // act->targetId = _createdUnitId;
+    // EmitAction(std::move(act));
+    _step = 1;
+    _direction = ActionDirection::Backward;
+    setState(ActionState::Executing);
 }
 
 void CreateNewUnitAction::redo(ControlContext &ctx) {
-    auto act = std::make_unique<Actions::CreateNewUnit>();
-    *act = _action;
-    EmitAction(std::move(act));
+    // auto act = std::make_unique<Actions::CreateNewUnit>();
+    // *act = _action;
+    // EmitAction(std::move(act));
     // setState(ActionState::Executing);
+    _step = 1;
+    _direction = ActionDirection::Forward;
+    setState(ActionState::Executing);
 }
 
 std::unique_ptr<ActionExecutable> createCreateNewUnitAction(const ActionBase *base) {

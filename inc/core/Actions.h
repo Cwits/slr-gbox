@@ -133,14 +133,13 @@ struct SetColor : public ActionBase {
 struct CreateNewUnit : public ActionBase {
     CreateNewUnit() {}
     CreateNewUnit(const CreateNewUnit &rhs) :
-        ActionBase(rhs), name(rhs.name), forcedId(rhs.forcedId), restoredUnit(rhs.restoredUnit) {}
+        ActionBase(rhs), name(rhs.name), forcedId(rhs.forcedId) {}
 
     std::type_index actionType() const override { return typeid(CreateNewUnit); }
 
     std::string name;
     
     std::optional<slr::ID> forcedId;
-    std::optional<nlohmann::ordered_json> restoredUnit;
 };
 
 

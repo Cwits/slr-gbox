@@ -35,7 +35,6 @@ void SetNameAction::exec(ControlContext &ctx) {
 
     view->setName(_action.newName);
 
-    markDelete();
     setState(ActionState::Finished);
 }
 

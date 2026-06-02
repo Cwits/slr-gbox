@@ -103,7 +103,9 @@ void processLoop() {
             _midiController.get(),
             _bufferManager.get(),
             &_undoList,
-            &_redoList
+            &_redoList,
+            &_actions,
+            &_actionMutex
         );
 
         if(_engine == nullptr || _engine->getState() != RtEngine::RtState::RUN) {
@@ -116,12 +118,16 @@ void processLoop() {
         std::size_t idx = 0;
         ActionExecutable * action = nullptr;
         while( (action = getAction(idx)) != nullptr ) {
-            if(action->toDelete()) continue;
+            // if(action->toDelete()) continue;
+            ActionState state = action->getState();
 
-            switch(action->getState()) {
+            //why, especially on project loading, there is some events with state finished here?
+            if(state == ActionState::Finished) continue;
+
+            switch(state) {
                 case(ActionState::Executing): action->exec(ctx); break;
                 case(ActionState::Waiting): action->checkWaitingCondition(ctx); break;
-                case(ActionState::Finished): assert(false && "Shouldn't be here"); break;
+                case(ActionState::Abort): assert(false && "Shouldn't be here"); break;
             }
         } 
 
@@ -129,36 +135,28 @@ void processLoop() {
         {
             std::shared_lock<std::shared_mutex> l(_actionMutex);
             for(std::unique_ptr<ActionExecutable> &a : _actions) {
-                if(!a->toDelete()) continue;
+                // if(!a->toDelete()) continue;
+                if(a->getState() == ActionState::Abort) continue;
                 if(a->getState() != ActionState::Finished) continue;
                 //add only finished actions...
                 
                 Undoable * undoable = dynamic_cast<Undoable*>(a.get());
                 if(!undoable) continue; //action is not undoable
                 
+                ActionDirection dir = a->direction();
                 a.release();
                 std::unique_ptr<Undoable> undo( undoable );
                 
-                //action is undoable
-                if(_undoList.size() >= 64) _undoList.pop_front();
-                _undoList.push_back(std::move(undo));
+                if(dir == ActionDirection::Forward) {
+                    //goes to undo
+                    if(_undoList.size() >= 64) _undoList.pop_front();
+                    _undoList.push_back(std::move(undo));
+                } else {
+                    //goes to redo
+                    if(_redoList.size() >= 64) _redoList.pop_front();
+                    _redoList.push_back(std::move(undo));
+                }
             }
-            // for(auto it = _actions.begin(); it != _actions.end(); ) {
-            //     std::unique_ptr<ActionExecutable> &a = *it;
-            //     if(!a->toDelete()) { ++it; continue; }
-            //     if(a->getState() != ActionState::Finished) { ++it; continue; }
-
-            //     Undoable * undoable = dynamic_cast<Undoable*>(a.get());
-            //     if(!undoable) continue;
-
-            //     a.release();
-            //     std::unique_ptr<Undoable> undo(undoable);
-
-            //     if(_undoList.size() >= 64) _undoList.pop_front();
-            //     _undoList.push_back(std::move(undo));
-
-            //     // it = _actions.erase(it);
-            // }
         }
 
         //clean up actions
@@ -172,25 +170,18 @@ void processLoop() {
                     continue;
                 }
 
-                if(p->toDelete()) {
-                    _actions.erase(_actions.begin()+i);
+                ActionState state = p->getState();
+                if(state == ActionState::Abort) {
+                    _actions.erase(_actions.begin() + i);
+                    i=0;
+                    continue;
+                } else if(state == ActionState::Finished) {
+                    _actions.erase(_actions.begin() + i);
                     i=0;
                     continue;
                 }
-
                 ++i;
             }
-            
-            // _actions.erase(
-            //     std::remove_if(
-            //         _actions.begin(),
-            //         _actions.end(),
-            //         [](const std::unique_ptr<ActionExecutable> &a) {
-            //             return a->toDelete();
-            //         }
-            //     ),
-            //     _actions.end()
-            // );
         }
 
         {

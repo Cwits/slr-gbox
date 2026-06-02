@@ -14,6 +14,7 @@
 #include "logger.h"
 
 #include <cassert>
+#include <mutex>
 
 namespace slr {
 
@@ -36,12 +37,16 @@ void RedoAction::exec(ControlContext &ctx) {
 
         a->redo(ctx);
 
-        // if(ctx._undo->size() >= 64) {
-        //     ctx._undo->pop_front();
-        // }
-        // ctx._undo->push_back(std::move(a));
+        
+        {
+            //block mutex, add event to queue again
+            ActionExecutable * exec = dynamic_cast<ActionExecutable*>(a.get());
+            a.release();
+            std::unique_ptr<ActionExecutable> ex(exec);
+            std::unique_lock l(*ctx._actionMutex);
+            ctx._actions->push_back(std::move(ex));
+        }
     }
-    markDelete();
     setState(ActionState::Finished);
 }
 

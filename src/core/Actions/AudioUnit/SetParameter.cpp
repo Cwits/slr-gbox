@@ -69,7 +69,6 @@ void SetParameterAction::exec(ControlContext &ctx) {
 
             uview->setParameter(_action.parameterId, _action.value);
             
-            markDelete();
             setState(ActionState::Finished);
         } break;
         default: assert(false && "Unreachable"); break;

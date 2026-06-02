@@ -104,7 +104,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
 
     setSize(LayoutDef::TRACK_CONTROL_PANEL_WIDTH, LayoutDef::TRACK_HEIGHT);
     int y = LayoutDef::calcTrackY(_uibase->uictx()->_unitsUI.size());
-    LOG_INFO("Setting grid y position of %u to %i", _uibase->id(), y);
+    // LOG_INFO("Setting grid y position of %u to %i", _uibase->id(), y);
     setPos(0, y);
 
     lv_obj_set_style_bg_color(lvhost(),

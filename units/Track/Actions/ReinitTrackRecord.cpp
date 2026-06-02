@@ -82,7 +82,6 @@ void ReinitTrackRecordAction::exec(ControlContext &ctx) {
     	case(2): {
             
             LOG_INFO("Record reinit done");
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

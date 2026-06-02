@@ -27,7 +27,7 @@ void SaveProjectAction::exec(ControlContext &ctx) {
         LOG_ERROR("Failed to save project");
     }
 
-    markDelete();
+     
     setState(ActionState::Finished);
 }
 

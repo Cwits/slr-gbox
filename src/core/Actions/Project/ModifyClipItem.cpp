@@ -63,7 +63,7 @@ void ModifyClipItemAction::exec(ControlContext &ctx) {
             //TODO: update with values from action or flat task...
             item->update(_action.startPosition, _action.length, _action.fileStartOffset, _action.muted);
 
-            markDelete();
+             
             setState(ActionState::Finished);
         } break;
         default: assert(false && "Unreachable"); break;

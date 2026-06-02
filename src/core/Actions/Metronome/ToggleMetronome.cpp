@@ -50,7 +50,6 @@ void ToggleMetronomeAction::exec(ControlContext &ctx) {
             bool val = floatToBool(_flat.value);
             UIControls::updateMetronomeState(val ? false : true);
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

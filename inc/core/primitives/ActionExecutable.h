@@ -6,13 +6,20 @@
 
 namespace slr {
 
+struct ControlContext;
+
 enum class ActionState {
+	Abort,
 	Executing,
 	Waiting,
 	Finished
 };
 
-struct ControlContext;
+enum class ActionDirection {
+	Forward,
+	Backward
+};
+
 
 struct Undoable {
 	virtual ~Undoable() = default;
@@ -22,9 +29,9 @@ struct Undoable {
 
 struct ActionExecutable {
 	ActionExecutable() {
-		setState(ActionState::Executing);
+		_direction = ActionDirection::Forward;
     	_step = 1;
-		_toDelete = false;
+		setState(ActionState::Executing);
 	}
 	virtual ~ActionExecutable() {}
 	virtual void exec(ControlContext &ctx) = 0;
@@ -34,20 +41,19 @@ struct ActionExecutable {
 		return state.load(std::memory_order_acquire);
 	}
 	
-	bool toDelete() const { return _toDelete; }
-	
+	ActionDirection direction() const { return _direction; }
+
 	protected:
 	int _step;
+	ActionDirection _direction;
 
-	void markDelete() { _toDelete = true; }
 	void setState(ActionState s) {
 		state.store(s, std::memory_order_release);
 	}
 
-	void abortAction() { markDelete(); setState(ActionState::Finished);}
+	void abortAction() { setState(ActionState::Abort);}
 	
 	private:
-	bool _toDelete;
 	std::atomic<ActionState> state;
 };
 

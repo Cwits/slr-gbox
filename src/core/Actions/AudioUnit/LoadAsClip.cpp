@@ -166,7 +166,6 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
 
             uview->_clipContainer.addClipItem(cview);
             
-            markDelete();
             setState(ActionState::Finished);
         } break;
         default: assert(false && "Unreachable"); break;

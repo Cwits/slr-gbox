@@ -115,7 +115,6 @@ void LoadAssetAction::exec(ControlContext &ctx) {
 
             sview->update();
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

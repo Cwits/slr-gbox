@@ -60,7 +60,6 @@ void AddNewMidiRouteAction::exec(ControlContext &ctx) {
             ctx.projectView->updateRoutes(ctx.project->midiRoutes());
             UIControls::updateRouteManager();
             
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

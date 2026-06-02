@@ -109,7 +109,6 @@ void RecordArmAction::exec(ControlContext &ctx) {
 
             trview->update();
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

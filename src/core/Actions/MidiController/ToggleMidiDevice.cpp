@@ -207,7 +207,6 @@ void ToggleMidiDeviceAction::exec(ControlContext &ctx) {
                 setState(ActionState::Waiting);
                 ctx.EmitRtTask(&_task);
             } else {
-                markDelete();
                 setState(ActionState::Finished);
             }
 
@@ -226,7 +225,6 @@ void ToggleMidiDeviceAction::exec(ControlContext &ctx) {
             delete _flat.oldInput;
             delete _flat.oldOutput;
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

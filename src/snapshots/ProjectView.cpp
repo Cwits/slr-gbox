@@ -12,6 +12,8 @@
 
 #include "logger.h"
 
+#include <algorithm>
+
 namespace slr {
 
 
@@ -59,26 +61,23 @@ AudioUnitView * ProjectView::getUnitById(ID id) {
 }
 
 std::shared_ptr<AudioUnitView> ProjectView::removeUnitView(ID id) {
-    std::size_t pos = 0;
-    bool found = false;
-    for(std::size_t i=0; i<_unitViewList.size(); ++i) {
-        AudioUnitView * potential = _unitViewList.at(i).get();
-        if(potential->id() == id) {
-            pos = i;
-            found = true;
+    auto it = std::find_if(
+        _unitViewList.begin(),
+        _unitViewList.end(),
+        [id](const std::shared_ptr<AudioUnitView> &v) {
+            return id == v->id();
         }
-    }
+    );
 
-    // AudioUnitView * unit = nullptr;
-    if(found) {
-        std::shared_ptr<AudioUnitView> unit = _unitViewList.at(pos);
-        _unitViewList.erase(_unitViewList.begin() + pos);
-        incrementVersion();
-        return unit;
-    } else {
-        LOG_ERROR("Failed to find unit with id %u", id);
+    if(it == _unitViewList.end()) {
+        LOG_ERROR("Failed to remove view for id %u", id);
         return std::shared_ptr<AudioUnitView>();
     }
+
+    std::shared_ptr<AudioUnitView> ret = *it;
+    _unitViewList.erase(it);
+    incrementVersion();
+    return ret;
 }
 
 void ProjectView::appendUnit(std::shared_ptr<AudioUnitView> view) {

@@ -61,7 +61,6 @@ void AddNewRouteAction::exec(ControlContext &ctx) {
             ctx.projectView->updateRoutes(ctx.project->routes());
             UIControls::updateRouteManager();
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

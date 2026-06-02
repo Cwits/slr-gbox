@@ -121,7 +121,6 @@ void RemoveClipAction::exec(ControlContext &ctx) {
 
             LOG_INFO("Clip %u removed from unit %u successfully", _action.clipId, _action.targetId);
         
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

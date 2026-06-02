@@ -52,6 +52,8 @@ struct DeleteUnitAction : public ActionExecutable, public Undoable {
     std::vector<MidiRoute> _midiRoutes;
 
     BufferManager * _bmanptr;
+
+    void saveAndRemoveRoutes(ControlContext &ctx);
 };	
 
 std::unique_ptr<ActionExecutable> createDeleteUnitAction(const ActionBase*);

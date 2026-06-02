@@ -47,7 +47,7 @@ void UpdateRenderPlanAction::exec(ControlContext &ctx) {
     	} break;
     	case(2): {
 
-            markDelete();
+             
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

@@ -38,7 +38,6 @@ void SetColorAction::exec(ControlContext &ctx) {
 
     uView->color(_action.color);
 
-    markDelete();
     setState(ActionState::Finished);
 }
 

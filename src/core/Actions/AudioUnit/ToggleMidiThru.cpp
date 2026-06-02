@@ -64,7 +64,6 @@ void ToggleMidiThruAction::exec(ControlContext &ctx) {
             view->setMidiThru(_action.newState);
             UIControls::updateRouteManager();
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;

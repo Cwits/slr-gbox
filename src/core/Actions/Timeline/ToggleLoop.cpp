@@ -41,7 +41,7 @@ void ToggleLoopAction::exec(ControlContext &ctx) {
 		case(2): {
 			ctx.projectView->timeline().update();
 			UIControls::updateTimeline(false);
-        	markDelete();
+        	 
         	setState(ActionState::Finished);
 		} break;
         default: assert(false && "Unreachable"); break;

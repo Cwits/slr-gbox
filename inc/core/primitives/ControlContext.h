@@ -5,6 +5,8 @@
 #include "defines.h"
 #include <deque>
 #include <memory>
+#include <shared_mutex>
+#include <vector>
 
 namespace slr {
 
@@ -15,6 +17,7 @@ class ProjectView;
 class RtEngine;
 class MidiController;
 class BufferManager;
+struct ActionExecutable;
 
 struct RtTask;
 
@@ -27,7 +30,9 @@ struct ControlContext {
         MidiController *mc, 
         BufferManager *bm,
         std::deque<std::unique_ptr<Undoable>> *undo,
-        std::deque<std::unique_ptr<Undoable>> *redo
+        std::deque<std::unique_ptr<Undoable>> *redo,
+        std::vector<std::unique_ptr<ActionExecutable>> *actions,
+        std::shared_mutex *actionMutex
     ) : project(prj), 
         fileWorker(fw), 
         engine(rt), 
@@ -36,6 +41,8 @@ struct ControlContext {
         bufferManager(bm), 
         _undo(undo), 
         _redo(redo),
+        _actions(actions),
+        _actionMutex(actionMutex),
         _nonConstEngine(rt) {} 
 
     Project * const project;
@@ -47,6 +54,9 @@ struct ControlContext {
     
     std::deque<std::unique_ptr<Undoable>> * const _undo;
     std::deque<std::unique_ptr<Undoable>> * const _redo;
+
+    std::vector<std::unique_ptr<ActionExecutable>> *_actions;
+    std::shared_mutex *_actionMutex;
 
     //placeholder for future improvements
     bool prohibitAllocation(std::size_t size) const { 
