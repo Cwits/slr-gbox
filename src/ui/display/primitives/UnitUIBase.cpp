@@ -34,7 +34,7 @@ UnitUIBase::UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, UI
 }
 
 UnitUIBase::~UnitUIBase() {
-    LOG_INFO("Display Unit UI deleted");
+    // LOG_INFO("Display Unit UI deleted");
 }
 
 const slr::ID UnitUIBase::id() const {
@@ -49,16 +49,28 @@ bool UnitUIBase::destroy(UIContext * ctx) {
     return true;
 }
 
+void UnitUIBase::show() {
+    gridUI()->showFiles();
+    gridUI()->show();
+    unitUI()->show();
+}
+
+void UnitUIBase::hide() {
+    gridUI()->hideFiles();
+    gridUI()->hide();
+    unitUI()->hide();
+}
+
 UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx) {
     setSize(300, 300);
     setPos(LayoutDef::TRACK_CONTROL_PANEL_WIDTH-100, 150);
 
-    _deleteBtn = new Button(this, LV_SYMBOL_TRASH);
-    _deleteBtn->setPos(10, 10);
-    _deleteBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _deleteBtn->setFont(&DEFAULT_FONT);
-    _deleteBtn->setCallback([this]() {
+    _btnDelete = std::make_unique<Button>(this, LV_SYMBOL_TRASH);
+    _btnDelete->setPos(10, 10);
+    _btnDelete->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnDelete->setFont(&DEFAULT_FONT);
+    _btnDelete->setCallback([this]() {
         // std::cout << "Delete track: " << (int)_track->id() << std::endl;
         LOG_INFO("Delete track: %i", _currentUnit->id());
         auto del = std::make_unique<slr::Actions::DeleteUnit>();
@@ -69,11 +81,11 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
         this->_uictx->_popManager->disableUnitControl();
     });
 
-    _routeManagerBtn = new Button(this, "Routes");
-    _routeManagerBtn->setPos(LayoutDef::BUTTON_SIZE+20, 10);
-    _routeManagerBtn->setFont(&DEFAULT_FONT);
-    _routeManagerBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _routeManagerBtn->setCallback([this]() {
+    _btnRouteManager = std::make_unique<Button>(this, "Routes");
+    _btnRouteManager->setPos(LayoutDef::BUTTON_SIZE+20, 10);
+    _btnRouteManager->setFont(&DEFAULT_FONT);
+    _btnRouteManager->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRouteManager->setCallback([this]() {
         // LOG_INFO("Call the manager!!! track %i", _currentTrack->id());
         this->_uictx->_popManager->disableUnitControl();
         this->_uictx->_popManager->enableRouteManager(this->_currentUnit->id());
@@ -81,8 +93,6 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
 }
 
 UnitControlPopup::~UnitControlPopup() {
-    delete _deleteBtn;
-    delete _routeManagerBtn;
 }
 
 
@@ -94,6 +104,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
 
     setSize(LayoutDef::TRACK_CONTROL_PANEL_WIDTH, LayoutDef::TRACK_HEIGHT);
     int y = LayoutDef::calcTrackY(_uibase->uictx()->_unitsUI.size());
+    // LOG_INFO("Setting grid y position of %u to %i", _uibase->id(), y);
     setPos(0, y);
 
     lv_obj_set_style_bg_color(lvhost(),
@@ -164,11 +175,22 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
         // std::cout << "Solo track: " << (int)_track->id() << " parid: " << "1" << std::endl;
     });
     
+    _fileContainerVersion = 0;
     show();
 }
 
 DefaultGridUI::~DefaultGridUI() {
 
+}
+
+void DefaultGridUI::showFiles() {
+    for(std::unique_ptr<FileView> &fw : _fileUIs)
+        fw->show();
+}
+
+void DefaultGridUI::hideFiles() {
+    for(std::unique_ptr<FileView> &fw : _fileUIs)
+        fw->hide();
 }
 
 void DefaultGridUI::pollFileUpdate() {
@@ -202,7 +224,7 @@ void DefaultGridUI::pollFileUpdate() {
 
                 //add to grid
                 for(std::size_t i=0; i<toAdd.size(); ++i) {
-                    std::unique_ptr<FileView> fw = std::make_unique<FileView>(uictx->grid(), _uibase, toAdd.at(i), uictx);
+                    std::unique_ptr<FileView> fw = std::make_unique<FileView>(uictx->gridGrid(), _uibase, toAdd.at(i), uictx);
                     _fileUIs.push_back(std::move(fw));
                 }
 
@@ -275,11 +297,14 @@ void DefaultGridUI::pollUIUpdate() {
 
     _lblVolume->setText(std::to_string(view->volume()));
     _lblName->setText(view->name());
+    
+    slr::Color clr = _uibase->view()->color();
+    lv_obj_set_style_bg_color(lvhost(), lv_color_make(clr.r, clr.g, clr.b), 0);
 }
 
-int DefaultGridUI::gridY() {
-    return lv_obj_get_y(lvhost());
-}
+// int DefaultGridUI::gridY() {
+//     return lv_obj_get_y(lvhost());
+// }
 
 void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
@@ -323,7 +348,7 @@ bool DefaultGridUI::handleDoubleTap(GestLib::DoubleTapGesture & dt) {
     return true;
 }
 
-DefaultModuleUI::DefaultModuleUI(BaseWidget * parent, UnitUIBase *base) 
+DefaultUnitUI::DefaultUnitUI(BaseWidget * parent, UnitUIBase *base) 
             : BaseWidget(parent, true, true) {}
-DefaultModuleUI::~DefaultModuleUI() {}
+DefaultUnitUI::~DefaultUnitUI() {}
 }

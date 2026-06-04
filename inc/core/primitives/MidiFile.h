@@ -25,7 +25,7 @@ struct MidiFile : public File {
         std::vector<SysexEvent> sysexEvents; 
     };
 
-    MidiFile();
+    MidiFile(long forcedId = -1);
     ~MidiFile();
 
     bool createTemporary(std::string &path);

@@ -24,6 +24,7 @@ class FileWorker {
 
     bool init();
     bool shutdown();
+    bool clear();
 
     template<typename T>
     void addTask(std::unique_ptr<T> task) {

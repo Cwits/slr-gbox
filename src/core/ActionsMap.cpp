@@ -13,12 +13,18 @@
 #include "core/Actions/AudioUnit/ToggleMidiThru.h"
 #include "core/Actions/AudioUnit/ToggleOmniHwInput.h"
 #include "core/Actions/AudioUnit/SetName.h"
+#include "core/Actions/AudioUnit/SetColor.h"
 
 #include "core/Actions/Project/CreateNewUnit.h"
 #include "core/Actions/Project/DeleteUnit.h"
 #include "core/Actions/Project/AddNewAudioRoute.h"
 #include "core/Actions/Project/AddNewMidiRoute.h"
 #include "core/Actions/Project/ModifyClipItem.h"
+#include "core/Actions/Project/SaveProject.h"
+#include "core/Actions/Project/LoadProject.h"
+#include "core/Actions/Project/UpdateRenderPlan.h"
+#include "core/Actions/Project/Undo.h"
+#include "core/Actions/Project/Redo.h"
 
 #include "core/Actions/Timeline/ChangeSignatureBpm.h"
 #include "core/Actions/Timeline/ChangeTimelineState.h"
@@ -43,6 +49,7 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
     map[typeid(Actions::ToggleMidiThru)] =  &createToggleMidiThruAction;
     map[typeid(Actions::ToggleOmniHwInput)] =  &createToggleOmniHwAction;
     map[typeid(Actions::SetName)] = &createSetNameAction;
+    map[typeid(Actions::SetColor)] = &createSetColorAction;
 
     //Project
     map[typeid(Actions::CreateNewUnit)] = &createCreateNewUnitAction;
@@ -50,6 +57,11 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
     map[typeid(Actions::AddNewAudioRoute)] = &createAddNewRouteAction;
     map[typeid(Actions::AddNewMidiRoute)] = &createAddNewMidiRouteAction;
     map[typeid(Actions::ModifyClipItem)] = &createModifyClipItemAction;
+    map[typeid(Actions::SaveProject)] = &createSaveProjectAction;
+    map[typeid(Actions::LoadProject)] = &createLoadProjectAction;
+    map[typeid(Actions::UpdateRenderPlan)] = &createUpdateRenderPlanAction;
+    map[typeid(Actions::Undo)] = &createUndoAction;
+    map[typeid(Actions::Redo)] = &createRedoAction;   
 
     //Timeline
     map[typeid(Actions::ChangeSignatureBpm)] = &createChangeSignatureBpmAction;

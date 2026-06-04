@@ -12,7 +12,7 @@ enum class FileType { Error = -1, Audio, Midi, AudioPeak };
 class File {
     public:
     File();
-    File(FileType type);
+    File(FileType type, long forcedId);
     virtual ~File();
 
     //temporary meaned for recording only -> creates new file

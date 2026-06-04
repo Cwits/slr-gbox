@@ -16,13 +16,20 @@ namespace slr {
 
 static ID _clipItemUniqueId = 0;
 
-ClipItem::ClipItem(const File * const file, frame_t startPos) : 
+ClipItem::ClipItem(const File * const file, frame_t startPos, long forcedId) : 
     _startPosition(startPos), 
     _length(file->frames()), 
     _fileOffset(0), 
     _muted(false), 
     _file(file), 
-    _uniqueId(_clipItemUniqueId++) {}
+    _uniqueId(forcedId == -1 ? _clipItemUniqueId : static_cast<ID>(forcedId)) {
+
+    ID testres = std::max(_uniqueId, _clipItemUniqueId);
+    if(testres == _clipItemUniqueId) _clipItemUniqueId = testres+1;
+    else _clipItemUniqueId = testres;
+
+
+}
 
 ClipItem::~ClipItem() {}
 
@@ -56,9 +63,13 @@ ClipStorage::~ClipStorage() {
 
 }
 
-ClipItem * ClipStorage::newClip(const File * const file, frame_t startPosition) {
+ClipItem * ClipStorage::newClip(const File * const file, frame_t startPosition, long forcedId) {
     ClipItem * clip = nullptr;
-    std::unique_ptr<ClipItem> itemUniq = std::make_unique<ClipItem>(file, startPosition);
+    std::unique_ptr<ClipItem> itemUniq;
+
+    if(forcedId >= 0) itemUniq = std::make_unique<ClipItem>(file, startPosition, forcedId); 
+    else itemUniq = std::make_unique<ClipItem>(file, startPosition);
+    
     clip = itemUniq.get();
 
     _clipList.push_back(std::move(itemUniq));
@@ -85,6 +96,17 @@ void ClipStorage::deleteClipById(ID id) {
     LOG_WARN("Not implemented");
 }
     
+const std::vector<ClipItem*> ClipStorage::items() {
+    std::vector<ClipItem*> ret;
+    ret.reserve(_clipList.size());
+
+    for(auto & c : _clipList) {
+        ret.push_back(c.get());
+    }
+
+    return ret;
+}
+
 ClipItem * ClipStorage::makeUniqueFrom(const ClipItem *other) {
     LOG_WARN("Not implemented");
     return nullptr;

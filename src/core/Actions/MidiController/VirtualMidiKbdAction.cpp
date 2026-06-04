@@ -54,11 +54,10 @@ void VMKTriggerAction::exec(ControlContext &ctx) {
 
     ctx.midiController->addVirtualKbdEvent(ev);
 
-    markDelete();
     setState(ActionState::Finished);
 }
 
-void VMKTriggerAction::checkWaitingCondition() {
+void VMKTriggerAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
 }

@@ -50,14 +50,13 @@ void ToggleMetronomeAction::exec(ControlContext &ctx) {
             bool val = floatToBool(_flat.value);
             UIControls::updateMetronomeState(val ? false : true);
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;
     }
 }
 
-void ToggleMetronomeAction::checkWaitingCondition() {
+void ToggleMetronomeAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

@@ -11,12 +11,13 @@
 #include <vector>
 #include <atomic>
 #include <memory>
+#include <string>
 
 namespace slr {
 
 class Timeline;
 class ControlContext;
-class Module;
+class UnitDescriptor;
 class AudioUnit;
 class AudioUnitView;
 
@@ -25,11 +26,12 @@ class ProjectView {
     ProjectView(Timeline * tl);
     ~ProjectView();
 
-    std::shared_ptr<AudioUnitView> createUnitView(const ControlContext &ctx, const Module *mod, AudioUnit * au);
+    std::shared_ptr<AudioUnitView> createUnitView(const ControlContext &ctx, const UnitDescriptor *desc, AudioUnit * au);
     const std::size_t unitCount() const { return _unitViewList.size(); }
     std::vector<AudioUnitView*> unitList();
     AudioUnitView * getUnitById(ID id);
     std::shared_ptr<AudioUnitView> removeUnitView(ID id);
+    void appendUnit(std::shared_ptr<AudioUnitView> view);
 
     void updateRoutes(const std::vector<AudioRoute> & routes);
     const std::vector<AudioRoute> & audioRoutes() const { return _routes; }
@@ -50,7 +52,16 @@ class ProjectView {
     ClipItemView * findClipViewById(ID id);
     bool deleteClipViewById(ID id);
 
+
+    const std::string name() const { return _name; }
+    void name(std::string n) { _name = n; }
+    const std::string path() const { return _path; }
+    void path(std::string p) { _path = p; }
+    
     private:
+    std::string _path;
+    std::string _name;
+
     std::vector<std::shared_ptr<AudioUnitView>> _unitViewList;
 
     TimelineView _timeline;

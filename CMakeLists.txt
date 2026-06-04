@@ -49,15 +49,32 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/shared)
 
-#generate events and handles
-#add_custom_target(
-#    run_codegen
-#    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/GenaV3/main.py
-#    COMMENT "Running code generator...(always)"
-#    # VERBATIM
-#)
-
 add_subdirectory(external)
+
+
+set(LIBRARIES lvgl::lvgl
+              SDL2::SDL2
+              ${LIBSNDFILE_LIBRARIES}
+              PkgConfig::JACK
+              loguru::loguru
+              GestLib
+              ALSA::ALSA
+              ${LIBUSB_LIBRARY})
+
+
+### Grab all our units to compile ###
+#add_subdirectory(units)
+
+#grab all targets
+#set(FXTARGETS )
+#get_property(_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/units PROPERTY SUBDIRECTORIES)
+#foreach(_dir IN LISTS _dirs)
+#    get_property(FX DIRECTORY ${_dir} PROPERTY BUILDSYSTEM_TARGETS)
+#    list(APPEND FXTARGETS "${FX}")
+#endforeach()
+
+#message("List of units to build:")
+#message("${FXTARGETS}")
 
 file(GLOB SOURCES
   #actions
@@ -67,12 +84,18 @@ file(GLOB SOURCES
   src/core/Actions/AudioUnit/ToggleMidiThru.cpp
   src/core/Actions/AudioUnit/ToggleOmniHwInput.cpp
   src/core/Actions/AudioUnit/SetName.cpp
+  src/core/Actions/AudioUnit/SetColor.cpp
 
   src/core/Actions/Project/CreateNewUnit.cpp
   src/core/Actions/Project/DeleteUnit.cpp
   src/core/Actions/Project/AddNewAudioRoute.cpp
   src/core/Actions/Project/AddNewMidiRoute.cpp
   src/core/Actions/Project/ModifyClipItem.cpp
+  src/core/Actions/Project/SaveProject.cpp
+  src/core/Actions/Project/LoadProject.cpp
+  src/core/Actions/Project/UpdateRenderPlan.cpp
+  src/core/Actions/Project/Undo.cpp
+  src/core/Actions/Project/Redo.cpp
 
   src/core/Actions/Timeline/ChangeSignatureBpm.cpp
   src/core/Actions/Timeline/ChangeTimelineState.cpp
@@ -105,6 +128,7 @@ file(GLOB SOURCES
   src/core/primitives/FileContainer.cpp
   src/core/primitives/ControlContext.cpp
   src/core/primitives/RtTask.cpp
+  src/core/primitives/FileWorkerContext.cpp
 
   src/core/utility/basicAudioManipulation.cpp
   src/core/utility/basicMidiManipulation.cpp
@@ -114,7 +138,6 @@ file(GLOB SOURCES
   src/core/BufferManager.cpp
   src/core/AudioPeakBuilder.cpp
   src/core/ControlEngine.cpp
-  #src/core/Events.cpp
   src/core/FileTasks.cpp
   src/core/FileWorker.cpp
   src/core/Project.cpp
@@ -122,8 +145,9 @@ file(GLOB SOURCES
   src/core/SettingsManager.cpp
   src/core/Timeline.cpp
   src/core/Metronome.cpp
-  src/core/ModuleManager.cpp
+  src/core/UnitManager.cpp
   src/core/MidiController.cpp
+  src/core/Serializer.cpp
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
@@ -135,33 +159,34 @@ file(GLOB SOURCES
   src/snapshots/DriverView.cpp
 
   #test
-  modules/Track/Track.cpp
-  modules/Track/TrackModule.cpp
-  modules/Track/TrackUI.cpp
-  modules/Track/TrackView.cpp
-  modules/Track/TrackPushUI.cpp
-  modules/Track/TrackActions.cpp
-  modules/Track/Actions/DumpRecordedAudio.cpp
-  modules/Track/Actions/RecordArm.cpp
-  modules/Track/Actions/ReinitTrackRecord.cpp
+  units/Track/Track.cpp
+  units/Track/TrackUnit.cpp
+  units/Track/TrackUI.cpp
+  units/Track/TrackView.cpp
+  units/Track/TrackPushUI.cpp
+  units/Track/TrackActions.cpp
+  units/Track/Actions/DumpRecordedAudio.cpp
+  units/Track/Actions/RecordArm.cpp
+  units/Track/Actions/ReinitTrackRecord.cpp
 
-  modules/Mixer/Mixer.cpp
-  modules/Mixer/MixerModule.cpp
-  modules/Mixer/MixerUI.cpp
-  modules/Mixer/MixerView.cpp
-  modules/Mixer/MixerPushUI.cpp
+  units/Mixer/Mixer.cpp
+  units/Mixer/MixerUnit.cpp
+  units/Mixer/MixerUI.cpp
+  units/Mixer/MixerView.cpp
+  units/Mixer/MixerPushUI.cpp
 
-  modules/SimpleOscillator/SimpleOsc.cpp
-  modules/SimpleOscillator/SimpleOscModule.cpp
-  modules/SimpleOscillator/SimpleOscUI.cpp
-  modules/SimpleOscillator/SimpleOscView.cpp
-  modules/SimpleOscillator/SimpleOscPushUI.cpp
+  units/SimpleOscillator/SimpleOsc.cpp
+  units/SimpleOscillator/SimpleOscUnit.cpp
+  units/SimpleOscillator/SimpleOscUI.cpp
+  units/SimpleOscillator/SimpleOscView.cpp
+  units/SimpleOscillator/SimpleOscPushUI.cpp
 
-  modules/Sampler/Sampler.cpp
-  modules/Sampler/SamplerModule.cpp
-  modules/Sampler/SamplerView.cpp
-  modules/Sampler/SamplerUI.cpp
-  modules/Sampler/SamplerPushUI.cpp
+  units/Sampler/Sampler.cpp
+  units/Sampler/SamplerUnit.cpp
+  units/Sampler/SamplerView.cpp
+  units/Sampler/SamplerUI.cpp
+  units/Sampler/SamplerPushUI.cpp
+  units/Sampler/Actions/LoadAsset.cpp
 
   #ui
   src/ui/display/primitives/BaseWidget.cpp
@@ -183,17 +208,18 @@ file(GLOB SOURCES
   src/ui/display/TopPanel.cpp
   src/ui/display/BottomPanel.cpp
   src/ui/display/GridView.cpp
-  src/ui/display/ModuleView.cpp
+  src/ui/display/UnitView.cpp
   src/ui/display/Browser.cpp
   src/ui/display/MainWindow.cpp
   src/ui/display/RouteManager.cpp
   src/ui/display/TimelinePopup.cpp
   src/ui/display/ScreenKeyboard.cpp
   src/ui/display/PopupManager.cpp
-  src/ui/display/NewModulePopup.cpp
+  src/ui/display/NewUnitPopup.cpp
   src/ui/display/SettingsPopup.cpp
   src/ui/display/VirtualMidiKeyboard.cpp
   src/ui/display/DialogWindows.cpp
+  src/ui/display/DragViewSelector.cpp
 
   src/ui/FakeGestures.cpp
   src/ui/uiControls.cpp
@@ -250,16 +276,6 @@ add_library(slrlib ${SOURCES})
 #add_dependencies(slrlib run_codegen)
 
 add_executable(slr src/main.cpp)
-
-set(LIBRARIES lvgl::lvgl
-              SDL2::SDL2
-              ${LIBSNDFILE_LIBRARIES}
-              PkgConfig::JACK
-              loguru::loguru
-              GestLib
-              ALSA::ALSA
-              ${LIBUSB_LIBRARY})
-
 
 target_link_libraries(slrlib ${LIBRARIES})
 

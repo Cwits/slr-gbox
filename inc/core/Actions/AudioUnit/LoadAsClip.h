@@ -22,7 +22,10 @@ struct LoadAsClipAction : public ActionExecutable {
     ~LoadAsClipAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
+
+    // void undo(ControlContext &ctx) override;
+    // void redo(ControlContext &ctx) override;
 
     private:
     const Actions::LoadAsClip _action;

@@ -29,6 +29,7 @@ SetParameterAction::~SetParameterAction() {
 void SetParameterAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
 
+
     switch(_step) {
         case(1): {
             LOG_INFO("Set parameter event targetid: %u, parameterid: %u, value: %f",
@@ -49,8 +50,18 @@ void SetParameterAction::exec(ControlContext &ctx) {
 
             _flat.completed.store(false);
             _flat.target = target;
-            _flat.parameterId = _action.parameterId;
-            _flat.value = _action.value;
+
+            if(_direction == ActionDirection::Forward) {
+                _oldValue.targetId = _action.targetId;
+                _oldValue.parameterId = _action.parameterId;
+                _oldValue.value = target->getParameterRaw(_action.parameterId);
+                
+                _flat.parameterId = _action.parameterId;
+                _flat.value = _action.value;
+            } else {
+                _flat.parameterId = _oldValue.parameterId;
+                _flat.value = _oldValue.value;
+            }
 
             _task = makeRtTask(&_flat);
 
@@ -67,16 +78,18 @@ void SetParameterAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            uview->setParameter(_action.parameterId, _action.value);
-            
-            markDelete();
+            if(_direction == ActionDirection::Forward)
+                uview->setParameter(_action.parameterId, _action.value);
+            else 
+                uview->setParameter(_oldValue.parameterId, _oldValue.value);
+
             setState(ActionState::Finished);
         } break;
         default: assert(false && "Unreachable"); break;
     }
 }
 
-void SetParameterAction::checkWaitingCondition() {
+void SetParameterAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
     if(_step == 1) {
         bool res = _flat.completed.load(std::memory_order_acquire);

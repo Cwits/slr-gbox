@@ -121,14 +121,13 @@ void RemoveClipAction::exec(ControlContext &ctx) {
 
             LOG_INFO("Clip %u removed from unit %u successfully", _action.clipId, _action.targetId);
         
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;
     }
 }
 
-void RemoveClipAction::checkWaitingCondition() {
+void RemoveClipAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {
@@ -142,6 +141,14 @@ void RemoveClipAction::checkWaitingCondition() {
         default: assert(false && "Unreachable"); break;
     }
 }
+
+// void RemoveClipAction::undo(ControlContext &ctx) {
+
+// }
+
+// void RemoveClipAction::redo(ControlContext &ctx) {
+
+// }
 
 std::unique_ptr<ActionExecutable> createRemoveClipAction(const ActionBase *base) {
     return std::make_unique<RemoveClipAction>(base);

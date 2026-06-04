@@ -41,13 +41,13 @@ void UpdatePlayheadAction::exec(ControlContext &ctx) {
 		case(2): {
 			ctx.projectView->timeline().setPlayhead(_flat.position);
 			UIControls::updatePlayheadPosition(_flat.position);
-        	markDelete();
+        	 
         	setState(ActionState::Finished);
 		} break;
         default: assert(false && "Unreachable"); break;
 	}
 }
-void UpdatePlayheadAction::checkWaitingCondition() {
+void UpdatePlayheadAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {

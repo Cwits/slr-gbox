@@ -28,11 +28,21 @@ ChangeSignatureBpmAction::~ChangeSignatureBpmAction() {}
 void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
 	assert(getState() == ActionState::Executing);
 	
-	switch(_step) {
-		case(1): {
+    switch(_step) {
+        case(1): {
+
             _flat.tl = &ctx.project->timeline();
-            _flat.bpm = _action.bpm;
-            _flat.sig = _action.sig;
+
+            if(_direction == ActionDirection::Forward) {
+                _oldValues.bpm = ctx.project->timeline().bpm();
+                _oldValues.sig = ctx.project->timeline().getBarSize();
+
+                _flat.bpm = _action.bpm;
+                _flat.sig = _action.sig;
+            } else {
+                _flat.bpm = _oldValues.bpm;
+                _flat.sig = _oldValues.sig;
+            }
             _flat.completed.store(false);
 
             _task = makeRtTask(&_flat);
@@ -40,17 +50,22 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
             ctx.EmitRtTask(&_task);
         } break;
         case(2): {
-            ctx.projectView->timeline().setBpm(_action.bpm);
-            ctx.projectView->timeline().setBarSize(_action.sig);
+            if(_direction == ActionDirection::Forward) {
+                ctx.projectView->timeline().setBpm(_action.bpm);
+                ctx.projectView->timeline().setBarSize(_action.sig);
+            } else {
+                ctx.projectView->timeline().setBpm(_oldValues.bpm);
+                ctx.projectView->timeline().setBarSize(_oldValues.sig);
+            }
             UIControls::updateTimeline(true);
 
-        	markDelete();
-        	setState(ActionState::Finished);
-		} break;
+                
+            setState(ActionState::Finished);
+        } break;
         default: assert(false && "Unreachable"); break;
-	}
+    }
 }
-void ChangeSignatureBpmAction::checkWaitingCondition() {
+void ChangeSignatureBpmAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {

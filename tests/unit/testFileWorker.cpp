@@ -12,6 +12,7 @@
 #include <string>
 #include <math.h>
 
+/*
 struct testTask : public slr::Task {
     void exec(slr::FileWorker *fw) {
         for(int i=0; i<100; ++i) {
@@ -67,10 +68,11 @@ struct finalizeRecordFile : public slr::Task {
         } else {
             _success.set_value(nullptr);
         }
+            */
         /* 
             ofc logic must be more complex than this:
             e.g. when reopened -> emit event that buffer ready to use again in rt engine
-        */
+        */ /*
     }
 
     slr::AudioFile * file;
@@ -82,17 +84,13 @@ struct dumpBuffer : public slr::Task {
     void exec(slr::FileWorker *fw) {
         if(file->dumpRecordedData(buffer)) _done.set_value(true);
         else _done.set_value(false);
-        /* 
-            ofc logic must be more complex than this:
-            e.g. when buffer dumped -> emit event that buffer ready to use again in rt engine
-        */
     }
 
     slr::AudioFile * file;
     slr::AudioBuffer * buffer;
     std::promise<bool> _done;
 };
-
+*/
 TEST(FileWorker, InitAndShutdown) {
     using namespace slr;
     // FileWorker * worker = new FileWorker();

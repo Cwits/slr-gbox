@@ -13,6 +13,7 @@
 #include <functional>
 #include <unordered_map>
 #include <atomic>
+#include <nlohmann/json.hpp>
 
 namespace slr {
 
@@ -24,6 +25,7 @@ class AudioUnitView {
     virtual ~AudioUnitView();
 
     void setParameter(ID parameterId, float value);
+    ParameterArrayView & allParameters() { return _flatParameterList; }
 
     virtual void update() {}
 
@@ -44,18 +46,35 @@ class AudioUnitView {
     const ID id() const { return _uniqueId; }
     
     const Color & color() const { return _uniqueColor; }
+    void color(Color clr) { _uniqueColor = clr; incrementVersion(); }
 
     const bool isMidiThru() const { return _midiThru; }
     const bool isOmniHwInput() const { return _omniHwInput; }
 
-    void setMidiThru(bool state) { _midiThru = state; }
-    void setOmniHw(bool state) { _omniHwInput = state; }
+    void setMidiThru(bool state) { _midiThru = state; incrementVersion(); }
+    void setOmniHw(bool state) { _omniHwInput = state; incrementVersion(); }
 
     void appendClipItem(ClipItemView * item);
 
     ClipContainerView _clipContainer;
 
     uint64_t version() const;
+
+    //for serialization
+    
+    /*
+        override for each of units.
+        for external(e.g. lv2) it should be 
+        external:uri
+
+        for internal:
+        internal:type - e.g. internal:track or internal:mixer
+    */
+    virtual std::string unitType() { return "null"; } 
+
+    //override this two if need to save/load unit
+    virtual nlohmann::ordered_json saveUnit();
+    virtual void loadUnit(const nlohmann::json &data);
 
     protected:
     const AudioUnit * _au;

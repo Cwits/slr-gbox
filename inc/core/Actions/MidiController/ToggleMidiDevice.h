@@ -21,7 +21,7 @@ struct ToggleMidiDeviceAction : public ActionExecutable {
     ~ToggleMidiDeviceAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::ToggleMidiDevice _action;

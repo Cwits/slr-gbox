@@ -12,7 +12,7 @@
 
 namespace slr {
     
-Metronome::Metronome() : AudioUnit(nullptr) {
+Metronome::Metronome() : AudioUnit(nullptr, 0) {
     _lastTickFrame = 0;
     _lastPlayedStep = -1;
     _remainedSamplesToPlay = 0;

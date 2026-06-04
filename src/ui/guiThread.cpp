@@ -29,6 +29,10 @@
 
 std::atomic<bool> _running;
 
+namespace slr {
+extern std::atomic<bool> _shutdown;
+}
+
 lv_display_t *lvDisplay;
 UI::SplashScreen * _splash;
 lv_obj_t * _main_screen;
@@ -40,6 +44,8 @@ FakeGestures _fakeGestures;
 #endif
 
 std::ofstream _logFile;
+
+const std::string_view windowTitle = "SampleLoopRepeat"; 
 
 //from uiControls.cpp
 extern std::mutex g_async_mtx;
@@ -64,7 +70,7 @@ void initGui() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
     // the name is set in lv_sdl_window.c:378
     lvDisplay = lv_sdl_window_create(SDL_HOR_RES, SDL_VER_RES);
-    
+    lv_sdl_window_set_title(lvDisplay, windowTitle.data());
     {
         //if output "opengles2" или "opengl" than accelerated 
         SDL_RendererInfo info;
@@ -156,6 +162,7 @@ void runGui() {
             // print_sdl_event(event);
         }
 #endif
+        uint32_t mills = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTick).count();
 
         {
             while(true) {
@@ -169,13 +176,11 @@ void runGui() {
             }
         }
 
-        uint32_t mills = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTick).count();
-        
-        main->pollUIUpdate();
-
         lastTick = now;
         lv_tick_inc(mills); // Update the tick timer. Tick is new for LVGL 9
         uint32_t ret = lv_timer_handler(); // Update the UI-
+
+        main->pollUIUpdate();
 
         elapsed = std::chrono::steady_clock::now();
         mills = std::chrono::duration_cast<std::chrono::microseconds>(elapsed - now).count();
@@ -206,6 +211,7 @@ void runGui() {
 
 void shutdown() {
     _running = false;
+    slr::_shutdown = true;
 }
 
 

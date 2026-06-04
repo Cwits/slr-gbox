@@ -15,15 +15,16 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct SetParameterAction : public ActionExecutable {
+struct SetParameterAction : public ActionExecutable, public Undoable {
     SetParameterAction(const ActionBase *base);
     ~SetParameterAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::SetParameter _action;
+    Actions::SetParameter _oldValue;
 
     RtTasks::SetParameterFlat _flat;
     RtTask _task;

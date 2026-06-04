@@ -21,17 +21,23 @@ class TopPanel : public View {
     void update() override {}
     
     private:
-    Label * _lblProjectName;
+    std::unique_ptr<Label> _lblProjectName;
 
-    Button * _btnGrid;
-    Button * _btnTrack;
-    Button * _btnBrowser;
-    Button * _btnMixer;
-    Button * _btnStepSequencer;
-    Button * _btnModEngine;
-    Button * _btnSettings;
-    Button * _btnToggleMetronome;
-    Button * _btnMidiKbd;
+    std::unique_ptr<Button> _btnSave;
+    std::unique_ptr<Button> _btnLoad;
+
+    std::unique_ptr<Button> _btnGrid;
+    std::unique_ptr<Button> _btnTrack;
+    std::unique_ptr<Button> _btnBrowser;
+    std::unique_ptr<Button> _btnMixer;
+    std::unique_ptr<Button> _btnStepSequencer;
+    std::unique_ptr<Button> _btnModEngine;
+    
+    std::unique_ptr<Button> _btnSettings;
+    std::unique_ptr<Button> _btnToggleMetronome;
+    std::unique_ptr<Button> _btnMidiKbd;
+    std::unique_ptr<Button> _btnUndo;
+    std::unique_ptr<Button> _btnRedo;
 
 };
 

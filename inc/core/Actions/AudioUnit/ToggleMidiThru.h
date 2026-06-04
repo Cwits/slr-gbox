@@ -14,15 +14,16 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct ToggleMidiThruAction : public ActionExecutable {
+struct ToggleMidiThruAction : public ActionExecutable, public Undoable {
     ToggleMidiThruAction(const ActionBase *base);
     ~ToggleMidiThruAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::ToggleMidiThru _action;
+    bool _oldState;
 
     struct ToggleThru : public FlatTask {
         void execRT();

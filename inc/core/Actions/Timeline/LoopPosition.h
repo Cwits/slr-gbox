@@ -17,15 +17,16 @@ struct ActionBase;
 struct AudioUnit;
 struct Timeline;
 
-struct LoopPositionAction : public ActionExecutable {
+struct LoopPositionAction : public ActionExecutable, public Undoable {
     LoopPositionAction(const ActionBase *base);
     ~LoopPositionAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::LoopPosition _action;
+    Actions::LoopPosition _oldValues;
 
     struct SetLoopPosition : public FlatTask {
         void execRT();

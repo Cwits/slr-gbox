@@ -34,6 +34,9 @@ struct UnitUIBase {
     virtual DefaultGridUI * gridUI() = 0;
     virtual DefaultUnitUI * unitUI() = 0;
 
+    void show();
+    void hide();
+
     const slr::AudioUnitView * view() const { return _view.get(); }
     // slr::AudioUnitView * view() { return _view.get(); }
 

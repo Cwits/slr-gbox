@@ -18,7 +18,7 @@ inline float boolToFloat(bool value) {
 }
 
 enum class Extention { Audio, Midi, AudioPeak };
-inline bool pathHasExtention(Extention e, std::string & path) {
+inline bool pathHasExtention(Extention e, const std::string & path) {
     bool ret = false;
     if(e == Extention::Audio) {
         if(path.substr(path.size()-4).compare(".wav") == 0) {

@@ -38,7 +38,7 @@ static uint16_t flip16(uint16_t val)
 
 namespace slr {
 
-MidiFile::MidiFile() {
+MidiFile::MidiFile(long forcedId) : File(FileType::Midi, forcedId) {
 
 }
 

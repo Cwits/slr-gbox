@@ -25,28 +25,57 @@
 
 #include <algorithm>
 
+std::string NONE_STRING = "None";
+
 namespace UI {
 
 RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx)
 {
+    _currentUnitId = 0;
     setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT);
     setPos(LayoutDef::ROUTE_MANAGER_X, LayoutDef::ROUTE_MANAGER_Y);
     setColor(lv_color_hex(0x858585));
 
-    _text = new Label(this, "Routes for track ...");
-    _text->setSize(800, 33);
-    _text->setPos(600, 5);
+    _text = new Label(this, "Routes for");
+    _text->setSize(300, 40);
+    _text->setPos(450, 60);
     _text->setFont(&DEFAULT_FONT);
-    // _text->setTextColor(lv_color_hex(0x0f0fff));
+    
+    _ddCurrentUnit = new DropDown(this);
+    _ddCurrentUnit->setPos(650, 40);
+    _ddCurrentUnit->setSize(600, LayoutDef::BUTTON_SIZE);
+    std::string tmptext = "None";
+    _ddCurrentUnit->setSelected(tmptext);
+    _ddCurrentUnit->selectedCallback([this, drop = _ddCurrentUnit](const std::string selected){
+        std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+        auto it = std::find_if(
+            list.begin(),
+            list.end(),
+            [&selected](const slr::AudioUnitView *v) {
+                return v->name().compare(selected) == 0;
+            }
+        );
+        if(it == list.end()) {
+            //failed to find
+            return;
+        }
 
-    _btnApply = new Button(this, "Apply");
-    _btnApply->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _btnApply->setPos(LayoutDef::ROUTE_MANAGER_WIDTH - (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN), 40);
-    _btnApply->setCallback([this]() {
-        LOG_INFO("Apply routes");
-        
-        this->_uictx->_popManager->disableRouteManager();
+        this->_currentUnitId = (*it)->id();
+        // std::string sel = selected;
+        // drop->setSelected(sel);
+        this->liveUpdate();
+    });
+
+    _ddCurrentUnit->button()->setTouchDownCallback([this, drop = _ddCurrentUnit]() {
+        drop->button()->setColor(BUTTON_DEFAULT_PRESSED);
+        std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+        std::vector<std::string> names;
+        for(const slr::AudioUnitView *av : list) {
+            names.push_back(av->name());
+        }
+
+        drop->setItems(names);
     });
 
     /* First item right side */
@@ -85,9 +114,9 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     _midiTab = new MidiTab(this, _currentUnitId);
 
     _midiThru = new Checkbox(this);
-    _midiThru->setPos(800, 40);
+    _midiThru->setPos(1300, 40);
     _midiThru->setCallback([this](bool isChecked) {
-        slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
+        // slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
 
         // slr::Events::ToggleMidiThru e = {
         //     .targetId = view->id(),
@@ -98,17 +127,17 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _midiThruText = new Label(this, "Midi Thru");
     _midiThruText->setSize(200, 40);
-    _midiThruText->setPos(800+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _midiThruText->setPos(1300+10+LayoutDef::CHECKBOX_SIZE, 55);
     _midiThruText->setFont(&DEFAULT_FONT);
     
     _omniHwInput = new Checkbox(this);
-    _omniHwInput->setPos(1200, 40);
+    _omniHwInput->setPos(1500, 40);
     _omniHwInput->setCallback([this](bool isChecked) {
-        slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(this->_currentUnitId);
-        if(!view) {
-            LOG_ERROR("Failed to find unit view for id %u", this->_currentUnitId);
-            return;
-        }
+        // slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(this->_currentUnitId);
+        // if(!view) {
+        //     LOG_ERROR("Failed to find unit view for id %u", this->_currentUnitId);
+        //     return;
+        // }
 
         // slr::Events::ToggleOmniHwInput e = {
         //     .targetId = view->id(),
@@ -117,9 +146,9 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         // slr::EmitEvent(e);
     });
 
-    _omniHwInputText = new Label(this, "Omni HW Input");
+    _omniHwInputText = new Label(this, "Omni HW");
     _omniHwInputText->setSize(300, 40);
-    _omniHwInputText->setPos(1200+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _omniHwInputText->setPos(1500+10+LayoutDef::CHECKBOX_SIZE, 55);
     _omniHwInputText->setFont(&DEFAULT_FONT);
 }
 
@@ -128,7 +157,7 @@ RouteManager::~RouteManager() {
     delete _inputsText;
     delete _outputsText;
     
-    delete _btnApply;
+    delete _ddCurrentUnit;
     delete _audioTab;
     delete _midiTab;
 
@@ -139,11 +168,16 @@ RouteManager::~RouteManager() {
 }
 
 void RouteManager::update() {
-    std::string text = "Routings for ";
+    // if(!active()) return;
+    if(_currentUnitId == 0) {
+        LOG_WARN("Id shouldn't be zero");
+        return;
+    }
+    
     slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
-    text.append(view->name());
-    _text->setText(text);
-
+    std::string name = view->name();
+    _ddCurrentUnit->setSelected(name);
+    
     _audioTab->update();
     _midiTab->update();
 
@@ -322,6 +356,8 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
                     names.push_back(u->name());
                 }
                 this->_nextInput._dropdown->setItems(names);
+                this->_nextInput._dropdown->setSelected(
+                    names.size() != 0 ? names.at(0) : NONE_STRING);
             } else {
                 this->_nextInput._extint->setText("EXT");
                 std::vector<std::string> items;
@@ -329,6 +365,8 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
                 items.push_back(std::string("Mono Right"));
                 items.push_back(std::string("Stereo"));
                 this->_nextInput._dropdown->setItems(items);
+                this->_nextInput._dropdown->setSelected(
+                    items.size() != 0 ? items.at(0) : NONE_STRING);
             }
         });
     }
@@ -345,6 +383,7 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
         items.push_back(std::string("Mono Right"));
         items.push_back(std::string("Stereo"));
         drop->setItems(items);
+        drop->setSelected(items.size() != 0 ? items.at(0) : NONE_STRING);
     } else {
         std::string tmptext;
         if(in._sourceType == slr::AudioRoute::Type::EXT) {
@@ -375,6 +414,14 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
             //update here? or... where?
         });
     }
+    // addremove->setCallback([this, isNew]() {
+    //     if(isNew) {
+    //         //create new route
+    //     } else {
+    //         //delete current route
+    //     }
+    // });
+
     r._addRemoveButton = addremove;
 
     if(isNew) _nextInput = r;
@@ -409,6 +456,8 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
                     names.push_back(u->name());
                 }
                 this->_nextOutput._dropdown->setItems(names);
+                this->_nextOutput._dropdown->setSelected(
+                    names.size() != 0 ? names.at(0) : NONE_STRING);
             } else {
                 this->_nextOutput._extint->setText("EXT");
                 std::vector<std::string> items;
@@ -416,6 +465,7 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
                 items.push_back(std::string("Mono Right"));
                 items.push_back(std::string("Stereo"));
                 this->_nextOutput._dropdown->setItems(items);
+                this->_nextOutput._dropdown->setSelected(items.at(0));
             }
         }); 
     }
@@ -432,6 +482,7 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
         items.push_back(std::string("Mono Right"));
         items.push_back(std::string("Stereo"));
         drop->setItems(items);
+        drop->setSelected(items.size() != 0 ? items.at(0) : NONE_STRING);
     } else {
         std::string tmptext;
 
@@ -462,6 +513,13 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
             //update here? or... where?
         });
     }
+    // addremove->setCallback([this, isNew]() {
+    //     if(isNew) {
+    //         //add new route
+    //     } else {
+    //         //remove route
+    //     }
+    // });
     r._addRemoveButton = addremove;
     
     if(isNew) _nextOutput = r;
@@ -701,6 +759,8 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
                     names.push_back(u->name());
                 }
                 this->_nextInput._dropdown->setItems(names);
+                this->_nextInput._dropdown->setSelected(
+                    names.size() != 0 ? names.at(0) : NONE_STRING);
             } else {
                 this->_nextInput._extint->setText("EXT");
                 std::vector<std::string> items;
@@ -711,6 +771,8 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
                 }
                 
                 this->_nextInput._dropdown->setItems(items);
+                this->_nextInput._dropdown->setSelected(
+                    items.size() != 0 ? items.at(0) : NONE_STRING);
             }
         });
     }
@@ -728,6 +790,7 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
                 items.push_back(p->_ownerSubdev->_inputName);
         }
         drop->setItems(items);
+        drop->setSelected(items.size() != 0 ? items.at(0) : NONE_STRING);
     } else {
         const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();    
     
@@ -806,6 +869,8 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
                     names.push_back(u->name());
                 }
                 this->_nextOutput._dropdown->setItems(names);
+                this->_nextOutput._dropdown->setSelected(
+                    names.size() != 0 ? names.at(0) : NONE_STRING);
             } else {
                 this->_nextOutput._extint->setText("EXT");
                 std::vector<std::string> items;
@@ -815,6 +880,8 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
                         items.push_back(p->_ownerSubdev->_outputName);
                 }
                 this->_nextOutput._dropdown->setItems(items);
+                this->_nextOutput._dropdown->setSelected(
+                    items.size() != 0 ? items.at(0) : NONE_STRING);
             }
         });
     }
@@ -832,6 +899,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
                 items.push_back(p->_ownerSubdev->_outputName);
         }
         drop->setItems(items);
+        drop->setSelected(items.size() != 0 ? items.at(0) : NONE_STRING);
     } else {
         const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();  
         

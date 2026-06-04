@@ -62,7 +62,12 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     int pixels = frames * pixelPerFrame;
     
     setSize(pixels, UI::LayoutDef::TRACK_HEIGHT);
-    setPos(0, parentUI->gridUI()->gridY());
+    
+    float xposition = UIUtility::frameToPixel(_clipItem->startPosition(), _uictx->gridHorizontalZoom());
+    int ypos = parentUI->gridUI()->getY();
+    
+    LOG_INFO("Setting grid y position of file %u to %i", clipItem->id(), ypos);
+    setPos(xposition, parentUI->gridUI()->getY());
     lv_obj_set_pos(_canvas, 0, 0);
     
     _peakColor = lv_color_make(parentUI->color().r, 
@@ -102,7 +107,7 @@ void FileView::draw() {
         
         UIHelpers::audioFileToCanvas(
             afile,
-            0,
+            _clipItem->fileOffset(),
             _clipItem->length(),
             _canvas,
             LayoutDef::TRACK_HEIGHT,
@@ -168,7 +173,7 @@ void FileView::pollUIUpdate() {
     _uiVersion = version;
 
     float xposition = UIUtility::frameToPixel(fview->startPosition(), _uictx->gridHorizontalZoom());
-    setPos(xposition, _parentUI->gridUI()->gridY());
+    setPos(xposition, _parentUI->gridUI()->getY());
 }
 
 bool FileView::handleTap(GestLib::TapGesture &tap) {
@@ -231,13 +236,11 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     _deleteBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _deleteBtn->setFont(&DEFAULT_FONT);
     _deleteBtn->setCallback([this]() {
-        LOG_INFO("Remove item event");
-        // slr::Events::RemoveClip e {
-        //     .clipId = this->_item->_clipItem->id(),
-        //     .unitId = this->_item->parentUI()->id()
-        // };
-
-        // slr::EmitEvent(e);
+        // LOG_INFO("Remove item event");
+        auto act = std::make_unique<slr::Actions::RemoveClip>();
+        act->targetId = this->_item->parentUI()->id();
+        act->clipId = this->_item->_clipItem->id();
+        slr::EmitAction(std::move(act));
         this->_uictx->_popManager->disableFilePopup();
     });
 }

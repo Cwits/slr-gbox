@@ -19,7 +19,7 @@
 #include "core/Project.h"
 #include "core/FileWorker.h"
 #include "core/SettingsManager.h"
-#include "core/ModuleManager.h"
+#include "core/UnitManager.h"
 #include "core/MidiController.h"
 #include "core/Metronome.h"
 
@@ -45,6 +45,7 @@
 #include <condition_variable>
 #include <unordered_map>
 #include <future>
+#include <deque>
 
 #define QUEUE_INITIAL_SIZE 128
 
@@ -70,7 +71,10 @@ std::unique_ptr<MidiController> _midiController;
 std::vector<std::unique_ptr<ActionExecutable>> _actions;
 std::shared_mutex _actionMutex;
 
-ID _commandIdCounter = 0;
+std::deque<std::unique_ptr<Undoable>> _undoList;
+std::deque<std::unique_ptr<Undoable>> _redoList;
+
+// ID _commandIdCounter = 0;
 
 namespace ControlEngine {
 
@@ -91,12 +95,18 @@ void processLoop() {
     bool pendingDeleteEvent = false;
 
     while(!_shutdown) {
-        ControlContext ctx(_project.get(),
-                            _fileWorker.get(),
-                            _engine.get(),
-                            _projectSnapshot.get(),
-                            _midiController.get(),
-                            _bufferManager.get());
+        ControlContext ctx(
+            _project.get(),
+            _fileWorker.get(),
+            _engine.get(),
+            _projectSnapshot.get(),
+            _midiController.get(),
+            _bufferManager.get(),
+            &_undoList,
+            &_redoList,
+            &_actions,
+            &_actionMutex
+        );
 
         if(_engine == nullptr || _engine->getState() != RtEngine::RtState::RUN) {
             LOG_WARN("RT Engine not ready!");
@@ -108,28 +118,70 @@ void processLoop() {
         std::size_t idx = 0;
         ActionExecutable * action = nullptr;
         while( (action = getAction(idx)) != nullptr ) {
-            if(action->toDelete()) continue;
+            // if(action->toDelete()) continue;
+            ActionState state = action->getState();
 
-            switch(action->getState()) {
+            //why, especially on project loading, there is some events with state finished here?
+            if(state == ActionState::Finished) continue;
+
+            switch(state) {
                 case(ActionState::Executing): action->exec(ctx); break;
-                case(ActionState::Waiting): action->checkWaitingCondition(); break;
-                case(ActionState::Finished): assert(false && "Shouldn't be here"); break;
+                case(ActionState::Waiting): action->checkWaitingCondition(ctx); break;
+                case(ActionState::Abort): assert(false && "Shouldn't be here"); break;
             }
         } 
 
+        //go for undoable actions, is this lock correct?
         {
-            //cleaning actions
+            std::shared_lock<std::shared_mutex> l(_actionMutex);
+            for(std::unique_ptr<ActionExecutable> &a : _actions) {
+                // if(!a->toDelete()) continue;
+                if(a->getState() == ActionState::Abort) continue;
+                if(a->getState() != ActionState::Finished) continue;
+                //add only finished actions...
+                
+                Undoable * undoable = dynamic_cast<Undoable*>(a.get());
+                if(!undoable) continue; //action is not undoable
+                
+                ActionDirection dir = a->direction();
+                a.release();
+                std::unique_ptr<Undoable> undo( undoable );
+                
+                if(dir == ActionDirection::Forward) {
+                    //goes to undo
+                    if(_undoList.size() >= 64) _undoList.pop_front();
+                    _undoList.push_back(std::move(undo));
+                } else {
+                    //goes to redo
+                    if(_redoList.size() >= 64) _redoList.pop_front();
+                    _redoList.push_back(std::move(undo));
+                }
+            }
+        }
+
+        //clean up actions
+        {
             std::unique_lock l(_actionMutex);
-            _actions.erase(
-                std::remove_if(
-                    _actions.begin(),
-                    _actions.end(),
-                    [](const std::unique_ptr<ActionExecutable> &a) {
-                        return a->toDelete();
-                    }
-                ),
-                _actions.end()
-            );
+            for(std::size_t i=0; i<_actions.size(); ) {
+                std::unique_ptr<ActionExecutable> & p = _actions.at(i);
+                if(p == nullptr) {
+                    _actions.erase(_actions.begin()+i);
+                    i=0;
+                    continue;
+                }
+
+                ActionState state = p->getState();
+                if(state == ActionState::Abort) {
+                    _actions.erase(_actions.begin() + i);
+                    i=0;
+                    continue;
+                } else if(state == ActionState::Finished) {
+                    _actions.erase(_actions.begin() + i);
+                    i=0;
+                    continue;
+                }
+                ++i;
+            }
         }
 
         {
@@ -162,6 +214,8 @@ void processLoop() {
 
 bool init() {
     SettingsManager::init();
+    // _undoList.resize(64);
+    // _redoList.resize(64);
 
     _shutdown = false;
 
@@ -189,7 +243,7 @@ bool init() {
         return false;
     }
 
-    ModuleManagerFactory::init();
+    UnitManagerFactory::init();
 
     _midiController = std::make_unique<MidiController>();
 
@@ -228,6 +282,7 @@ bool shutdown() {
     _engine.reset();
 
     /* save project? */
+    _projectSnapshot.reset();
     _project.reset();
     
     if(!_fileWorker->shutdown()) {
@@ -254,8 +309,33 @@ void emergencyStop() {
 
 }
 
-const ID generateCommandId() {
-    return _commandIdCounter++;
+void prepareForProjectLoading() {
+    if(!_engine->stop()) {
+        LOG_FATAL("Failed to stop Engine");
+    }
+
+    UIControls::clearUI();
+
+    //TODO: need some method to clear some global data(ed ID counters and etc...);
+    _projectSnapshot.reset();
+    _project.reset();
+
+    _fileWorker->clear();
+    _bufferManager->clear();
+
+    _project = std::make_unique<Project>();
+    _project->metronome()->create(_bufferManager.get());
+    _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
+
+    _engine->setProject(_project.get());
+    if(!_engine->start([ctl = _midiController.get()](frame_t framesPassed) {
+        ctl->setAnchor(framesPassed);
+    })) {
+        LOG_ERROR("Failed to start RT Engine");
+        return;
+    }
+    
+
 }
 
 void EmitAction(std::unique_ptr<ActionBase> action) {
@@ -288,6 +368,9 @@ MidiController * midiController() {
     return _midiController.get();
 }
 
+BufferManager * bufferManager() {
+    return _bufferManager.get();
+}
 
 void discoverMidi() {
     while(!_shutdown) {

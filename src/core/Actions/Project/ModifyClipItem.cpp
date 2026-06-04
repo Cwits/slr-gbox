@@ -40,11 +40,25 @@ void ModifyClipItemAction::exec(ControlContext &ctx) {
                 return;
             }
 
+            if(_direction == ActionDirection::Forward) {
+                _oldValues.clipId = _action.clipId;
+                _oldValues.fileStartOffset = item->fileOffset();
+                _oldValues.length = item->length();
+                _oldValues.muted = item->isMuted();
+                _oldValues.startPosition = item->startPosition();
+                
+                _flat.startPosition = _action.startPosition;
+                _flat.length = _action.length;
+                _flat.fileStartOffset = _action.fileStartOffset; 
+                _flat.muted = _action.muted;   
+            } else {
+                _flat.startPosition = _oldValues.startPosition;
+                _flat.length = _oldValues.length;
+                _flat.fileStartOffset = _oldValues.fileStartOffset;
+                _flat.muted = _action.muted;
+            }
+            
             _flat.item = item;
-            _flat.startPosition = _action.startPosition;
-            _flat.length = _action.length;
-            _flat.fileStartOffset = _action.fileStartOffset; 
-            _flat.muted = _action.muted;   
             _flat.completed.store(false);
 
             _task = makeRtTask(&_flat);
@@ -61,16 +75,19 @@ void ModifyClipItemAction::exec(ControlContext &ctx) {
             }
 
             //TODO: update with values from action or flat task...
-            item->update(_action.startPosition, _action.length, _action.fileStartOffset, _action.muted);
-
-            markDelete();
+            if(_direction == ActionDirection::Forward) {
+                item->update(_action.startPosition, _action.length, _action.fileStartOffset, _action.muted);
+            } else {
+                item->update(_oldValues.startPosition, _oldValues.length, _oldValues.fileStartOffset, _oldValues.muted);
+            }
+             
             setState(ActionState::Finished);
         } break;
         default: assert(false && "Unreachable"); break;
     }   
 }
 
-void ModifyClipItemAction::checkWaitingCondition() {
+void ModifyClipItemAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

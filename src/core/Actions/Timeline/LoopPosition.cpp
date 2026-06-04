@@ -30,27 +30,34 @@ void LoopPositionAction::exec(ControlContext &ctx) {
 	
 	switch(_step) {
 		case(1): {
+			if(_direction == ActionDirection::Forward) {
+				_oldValues.start = ctx.project->timeline().loopStartFrame();
+				_oldValues.end = ctx.project->timeline().loopEndFrame();
+				
+				_flat.start = _action.start;
+				_flat.end = _action.end;
+			} else {
+				_flat.start = _oldValues.start;
+				_flat.end = _oldValues.end;
+			}
+
 			_flat.tl = &ctx.project->timeline();
-			_flat.start = _action.start;
-			_flat.end = _action.end;
 			_flat.completed.store(false);
-
 			_task = makeRtTask(&_flat);
+			
 			setState(ActionState::Waiting);
-
 			ctx.EmitRtTask(&_task);
 		} break;
 		case(2): {
 			ctx.projectView->timeline().update();
 			UIControls::updateTimeline(false);
-
-        	markDelete();
-        	setState(ActionState::Finished);
+			
+			setState(ActionState::Finished);
 		} break;
-        default: assert(false && "Unreachable"); break;
+		default: assert(false && "Unreachable"); break;
 	}
 }
-void LoopPositionAction::checkWaitingCondition() {
+void LoopPositionAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
 	
 	switch(_step) {

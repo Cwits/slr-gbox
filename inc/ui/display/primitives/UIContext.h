@@ -20,12 +20,13 @@ class BottomPanel;
 class GridView;
 class GridControl;
 class GridGrid;
-class ModuleView;
+class UnitView;
 class Browser;
+struct DragViewSelector;
 
 enum class MainView {
     Grid,
-    Module, 
+    Unit, 
     Browser,
     Patch,
     Editor, //audio or midi or automation
@@ -36,6 +37,7 @@ enum class MainView {
 struct UIContext {
     DragContext * dragContext() { return _dragContext; }
     
+    
     std::vector<std::unique_ptr<UnitUIBase>> _unitsUI;
     
     PopupManager * _popManager;
@@ -43,16 +45,18 @@ struct UIContext {
     
     BaseWidget * topPanel();
     BaseWidget * bottomPanel();
-    BaseWidget * gridControl();
     BaseWidget * grid();
-    BaseWidget * moduleView();
+    BaseWidget * gridControl();
+    BaseWidget * gridGrid();
+    BaseWidget * unitView();
     BaseWidget * browser();
+    BaseWidget * dragSelector();
 
     void switchToView(MainView view);
     //void gotoPrevTab();
     MainView previousView();
 
-    void transferGesture(MainView view, GestLib::Gestures gesture);
+    void transferGesture(BaseWidget * target, GestLib::Gestures gesture);
     void clearHitTestTarget();
     bool cancleGesture(BaseWidget * widget);
 
@@ -71,8 +75,9 @@ struct UIContext {
     TopPanel * _topPanel;
     BottomPanel * _bottomPanel;
     GridView * _gridView;
-    ModuleView * _module;
+    UnitView * _unitView;
     Browser * _browser;
+    DragViewSelector * _dragSelector;
     //BaseWidget * _patch;
 
     UnitUIBase * _lastSelectedModule = nullptr;

@@ -25,6 +25,25 @@ struct AudioRoute {
             r._channelMap[i] = -1;
         }
     }
+
+    bool operator==(const AudioRoute &other) const {
+        bool main = (_sourceType == other._sourceType &&
+                _sourceId == other._sourceId &&
+                _targetType == other._targetType &&
+                _targetId == other._targetId);
+        bool channels = true;
+        for(int i=0; i<32; ++i) {
+            if(_channelMap[i] != other._channelMap[i]) {
+                channels = false;
+                break;
+            }
+        }
+        return main && channels;
+    }
+
+    bool operator!=(const AudioRoute &other) const { 
+        return !(*this == other);
+    }
 };
 
 

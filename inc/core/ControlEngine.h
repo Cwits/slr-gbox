@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
-
-// #include "core/Events.h"
-// #include "core/FlatEvents.h"
 #include "core/primitives/ControlContext.h"
 #include "defines.h"
 
@@ -26,7 +23,7 @@ bool init();
 bool shutdown();
 void emergencyStop();
 
-const ID generateCommandId();
+void prepareForProjectLoading();
 
 void EmitAction(std::unique_ptr<ActionBase> action);
 
@@ -37,6 +34,7 @@ DriverView * driverSnapshot();
 RtEngine * rtEngine();
 FileWorker * fileWorker();
 MidiController * midiController();
+BufferManager * bufferManager();
 
 } //namespace ControlEngine
 

@@ -33,13 +33,21 @@ void SetNameAction::exec(ControlContext &ctx) {
         return;
     }
 
+    std::string nameToSet;
+
+    if(_direction == ActionDirection::Forward) {
+        nameToSet = _action.newName;
+        _oldName = view->name();
+    } else {
+        nameToSet = _oldName;
+    }
+
     view->setName(_action.newName);
 
-    markDelete();
     setState(ActionState::Finished);
 }
 
-void SetNameAction::checkWaitingCondition() {
+void SetNameAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
     assert(false);
 }

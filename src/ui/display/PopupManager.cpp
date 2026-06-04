@@ -7,9 +7,10 @@
 #include "ui/display/primitives/FileView.h"
 #include "ui/display/ScreenKeyboard.h"
 #include "ui/display/RouteManager.h"
-#include "ui/display/NewModulePopup.h"
+#include "ui/display/NewUnitPopup.h"
 #include "ui/display/SettingsPopup.h"
 #include "ui/display/VirtualMidiKeyboard.h"
+#include "ui/display/DragViewSelector.h"
 
 namespace UI {
 
@@ -76,15 +77,15 @@ void PopupManager::disableFilePopup() {
     _filePopup->hide();
 }
 
-void PopupManager::enableNewModulePopup() {
-    _newModulePopup->update();
-    _newModulePopup->activate();
-    _newModulePopup->show();
+void PopupManager::enableNewUnitPopup() {
+    _newUnitPopup->update();
+    _newUnitPopup->activate();
+    _newUnitPopup->show();
 }
 
-void PopupManager::disableNewModulePopup() {
-    _newModulePopup->deactivate();
-    _newModulePopup->hide();
+void PopupManager::disableNewUnitPopup() {
+    _newUnitPopup->deactivate();
+    _newUnitPopup->hide();
 }
 
 void PopupManager::enableSettingsPopup() {
@@ -108,6 +109,18 @@ void PopupManager::disableMidiKeyboard() {
     _virtualMidiKeyboard->deactivate();
     _virtualMidiKeyboard->hide();
 }
+
+void PopupManager::enableDragSelector() {
+    _dragViewSelector->activate();
+    _dragViewSelector->show();
+}
+
+void PopupManager::disableDragSelector() {
+    _dragViewSelector->deactivate();
+    _dragViewSelector->hide();
+}
+
+    
 
 
 }

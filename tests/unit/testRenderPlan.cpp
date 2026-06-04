@@ -6,8 +6,8 @@
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
 #include "core/primitives/AudioUnit.h"
-#include "modules/Track/Track.h"
-#include "modules/Mixer/Mixer.h"
+#include "units/Track/Track.h"
+#include "units/Mixer/Mixer.h"
 // #include "core/Mixer.h"
 
 #include <gtest/gtest.h>
@@ -19,7 +19,7 @@
 #include <unordered_map>
 
 struct Dummy : public slr::AudioUnit {
-    Dummy() : slr::AudioUnit(nullptr) {
+    Dummy() : slr::AudioUnit(nullptr, 0) {
 
     }
     ~Dummy() {}

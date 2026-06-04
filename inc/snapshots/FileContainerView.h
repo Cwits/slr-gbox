@@ -24,6 +24,8 @@ struct ClipItemView {
     const ClipItem * item() const { return _item; }
     ID id() const { return _uniqueId; }
 
+    const File * file() const;
+
     void update();
     uint64_t version() const { return _version.load(std::memory_order_acquire); }
 
@@ -49,6 +51,7 @@ struct ClipItemView {
 };
 
 struct ClipContainerView {
+    ClipContainerView();
     void addClipItem(const ClipItemView *item);
     const std::vector<const ClipItemView*> & clips() const;
     void deleteClipViewItem(ID id);

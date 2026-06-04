@@ -240,8 +240,8 @@ bool Browser::handleDrag(GestLib::DragGesture & drag) {
             make another transfer to destination
         */
         
-        _uictx->transferGesture(_uictx->previousView(), GestLib::Gestures::Drag);
-
+        _uictx->transferGesture(_uictx->dragSelector(), GestLib::Gestures::Drag);
+        _uictx->_popManager->enableDragSelector();
         // return true;
     } else if(drag.state == GestLib::GestureState::Move) {
         LOG_INFO("Drag Move x: %d, y: %d, dx: %d, dy: %d", drag.x, drag.y, drag.dx, drag.dy);

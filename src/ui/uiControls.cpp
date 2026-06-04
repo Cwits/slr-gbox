@@ -58,24 +58,52 @@ void floatingWarning(std::string text) {
 }
 
 /* Module Related */
-void addModuleUI(const slr::Module * mod, const std::shared_ptr<const slr::AudioUnitView> view) {
-    postToLvgl([mod, view]() {
-        UI::MainWindow::inst()->createUI(mod, view);
+void addUnitUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> view) {
+    postToLvgl([desc, view]() {
+        UI::MainWindow::inst()->createUI(desc, view);
     });
 
-    PushThread::postTask([mod, view]() {
-        PushUI::RootWidget::inst()->createUI(mod, view);
-    });
+    if(PushThread::isRunning()) {
+        PushThread::postTask([desc, view]() {
+            PushUI::RootWidget::inst()->createUI(desc, view);
+        });
+    }
 }
 
-void destroyModuleUI(slr::ID id) {
+void removeUI(slr::ID id) {
     postToLvgl([id]() {
-        UI::MainWindow::inst()->destroyUI(id);
+        UI::MainWindow::inst()->removeUI(id);
     });
     
-    PushThread::postTask([id]() {
-        PushUI::RootWidget::inst()->destroyUI(id);
+    if(PushThread::isRunning()) {
+        PushThread::postTask([id]() {
+            PushUI::RootWidget::inst()->removeUI(id);
+        });
+    }
+}
+
+void restoreUI(slr::ID id) {
+    postToLvgl([id]() {
+        UI::MainWindow::inst()->restoreUI(id);
     });
+
+    if(PushThread::isRunning()) {
+        PushThread::postTask([id]() {
+            PushUI::RootWidget::inst()->restoreUI(id);
+        });
+    }
+}
+
+void deleteUI(slr::ID id) {
+    postToLvgl([id]() {
+        UI::MainWindow::inst()->deleteUI(id);
+    });
+
+    if(PushThread::isRunning()) {
+        PushThread::postTask([id]() {
+            PushUI::RootWidget::inst()->deleteUI(id);
+        });
+    }
 }
 
 
@@ -107,5 +135,16 @@ void updateMetronomeState(bool onoff) {
     });
 }
 
+void clearUI() {
+    postToLvgl([]() {
+        UI::MainWindow::inst()->clearUI();
+    });
+    
+    if(PushThread::isRunning()) {
+        PushThread::postTask([]() {
+            PushUI::RootWidget::inst()->clearUI();
+        });
+    }
+}
 
 } //namespace UIControls

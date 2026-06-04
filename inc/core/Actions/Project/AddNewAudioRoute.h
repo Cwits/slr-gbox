@@ -15,12 +15,12 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct AddNewRouteAction : public ActionExecutable {
+struct AddNewRouteAction : public ActionExecutable, public Undoable {
     AddNewRouteAction(const ActionBase *base);
     ~AddNewRouteAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::AddNewAudioRoute _action;

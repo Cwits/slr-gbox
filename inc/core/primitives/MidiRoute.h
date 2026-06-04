@@ -18,6 +18,19 @@ struct MidiRoute {
     Type _targetType;
     ID _targetId;
     int8_t _targetChannel = 0;
+
+    bool operator==(const MidiRoute &other) const { 
+        return (_sourceType == other._sourceType &&
+                _sourceId == other._sourceId &&
+                _sourceChannel == other._sourceChannel &&
+                _targetType == other._targetType &&
+                _targetId == other._targetId &&
+                _targetChannel == other._targetChannel);
+    }
+
+    bool operator!=(const MidiRoute &other) const {
+        return !(*this == other);
+    }
 };
 
 

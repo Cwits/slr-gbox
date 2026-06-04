@@ -3,11 +3,14 @@
 
 #include "ui/display/primitives/UIContext.h"
 
+
+#include "ui/display/primitives/Popup.h"
+#include "ui/display/DragViewSelector.h"
 #include "ui/display/MainWindow.h"
 #include "ui/display/TopPanel.h"
 #include "ui/display/BottomPanel.h"
 #include "ui/display/GridView.h"
-#include "ui/display/ModuleView.h"
+#include "ui/display/UnitView.h"
 #include "ui/display/Browser.h"
 
 namespace UI {
@@ -20,8 +23,8 @@ MainView UIContext::previousView() {
     return _mainWindow->previousView();
 }
 
-void UIContext::transferGesture(MainView view, GestLib::Gestures gesture) {
-    _mainWindow->transferGesture(view, gesture);
+void UIContext::transferGesture(BaseWidget * target, GestLib::Gestures gesture) {
+    _mainWindow->transferGesture(target, gesture);
 }
 
 void UIContext::clearHitTestTarget() {
@@ -63,9 +66,12 @@ void UIContext::registerFrequentUpdate(std::function<void()> clb) {
 
 BaseWidget * UIContext::topPanel() { return _topPanel; }
 BaseWidget * UIContext::bottomPanel() { return _bottomPanel; }
-BaseWidget * UIContext::gridControl() { return _gridView->_control; }
-BaseWidget * UIContext::grid() { return _gridView->_grid; }
-BaseWidget * UIContext::moduleView() { return _module; }
+BaseWidget * UIContext::grid() { return _gridView; }
+BaseWidget * UIContext::gridControl() { return _gridView->_control.get(); }
+BaseWidget * UIContext::gridGrid() { return _gridView->_grid.get(); }
+BaseWidget * UIContext::unitView() { return _unitView; }
 BaseWidget * UIContext::browser() { return _browser; }
+BaseWidget * UIContext::dragSelector() { return _dragSelector; }
+
 
 }

@@ -20,8 +20,6 @@ Parameters:
         as soon as all the parameters are prepared in NRT and doesn't change dynamically - should be no problems
         Now list is a vector, not array
 
-Events:
-[ ] - Events 3.0: outside they stay same way, but internal mechanism must work by stages, full isolation from outer world(kinda)...
 
 AudioUnit:
 [ ] - make ::outputs() to give back not the AudioBuffer * but list of 
@@ -61,10 +59,10 @@ Refactoring:
 [x] - rewrite ControlEngine to namespace instead of singleton ???
 [x?] - instead of local in counters switch to one global id counter for all the entities.
         (not only for track, but for fx, mod engine, mixer, etc...)
-[ ] - move std::string _name from track to audio unit
 [\] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
         (Track separated, mixer left)
-        [ ] - create CMakeLists.txt for each module and add dynamic modules search in ModuleManager
+        [ ] - create CMakeLists.txt for each module and add dynamic modules search in ModuleManager - 
+        ... ugh, lvgl compiles as static library and need to recompile it with -fPIC in order to get everything as shared
 [ ] - separate defines.h to two files - slr_config.h and common.h
 [ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
 [ ] - Folder structure need bit of changes:
@@ -89,7 +87,7 @@ MidiController:
 [ ] - MidiController.cpp:101 - //TODO: ugh, this is bad lol :D
 
 Project:
-[ ] - make save and load system(serialization)
+[x] - make save and load system(serialization)
 [ ] - make undo/redo system
 
 Render Plan:

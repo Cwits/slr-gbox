@@ -16,15 +16,16 @@ struct ActionBase;
 struct AudioUnit;
 struct Timeline;
 
-struct ChangeSignatureBpmAction : public ActionExecutable {
+struct ChangeSignatureBpmAction : public ActionExecutable, public Undoable {
     ChangeSignatureBpmAction(const ActionBase *base);
     ~ChangeSignatureBpmAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::ChangeSignatureBpm _action;
+    Actions::ChangeSignatureBpm _oldValues;
 
 
     struct ChangeSigBpm : public FlatTask {

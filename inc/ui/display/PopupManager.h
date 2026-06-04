@@ -17,9 +17,10 @@ class TimelinePopup;
 class ScreenKeyboard;
 class FilePopup;
 class FileView;
-class NewModulePopup;
+class NewUnitPopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
+class DragViewSelector;
 
 struct PopupManager {
     PopupManager();
@@ -41,8 +42,8 @@ struct PopupManager {
     void setFilePopupPosition(int x, int y);
     void disableFilePopup();
 
-    void enableNewModulePopup();
-    void disableNewModulePopup();
+    void enableNewUnitPopup();
+    void disableNewUnitPopup();
 
     void enableSettingsPopup();
     void disableSettingsPopup();
@@ -50,14 +51,18 @@ struct PopupManager {
     void enableMidiKeyboard();
     void disableMidiKeyboard();
 
+    void enableDragSelector();
+    void disableDragSelector();
+    
     private:
     UnitControlPopup * _unitControlPopup;
     ScreenKeyboard * _screenKeyboard;
     RouteManager * _routeManager;
     FilePopup * _filePopup;
-    NewModulePopup * _newModulePopup;
+    NewUnitPopup * _newUnitPopup;
     SettingsPopup * _settingsPopup;
     VirtualMidiKeyboard * _virtualMidiKeyboard;
+    DragViewSelector * _dragViewSelector;
 
     friend class MainWindow;
 };

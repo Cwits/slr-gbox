@@ -13,15 +13,16 @@ namespace slr {
 
 struct ActionBase;
 
-struct SetNameAction : public ActionExecutable {
+struct SetNameAction : public ActionExecutable, public Undoable {
     SetNameAction(const ActionBase *base);
     ~SetNameAction();
 
     void exec(ControlContext &ctx) override;
-    void checkWaitingCondition() override;
+    void checkWaitingCondition(ControlContext &ctx) override;
 
     private:
     const Actions::SetName _action;
+    std::string _oldName;
 };
 
 std::unique_ptr<ActionExecutable> createSetNameAction(const ActionBase*);

@@ -42,7 +42,13 @@ void ToggleMidiThruAction::exec(ControlContext &ctx) {
             }
 
             _flat.target = unit;
-            _flat.newState = _action.newState;
+            if(_direction == ActionDirection::Forward) {
+                _oldState = unit->isMidiThru();
+                _flat.newState = _action.newState;
+            } else {
+                _flat.newState = _oldState;
+            }
+
             _flat.completed.store(false);
             _task = makeRtTask(&_flat);
             
@@ -60,18 +66,21 @@ void ToggleMidiThruAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            // view->update();
-            view->setMidiThru(_action.newState);
+            if(_direction == ActionDirection::Forward) {
+                view->setMidiThru(_action.newState);
+            } else {
+                view->setMidiThru(_oldState);
+            }
+
             UIControls::updateRouteManager();
 
-            markDelete();
             setState(ActionState::Finished);
     	} break;
         default: assert(false && "Unreachable"); break;
     }
 }
 
-void ToggleMidiThruAction::checkWaitingCondition() {
+void ToggleMidiThruAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 
     switch(_step) {

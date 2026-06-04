@@ -1,4 +1,4 @@
-# Sample.Loop.Repeat. v0.3  
+# Sample.Loop.Repeat. v0.4  
 
 Sample.Loop.Repeat. is an open source hardware platform for musicians and enthusiasts.  
 
@@ -41,8 +41,9 @@ See [Software Setup](docs/Software_setup.md) guide
 **V0.1** - audio core  
 **V0.2** - Midi Support(usb midi + generic handler)  
 **V0.3** - Basic Ableton Push 2 support  
-**V0.4** - Plugins base  
-**V0.5** - Save/Load and Undo/Redo  
+**V0.4** - Save/Load and Undo/Redo  
+**V0.5** - Modulation Engine, Step Sequencer
+**V0.6** - not sure, need little bit of code cleaning and refactoring... 
 
 ### Other TODO’s:  
 See [TODO.txt](docs/TODO.txt)  

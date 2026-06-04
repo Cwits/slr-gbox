@@ -19,6 +19,7 @@ class Button;
 class UIContext;
 
 struct FileView : public BaseWidget { //this should be called ClipUI or smth...
+    // FileView(BaseWidget *parent, const slr::ClipItemView *const item, UIContext *const uictx, int x, int y, int expectedWidth, int expectedHeight);
     FileView(BaseWidget * parent, UnitUIBase * _parentUI, const slr::ClipItemView * const item, UIContext * const uictx);
     ~FileView();
 

@@ -20,7 +20,17 @@ UnitUIBase::UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, Pu
 }
 
 UnitUIBase::~UnitUIBase() {
-    LOG_INFO("Push Unit UI deleted");
+    // LOG_INFO("Push Unit UI deleted");
+}
+
+void UnitUIBase::show() {
+    gridUI()->show();
+    unitUI()->show();
+}
+
+void UnitUIBase::hide() {
+    gridUI()->hide();
+    unitUI()->hide();
 }
 
 DefaultGridUI::DefaultGridUI(PushLib::Widget *parent, UnitUIBase *parentUI)

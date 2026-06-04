@@ -11,7 +11,7 @@
 
 namespace slr {
 
-AudioFile::AudioFile() : File(FileType::Audio), _file(nullptr), _info({0}), _data(nullptr), _opened(false), _temporary(false), _finalize(false), _interleave(nullptr), _interleaveChannels(0) {
+AudioFile::AudioFile(long forcedId) : File(FileType::Audio, forcedId), _file(nullptr), _info({0}), _data(nullptr), _opened(false), _temporary(false), _finalize(false), _interleave(nullptr), _interleaveChannels(0) {
 
 }
 
