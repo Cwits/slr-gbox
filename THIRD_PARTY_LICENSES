@@ -11,6 +11,9 @@ This project uses the following external libraries:
 - GestLib (https://github.com/Cwits/gestlib)
   License: MIT License
 
+- slr-clocker (https://github.com/Cwits/slr-clocker.git)
+  License: MIT License and MCD-ST Liberty SW License Agreement V2
+
 - Portions of the STM32 firmware are based on STMicroelectronics example code,
   licensed under the MCD-ST Liberty SW License Agreement V2.
   See: http://www.st.com/software_license_agreement_liberty_v2
