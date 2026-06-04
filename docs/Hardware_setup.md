@@ -67,6 +67,7 @@ To have certain modularity at prototyping stage I’ve soldered several pin head
 Yes, that can affect the quality of sound, but right now I'm ok with that.  
 
 ### Uploading the firmware:  
+![Source code and compiled firmware can be found here](https://github.com/Cwits/slr-clocker.git)
 Open STM32 ST-LINK Utility(can be downloaded from stm32 webpage).  
 Load the firmware from docs/stm/ folder(called clocker.hex) to program.  
 Connect STM32 Black Pill through STLink to PC.  
