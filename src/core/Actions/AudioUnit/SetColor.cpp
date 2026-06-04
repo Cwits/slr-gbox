@@ -28,15 +28,23 @@ SetColorAction::~SetColorAction() {
 void SetColorAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
 
-    
     AudioUnitView *uView = ctx.projectView->getUnitById(_action.targetId);
     if(!uView) {
         LOG_ERROR("Failed to find view for ID %u", _action.targetId);
         abortAction();
         return;
     }
+    
+    Color clrToSet;
 
-    uView->color(_action.color);
+    if(_direction == ActionDirection::Forward) { 
+        _oldColor = uView->color();
+        clrToSet = _action.color;
+    } else {
+        clrToSet = _oldColor;
+    }
+    
+    uView->color(clrToSet);
 
     setState(ActionState::Finished);
 }

@@ -81,6 +81,10 @@ class AudioUnit {
     const float pan() const { return _pan; }
     const ID panId() const { return _pan.id(); }
 
+    float getParameterRaw(ID parameterId) const {
+        return _flatParameterList[parameterId]->value();
+    }
+
     inline void setParameter(ID parameterId, float value) {
         _flatParameterList[parameterId]->setValue(value);
     }

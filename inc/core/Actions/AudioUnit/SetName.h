@@ -13,7 +13,7 @@ namespace slr {
 
 struct ActionBase;
 
-struct SetNameAction : public ActionExecutable {
+struct SetNameAction : public ActionExecutable, public Undoable {
     SetNameAction(const ActionBase *base);
     ~SetNameAction();
 
@@ -22,6 +22,7 @@ struct SetNameAction : public ActionExecutable {
 
     private:
     const Actions::SetName _action;
+    std::string _oldName;
 };
 
 std::unique_ptr<ActionExecutable> createSetNameAction(const ActionBase*);

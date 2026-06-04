@@ -54,6 +54,15 @@ struct ActionExecutable {
 	friend class Undoable;
 };
 
+/*
+	To make action undoable - 
+		1. inherit public Undoable
+		2. in executin stage and waiting use _direction, whete
+			_direction == Forward means normal and redo behaviour(what action should do)
+			_direction == Backward means what it should revert
+
+	Check Project::CreateNewUnit and Project::DeleteUnit actions for example
+*/
 struct Undoable {
 	virtual ~Undoable() = default;
 	void undo(ControlContext &ctx, ActionExecutable *self) {

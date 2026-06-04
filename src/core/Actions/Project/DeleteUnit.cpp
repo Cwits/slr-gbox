@@ -96,7 +96,7 @@ void DeleteUnitAction::exec(ControlContext &ctx) {
 			} break;
 			default: assert(false && "Unreachable"); break;
 		}
-	} else if(_direction == ActionDirection::Backward) {
+	} else {
 		switch(_step) {
 			case(1): {
 				ctx.project->appendUnit(std::move(_unit));
@@ -147,18 +147,6 @@ void DeleteUnitAction::checkWaitingCondition(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
 	}
 }
-
-// void DeleteUnitAction::undo(ControlContext &ctx) {
-// 	_step = 1;
-// 	_direction = ActionDirection::Backward;
-// 	setState(ActionState::Executing);
-// }
-
-// void DeleteUnitAction::redo(ControlContext &ctx) {
-// 	_step = 1;
-// 	_direction = ActionDirection::Forward;
-// 	setState(ActionState::Executing);
-// }
 
 std::unique_ptr<ActionExecutable> createDeleteUnitAction(const ActionBase*base) {
     return std::make_unique<DeleteUnitAction>(base);

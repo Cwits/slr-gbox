@@ -14,7 +14,7 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct ToggleOmniHwAction : public ActionExecutable {
+struct ToggleOmniHwAction : public ActionExecutable, public Undoable {
     ToggleOmniHwAction(const ActionBase *base);
     ~ToggleOmniHwAction();
 
@@ -23,6 +23,7 @@ struct ToggleOmniHwAction : public ActionExecutable {
 
     private:
     const Actions::ToggleOmniHwInput _action;
+    bool _oldState;
 
     struct ToggleOmniHw : public FlatTask {
         void execRT();

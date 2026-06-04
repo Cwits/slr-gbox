@@ -30,15 +30,37 @@ void AddNewRouteAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
 
     switch(_step) {
-    	case(1): {
-    		if(!ctx.project->evaluateRoute(_action.route)) {
-        		UIControls::floatingWarning("Invalid route");
-        		LOG_ERROR("Invalid route");
-        		abortAction();
-        		return;
-    		}
-    
-    		ctx.project->addRoute(_action.route);
+        case(1): {
+            if(_direction == ActionDirection::Forward) {
+                if(!ctx.project->evaluateRoute(_action.route)) {
+                    UIControls::floatingWarning("Invalid route");
+                    LOG_ERROR("Invalid route");
+                    abortAction();
+                    return;
+                }
+            
+                ctx.project->addRoute(_action.route);
+            } else {
+                const std::vector<AudioRoute> & aroutes = ctx.project->routes();
+                std::size_t idx = 0;
+                bool found = false;
+
+                for(const AudioRoute &r : aroutes) {
+                    if(r == _action.route) {
+                        found = true;
+                        break;
+                    }
+                    idx++;
+                }
+
+                if(!found) {
+                    LOG_ERROR("not found route");
+                    abortAction();
+                    break;
+                }
+
+                ctx.project->removeRoute(idx);
+            }
             
             if(_action.swapPlan) {
                 if(!ctx.project->prepareSwappablePlan()) {
@@ -46,7 +68,7 @@ void AddNewRouteAction::exec(ControlContext &ctx) {
                     abortAction();
                     return;
                 }
-                
+                    
                 _flat.project = ctx.project;
                 _flat.completed.store(false);
                 _task = makeRtTask(&_flat);
@@ -57,12 +79,12 @@ void AddNewRouteAction::exec(ControlContext &ctx) {
                 _step = 2;
             }
         } break;
-    	case(2): {
+        case(2): {
             ctx.projectView->updateRoutes(ctx.project->routes());
             UIControls::updateRouteManager();
 
             setState(ActionState::Finished);
-    	} break;
+        } break;
         default: assert(false && "Unreachable"); break;
     }
 }

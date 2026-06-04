@@ -297,6 +297,9 @@ void DefaultGridUI::pollUIUpdate() {
 
     _lblVolume->setText(std::to_string(view->volume()));
     _lblName->setText(view->name());
+    
+    slr::Color clr = _uibase->view()->color();
+    lv_obj_set_style_bg_color(lvhost(), lv_color_make(clr.r, clr.g, clr.b), 0);
 }
 
 // int DefaultGridUI::gridY() {

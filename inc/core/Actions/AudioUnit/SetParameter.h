@@ -15,7 +15,7 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct SetParameterAction : public ActionExecutable {
+struct SetParameterAction : public ActionExecutable, public Undoable {
     SetParameterAction(const ActionBase *base);
     ~SetParameterAction();
 
@@ -24,6 +24,7 @@ struct SetParameterAction : public ActionExecutable {
 
     private:
     const Actions::SetParameter _action;
+    Actions::SetParameter _oldValue;
 
     RtTasks::SetParameterFlat _flat;
     RtTask _task;

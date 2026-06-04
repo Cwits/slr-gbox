@@ -14,7 +14,7 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct ToggleMidiThruAction : public ActionExecutable {
+struct ToggleMidiThruAction : public ActionExecutable, public Undoable {
     ToggleMidiThruAction(const ActionBase *base);
     ~ToggleMidiThruAction();
 
@@ -23,6 +23,7 @@ struct ToggleMidiThruAction : public ActionExecutable {
 
     private:
     const Actions::ToggleMidiThru _action;
+    bool _oldState;
 
     struct ToggleThru : public FlatTask {
         void execRT();

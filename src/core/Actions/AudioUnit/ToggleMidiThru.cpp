@@ -42,7 +42,13 @@ void ToggleMidiThruAction::exec(ControlContext &ctx) {
             }
 
             _flat.target = unit;
-            _flat.newState = _action.newState;
+            if(_direction == ActionDirection::Forward) {
+                _oldState = unit->isMidiThru();
+                _flat.newState = _action.newState;
+            } else {
+                _flat.newState = _oldState;
+            }
+
             _flat.completed.store(false);
             _task = makeRtTask(&_flat);
             
@@ -60,8 +66,12 @@ void ToggleMidiThruAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            // view->update();
-            view->setMidiThru(_action.newState);
+            if(_direction == ActionDirection::Forward) {
+                view->setMidiThru(_action.newState);
+            } else {
+                view->setMidiThru(_oldState);
+            }
+
             UIControls::updateRouteManager();
 
             setState(ActionState::Finished);

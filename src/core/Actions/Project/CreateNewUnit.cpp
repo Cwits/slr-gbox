@@ -72,7 +72,7 @@ void CreateNewUnitAction::exec(ControlContext &ctx) {
         _createdUnitId = au->id();
 
         setState(ActionState::Finished);
-    } else if(_direction == ActionDirection::Backward) {
+    } else {
         UIControls::removeUI(_createdUnitId);
 
         std::unique_ptr<AudioUnit> unit = ctx.project->removeUnit(_createdUnitId);
@@ -90,25 +90,6 @@ void CreateNewUnitAction::exec(ControlContext &ctx) {
 void CreateNewUnitAction::checkWaitingCondition(ControlContext &ctx) {
     assert(getState() == ActionState::Waiting);
 }
-
-// void CreateNewUnitAction::undo(ControlContext &ctx) {
-//     // auto act = std::make_unique<Actions::DeleteUnit>();
-//     // act->targetId = _createdUnitId;
-//     // EmitAction(std::move(act));
-//     _step = 1;
-//     _direction = ActionDirection::Backward;
-//     setState(ActionState::Executing);
-// }
-
-// void CreateNewUnitAction::redo(ControlContext &ctx) {
-//     // auto act = std::make_unique<Actions::CreateNewUnit>();
-//     // *act = _action;
-//     // EmitAction(std::move(act));
-//     // setState(ActionState::Executing);
-//     _step = 1;
-//     _direction = ActionDirection::Forward;
-//     setState(ActionState::Executing);
-// }
 
 std::unique_ptr<ActionExecutable> createCreateNewUnitAction(const ActionBase *base) {
     return std::make_unique<CreateNewUnitAction>(base);

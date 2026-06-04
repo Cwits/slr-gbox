@@ -28,14 +28,21 @@ ChangeSignatureBpmAction::~ChangeSignatureBpmAction() {}
 void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
 	assert(getState() == ActionState::Executing);
 	
-	switch(_step) {
-		case(1): {
-            _oldValues.bpm = ctx.project->timeline().bpm();
-            _oldValues.sig = ctx.project->timeline().getBarSize();
+    switch(_step) {
+        case(1): {
 
             _flat.tl = &ctx.project->timeline();
-            _flat.bpm = _action.bpm;
-            _flat.sig = _action.sig;
+
+            if(_direction == ActionDirection::Forward) {
+                _oldValues.bpm = ctx.project->timeline().bpm();
+                _oldValues.sig = ctx.project->timeline().getBarSize();
+
+                _flat.bpm = _action.bpm;
+                _flat.sig = _action.sig;
+            } else {
+                _flat.bpm = _oldValues.bpm;
+                _flat.sig = _oldValues.sig;
+            }
             _flat.completed.store(false);
 
             _task = makeRtTask(&_flat);
@@ -43,15 +50,20 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
             ctx.EmitRtTask(&_task);
         } break;
         case(2): {
-            ctx.projectView->timeline().setBpm(_action.bpm);
-            ctx.projectView->timeline().setBarSize(_action.sig);
+            if(_direction == ActionDirection::Forward) {
+                ctx.projectView->timeline().setBpm(_action.bpm);
+                ctx.projectView->timeline().setBarSize(_action.sig);
+            } else {
+                ctx.projectView->timeline().setBpm(_oldValues.bpm);
+                ctx.projectView->timeline().setBarSize(_oldValues.sig);
+            }
             UIControls::updateTimeline(true);
 
-        	 
-        	setState(ActionState::Finished);
-		} break;
+                
+            setState(ActionState::Finished);
+        } break;
         default: assert(false && "Unreachable"); break;
-	}
+    }
 }
 void ChangeSignatureBpmAction::checkWaitingCondition(ControlContext &ctx) {
 	assert(getState() == ActionState::Waiting);
@@ -73,28 +85,6 @@ void ChangeSignatureBpmAction::ChangeSigBpm::execRT() {
     tl->setBarSize(sig);
     completed.store(true, std::memory_order_release);
 }
-
-// void ChangeSignatureBpmAction::undo(ControlContext &ctx) {
-//     // Actions::ChangeSignatureBpm tmp = _action;
-//     // _action = _oldValues;
-//     // _oldValues = tmp;
-//     // _step = 1;
-//     // setState(ActionState::Executing);
-//     auto act = std::make_unique<Actions::ChangeSignatureBpm>();
-//     *act = _oldValues;
-//     EmitAction(std::move(act));
-// }
-
-// void ChangeSignatureBpmAction::redo(ControlContext &ctx) {
-//     // Actions::ChangeSignatureBpm tmp = _action;
-//     // _action = _oldValues;
-//     // _oldValues = tmp;
-//     // _step = 1;
-//     // setState(ActionState::Executing);
-//     auto act = std::make_unique<Actions::ChangeSignatureBpm>();
-//     *act = _action;
-//     EmitAction(std::move(act));
-// }
 
 std::unique_ptr<ActionExecutable> createChangeSignatureBpmAction(const ActionBase*base) {
     return std::make_unique<ChangeSignatureBpmAction>(base);

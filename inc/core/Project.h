@@ -63,6 +63,7 @@ class Project {
     const std::vector<MidiRoute> & midiRoutes() const { return _midiRoutes; }
     bool evaluateRoute(const MidiRoute & route) { return true; }
     void addRoute(MidiRoute route) { _midiRoutes.push_back(route); }
+    void removeMidiRoute(std::size_t idx) { _midiRoutes.erase(_midiRoutes.begin() + idx); }
 
     Timeline & timeline() { return _timeline; }
     Metronome * metronome() const;

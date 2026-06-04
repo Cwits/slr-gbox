@@ -41,8 +41,16 @@ void ToggleOmniHwAction::exec(ControlContext &ctx) {
                 return;
             }
 
+
             _flat.target = unit;
-            _flat.newState = _action.newState;
+
+            if(_direction == ActionDirection::Forward) {
+                _flat.newState = _action.newState;
+                _oldState = unit->isOmniHwInput();
+            } else {
+                _flat.newState = _oldState;
+            }
+
             _flat.completed.store(false);
             _task = makeRtTask(&_flat);
             
@@ -60,8 +68,12 @@ void ToggleOmniHwAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            // view->update();
-            view->setOmniHw(_action.newState);
+            if(_direction == ActionDirection::Forward) {
+                view->setOmniHw(_action.newState);
+            } else if(_direction == ActionDirection::Backward) {
+                view->setOmniHw(_oldState);
+            }
+
             UIControls::updateRouteManager();
 
             setState(ActionState::Finished);

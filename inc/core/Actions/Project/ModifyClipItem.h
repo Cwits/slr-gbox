@@ -16,7 +16,7 @@ struct ActionBase;
 struct AudioUnit;
 struct ClipItem;
 
-struct ModifyClipItemAction : public ActionExecutable {
+struct ModifyClipItemAction : public ActionExecutable, public Undoable {
     ModifyClipItemAction(const ActionBase *base);
     ~ModifyClipItemAction();
 
@@ -25,6 +25,7 @@ struct ModifyClipItemAction : public ActionExecutable {
 
     private:
     const Actions::ModifyClipItem _action;
+    Actions::ModifyClipItem _oldValues;
 
     struct ModifyClip : public FlatTask {
         void execRT();

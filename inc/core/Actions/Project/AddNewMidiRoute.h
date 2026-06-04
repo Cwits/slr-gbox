@@ -15,7 +15,7 @@ namespace slr {
 struct ActionBase;
 struct AudioUnit;
 
-struct AddNewMidiRouteAction : public ActionExecutable {
+struct AddNewMidiRouteAction : public ActionExecutable, public Undoable {
     AddNewMidiRouteAction(const ActionBase *base);
     ~AddNewMidiRouteAction();
 

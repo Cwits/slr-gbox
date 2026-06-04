@@ -12,7 +12,7 @@ namespace slr {
 
 struct ActionBase;
 
-struct SetColorAction : public ActionExecutable {
+struct SetColorAction : public ActionExecutable, public Undoable {
     SetColorAction(const ActionBase *base);
     ~SetColorAction();
 
@@ -21,6 +21,7 @@ struct SetColorAction : public ActionExecutable {
 
     private:
     const Actions::SetColor _action;
+    Color _oldColor;
 };
 
 std::unique_ptr<ActionExecutable> createSetColorAction(const ActionBase*);
