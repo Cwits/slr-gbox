@@ -43,7 +43,8 @@ See [Software Setup](docs/Software_setup.md) guide
 **V0.3** - Basic Ableton Push 2 support  
 **V0.4** - Save/Load and Undo/Redo  
 **V0.5** - Modulation Engine, Step Sequencer  
-**V0.6** - not sure, need little bit of code cleaning and refactoring...  
+**V0.5X** - Some big cleanup, rework and profiling. There is several places that i don't like
+**V0.6** - Basic Editors(Audio and Midi files)  
 
 ### Other TODO’s:  
 See [TODO.txt](docs/TODO.txt)  

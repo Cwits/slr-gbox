@@ -3,6 +3,7 @@
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
+#include "snapshots/SequenceView.h"
 
 #include "core/Timeline.h"
 #include "core/ControlEngine.h"
@@ -20,6 +21,7 @@ namespace slr {
 ProjectView::ProjectView(Timeline *tl) : _timeline(tl) {
     // _playheadPosition = 0;
     _name = "Untitled Project";
+    _stepSequencer = std::make_unique<SequencerEngineView>();
 }
 
 ProjectView::~ProjectView() {

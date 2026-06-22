@@ -21,6 +21,7 @@ class Metronome;
 class UnitDescriptor;
 class ControlContext;
 struct BufferManager;
+struct StepSequencerEngine;
 
 class Project {
     public:
@@ -74,6 +75,8 @@ class Project {
     
     ClipItem * findClipItemById(ID id);
 
+    StepSequencerEngine * stepSequencer() const { return _stepSequencer.get(); }
+
     private:
     bool _isSolo;
     RenderPlan * _soloPlan;
@@ -97,10 +100,10 @@ class Project {
 
     std::unique_ptr<Metronome> _metronome;
 
-    ClipContainerMap _clipContainerMap;
-    ClipStorage _clipStorage;
+    ClipContainerMap _clipContainerMap; ////TODO: this is a problem, because not cleared on unit deleting
+    ClipStorage _clipStorage; 
 
-    //std::unique_ptr<StepSequencer> _stepSequencer;
+    std::unique_ptr<StepSequencerEngine> _stepSequencer;
     //std::unique_ptr<ModulationEngine> _modEngine;
     //_globalParameterList??
 

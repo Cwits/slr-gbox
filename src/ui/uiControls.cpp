@@ -135,6 +135,16 @@ void updateMetronomeState(bool onoff) {
     });
 }
 
+void createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
+    postToLvgl([view]() {
+        UI::MainWindow::inst()->createSequenceUI(view);
+    });
+
+    if(PushThread::isRunning()) {
+        //...
+    }
+}
+
 void clearUI() {
     postToLvgl([]() {
         UI::MainWindow::inst()->clearUI();

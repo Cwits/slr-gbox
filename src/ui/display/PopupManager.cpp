@@ -11,6 +11,7 @@
 #include "ui/display/SettingsPopup.h"
 #include "ui/display/VirtualMidiKeyboard.h"
 #include "ui/display/DragViewSelector.h"
+#include "ui/display/StepSequencerView.h"
 
 namespace UI {
 
@@ -120,7 +121,15 @@ void PopupManager::disableDragSelector() {
     _dragViewSelector->hide();
 }
 
-    
+void PopupManager::enableTargetSelectPopup() {
+    _targetSelectPopup->activate();
+    _targetSelectPopup->show();
+}
+
+void PopupManager::disableTargetSelectPopup() {
+    _targetSelectPopup->deactivate();
+    _targetSelectPopup->hide();
+}
 
 
 }

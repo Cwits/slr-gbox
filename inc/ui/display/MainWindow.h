@@ -14,6 +14,7 @@
 namespace slr {
     class AudioUnitView;
     class UnitDescriptor;
+    struct SequenceView;
 }
 
 namespace UI {
@@ -26,6 +27,7 @@ class BottomPanel;
 class GridView;
 class UnitView;
 class Browser;
+class StepSequencerView;
 
 class Popup;
 class UnitControlPopup;
@@ -37,6 +39,7 @@ class NewUnitPopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
 class DragViewSelector;
+class TargetSelectPopup;
 
 class DragContext;
 
@@ -58,6 +61,8 @@ struct MainWindow : public BaseWidget {
     void updatePlayheadPosition(slr::frame_t position);
 
     void updateMetronomeState(bool onoff);
+
+    void createSequenceUI(const std::shared_ptr<slr::SequenceView> view);
     
     void clearHittestTarget() { _initialGestureTarget = nullptr; }
     bool cancleGesture(BaseWidget * widget);
@@ -81,7 +86,8 @@ struct MainWindow : public BaseWidget {
     //Main views
     std::unique_ptr<GridView> _gridView;
     std::unique_ptr<UnitView> _unitView; //TODO: last selected unit view
-    std::unique_ptr<Browser> _browser;;
+    std::unique_ptr<Browser> _browser;
+    std::unique_ptr<StepSequencerView> _stepSequencerView;
 
     //popups
     std::unique_ptr<UnitControlPopup> _unitControlPopup;
@@ -93,7 +99,7 @@ struct MainWindow : public BaseWidget {
     std::unique_ptr<SettingsPopup> _settingsPopup;
     std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;
     std::unique_ptr<DragViewSelector> _dragViewSelector;
-    // ViewSelector * _viewSelector; //called only when need to switch from drag to target?
+    std::unique_ptr<TargetSelectPopup> _targetSelectPopup; //for step sequencer
 
     private:
     UIContext _uiContext;

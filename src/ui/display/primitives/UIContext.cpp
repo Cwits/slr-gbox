@@ -12,6 +12,7 @@
 #include "ui/display/GridView.h"
 #include "ui/display/UnitView.h"
 #include "ui/display/Browser.h"
+#include "ui/display/StepSequencerView.h"
 
 namespace UI {
 
@@ -71,6 +72,7 @@ BaseWidget * UIContext::gridControl() { return _gridView->_control.get(); }
 BaseWidget * UIContext::gridGrid() { return _gridView->_grid.get(); }
 BaseWidget * UIContext::unitView() { return _unitView; }
 BaseWidget * UIContext::browser() { return _browser; }
+BaseWidget * UIContext::stepSequencer() { return _stepSequencerView; }
 BaseWidget * UIContext::dragSelector() { return _dragSelector; }
 
 

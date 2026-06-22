@@ -112,6 +112,10 @@ void DropDown::selectedCallback(std::function<void(const std::string)> clb) {
     _callback = clb;
 }
 
+void DropDown::setSelected(const std::string_view item) {
+    _btn->setText(std::string(item));
+}
+
 void DropDown::setSelected(std::string & item) {
     _btn->setText(item);
 }

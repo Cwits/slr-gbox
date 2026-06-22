@@ -69,6 +69,14 @@ struct MidiEvent {
         offset = other.offset;
         return *this;
     }
+
+    void clear() {
+        channel = 0;
+        note = 0;
+        offset = 0;
+        type = MidiEventType::InvalidType;
+        velocity = 0;
+    }
 };
 
 struct MetaEvent {

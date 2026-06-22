@@ -154,6 +154,28 @@ void Timeline::setBarSize(BarSize size) {
     _size = size; 
 }
 
+const frame_t Timeline::framesInStep(StepDuration dur) const {
+    float div;
+    switch(dur) {
+        case(StepDuration::dWhole):         div = 4.0f;             break;
+        case(StepDuration::dHalf):          div = 2.0f;             break;
+        case(StepDuration::d4triplet):      div = 1.0f / 3.0f;      break;
+        case(StepDuration::d4):             div = 1.0f;             break;
+        case(StepDuration::d8tirplet):      div = 1.0f / 6.0f;      break;
+        case(StepDuration::d8):             div = 0.5f;             break;
+        case(StepDuration::d16triplet):     div = 1.0f / 12.0f;     break;
+        case(StepDuration::d16):            div = 0.250f;           break;
+        case(StepDuration::d32triplet):     div = 1.0f / 24.0f;     break;
+        case(StepDuration::d32):            div = 0.125f;           break;
+        case(StepDuration::d64triplet):     div = 1.0f / 48.0f;     break;
+        case(StepDuration::d64):            div = 0.0625f;          break;
+        case(StepDuration::d128triplet):    div = 1.0f / 96.0f;     break;
+        case(StepDuration::d128):           div = 0.03125f;         break;
+    }
+
+    return framesPerQuater() * div;
+}
+
 void Timeline::calcFramesPerQuater() {
     _framesPerQuater = _sampleRate / (_bpm/60.f);
     //TODO: update loop markers as well
@@ -166,6 +188,7 @@ uint32_t Timeline::calcFramesPerBeat() const {
 }
 
 uint32_t Timeline::calcFramesPerBar() const {
+    //return framesInStep(getBarSize()._denominator) * getBarSize()._numerator;
     return framesPerBeat() * getBarSize()._numerator;
 }
 

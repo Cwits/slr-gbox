@@ -53,6 +53,7 @@ class AudioUnit {
     virtual const AudioBuffer * outputs() const { return _outputs; }
 
     // void injectMidi(MidiEvent & ev) { _midiQueue.push_back(ev); }
+    void injectMidi(const MidiEvent &ev) const { } //placeholder for now
     void clearMidiBuffer();
     MidiBuffer * midiOutputs() { return _midiOutput; }
 

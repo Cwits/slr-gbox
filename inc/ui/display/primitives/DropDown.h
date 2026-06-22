@@ -16,6 +16,7 @@ struct DropDown : public BaseWidget {
     ~DropDown();
 
     void setItems(std::vector<std::string> &items);
+    void setSelected(const std::string_view item);
     void setSelected(std::string & item);
     void setTextColor(lv_color_t &color);
     void setTextFont(const lv_font_t *font);

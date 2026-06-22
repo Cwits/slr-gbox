@@ -185,6 +185,7 @@ void processLoop() {
         }
 
         {
+            //is it still used??s
             //check for responses from RT
             SPSCQueue<RtTask*, 256> & resps = _engine->getResponses();
             
@@ -197,8 +198,6 @@ void processLoop() {
         //e.g. if audiobufferpool::regularsize < 8 than expand
         //      or recordsize < 16 expand
         //...
-
-        // checkMidiDevices();
 
         // sleep:        
         // std::unique_lock<std::mutex> l(_this->_controlLock);

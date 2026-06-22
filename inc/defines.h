@@ -34,5 +34,25 @@ enum class RecordSource { Audio, Midi };
 enum class DevicePort { INPUT, OUTPUT };
 
 
+enum class StepDuration {
+    dWhole      = 1,
+    dHalf       = 2,
+    d4triplet   = 3,
+    d4          = 4,
+    //d5        = 5 ??
+    d8tirplet   = 6,
+    //d7        = 7 ??
+    d8          = 8,
+    //d9        = 9 ??
+    d16triplet  = 12,
+    d16         = 16,
+    d32triplet  = 24,
+    d32         = 32,
+    d64triplet  = 48,
+    d64         = 64,
+    d128triplet = 96,
+    d128        = 128
+};
+
 constexpr int MIDI_SPSCQUEUE_SIZE = 128;
 }

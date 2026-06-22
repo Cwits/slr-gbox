@@ -26,14 +26,21 @@ Button::Button(BaseWidget * parent, std::string text) : BaseWidget(parent, false
         this->setColor(BUTTON_DEFAULT_PRESSED);
     });
     setTouchUpCallback([this]() {
-        this->setColor(BUTTON_DEFAULT_COLOR);
+        this->setColor(this->_defaultColor);
     });
+
+    _defaultColor = BUTTON_DEFAULT_COLOR;
+    setFont(&DEFAULT_FONT);
     // lv_obj_add_event_cb(_btn, &Button::event_trampoline, LV_EVENT_CLICKED, this);
 }
 
 Button::~Button() {
     lv_obj_delete(_label);   
     lv_obj_delete(_btn);
+}
+
+void Button::setDefaultColor(lv_color_t color) {
+    _defaultColor = color;
 }
 
 void Button::setPos(lv_coord_t x, lv_coord_t y) {

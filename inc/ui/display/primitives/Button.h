@@ -22,6 +22,8 @@ class Button : public BaseWidget {
     void setTextColorHex(const uint32_t value);
     void setTextPos(lv_coord_t x, lv_coord_t y);
     const std::string text() const;
+
+    void setDefaultColor(lv_color_t color);
     
     void setCallback(std::function<void()> onClick);
     void setTouchDownCallback(std::function<void()> onTouchDown);
@@ -37,6 +39,9 @@ class Button : public BaseWidget {
     lv_obj_t * _parent;
     lv_obj_t * _btn;
     lv_obj_t * _label;
+
+    lv_color_t _defaultColor;
+
     std::function<void()> _onClick;
     std::function<void()> _onTouchDown;
     std::function<void()> _onTouchUp;

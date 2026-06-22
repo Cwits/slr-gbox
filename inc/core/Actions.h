@@ -338,6 +338,92 @@ struct ToggleMetronome : public ActionBase {
         std::type_index actionType() const override { return typeid(ToggleMetronome); }
 };
 
+/* Step Sequencer */
+struct CreateNewSequence : public ActionBase {
+    CreateNewSequence() {}
+    CreateNewSequence(const CreateNewSequence &rhs) :
+        ActionBase(rhs) {}
+    
+    std::type_index actionType() const override { return typeid(CreateNewSequence); }
+};
+
+struct ModifySequence : public ActionBase {
+    ModifySequence() {}
+    ModifySequence(const ModifySequence &rhs) :
+        ActionBase(rhs),
+        sequenceId(rhs.sequenceId),
+        stepCount(rhs.stepCount),
+        duration(rhs.duration) {}
+    
+    std::type_index actionType() const override { return typeid(ModifySequence); }
+
+    ID sequenceId;
+    std::optional<unsigned int> stepCount;
+    std::optional<StepDuration> duration;
+};
+
+struct ModifySequenceTarget : public ActionBase {
+    ModifySequenceTarget() {}
+    ModifySequenceTarget(const ModifySequenceTarget &rhs) :
+        ActionBase(rhs),
+        sequenceId(rhs.sequenceId),
+        addTarget(rhs.addTarget),
+        targetId(rhs.targetId) {}
+
+    std::type_index actionType() const override { return typeid(ModifySequenceTarget); }
+
+    ID sequenceId;
+    bool addTarget; //if false - than delete
+    ID targetId;
+};
+
+struct ModifySequenceLayer : public ActionBase {
+    ModifySequenceLayer() {}
+    ModifySequenceLayer(const ModifySequenceLayer &rhs) :
+        ActionBase(rhs),
+        sequenceId(rhs.sequenceId), 
+        layer(rhs.layer),
+        note(rhs.note),
+        velocity(rhs.velocity),
+        mute(rhs.mute),
+        active(rhs.active),
+        targetId(rhs.targetId) {}
+    
+    std::type_index actionType() const override { return typeid(ModifySequenceLayer); }
+
+    ID sequenceId;
+    unsigned int layer; //[0, LAYERS_COUNT)
+    
+    std::optional<unsigned int> note;
+    std::optional<unsigned int> velocity;
+    std::optional<bool> mute;
+    std::optional<bool> active;
+    std::optional<ID> targetId;
+};
+
+struct ModifySequenceEvent : public ActionBase {
+    ModifySequenceEvent() {}
+    ModifySequenceEvent(const ModifySequenceEvent &rhs) :
+        ActionBase(rhs),
+        sequenceId(rhs.sequenceId),
+        layer(rhs.layer),
+        eventNum(rhs.eventNum),
+        enabled(rhs.enabled),
+        note(rhs.note),
+        velocity(rhs.velocity) {}
+
+    std::type_index actionType() const override { return typeid(ModifySequenceEvent); }
+
+    ID sequenceId;
+    unsigned int layer;
+    unsigned int eventNum;
+
+    std::optional<bool> enabled;
+    std::optional<unsigned int> note;
+    std::optional<unsigned int> velocity;
+};
+
+
 } //namespace Actions
 
 void EmitAction(std::unique_ptr<ActionBase> action);

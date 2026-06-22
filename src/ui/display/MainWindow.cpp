@@ -16,6 +16,7 @@
 #include "ui/display/Browser.h"
 #include "ui/display/TopPanel.h"
 #include "ui/display/BottomPanel.h"
+#include "ui/display/StepSequencerView.h"
 
 #include "ui/display/RouteManager.h"
 #include "ui/display/TimelinePopup.h"
@@ -61,7 +62,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _gridView = std::make_unique<GridView>(this, &_uiContext);
     _unitView = std::make_unique<UnitView>(this, &_uiContext);
     _browser = std::make_unique<Browser>(this, &_uiContext);
-    _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
+    _stepSequencerView = std::make_unique<StepSequencerView>(this, &_uiContext);
     
     //TODO: set context values...
     _uiContext._topPanel = _topPanel.get();
@@ -69,6 +70,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _uiContext._gridView = _gridView.get();
     _uiContext._unitView = _unitView.get();
     _uiContext._browser = _browser.get();
+    _uiContext._stepSequencerView = _stepSequencerView.get();
     _uiContext._gridTimeline = _gridView->_timeline.get();
     _uiContext._dragSelector = _dragViewSelector.get();
 
@@ -99,8 +101,10 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popups.push_back(_settingsPopup.get());
     _virtualMidiKeyboard = std::make_unique<VirtualMidiKeyboard>(this, &_uiContext);
     _popups.push_back(_virtualMidiKeyboard.get());
-
+    _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
     _popups.push_back(_dragViewSelector.get());
+    _targetSelectPopup = std::make_unique<TargetSelectPopup>(this, _stepSequencerView.get(), &_uiContext);
+    _popups.push_back(_targetSelectPopup.get());
 
     _popManager._unitControlPopup = _unitControlPopup.get();
     _popManager._routeManager = _routeManager.get();
@@ -111,6 +115,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popManager._settingsPopup = _settingsPopup.get();
     _popManager._virtualMidiKeyboard = _virtualMidiKeyboard.get();
     _popManager._dragViewSelector = _dragViewSelector.get();
+    _popManager._targetSelectPopup = _targetSelectPopup.get();
 
     _uiContext._popManager = &_popManager;
 
@@ -144,6 +149,7 @@ void MainWindow::switchToView(MainView view) {
     _gridView->hide();
     _unitView->hide();
     _browser->hide();
+    _stepSequencerView->hide();
 
     View * target = getSwitchViewTarget(view);
     target->update();
@@ -197,11 +203,6 @@ bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
                 node = _topPanel.get();
             } else if(y > LayoutDef::TOP_PANEL_HEIGHT && y < (LayoutDef::WORKSPACE_HEIGHT+LayoutDef::TOP_PANEL_HEIGHT)) {
                 //look in workspace
-                // switch(_currentView) {
-                //     case(MainView::Grid): node = _gridView.get(); break;
-                //     case(MainView::Unit): node = _unitView.get(); break;
-                //     case(MainView::Browser): node = _browser.get(); break;
-                // }
                 node = getSwitchViewTarget(_currentView);
             } else {
                 //look in bottom panel
@@ -373,7 +374,7 @@ View * MainWindow::getSwitchViewTarget(MainView & view) {
         case(MainView::Browser): ret = _browser.get(); break;
         case(MainView::Patch): ; break;
         case(MainView::Editor): ; break;
-        case(MainView::StepSequencer): ; break;
+        case(MainView::StepSequencer): ret = _stepSequencerView.get(); break;
         case(MainView::ModMatrix): ; break;
     }
     return ret;
@@ -423,6 +424,10 @@ void MainWindow::updateMetronomeState(bool onoff) {
     } else {
         _topPanel->setMetroColor(BUTTON_DEFAULT_COLOR);
     }
+}
+
+void MainWindow::createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
+    _stepSequencerView->createSequenceUI(view);
 }
 
 std::string gestureToText(GestLib::Gestures &g) {

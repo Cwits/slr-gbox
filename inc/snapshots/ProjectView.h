@@ -20,6 +20,7 @@ class ControlContext;
 class UnitDescriptor;
 class AudioUnit;
 class AudioUnitView;
+struct SequencerEngineView;
 
 class ProjectView {
     public:
@@ -58,6 +59,8 @@ class ProjectView {
     const std::string path() const { return _path; }
     void path(std::string p) { _path = p; }
     
+    SequencerEngineView * stepSequencer() const { return _stepSequencer.get(); }
+
     private:
     std::string _path;
     std::string _name;
@@ -67,6 +70,8 @@ class ProjectView {
     TimelineView _timeline;
     std::vector<AudioRoute> _routes;
     std::vector<MidiRoute> _midiRoutes;
+
+    std::unique_ptr<SequencerEngineView> _stepSequencer;
 
     ClipViewStorage _clipStorage;
 

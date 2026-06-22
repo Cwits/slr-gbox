@@ -7,6 +7,7 @@
 #include "core/UnitManager.h"
 #include "core/primitives/ControlContext.h"
 #include "core/ControlEngine.h"
+#include "core/StepSequencer.h"
 #include "logger.h"
 
 #include <algorithm>
@@ -36,6 +37,7 @@ Project::Project() : _timeline(*this) {
     _renderPlan2 = &dummyPlan;
 
     _metronome = std::make_unique<Metronome>();
+    _stepSequencer = std::make_unique<StepSequencerEngine>();
 
     _isSolo = false;
     _planInWork = false;

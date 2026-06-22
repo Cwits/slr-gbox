@@ -37,6 +37,12 @@
 
 #include "core/Actions/Metronome/ToggleMetronome.h"
 
+#include "core/Actions/StepSequencer/CreateNewSequence.h"
+#include "core/Actions/StepSequencer/ModifySequence.h"
+#include "core/Actions/StepSequencer/ModifySequenceLayer.h"
+#include "core/Actions/StepSequencer/ModifySequenceEvent.h"
+#include "core/Actions/StepSequencer/ModifySequenceTarget.h"
+
 namespace slr {
 
 void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
@@ -76,6 +82,13 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
 
     //Metronome
     map[typeid(Actions::ToggleMetronome)] = &createToggleMetronomeAction;
+
+    //Step Sequencer
+    map[typeid(Actions::CreateNewSequence)] = &createCreateNewSequenceAction;
+    map[typeid(Actions::ModifySequence)] = &createModifySequenceAction;
+    map[typeid(Actions::ModifySequenceLayer)] = &createModifySequenceLayerAction;
+    map[typeid(Actions::ModifySequenceEvent)] = &createModifySequenceEventAction;
+    map[typeid(Actions::ModifySequenceTarget)] = &createModifySequenceTargetAction;
 }
 
 std::map<std::type_index, CreatorFn> & getActionMap() {

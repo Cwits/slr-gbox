@@ -10,6 +10,7 @@
 namespace slr {
 
 class Project;
+
 class Timeline {
     public:
     enum class RollState { Stop = 0, Pause, Preparing, Play };
@@ -42,9 +43,12 @@ class Timeline {
     const int sampleRate() const { return _sampleRate; }
     const int blockSize() const { return _blockSize; }
     const uint32_t framesPerQuater() const { return _framesPerQuater; }
+
+    [[deprecated]] //use stepToFrames in future
     const uint32_t framesPerBeat() const { return calcFramesPerBeat(); }
     const uint32_t framesPerBar() const { return calcFramesPerBar(); }
-    // frame_t framesToMs(frame_t frames);
+    const frame_t framesInStep(StepDuration dur) const;
+    // const frame_t framesInStep(int dur) const;
     
     void setBpm(float newBpm);
     void setBarSize(BarSize size);

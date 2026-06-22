@@ -53,7 +53,6 @@ struct RenderPlan {
     uint32_t nodesCount;
 
     Dependencies outputDeps;
-    // uint32_t outputDepsCount;
 
     // struct SubGraphSlice {
     //     uint32_t offset;
@@ -63,10 +62,12 @@ struct RenderPlan {
     // SubGraphSlice * slices;
     // uint32_t slicesCount;
 
-
-    //for audio driver
-    // Dependencies * driverDeps;
-    // uint32_t driverDepsCount;
+    /* Step Sequencer Stuff
+    uint32_t sequenceCount;
+    const Sequence * const sequences;
+    
+    std::atomic<bool> syncSequences mutable;
+    */
 };
 
 // RenderPlan * buildPlan(Project * prj, const std::vector<AudioRoute> & routes) {}

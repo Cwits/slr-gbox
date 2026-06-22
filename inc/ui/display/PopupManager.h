@@ -21,6 +21,7 @@ class NewUnitPopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
 class DragViewSelector;
+struct TargetSelectPopup;
 
 struct PopupManager {
     PopupManager();
@@ -53,6 +54,9 @@ struct PopupManager {
 
     void enableDragSelector();
     void disableDragSelector();
+
+    void enableTargetSelectPopup();
+    void disableTargetSelectPopup();
     
     private:
     UnitControlPopup * _unitControlPopup;
@@ -63,6 +67,7 @@ struct PopupManager {
     SettingsPopup * _settingsPopup;
     VirtualMidiKeyboard * _virtualMidiKeyboard;
     DragViewSelector * _dragViewSelector;
+    TargetSelectPopup * _targetSelectPopup;
 
     friend class MainWindow;
 };

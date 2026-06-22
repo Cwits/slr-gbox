@@ -97,8 +97,8 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnStepSequencer->setPos(posx, 0);
     _btnStepSequencer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnStepSequencer->setFont(&DEFAULT_FONT);
-    _btnStepSequencer->setCallback([]() {
-        LOG_INFO("Step Sequencer will be added in future versions");
+    _btnStepSequencer->setCallback([uictx = _uictx]() {
+        uictx->switchToView(MainView::StepSequencer);
     });
 
     posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
@@ -106,12 +106,12 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnModEngine->setPos(posx, 0);
     _btnModEngine->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnModEngine->setFont(&DEFAULT_FONT);
-    _btnModEngine->setCallback([]() {
+    _btnModEngine->setCallback([uictx = _uictx]() {
         LOG_INFO("Modulation Engine will be added in future versions");
     });
       
     posx = parent->width()-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN;
-    _btnSettings = std::make_unique<Button>(this, LV_SYMBOL_SETTINGS);
+    _btnSettings = std::make_unique<Button>(this, LV_SYMBOL_LIST); //LV_SYMBOL_SETTINGS
     _btnSettings->setPos(posx, 0);
     _btnSettings->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnSettings->setFont(&DEFAULT_FONT);

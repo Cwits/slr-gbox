@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ui/display/primitives/Label.h"
+#include "ui/display/layoutSizes.h"
 #include "logger.h"
 
 namespace UI {
@@ -13,7 +14,7 @@ Label::Label(BaseWidget * parent, std::string text) :
     lv_label_set_text(_label, text.c_str());
     lv_obj_set_style_bg_opa(_lvhost, LV_OPA_TRANSP, 0);
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
-
+    setFont(&DEFAULT_FONT);
     show();
 }
 

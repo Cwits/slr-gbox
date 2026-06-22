@@ -11,7 +11,9 @@
 
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
+#include "core/StepSequencer.h"
 #include "core/RtEngine.h"
+
 // #include "core/RTHandlerTable.h"
 
 
@@ -196,6 +198,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     const frame_t elapsed = tl.elapsed(framesPassed);
     AudioContext ctx(playing,
                     recording,
+                    false, //freewheeling mode
                     frames,
                     elapsed,
                     framesPassed,
@@ -216,6 +219,29 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
     _prj->stepSequencer->process(ctx, nullptr, 0); -> midi events by target->injectMidi(midi);
     */
+
+    /*
+    // if(plan->syncSequences.load(std::memory_order_acquire)) {
+    //     for(uint32_t s=0; s<plan->sequenceCount; ++s) {
+    //         plan->sequences[s]->setReferencePoint(ctx.totalFrames);
+    //     }
+    //     plan->syncSequences.store(std::memory_order_relaxed);
+    // }
+
+    // if(_prj->stepSequencer()->sequenceCount()) {
+    //     const std::vector<Sequence*> * seq = _prj->stepSequencer()->sequences();
+    //     for(const Sequence *s : *seq) {
+    //         s->tick(ctx);
+    //     }
+    // }
+    */
+
+    if(_prj->stepSequencer()->sequenceCount()) {
+        auto &seq = _prj->stepSequencer()->playable();
+        for(auto &s : seq) {
+            s->tick(ctx);
+        }
+    }
 
     //for debugging...
 #if (RT_TRACE == 1)
@@ -289,24 +315,5 @@ void RtEngine::setMidiOut(std::vector<RtMidiOutput> *buf) {
 void RtEngine::addRtResponse(RtTask * task) {
     ControlEngine::rtEngine()->_rtResponses.push(task);
 }
-
-/*
-Common::Status RtEngine::updateMidiMaps(const FlatEvents::FlatControl &ev, FlatEvents::FlatResponse &resp) {
-    RtEngine * engine = ev.updateMidiMaps.engine;
-    
-    resp.type = FlatEvents::FlatResponse::Type::UpdateMidiMaps;
-    resp.status = Common::Status::Ok;
-    resp.commandId = ev.commandId;
-    resp.updateMidiMaps.oldInput = engine->_midiInputMap;
-    resp.updateMidiMaps.oldOutput = engine->_midiOutputMap;
-    resp.updateMidiMaps.oldLocal = engine->_midiInLocal;
-
-    engine->_midiInputMap = ev.updateMidiMaps.inputMap;
-    engine->_midiOutputMap = ev.updateMidiMaps.outputMap;
-    engine->_midiInLocal = ev.updateMidiMaps.localBuffers;
-
-    return Common::Status::Ok;
-}
-    */
 
 }

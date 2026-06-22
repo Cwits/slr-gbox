@@ -11,6 +11,7 @@ namespace slr {
     class TrackView;
     class ContainerItemView;
     class UnitDescriptor;
+    struct SequenceView;
 }
 
 namespace UIControls {
@@ -50,6 +51,8 @@ void updateRouteManager();
 
 /* Metronome */
 void updateMetronomeState(bool onoff);
+
+void createSequenceUI(const std::shared_ptr<slr::SequenceView> view);
 
 void clearUI();
 

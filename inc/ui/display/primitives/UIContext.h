@@ -22,6 +22,7 @@ class GridControl;
 class GridGrid;
 class UnitView;
 class Browser;
+class StepSequencerView;
 struct DragViewSelector;
 
 enum class MainView {
@@ -50,6 +51,7 @@ struct UIContext {
     BaseWidget * gridGrid();
     BaseWidget * unitView();
     BaseWidget * browser();
+    BaseWidget * stepSequencer();
     BaseWidget * dragSelector();
 
     void switchToView(MainView view);
@@ -77,6 +79,7 @@ struct UIContext {
     GridView * _gridView;
     UnitView * _unitView;
     Browser * _browser;
+    StepSequencerView * _stepSequencerView;
     DragViewSelector * _dragSelector;
     //BaseWidget * _patch;
 

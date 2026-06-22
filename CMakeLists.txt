@@ -108,6 +108,12 @@ file(GLOB SOURCES
   
   src/core/Actions/Metronome/ToggleMetronome.cpp
 
+  src/core/Actions/StepSequencer/CreateNewSequence.cpp
+  src/core/Actions/StepSequencer/ModifySequence.cpp
+  src/core/Actions/StepSequencer/ModifySequenceLayer.cpp
+  src/core/Actions/StepSequencer/ModifySequenceEvent.cpp
+  src/core/Actions/StepSequencer/ModifySequenceTarget.cpp
+
   #core
   inc/core/drivers/AudioDriver.h
   src/core/drivers/AudioDriver.cpp
@@ -148,6 +154,7 @@ file(GLOB SOURCES
   src/core/UnitManager.cpp
   src/core/MidiController.cpp
   src/core/Serializer.cpp
+  src/core/StepSequencer.cpp
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
@@ -157,6 +164,7 @@ file(GLOB SOURCES
   src/snapshots/ProjectView.cpp
   src/snapshots/TimelineView.cpp
   src/snapshots/DriverView.cpp
+  src/snapshots/SequenceView.cpp
 
   #test
   units/Track/Track.cpp
@@ -220,6 +228,7 @@ file(GLOB SOURCES
   src/ui/display/VirtualMidiKeyboard.cpp
   src/ui/display/DialogWindows.cpp
   src/ui/display/DragViewSelector.cpp
+  src/ui/display/StepSequencerView.cpp
 
   src/ui/FakeGestures.cpp
   src/ui/uiControls.cpp

@@ -154,6 +154,14 @@ constexpr int BROWSER_ELEMENT_MARGIN = 10;
 constexpr int BROWSER_ELEMENT_ICON_X = 15;
 constexpr int BROWSER_ELEMENT_TEXT_W = 1500;
 
+/* Step Sequencer */
+
+constexpr int STEP_SEQ_X = WORKSPACE_POSITION_X;
+constexpr int STEP_SEQ_Y = WORKSPACE_POSITION_Y;
+constexpr int STEP_SEQ_WIDTH = WORKSPACE_WIDTH;
+constexpr int STEP_SEQ_HEIGHT = WORKSPACE_HEIGHT;
+
+
 
 /* Screen Keyboard */
 constexpr int KEYBOARD_H = (TOTAL_HEIGHT/2)-100;

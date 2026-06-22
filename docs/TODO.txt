@@ -53,6 +53,11 @@ Metronome:
 [\] - implement one(must live in rt class)(not tested)
 [ ] - //TODO: add simple decay
 
+StepSequencer:
+[ ] - future upgrade:
+        instead of using vectors or arrays or smth just allocate at startup big arena for stepevents(e.g. 1MB) and use spans,
+        so each Sequence will know the start pointer in that arena 
+
 Refactoring:
 [x] - rewrite AudioBufferManager to namespace instead of singleton
 [x] - FileWorker as a class 
@@ -106,8 +111,20 @@ Render Plan:
         so, if checked - render plan would be rebuilt every time new route(audio or midi) would be added.
         if unchecked - render plan would be updated only if user press specific button.(so can add bunch of routes and than update).
         (also, if unchecked than need some notifying icon to show up when new routes were added, but wasn't plan wasnt rebuilded)
+[ ] - Sequences, Modulations processors, as well as Timeline pointer must be passed through RenderPlan
 
-Modules:
+Timeline: 
+[ ] - framesPerBeat() and calcFramesPerBeat() not valid anymore, use framesInStep() together with getBarSize()
+        in order to calculate UI's pixelPerBar.
+        as well need to cast somehow... eeeeghh... how to handle 4/5 or 6/7 or smth like that in this case?
+
+        Timeline::calcFramesPerBar()
+
+        plus rounding somewhere must be involved
+
+
+
+Units:
 [ ] - Make a proper CMakeLists.txt template for easier to implement each module and not to edit main CMakeLists in order to add new one
 [ ] - now modules registring in ModuleManager directly -> each module has to compile as dynamically linked libs - 
         .so and ModuleManager has to discover them automatically
