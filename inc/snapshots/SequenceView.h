@@ -27,7 +27,7 @@ struct SequenceView {
     SequenceView(const Sequence* seq);
     ~SequenceView();
 
-    std::array<ID, TARGET_COUNT> targetId() const { return _targets; }
+    std::array<ID, TARGET_COUNT> targets() const { return _targets; }
 
     const ID id() const;
     int activeLayerCount() const;

@@ -224,6 +224,7 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
             if(elapsedSince >= framesPerStep-ctx.frames) {
                 //send noteOff for prev active event
                 MidiEvent ev = l.findLastActive(step);
+                ev.type = MidiEventType::NoteOff;
 
                 if(!l._target) {
                     for(int i=0; i<TARGET_COUNT; ++i) {
@@ -252,7 +253,7 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
                 l._target->injectMidi(ev);
             }
 
-            LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions, delay, positionWithinLoop);
+            // LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions, delay, positionWithinLoop);
             l._lastTriggeredEvent = step;
             l._eventTriggered = true;
         }

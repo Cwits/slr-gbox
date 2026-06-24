@@ -52,8 +52,8 @@ class AudioUnit {
     // virtual const AudioBuffer * output(uint32_t outputId) const;
     virtual const AudioBuffer * outputs() const { return _outputs; }
 
-    // void injectMidi(MidiEvent & ev) { _midiQueue.push_back(ev); }
-    void injectMidi(const MidiEvent &ev) const { } //placeholder for now
+    //_midiInput already clear for current frame by rt engine and clearMidiBuffer()
+    void injectMidi(const MidiEvent &ev) const { _midiInput->push_back(ev); } //placeholder for now
     void clearMidiBuffer();
     MidiBuffer * midiOutputs() { return _midiOutput; }
 
@@ -115,7 +115,9 @@ class AudioUnit {
 
     bool _midiThru;
     bool _omniHwInput; //unit will gather all available midi inputs event if there is no route for that
-    // std::vector<MidiEvent> _midiQueue;
+    
+
+    void fetchAndSortMidi(const AudioContext &ctx, const Dependencies &inputs);
     MidiBuffer * _midiInput;
     MidiBuffer * _midiOutput;
     //spsc queue midi

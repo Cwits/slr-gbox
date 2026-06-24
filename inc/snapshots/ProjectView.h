@@ -31,6 +31,7 @@ class ProjectView {
     const std::size_t unitCount() const { return _unitViewList.size(); }
     std::vector<AudioUnitView*> unitList();
     AudioUnitView * getUnitById(ID id);
+    AudioUnitView * findUnitByName(const std::string &name);
     std::shared_ptr<AudioUnitView> removeUnitView(ID id);
     void appendUnit(std::shared_ptr<AudioUnitView> view);
 

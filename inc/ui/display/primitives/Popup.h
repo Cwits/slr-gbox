@@ -17,6 +17,8 @@ struct Popup : public BaseWidget {
     void activate() { _active = true; }
     void deactivate();
     
+    //virtual void update() {}
+
     protected:
     UIContext * const _uictx;
     

@@ -72,6 +72,8 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _uiContext._browser = _browser.get();
     _uiContext._stepSequencerView = _stepSequencerView.get();
     _uiContext._gridTimeline = _gridView->_timeline.get();
+    
+    _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
     _uiContext._dragSelector = _dragViewSelector.get();
 
     _playheadUpdateTimer = lv_timer_create(&MainWindow::playheadUpdateCb, LV_DEF_REFR_PERIOD, nullptr);
@@ -101,10 +103,11 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popups.push_back(_settingsPopup.get());
     _virtualMidiKeyboard = std::make_unique<VirtualMidiKeyboard>(this, &_uiContext);
     _popups.push_back(_virtualMidiKeyboard.get());
-    _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
+    // _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
     _popups.push_back(_dragViewSelector.get());
     _targetSelectPopup = std::make_unique<TargetSelectPopup>(this, _stepSequencerView.get(), &_uiContext);
     _popups.push_back(_targetSelectPopup.get());
+    _stepSequencerView->_tpop = _targetSelectPopup.get();
 
     _popManager._unitControlPopup = _unitControlPopup.get();
     _popManager._routeManager = _routeManager.get();

@@ -122,6 +122,7 @@ void PopupManager::disableDragSelector() {
 }
 
 void PopupManager::enableTargetSelectPopup() {
+    _targetSelectPopup->update();
     _targetSelectPopup->activate();
     _targetSelectPopup->show();
 }

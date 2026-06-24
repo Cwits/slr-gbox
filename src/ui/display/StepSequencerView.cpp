@@ -119,6 +119,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
     _btnTargetManager->setPos(1600, 100);
     _btnTargetManager->setSize(LayoutDef::BUTTON_SIZE*2, LayoutDef::BUTTON_SIZE);
     _btnTargetManager->setCallback([this]() {
+        this->_tpop->clear();
         this->_uictx->_popManager->enableTargetSelectPopup();
     });
 
@@ -170,6 +171,13 @@ StepSequencerView::~StepSequencerView() {
 }
 
 void StepSequencerView::pollUIUpdate() {
+    static char slowmedown = 0; //have to figure some other way to update ui...
+    slowmedown++;
+    if(slowmedown == 15) {
+        slowmedown = 0;
+        _tpop->update();
+    }
+
     SequenceUI *sc = currentSequence();
     if(sc) {
         const slr::SequenceView *sv = sc->view();
@@ -270,7 +278,6 @@ void StepSequencerView::pollUIUpdate() {
         _container._btnAddLayer->setPos(_container._btnAddLayer->getX(), btnY);
         _container._btnRemoveLayer->setPos(_container._btnRemoveLayer->getX(), btnY);
     }
-
 }
 
 void StepSequencerView::createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
@@ -630,11 +637,145 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
     Popup(parent, uictx),
     _view(sParent)
 {
+    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT);
+    setPos(LayoutDef::ROUTE_MANAGER_X, LayoutDef::ROUTE_MANAGER_Y);
+    setColor(lv_color_hex(0xa415f7));
 
+    _lblSequenceIdText = std::make_unique<Label>(this, "Current sequence:");
+    _lblSequenceIdText->setSize(300, 40);
+    _lblSequenceIdText->setPos(LayoutDef::ROUTE_MANAGER_WIDTH/2-300, 10);
+
+    _lblSequenceId = std::make_unique<Label>(this, "NaN");
+    _lblSequenceId->setSize(300, 40);
+    _lblSequenceId->setPos(LayoutDef::ROUTE_MANAGER_WIDTH/2, 10);
+
+    _ddSelector = std::make_unique<DropDown>(this);
+    _ddSelector->setPos(50, 100);
+    _ddSelector->setSize(1000, LayoutDef::BUTTON_SIZE);
+    _ddSelector->selectedCallback([this](std::string selected) {
+        //nothing to do here?
+    });
+    _ddSelector->button()->setTouchDownCallback([this, drop = _ddSelector.get()]() {
+        drop->button()->setColor(BUTTON_DEFAULT_PRESSED);
+        
+        //gather all available units
+        std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
+        std::vector<std::string> items;
+
+        for(const auto *v : list) {
+            items.push_back(v->name());
+        }
+
+        //exclude thos that already in targets
+        SequenceUI *sc = this->_view->currentSequence();
+        if(sc) {
+            std::array<slr::ID, slr::TARGET_COUNT> targets = sc->view()->targets();
+
+            for(auto it = items.begin(); it != items.end();) {
+                bool erased = false;
+
+                for(int i=0; i<slr::TARGET_COUNT; ++i) {
+                    if(targets[i] == 0) continue;
+                    else {
+                        slr::AudioUnitView *unit = slr::ProjectView::getProjectView().getUnitById(targets[i]);
+                        if(!unit) continue;
+
+                        if(it->compare(unit->name()) == 0) {
+                            it = items.erase(it);
+                            erased = true; //because items.erase() can return items.end(), and we get ub after ++ in for
+                            break;
+                        }
+                    }
+                }
+
+                if(!erased) { ++it; }
+            }
+        }
+
+        drop->setItems(items);
+    });
+
+    _btnAddTarget = std::make_unique<Button>(this, LV_SYMBOL_PLUS);
+    _btnAddTarget->setPos(1400, 100);
+    _btnAddTarget->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnAddTarget->setCallback([this]() {
+        SequenceUI *sc = this->_view->currentSequence();
+        if(!sc) return;
+        const std::string &name = this->_ddSelector->selectedItem();
+
+        slr::AudioUnitView *view = slr::ProjectView::getProjectView().findUnitByName(name);
+        if(!view) return;
+
+        auto act = std::make_unique<slr::Actions::ModifySequenceTarget>();
+        act->sequenceId = sc->view()->id();
+        act->addTarget = true;
+        act->targetId = view->id();
+        slr::EmitAction(std::move(act));
+
+        this->_ddSelector->button()->setText("Select Target");
+    });
+
+    _lastTargetCount = 0;
 }
 
 TargetSelectPopup::~TargetSelectPopup() {
 
+}
+
+void TargetSelectPopup::update() {
+    SequenceUI *curr = _view->currentSequence();
+    if(!curr) {
+        _lblSequenceId->setText("NaN");
+        _targets.clear();
+        return;
+    }
+
+    _lblSequenceId->setText(std::to_string(curr->view()->id()));
+    
+    int targetCount = 0;
+    std::array<slr::ID, slr::TARGET_COUNT> targets = curr->view()->targets();
+    for(int i=0; i<slr::TARGET_COUNT; ++i) {
+        if(targets[i] != 0) targetCount++;
+    }
+
+    if(targetCount == _lastTargetCount) return;
+    _lastTargetCount = targetCount;
+
+    _targets.clear();
+    int ypos = 100;
+    for(int i=0; i<slr::TARGET_COUNT; ++i) {
+        if(targets[i] == 0) continue;
+
+        slr::AudioUnitView *v = slr::ProjectView::getProjectView().getUnitById(targets[i]);
+        if(!v) {
+            LOG_ERROR("Failed to find unit %lu", targets[i]);
+            continue;
+        }
+
+        Target tg;
+        tg._lblName = std::make_unique<Label>(this, v->name());
+        tg._lblName->setPos(50, ypos);
+        tg._lblName->setSize(1000, LayoutDef::BUTTON_SIZE);
+
+        tg._btnRemoveTarget = std::make_unique<Button>(this, LV_SYMBOL_MINUS);
+        tg._btnRemoveTarget->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+        tg._btnRemoveTarget->setPos(1400, ypos);
+        tg._btnRemoveTarget->setCallback([sqid = curr->view()->id(), tgid = targets[i]]() {
+            auto act = std::make_unique<slr::Actions::ModifySequenceTarget>();
+            act->sequenceId = sqid;
+            act->addTarget = false;
+            act->targetId = tgid;
+            slr::EmitAction(std::move(act));
+        });
+        
+        _targets.push_back(std::move(tg));
+        ypos += 100;
+    }
+
+    ypos = (100 + ((100+10) * _targets.size()));
+    _ddSelector->setPos(50, ypos);
+    _btnAddTarget->setPos(1400, ypos);
+    //fetch targets, update drop down menu...
 }
 
 

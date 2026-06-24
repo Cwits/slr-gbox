@@ -6,6 +6,7 @@
 #include "core/primitives/Parameter.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioContext.h"
+#include "core/primitives/RenderPlan.h"
 
 #include "core/utility/basicAudioManipulation.h"
 
@@ -13,6 +14,7 @@
 #include "logger.h"
 
 #include <cmath>
+#include <algorithm>
 
 namespace slr {
 
@@ -162,5 +164,40 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
 }
 
 void AudioUnit::clearMidiBuffer() { _midiInput->clear(); }
+
+//fetch midi data from inputs to _midiInput buffer and sort them all
+//events from step sequencer will be there already
+void AudioUnit::fetchAndSortMidi(const AudioContext &ctx, const Dependencies &inputs) {
+    //_midiInput already clear and (probably) filled with some events from step sequencer or wherever
+    if(inputs.midiDepsCnt == 0) return;
+
+    //probably better option would be to store injected midi events somehow separately and than... dunno, "inject" them? lol
+
+    for(uint32_t i=0; i<inputs.midiDepsCnt; ++i) {
+        const MidiDependencie &mdep = inputs.midi[i];
+        
+        const MidiBuffer *buf = mdep.external ? getMidiBuffer(ctx, mdep.extId) : mdep.buf;
+        std::size_t bufSize = buf->size();
+        for(std::size_t j=0; j<bufSize; ++j) {
+            const MidiEvent &ev = (*buf)[j];
+            _midiInput->push_back(ev);
+        }
+    }
+
+    //insertion sort
+    MidiEvent tmp; tmp.clear();
+    MidiBuffer &editable = (*_midiInput);
+    for(std::size_t i=1; i<editable.size(); ++i) {
+        tmp = editable[i];
+        std::size_t j=i;
+
+        while(j > 0 && editable[j-1].offset > tmp.offset) {
+            editable[j] = editable[j-1];
+            j--;
+        }
+
+        editable[j] = tmp;
+    }
+}
 
 }

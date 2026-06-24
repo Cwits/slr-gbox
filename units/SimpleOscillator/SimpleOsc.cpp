@@ -28,6 +28,36 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
 
     _midiOutput->clear();
 
+    fetchAndSortMidi(ctx, inputs);
+
+
+    for(std::size_t i=0; i<_midiInput->size(); ++i) {
+        const MidiEvent &ev = (*_midiInput)[i];
+
+        //TODO: push to midi frame buffer
+        //see TODO.txt:41
+            
+        {
+        switch(ev.type) {
+            case(MidiEventType::NoteOn): {
+                if(_activeVoices >= 15) continue;
+
+                voice &v = _voices[_activeVoices];
+                v.framesDelay = ev.offset;
+                v.pitch = ev.note;
+                v.velocity = ev.velocity;
+                v._time = 0;
+
+                _activeVoices++;
+            } break;
+            case(MidiEventType::NoteOff): {
+                if(_activeVoices > 0)
+                    _activeVoices--;
+            } break;
+        }
+        }
+    }
+/*
     //parse midi
     for(int i=0; i<inputs.midiDepsCnt; ++i) {
         MidiDependencie &dep = inputs.midi[i];
@@ -65,6 +95,8 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
             if(_midiThru) _midiOutput->push_back(ev);
         }
     }
+
+    */
 
     //TODO: gather from injected
 

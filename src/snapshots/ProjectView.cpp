@@ -62,6 +62,24 @@ AudioUnitView * ProjectView::getUnitById(ID id) {
     return unit;
 }
 
+AudioUnitView * ProjectView::findUnitByName(const std::string &name) {
+    AudioUnitView *ret = nullptr;
+    if(name.empty()) return ret;
+
+    auto it = std::find_if(
+        _unitViewList.begin(),
+        _unitViewList.end(),
+        [&name](const std::shared_ptr<AudioUnitView> &v) {
+            return (v->name().compare(name) == 0);
+        }
+    );
+
+    if(it == _unitViewList.end()) return ret;
+
+    ret = (*it).get();
+    return ret;
+}
+
 std::shared_ptr<AudioUnitView> ProjectView::removeUnitView(ID id) {
     auto it = std::find_if(
         _unitViewList.begin(),

@@ -21,6 +21,8 @@ namespace UI {
 struct Label;
 struct Button;
 struct DropDown;
+struct TargetSelectPopup;
+struct MainWindow;
 
 struct SequenceUI {
     SequenceUI(const std::shared_ptr<slr::SequenceView> view);
@@ -113,6 +115,9 @@ struct StepSequencerView : public View {
     std::vector<std::unique_ptr<SequenceUI>> _sequences;
 
     void updateUI();
+
+    TargetSelectPopup * _tpop;
+    friend class MainWindow; //ugh...
     // bool handleSwipe(GestLib::SwipeGesture & swipe) override;
     // bool handleDrag(GestLib::DragGesture &drag) override;
 };
@@ -121,9 +126,25 @@ struct TargetSelectPopup : public Popup {
     TargetSelectPopup(BaseWidget *parent, StepSequencerView *sParent, UIContext * const uictx);
     ~TargetSelectPopup();
 
+    void update();
+    void clear() { _lastTargetCount = 0; }
+
     private:
     StepSequencerView * _view;
 
+    std::unique_ptr<Label> _lblSequenceIdText;
+    std::unique_ptr<Label> _lblSequenceId;
+
+    std::unique_ptr<DropDown> _ddSelector;
+    std::unique_ptr<Button> _btnAddTarget;
+
+    struct Target {
+        std::unique_ptr<Label> _lblName;
+        std::unique_ptr<Button> _btnRemoveTarget;
+    };
+
+    std::vector<Target> _targets;
+    int _lastTargetCount;
 };
 
 }
