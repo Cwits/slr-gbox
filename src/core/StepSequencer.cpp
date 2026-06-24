@@ -190,6 +190,9 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
     bool toTrigger = false;
     //some processing to figure out step and whether it should be triggered
 
+    //is this one right? problem is that on step 0 we have to be in frame 0, but otherwise we have to check next step
+    if(step != 0) step++;
+
     if(_eventPositions[step] >= positionWithinLoop && _eventPositions[step] <= positionWithinLoop+ctx.frames) {
         toTrigger = true;
     }
@@ -253,7 +256,7 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
                 l._target->injectMidi(ev);
             }
 
-            // LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions, delay, positionWithinLoop);
+            // LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions[step], delay, positionWithinLoop);
             l._lastTriggeredEvent = step;
             l._eventTriggered = true;
         }
