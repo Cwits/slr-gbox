@@ -1,3 +1,7 @@
+General:
+[ ] - (after i've tested step sequencer) pretty much xruns appear now...
+
+
 /* Core */
 Settings Manager:
 [/] - implement simple settings manager that returns constants

@@ -24,16 +24,22 @@
 
 #include "defines.h"
 
+#include "common/Profiler.h"
+
 #include <memory>
 #include <functional>
 
 namespace slr {
+
+const std::string TEST = "Rt Engine"; 
+Profiler::ResultQueue * profQueue = nullptr;
 
 RtEngine::RtEngine() {
     _midiInLocal = new std::vector<RtMidiBuffer>();
     _midiInputMap = new std::vector<RtMidiQueue>();
     _midiOutputMap = new std::vector<RtMidiOutput>();
     _isFirstCallback = true;
+    profQueue = Profiler::prepare(TEST);
 }
 
 RtEngine::~RtEngine() {
@@ -106,6 +112,8 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     if(_state == RtState::ERROR) return 0;
 
     //at this point inputs contains hw input data, and outputs buffers are zeroed out
+
+    Profiler::start(profQueue);
 
     //handle rt control tasks
     {
@@ -279,6 +287,8 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         Dependencies dummy;
         metro->process(ctx, dummy);
     }
+
+    Profiler::end(profQueue);
 
     return frames;
 }

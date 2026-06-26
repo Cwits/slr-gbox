@@ -273,6 +273,8 @@ file(GLOB SOURCES
 
   #other
   src/defines.cpp
+
+  src/common/Profiler.cpp
 )
 
 #add_compile_options(-fsanitize=address)

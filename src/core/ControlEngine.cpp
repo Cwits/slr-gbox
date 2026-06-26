@@ -26,6 +26,7 @@
 #include "core/utility/helper.h"
 
 #include "logger.h"
+#include "common/Profiler.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/FileContainerView.h"
@@ -206,6 +207,13 @@ void processLoop() {
         //     //     goto exit;
         //     // }
         // }
+        
+		const std::vector<Profiler::ReadingResults> res = Profiler::results();
+		for(const auto &r : res) {
+			//...
+            // LOG_INFO("Profiler results:");
+            LOG_INFO("Profiler: %s min: %i \t max: %i \t avg: %i \t last: %i us", r._threadName.data(), r._min, r._max, r._avg, r._last);
+		}
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
