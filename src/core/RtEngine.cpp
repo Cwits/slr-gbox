@@ -203,10 +203,11 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     Timeline & tl = _prj->timeline();
     const bool playing = tl.playing();//must be called before elapsed because if prevstate == preparing than we can do 
     const bool recording = tl.recording();
+    const bool freewheeling = false;
     const frame_t elapsed = tl.elapsed(framesPassed);
     AudioContext ctx(playing,
                     recording,
-                    false, //freewheeling mode
+                    freewheeling, //freewheeling mode
                     frames,
                     elapsed,
                     framesPassed,
@@ -250,7 +251,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
             s->tick(ctx);
         }
     }
-
+    
     //for debugging...
 #if (RT_TRACE == 1)
     if(ctx.playing) {

@@ -155,25 +155,35 @@ void Timeline::setBarSize(BarSize size) {
 }
 
 const frame_t Timeline::framesInStep(StepDuration dur) const {
-    float div;
-    switch(dur) {
-        case(StepDuration::dWhole):         div = 4.0f;             break;
-        case(StepDuration::dHalf):          div = 2.0f;             break;
-        case(StepDuration::d4triplet):      div = 1.0f / 3.0f;      break;
-        case(StepDuration::d4):             div = 1.0f;             break;
-        case(StepDuration::d8tirplet):      div = 1.0f / 6.0f;      break;
-        case(StepDuration::d8):             div = 0.5f;             break;
-        case(StepDuration::d16triplet):     div = 1.0f / 12.0f;     break;
-        case(StepDuration::d16):            div = 0.250f;           break;
-        case(StepDuration::d32triplet):     div = 1.0f / 24.0f;     break;
-        case(StepDuration::d32):            div = 0.125f;           break;
-        case(StepDuration::d64triplet):     div = 1.0f / 48.0f;     break;
-        case(StepDuration::d64):            div = 0.0625f;          break;
-        case(StepDuration::d128triplet):    div = 1.0f / 96.0f;     break;
-        case(StepDuration::d128):           div = 0.03125f;         break;
-    }
-
+    double div = framesInStepDiv(dur);
     return framesPerQuater() * div;
+}
+
+const double Timeline::framesInStepFraction(StepDuration dur) const {
+    double div = framesInStepDiv(dur);
+    double res = framesPerQuater() * div;
+    return res - static_cast<unsigned long>(res);
+}
+
+const double Timeline::framesInStepDiv(StepDuration &dur) const {
+    double div;
+    switch(dur) {
+        case(StepDuration::dWhole):         div = 4.0;             break;
+        case(StepDuration::dHalf):          div = 2.0;             break;
+        case(StepDuration::d4triplet):      div = 1.0 / 3.0;      break;
+        case(StepDuration::d4):             div = 1.0;             break;
+        case(StepDuration::d8tirplet):      div = 1.0 / 6.0;      break;
+        case(StepDuration::d8):             div = 0.5;             break;
+        case(StepDuration::d16triplet):     div = 1.0 / 12.0;     break;
+        case(StepDuration::d16):            div = 0.250;           break;
+        case(StepDuration::d32triplet):     div = 1.0 / 24.0;     break;
+        case(StepDuration::d32):            div = 0.125;           break;
+        case(StepDuration::d64triplet):     div = 1.0 / 48.0;     break;
+        case(StepDuration::d64):            div = 0.0625;          break;
+        case(StepDuration::d128triplet):    div = 1.0 / 96.0;     break;
+        case(StepDuration::d128):           div = 0.03125;         break;
+    }
+    return div;
 }
 
 void Timeline::calcFramesPerQuater() {

@@ -95,7 +95,7 @@ struct StepSequencerEngine {
     
     private:
     std::vector<std::unique_ptr<Sequence>> _sequences;
-    std::vector<Sequence*> _playable;
+    std::vector<Sequence*> _playable; //this is temporary, until list won't move to render plan
 };
 
 

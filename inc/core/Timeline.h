@@ -48,6 +48,7 @@ class Timeline {
     const uint32_t framesPerBeat() const { return calcFramesPerBeat(); }
     const uint32_t framesPerBar() const { return calcFramesPerBar(); }
     const frame_t framesInStep(StepDuration dur) const;
+    const double framesInStepFraction(StepDuration dur) const;
     // const frame_t framesInStep(int dur) const;
     
     void setBpm(float newBpm);
@@ -93,6 +94,7 @@ class Timeline {
     void stop();
     void resumePlay(); //use after pause
     
+    const double framesInStepDiv(StepDuration &dur) const;
 };
 
 }

@@ -405,6 +405,8 @@ void StepSequencerView::switchPage(int idx) {
                 sl._steps[b]->setColor(BUTTON_DEFAULT_COLOR);
             }
         }
+
+        sl._lblNote->setText(std::to_string(lv._note));
     }
 
     std::string text;
@@ -500,8 +502,27 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
         l._lblNote = std::make_unique<Label>(this, std::to_string(36+i));
         l._lblNote->setSize(300, 40);
         l._lblNote->setPos(xpos+300+size+10, ypos+20);
-        l._lblNote->setTapCallback([]() {
+        l._lblNote->setTapCallback([self = this, layer = i, ssview = _view, ptr = l._lblNote.get()]() {
             //small popup for edit note, velocity, and smth else
+            ssview->_uictx->_popManager->enableKeyboard(
+                ptr->text(),
+                [self, layer, ssview](const std::string &text) {
+                    if(text.empty()) return;
+                    SequenceUI * current = ssview->currentSequence();
+                    if(!current) return;
+
+                    int res = std::stoi(text);
+                    if(res > 0 && res < 128) {
+
+                        auto act = std::make_unique<slr::Actions::ModifySequenceLayer>();
+
+                        act->sequenceId = current->id();
+                        act->layer = layer;
+                        act->note = res;
+                        slr::EmitAction(std::move(act));
+                    }
+                }
+            );
         });
         l._lblNote->hide();
 

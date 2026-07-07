@@ -159,7 +159,7 @@ void Sequence::initDefault(const Timeline &tl) {
     _stepCount = 16;
     _referencePoint = 0;
 
-    for(int i=0; i<LAYERS_COUNT; ++i) initLayer(i, 36, 120);
+    for(int i=0; i<LAYERS_COUNT; ++i) initLayer(i, 36+i, 120);
     for(int i=0; i<TARGET_COUNT; ++i) _targets[i] = nullptr;
     for(int i=0; i<EVENTS_COUNT; ++i) _eventPositions[i] = 0;
     recalculateEventPositions(tl, StepDuration::d16);
@@ -176,6 +176,7 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
     if(!hasTargets) return ctx.frames;
 
     frame_t framesPerStep = ctx.timeline.framesInStep(_stepDuration);
+    frame_t frameHalf = framesPerStep/2;
     frame_t loopLength = framesPerStep * _stepCount;
     
     frame_t positionWithinLoop = 0;
@@ -191,7 +192,10 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
     //some processing to figure out step and whether it should be triggered
 
     //is this one right? problem is that on step 0 we have to be in frame 0, but otherwise we have to check next step
-    if(step != 0) step++;
+    // if(step != 0) step++;
+    if(positionWithinLoop != 0) {
+        step++;
+    } 
 
     if(_eventPositions[step] >= positionWithinLoop && _eventPositions[step] <= positionWithinLoop+ctx.frames) {
         toTrigger = true;
@@ -224,9 +228,11 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
             else 
                 elapsedSince = (loopLength - evPosition) + positionWithinLoop;
 
-            if(elapsedSince >= framesPerStep-ctx.frames) {
+            if(elapsedSince >= frameHalf-ctx.frames) {
                 //send noteOff for prev active event
-                MidiEvent ev = l.findLastActive(step);
+                MidiEvent ev = l.findLastActive(l._lastTriggeredEvent);
+                ev.note = l._note;
+                ev.velocity = 0;
                 ev.type = MidiEventType::NoteOff;
 
                 if(!l._target) {
@@ -237,13 +243,15 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
                     l._target->injectMidi(ev);
                 }
 
-                // LOG_INFO("Step off %d on at %lu, with delay %lu, total %lu", step, _eventPositions, delay, positionWithinLoop);
+                LOG_INFO("Step off %d on at %lu, with delay %lu, total %lu", l._lastTriggeredEvent, evPosition, 0, positionWithinLoop);
                 l._eventTriggered = false;
             }
         }
 
         if(l._events[step]._enabled && toTrigger) {
             MidiEvent ev = l._events[step]._event;
+            ev.note = l._note;
+            ev.velocity = l._velocity;
             //do some magic with ev.offset e.g. swing and/or delay
             frame_t delay = _eventPositions[step] - positionWithinLoop;
             ev.offset = delay;
@@ -256,7 +264,7 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
                 l._target->injectMidi(ev);
             }
 
-            // LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions[step], delay, positionWithinLoop);
+            LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions[step], delay, positionWithinLoop);
             l._lastTriggeredEvent = step;
             l._eventTriggered = true;
         }
@@ -296,8 +304,9 @@ const MidiEvent Sequence::Layer::findLastActive(unsigned int current) const {
 void Sequence::recalculateEventPositions(const Timeline &tl, StepDuration newDuration) {
     _stepDuration = newDuration;
     frame_t framesPerStep = tl.framesInStep(newDuration);
+    float frameFraction = tl.framesInStepFraction(newDuration);
     for(int i=0; i<EVENTS_COUNT; ++i)
-        _eventPositions[i] = i*framesPerStep;
+        _eventPositions[i] = (i*framesPerStep) + std::floor(i*frameFraction);
 }
 
 void Sequence::initLayer(int layer, int note, int velocity) {
