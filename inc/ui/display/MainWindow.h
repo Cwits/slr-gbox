@@ -28,6 +28,7 @@ class GridView;
 class UnitView;
 class Browser;
 class StepSequencerView;
+class ModEngineView;
 
 class Popup;
 class UnitControlPopup;
@@ -88,6 +89,7 @@ struct MainWindow : public BaseWidget {
     std::unique_ptr<UnitView> _unitView; //TODO: last selected unit view
     std::unique_ptr<Browser> _browser;
     std::unique_ptr<StepSequencerView> _stepSequencerView;
+    std::unique_ptr<ModEngineView> _modEngineView;
 
     //popups
     std::unique_ptr<UnitControlPopup> _unitControlPopup;

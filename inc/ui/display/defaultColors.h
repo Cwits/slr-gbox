@@ -7,6 +7,8 @@
 
 namespace UI {
 
+//namespace Colors {
+
 extern const lv_color_t RED_COLOR;
 extern const lv_color_t GREEN_COLOR;
 extern const lv_color_t BLUE_COLOR;
@@ -35,5 +37,7 @@ extern const lv_color_t FLOATING_TEXT_WARNING_COLOR;
 
 /* Background colors */
 extern const lv_color_t KEYBOARD_BACKGROUND_COLOR;
+
+//}
 
 }

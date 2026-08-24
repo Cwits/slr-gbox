@@ -17,6 +17,7 @@ SimpleOsc::SimpleOsc(const ClipContainer *initContainer, const ID forcedId) : Au
     _phase = 0.0f;
     _deltaTime = 1.0f/(float)SettingsManager::getSampleRate();
     _time = 0.0f;
+    _volume = 0.7f;
 }
 
 SimpleOsc::~SimpleOsc() {
@@ -120,13 +121,20 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
             else {
                 float freq = std::pow(2, (float)(v.pitch-24)/12) * 440.0f;
 
-                sample_t res = std::sin(2*M_PI*freq*v._time + _phase);
+                sample_t res = std::sin(2*M_PI*freq*v._time + _phase) / _activeVoices;
                 v._time += _deltaTime;
 
                 (*_outputs)[0][f] += res;
                 (*_outputs)[1][f] += res;
             }
         }
+    }
+
+    //process volume
+    const float volume = _volume;
+    for(frame_t f=0; f<ctx.frames; ++f) {
+        (*_outputs)[0][f] *= volume;
+        (*_outputs)[1][f] *= volume;
     }
 
     return ctx.frames;
@@ -141,7 +149,7 @@ void SimpleOsc::prepareToRecord() {
 }
 
 void SimpleOsc::stopPlaying() {
-
+    _activeVoices = 0;
 }
 
 void SimpleOsc::stopRecording() {

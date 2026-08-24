@@ -195,6 +195,9 @@ Screen Keyboard:
 [ ] - make a Shift functional
 [ ] - make clear button(erase all text)
 
+[ ] - Get rid of "Def" in "LayoutDef::" namespace, as well as from any sorts of DEFAULT (e.g. DEFAULT_MARGIN), plus from SIZE in BUTTON_SIZE...
+        soo... need better naming policy, i've tired of typing lol:D
+
 /* Other */
 CMakeLists and EvGen
 [ ] - modify cmakelists.txt to use strict file sources list for compiling, not recursive serach
@@ -252,19 +255,3 @@ Push:
         any MIDI routings from unit to somewhere else than those events can be grabbed on that frame.
 
 
-
-        struct FileOpenedNew : public Undoable {
-    Status status;
-    File * file; //-> class File;
-	ID unitId;
-
-	void undo() {
-		if(status == Status::Nok) return;
-
-		Events::RemoveFile e = {
-			.fileId = file->id(),
-			.unitId = unitId
-		};
-		Events::EmitEvent(e);
-	}
-};

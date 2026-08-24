@@ -107,7 +107,8 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnModEngine->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
     _btnModEngine->setFont(&DEFAULT_FONT);
     _btnModEngine->setCallback([uictx = _uictx]() {
-        LOG_INFO("Modulation Engine will be added in future versions");
+        // LOG_INFO("Modulation Engine will be added in future versions");
+        uictx->switchToView(MainView::ModEngine);
     });
       
     posx = parent->width()-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN;

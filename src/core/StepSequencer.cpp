@@ -243,7 +243,7 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
                     l._target->injectMidi(ev);
                 }
 
-                LOG_INFO("Step off %d on at %lu, with delay %lu, total %lu", l._lastTriggeredEvent, evPosition, 0, positionWithinLoop);
+                // LOG_INFO("Step off %d on at %lu, with delay %lu, total %lu", l._lastTriggeredEvent, evPosition, 0, positionWithinLoop);
                 l._eventTriggered = false;
             }
         }
@@ -264,7 +264,7 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
                 l._target->injectMidi(ev);
             }
 
-            LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions[step], delay, positionWithinLoop);
+            // LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions[step], delay, positionWithinLoop);
             l._lastTriggeredEvent = step;
             l._eventTriggered = true;
         }

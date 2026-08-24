@@ -109,7 +109,8 @@ void runGui() {
     UI::MainWindow * main = new UI::MainWindow(_main_screen);
     lv_screen_load(_main_screen);
 
-    const uint32_t delayTicksUs = LV_DEF_REFR_PERIOD * 1000; //to micros
+    // const uint32_t delayTicksUs = LV_DEF_REFR_PERIOD * 1000; //to micros
+    // const uint32_t delayTicksUs = static_cast<uint32_t>( (float)(1000.0f/(float)60) * 1000.f);
     SDL_Event event;
 
     // uint32_t lastTick = SDL_GetTicks();
@@ -184,11 +185,13 @@ void runGui() {
 
         elapsed = std::chrono::steady_clock::now();
         mills = std::chrono::duration_cast<std::chrono::microseconds>(elapsed - now).count();
-        // LOG_INFO("render frame time: %d", mills);
-        if(delayTicksUs > mills) {
-            // std::this_thread::sleep_for(std::chrono::microseconds(delayTicksUs - mills));
-            std::this_thread::sleep_for(std::chrono::milliseconds(ret));
-        }
+        // // LOG_INFO("render frame time: %d", mills);
+
+        //is this works?
+        // if(delayTicksUs > mills) {
+        //     // std::this_thread::sleep_for(std::chrono::microseconds(delayTicksUs - mills));
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(ret));
+        // }
     }
 
 #if defined(__aarch64__)

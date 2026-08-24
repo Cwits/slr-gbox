@@ -52,6 +52,11 @@ void Label::setHoldCallback(std::function<void()> onHold) {
     _flags.isHold = true;
 }
 
+void Label::setDragCallback(std::function<void(GestLib::DragGesture &drag)> onDrag) {
+    _onDrag = onDrag;
+    _flags.isDrag = true;
+}
+
 bool Label::handleTap(GestLib::TapGesture &tap) {
     if(_onTap) {
         _onTap();
@@ -63,6 +68,14 @@ bool Label::handleTap(GestLib::TapGesture &tap) {
 bool Label::handleHold(GestLib::HoldGesture &hold) {
     if(_onHold) {
         _onHold();
+        return true;
+    }
+    return false;
+}
+
+bool Label::handleDrag(GestLib::DragGesture &drag) {
+    if(_onDrag) {
+        _onDrag(drag);
         return true;
     }
     return false;

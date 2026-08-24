@@ -32,7 +32,7 @@ enum class MainView {
     Patch,
     Editor, //audio or midi or automation
     StepSequencer,
-    ModMatrix,
+    ModEngine,
 };
 
 struct UIContext {

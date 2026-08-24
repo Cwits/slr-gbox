@@ -17,6 +17,7 @@
 #include "ui/display/TopPanel.h"
 #include "ui/display/BottomPanel.h"
 #include "ui/display/StepSequencerView.h"
+#include "ui/display/ModEngineView.h"
 
 #include "ui/display/RouteManager.h"
 #include "ui/display/TimelinePopup.h"
@@ -63,6 +64,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _unitView = std::make_unique<UnitView>(this, &_uiContext);
     _browser = std::make_unique<Browser>(this, &_uiContext);
     _stepSequencerView = std::make_unique<StepSequencerView>(this, &_uiContext);
+    _modEngineView = std::make_unique<ModEngineView>(this, &_uiContext);
     
     //TODO: set context values...
     _uiContext._topPanel = _topPanel.get();
@@ -153,6 +155,7 @@ void MainWindow::switchToView(MainView view) {
     _unitView->hide();
     _browser->hide();
     _stepSequencerView->hide();
+    _modEngineView->hide();
 
     View * target = getSwitchViewTarget(view);
     target->update();
@@ -339,6 +342,8 @@ void MainWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture)
         _gestureTarget = _browser.get();
     } else if(target == _unitView.get()) {
         _gestureTarget = _unitView.get();
+    } else if(target == _modEngineView.get()) {
+        _gestureTarget = _modEngineView.get();
     } else {
         LOG_ERROR("Target not handled");
     }
@@ -378,7 +383,7 @@ View * MainWindow::getSwitchViewTarget(MainView & view) {
         case(MainView::Patch): ; break;
         case(MainView::Editor): ; break;
         case(MainView::StepSequencer): ret = _stepSequencerView.get(); break;
-        case(MainView::ModMatrix): ; break;
+        case(MainView::ModEngine): ret = _modEngineView.get(); break;
     }
     return ret;
 }
@@ -419,6 +424,7 @@ void MainWindow::updateTimeline(const bool timeSigOrBpm) {
 void MainWindow::updatePlayheadPosition(slr::frame_t position) {
     _bottomPanel->_lblTestPlayhead->setText(std::to_string(position));
     _gridView->_timeline->updatePlayhead(position);
+    _modEngineView->updateLine(position);
 }
 
 void MainWindow::updateMetronomeState(bool onoff) {

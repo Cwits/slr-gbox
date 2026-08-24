@@ -17,7 +17,7 @@ ParameterBaseView::ParameterBaseView(ParameterBase * base)
 
 }
 
-ParameterFloatView::ParameterFloatView(ParameterFloat * par) : ParameterBaseView(par), _value(par->value()) {
+ParameterFloatView::ParameterFloatView(ParameterFloat * par) : ParameterBaseView(par), _value(*par) {
  
 }
 
@@ -25,7 +25,7 @@ ParameterFloatView::~ParameterFloatView() {
 
 }
 
-ParameterIntView::ParameterIntView(ParameterInt * par) : ParameterBaseView(par), _value(par->value()) {
+ParameterIntView::ParameterIntView(ParameterInt * par) : ParameterBaseView(par), _value(*par) {
 
 }
 
@@ -33,7 +33,7 @@ ParameterIntView::~ParameterIntView() {
 
 }
 
-ParameterBoolView::ParameterBoolView(ParameterBool * par) : ParameterBaseView(par), _value(par->value()) {
+ParameterBoolView::ParameterBoolView(ParameterBool * par) : ParameterBaseView(par), _value(*par) {
 
 }
 

@@ -29,7 +29,7 @@ const lv_color_t LOOP_ON_COLOR = GREEN_COLOR;
 
 const lv_color_t METRONOME_ON_COLOR = GREEN_COLOR;
 
-const lv_color_t FLOATING_TEXT_REGULAR_COLOR = BLACK_COLOR;
+const lv_color_t FLOATING_TEXT_REGULAR_COLOR = WHITE_COLOR;
 const lv_color_t FLOATING_TEXT_WARNING_COLOR = RED_COLOR;
 
 const lv_color_t KEYBOARD_BACKGROUND_COLOR = lv_color_hex(0x00e134eb);

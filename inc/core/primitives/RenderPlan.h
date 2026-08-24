@@ -66,7 +66,12 @@ struct RenderPlan {
     uint32_t sequenceCount;
     const Sequence * const sequences;
     
-    std::atomic<bool> syncSequences mutable;
+    std::atomic<bool> syncSequences mutable; - what is this?
+    */
+
+    /* Mod Engine stuff
+    uint32_t modPatternCount;
+    const ModPattern * const pattern;
     */
 };
 

@@ -27,8 +27,8 @@ ID AudioUnit::nextAudioUnitId() {
 
 AudioUnit::AudioUnit(const ClipContainer * initialContainer, ID id) :
     _uniqueId(id),
-    _volume(ParameterFloat("Volume", 1.0f, 0.f, 1.f)),
-    _pan(ParameterFloat("Pan", 0.5f, 0.f, 1.f)),
+    _volume(ParameterFloat("Volume", 1.0f, 0.f, 1.f, 0.01f)),
+    _pan(ParameterFloat("Pan", 0.5f, 0.f, 1.f, 0.01f)),
     _mute(ParameterBool("Mute", 0.f, 0.f, 1.f)),
     _clipContainer(initialContainer)
 {

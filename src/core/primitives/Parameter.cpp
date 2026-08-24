@@ -6,13 +6,13 @@
 
 namespace slr {
 
-ParameterBase::ParameterBase(std::string & name, float defaultValue, float minimalValue, float maximalValue) 
-    : _name(name), _default(defaultValue), _min(minimalValue), _max(maximalValue) {
+ParameterBase::ParameterBase(std::string & name, float defaultValue, float minimalValue, float maximalValue, float step) 
+    : _name(name), _default(defaultValue), _min(minimalValue), _max(maximalValue), _step(step) {
 
 }
 
-ParameterFloat::ParameterFloat(std::string name, float defaultValue, float minimalValue, float maximalValue)
-    : ParameterBase(name, defaultValue, minimalValue, maximalValue), _value(defaultValue) {
+ParameterFloat::ParameterFloat(std::string name, float defaultValue, float minimalValue, float maximalValue, float step)
+    : ParameterBase(name, defaultValue, minimalValue, maximalValue, step), _value(defaultValue) {
 
 }
 
@@ -22,8 +22,8 @@ ParameterFloat::~ParameterFloat() {
 
 
 
-ParameterInt::ParameterInt(std::string name, float defaultValue, float minimalValue, float maximalValue)
-    : ParameterBase(name, defaultValue, minimalValue, maximalValue), _value(defaultValue) {
+ParameterInt::ParameterInt(std::string name, float defaultValue, float minimalValue, float maximalValue, float step)
+    : ParameterBase(name, defaultValue, minimalValue, maximalValue, step), _value(defaultValue) {
 
 }
 
@@ -33,8 +33,8 @@ ParameterInt::~ParameterInt() {
 
 
 
-ParameterBool::ParameterBool(std::string name, float defaultValue, float minimalValue, float maximalValue)
-    : ParameterBase(name, defaultValue, minimalValue, maximalValue), _value(defaultValue) {
+ParameterBool::ParameterBool(std::string name, float defaultValue, float minimalValue, float maximalValue, float step)
+    : ParameterBase(name, defaultValue, minimalValue, maximalValue, step), _value(defaultValue) {
 
 }
 

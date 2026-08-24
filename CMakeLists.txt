@@ -229,6 +229,7 @@ file(GLOB SOURCES
   src/ui/display/DialogWindows.cpp
   src/ui/display/DragViewSelector.cpp
   src/ui/display/StepSequencerView.cpp
+  src/ui/display/ModEngineView.cpp
 
   src/ui/FakeGestures.cpp
   src/ui/uiControls.cpp
