@@ -214,10 +214,15 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
    copyAudioBuffer((*_preFX)[0], (*_postFX)[0], ctx.frames);
    copyAudioBuffer((*_preFX)[1], (*_postFX)[1], ctx.frames);
 
-    float volume = (_volume);
+    sample_t volume = 0.0f;
 #if (DEFAULT_BUFFER_CHANNELS == 2) 
-    mulAudioBufferToValue((*_postFX)[0], ctx.frames, volume);
-    mulAudioBufferToValue((*_postFX)[1], ctx.frames, volume);
+    // mulAudioBufferToValue((*_postFX)[0], ctx.frames, volume);
+    // mulAudioBufferToValue((*_postFX)[1], ctx.frames, volume);
+    for(frame_t f=0; f<ctx.frames; ++f) {
+        volume = _volume.value(f);
+        (*_postFX)[0][f] *= volume;
+        (*_postFX)[1][f] *= volume;
+    }
 #else
     uint8_t channels = _preFX->channels();
     channels = _postFX->channels();

@@ -435,6 +435,50 @@ void ModEngineTargetManager::update() {
         LABEL(t._lblParameter, x+350, y+20, 300, 40, text);
         LABEL(t._lblAmmount, x+700, y+20, 200, 40, "100%");
         BUTTON(t._btnDeleteTarget, x+920, y, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_TRASH);
+        t._btnDeleteTarget->setCallback([name = t._lblName.get(), par = t._lblParameter.get(), this]() {
+            slr::ID targetID = 0;
+            slr::ID parID = 0;
+            slr::ModulationTargetType type = slr::ModulationTargetType::ERROR;
+
+            std::string tmpname = name->text();
+            std::string tmp = tmpname.substr(0, tmpname.find_first_of(' '));
+
+            if(tmp.compare("Modulation") == 0) {
+                type = slr::ModulationTargetType::modulation;
+            } else if(tmp.compare("Sequence") == 0) {
+                type = slr::ModulationTargetType::stepSequence;
+            } else {
+                type = slr::ModulationTargetType::unit;
+                //unit
+                slr::AudioUnitView *v = slr::ProjectView::getProjectView().findUnitByName(tmpname);
+                if(!v) { LOG_WARN("Unit %s not found"); return; }
+
+                targetID = v->id();
+
+                slr::ParameterArrayView &pav = v->allParameters();
+                std::string parName = par->text();
+                for(std::size_t i=0; i<pav.count(); ++i) {
+                    if(pav[i]->name().compare(parName) == 0) {
+                        parID = i;
+                        break;
+                    }
+                }
+            }
+
+            if(type == slr::ModulationTargetType::ERROR || targetID == 0) {
+                LOG_ERROR("Something went wrong");
+                return;
+            }
+
+            auto act = std::make_unique<slr::Actions::ModifyModulationTarget>();
+            act->modulationID = this->_view->currentMod()->id();
+            act->addOrRemove = false;
+            act->type = type;
+            act->targetID = targetID;
+            act->parameterID = parID;
+            slr::EmitAction(std::move(act));
+
+        }); //end of Delete Target Button Callback
 
         _targets.push_back(std::move(t));
         y += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
