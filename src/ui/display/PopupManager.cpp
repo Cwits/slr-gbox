@@ -12,6 +12,7 @@
 #include "ui/display/VirtualMidiKeyboard.h"
 #include "ui/display/DragViewSelector.h"
 #include "ui/display/StepSequencerView.h"
+#include "ui/display/ModEngineView.h"
 
 namespace UI {
 
@@ -131,6 +132,19 @@ void PopupManager::disableTargetSelectPopup() {
     _targetSelectPopup->deactivate();
     _targetSelectPopup->hide();
 }
+
+
+void PopupManager::enableModEngineTargetManager() {
+    _modEngineTargetManagerPopup->update();
+    _modEngineTargetManagerPopup->activate();
+    _modEngineTargetManagerPopup->show();
+}
+
+void PopupManager::disableModEngineTargetManager() {
+    _modEngineTargetManagerPopup->deactivate();
+    _modEngineTargetManagerPopup->hide();
+}
+    
 
 
 }

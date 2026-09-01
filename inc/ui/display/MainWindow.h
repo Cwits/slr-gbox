@@ -15,6 +15,7 @@ namespace slr {
     class AudioUnitView;
     class UnitDescriptor;
     struct SequenceView;
+    struct ModulationPatternView;
 }
 
 namespace UI {
@@ -41,6 +42,7 @@ class SettingsPopup;
 class VirtualMidiKeyboard;
 class DragViewSelector;
 class TargetSelectPopup;
+struct ModEngineTargetManager;
 
 class DragContext;
 
@@ -64,6 +66,7 @@ struct MainWindow : public BaseWidget {
     void updateMetronomeState(bool onoff);
 
     void createSequenceUI(const std::shared_ptr<slr::SequenceView> view);
+    void createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view);
     
     void clearHittestTarget() { _initialGestureTarget = nullptr; }
     bool cancleGesture(BaseWidget * widget);
@@ -102,6 +105,7 @@ struct MainWindow : public BaseWidget {
     std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;
     std::unique_ptr<DragViewSelector> _dragViewSelector;
     std::unique_ptr<TargetSelectPopup> _targetSelectPopup; //for step sequencer
+    std::unique_ptr<ModEngineTargetManager> _modEngineTargetManagerPopup;
 
     private:
     UIContext _uiContext;

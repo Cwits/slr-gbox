@@ -4,6 +4,7 @@
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
 #include "snapshots/SequenceView.h"
+#include "snapshots/ModulationView.h"
 
 #include "core/Timeline.h"
 #include "core/ControlEngine.h"
@@ -22,6 +23,7 @@ ProjectView::ProjectView(Timeline *tl) : _timeline(tl) {
     // _playheadPosition = 0;
     _name = "Untitled Project";
     _stepSequencer = std::make_unique<SequencerEngineView>();
+    _modulationEngine = std::make_unique<ModulationEngineView>();
 }
 
 ProjectView::~ProjectView() {

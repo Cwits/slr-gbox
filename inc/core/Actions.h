@@ -7,6 +7,7 @@
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
 #include "common/Color.h"
+#include "common/ModEngineCommon.h"
 #include "defines.h"
 
 #include <variant>
@@ -422,6 +423,56 @@ struct ModifySequenceEvent : public ActionBase {
     std::optional<unsigned int> note;
     std::optional<unsigned int> velocity;
 };
+
+struct CreateNewModulation : public ActionBase {
+    CreateNewModulation() {}
+    CreateNewModulation(const CreateNewModulation &rhs) :
+        ActionBase(rhs) {}
+    
+    std::type_index actionType() const override { return typeid(CreateNewModulation); }
+
+};
+
+struct ModifyModulation : public ActionBase { 
+    ModifyModulation() {}
+    ModifyModulation(const ModifyModulation &rhs) :
+        ActionBase(rhs), modulationId(rhs.modulationId),
+        shape(rhs.shape), amplitude(rhs.amplitude),
+        phase(rhs.phase), rate(rhs.rate), rateMode(rhs.rateMode),
+        min(rhs.min), max(rhs.max) {}
+
+    std::type_index actionType() const override { return typeid(ModifyModulation); }
+    
+    ID modulationId;
+
+    std::optional<ModulationShape> shape;
+    std::optional<float> amplitude;
+    std::optional<float> phase;
+    std::optional<float> rate;
+    std::optional<bool> rateMode;
+    std::optional<float> min;
+    std::optional<float> max;
+};
+
+struct ModifyModulationTarget : public ActionBase { 
+    ModifyModulationTarget() {}
+    ModifyModulationTarget(const ModifyModulationTarget &rhs) :
+        ActionBase(rhs), modulationID(rhs.modulationID) ,
+        addOrRemove(rhs.addOrRemove), type(rhs.type), 
+        targetID(rhs.targetID), parameterID(rhs.parameterID) {}
+
+    std::type_index actionType() const override { return typeid(ModifyModulationTarget); }
+
+    ID modulationID;
+    
+    bool addOrRemove; //true - add, false - remove
+    ModulationTargetType type;
+    ID targetID;
+    ID parameterID;
+
+};
+
+
 
 
 } //namespace Actions

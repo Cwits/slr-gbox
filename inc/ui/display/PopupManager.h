@@ -22,6 +22,7 @@ class SettingsPopup;
 class VirtualMidiKeyboard;
 class DragViewSelector;
 struct TargetSelectPopup;
+struct ModEngineTargetManager;
 
 struct PopupManager {
     PopupManager();
@@ -57,6 +58,9 @@ struct PopupManager {
 
     void enableTargetSelectPopup();
     void disableTargetSelectPopup();
+
+    void enableModEngineTargetManager();
+    void disableModEngineTargetManager();
     
     private:
     UnitControlPopup * _unitControlPopup;
@@ -68,6 +72,7 @@ struct PopupManager {
     VirtualMidiKeyboard * _virtualMidiKeyboard;
     DragViewSelector * _dragViewSelector;
     TargetSelectPopup * _targetSelectPopup;
+    ModEngineTargetManager * _modEngineTargetManagerPopup;
 
     friend class MainWindow;
 };

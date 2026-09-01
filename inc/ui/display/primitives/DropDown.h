@@ -31,6 +31,7 @@ struct DropDown : public BaseWidget {
     void setSize(lv_coord_t w, lv_coord_t h) override;
     void setPos(lv_coord_t x, lv_coord_t y) override;
 
+    void close();
     private:
     Button * _btn;
     std::vector<lv_obj_t*> _items;
@@ -42,7 +43,6 @@ struct DropDown : public BaseWidget {
     const lv_font_t * _textFont;
 
     void open();
-    void close();
 
     bool handleTap(GestLib::TapGesture & tap) override;
     

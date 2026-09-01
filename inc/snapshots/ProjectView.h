@@ -21,6 +21,7 @@ class UnitDescriptor;
 class AudioUnit;
 class AudioUnitView;
 struct SequencerEngineView;
+struct ModulationEngineView;
 
 class ProjectView {
     public:
@@ -61,7 +62,7 @@ class ProjectView {
     void path(std::string p) { _path = p; }
     
     SequencerEngineView * stepSequencer() const { return _stepSequencer.get(); }
-
+    ModulationEngineView * modulationEngine() const { return _modulationEngine.get(); }
     private:
     std::string _path;
     std::string _name;
@@ -73,6 +74,7 @@ class ProjectView {
     std::vector<MidiRoute> _midiRoutes;
 
     std::unique_ptr<SequencerEngineView> _stepSequencer;
+    std::unique_ptr<ModulationEngineView> _modulationEngine;
 
     ClipViewStorage _clipStorage;
 

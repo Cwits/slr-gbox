@@ -107,9 +107,14 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popups.push_back(_virtualMidiKeyboard.get());
     // _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
     _popups.push_back(_dragViewSelector.get());
+
     _targetSelectPopup = std::make_unique<TargetSelectPopup>(this, _stepSequencerView.get(), &_uiContext);
     _popups.push_back(_targetSelectPopup.get());
     _stepSequencerView->_tpop = _targetSelectPopup.get();
+
+    _modEngineTargetManagerPopup = std::make_unique<ModEngineTargetManager>(this, _modEngineView.get(), &_uiContext);
+    _popups.push_back(_modEngineTargetManagerPopup.get());
+    _modEngineView->_tpop = _modEngineTargetManagerPopup.get();
 
     _popManager._unitControlPopup = _unitControlPopup.get();
     _popManager._routeManager = _routeManager.get();
@@ -121,6 +126,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popManager._virtualMidiKeyboard = _virtualMidiKeyboard.get();
     _popManager._dragViewSelector = _dragViewSelector.get();
     _popManager._targetSelectPopup = _targetSelectPopup.get();
+    _popManager._modEngineTargetManagerPopup = _modEngineTargetManagerPopup.get();
 
     _uiContext._popManager = &_popManager;
 
@@ -437,6 +443,10 @@ void MainWindow::updateMetronomeState(bool onoff) {
 
 void MainWindow::createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
     _stepSequencerView->createSequenceUI(view);
+}
+
+void MainWindow::createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view) {
+    _modEngineView->createModUI(view);
 }
 
 std::string gestureToText(GestLib::Gestures &g) {

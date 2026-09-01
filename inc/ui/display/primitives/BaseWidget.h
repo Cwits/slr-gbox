@@ -47,7 +47,7 @@ struct BaseWidget {
     int getZ() const;
 
 
-    void hide();
+    virtual void hide();
     virtual void show();
     bool visible();
 

@@ -12,9 +12,9 @@
 #include <vector>
 #include <array>
 
-// namespace slr {
-//     struct SequenceView;
-// }
+namespace slr {
+    struct ModulationPatternView;
+}
 
 namespace UI {
 
@@ -22,24 +22,46 @@ struct Label;
 struct Button;
 struct DropDown;
 struct MainWindow;
+struct ModEngineTargetManager;
+
+struct ModulationUI {
+    ModulationUI(const std::shared_ptr<slr::ModulationPatternView> view);
+
+    slr::ID id() const;
+    // const std::array<slr::ID, slr::TARGET_COUNT> targetId() const;
+    const slr::ModulationPatternView * view() const { return _view.get(); }
+
+    // void pollUIUpdate() override;
+
+    uint64_t _uiVersion;
+    private:
+    const std::shared_ptr<slr::ModulationPatternView> _view;
+
+    // lv_obj_t * _cnvModView;
+    // uint8_t * _drawBuffer;
+};
 
 struct ModEngineView : public View {
     ModEngineView(BaseWidget * parent, UIContext * const uictx);
     ~ModEngineView();
     
-    void pollUIUpdate() override {}
+    void pollUIUpdate() override;
 
     void updateLine(slr::frame_t nudge);
-    // void createSequenceUI(const std::shared_ptr<slr::SequenceView> view);
     
     void showById(slr::ID id) {}
+    
+    void showByPos(std::size_t pos);
     // SequenceUI * currentSequence() const;
+    // std::string currentMod() const; //temporary...
+
+    ModulationUI * currentMod() const;
+    void createModUI(const std::shared_ptr<slr::ModulationPatternView> view);
 
     private:
   
     // void updateUI();
 
-    friend class MainWindow; //ugh...
     // bool handleSwipe(GestLib::SwipeGesture & swipe) override;
     // bool handleDrag(GestLib::DragGesture &drag) override;
 
@@ -56,15 +78,23 @@ struct ModEngineView : public View {
     std::unique_ptr<Label> _lblRateText;
     std::unique_ptr<Label> _lblRate;
     std::unique_ptr<Button> _btnRate; //toggles from Hz to beats and back
-    std::unique_ptr<Label> _lblOffsetText;
-    std::unique_ptr<Label> _lblOffset;
+    std::unique_ptr<Label> _lblPhaseText;
+    std::unique_ptr<Label> _lblPhase;
     // std::unique_ptr<Label> _lblRandSeedText;
     // std::unique_ptr<Label> _lblRandSeed;
     // std::unique_ptr<Label> _lblLengthText;
     // std::unique_ptr<Label> _lblLength;
     // std::unique_ptr<Button> _btnLength; //toggles from beats to seconds/ms
 
-    std::unique_ptr<Button> _btnManageTargets;
+    std::unique_ptr<Label> _lblMinimalText;
+    std::unique_ptr<Label> _lblMinimal;
+    std::unique_ptr<Label> _lblMaximalText;
+    std::unique_ptr<Label> _lblMaximal;
+
+    std::unique_ptr<Button> _btnTargetManager;
+
+    std::size_t _currentSelectedMod;
+    std::vector<std::unique_ptr<ModulationUI>> _modUIs;
 
     lv_obj_t * _line;
     lv_point_precise_t _points[2];
@@ -76,6 +106,41 @@ struct ModEngineView : public View {
     float _tmpRate = 1.0f;
     float _tmpOffset = 0;
     int _tmpRandSeed = 0;
+
+    ModEngineTargetManager *_tpop;
+    friend class MainWindow;
+    friend class ModEngineTargetManager;
+};
+
+struct ModEngineTargetManager : public Popup {
+    ModEngineTargetManager(BaseWidget *parent, ModEngineView *sParent, UIContext * const uictx);
+    ~ModEngineTargetManager();
+
+    void update();
+    void clear();
+
+    private:
+    ModEngineView * _view;
+
+    slr::ID _currentModID = 0;
+
+    std::unique_ptr<Label> _lblCurrentMod; //e.g. "Modulation 1"
+    std::unique_ptr<Button> _btnNextMod;
+    std::unique_ptr<Button> _btnPrevMod;
+
+    struct Targets {
+        std::unique_ptr<Label> _lblName;
+        std::unique_ptr<Label> _lblParameter;
+        std::unique_ptr<Label> _lblAmmount;
+        std::unique_ptr<Button> _btnDeleteTarget;
+    };
+ 
+    std::vector<Targets> _targets;
+
+    std::unique_ptr<DropDown> _ddTargetSelector;
+    std::unique_ptr<DropDown> _ddParameterSelector;
+    std::unique_ptr<Label> _lblAmmount;
+    std::unique_ptr<Button> _btnAddTarget;
 };
 
 }

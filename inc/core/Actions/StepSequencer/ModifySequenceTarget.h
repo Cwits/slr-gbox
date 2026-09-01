@@ -39,7 +39,7 @@ struct ModifySequenceTargetAction : public ActionExecutable {
 
     ModifyEvent _flatModEvent;
     RtTask _task;
-    std::unique_ptr<Sequence> _beforeClone;
+    // std::unique_ptr<Sequence> _beforeClone;
 };
 
 std::unique_ptr<ActionExecutable> createModifySequenceTargetAction(const ActionBase*);

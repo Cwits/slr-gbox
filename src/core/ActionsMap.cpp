@@ -43,6 +43,10 @@
 #include "core/Actions/StepSequencer/ModifySequenceEvent.h"
 #include "core/Actions/StepSequencer/ModifySequenceTarget.h"
 
+#include "core/Actions/ModulationEngine/CreateNewModulation.h"
+#include "core/Actions/ModulationEngine/ModifyModulation.h"
+#include "core/Actions/ModulationEngine/ModifyModulationTarget.h"
+
 namespace slr {
 
 void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
@@ -89,6 +93,11 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
     map[typeid(Actions::ModifySequenceLayer)] = &createModifySequenceLayerAction;
     map[typeid(Actions::ModifySequenceEvent)] = &createModifySequenceEventAction;
     map[typeid(Actions::ModifySequenceTarget)] = &createModifySequenceTargetAction;
+
+    //Modulation Engine
+    map[typeid(Actions::CreateNewModulation)] = &createCreateNewModulationAction;
+    map[typeid(Actions::ModifyModulation)] = &createModifyModulationAction;
+    map[typeid(Actions::ModifyModulationTarget)] = &createModifyModulationTargetAction;
 }
 
 std::map<std::type_index, CreatorFn> & getActionMap() {

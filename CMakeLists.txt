@@ -114,6 +114,10 @@ file(GLOB SOURCES
   src/core/Actions/StepSequencer/ModifySequenceEvent.cpp
   src/core/Actions/StepSequencer/ModifySequenceTarget.cpp
 
+  src/core/Actions/ModulationEngine/CreateNewModulation.cpp
+  src/core/Actions/ModulationEngine/ModifyModulation.cpp
+  src/core/Actions/ModulationEngine/ModifyModulationTarget.cpp
+
   #core
   inc/core/drivers/AudioDriver.h
   src/core/drivers/AudioDriver.cpp
@@ -155,6 +159,7 @@ file(GLOB SOURCES
   src/core/MidiController.cpp
   src/core/Serializer.cpp
   src/core/StepSequencer.cpp
+  src/core/ModulationEngine.cpp
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
@@ -165,6 +170,7 @@ file(GLOB SOURCES
   src/snapshots/TimelineView.cpp
   src/snapshots/DriverView.cpp
   src/snapshots/SequenceView.cpp
+  src/snapshots/ModulationView.cpp
 
   #test
   units/Track/Track.cpp

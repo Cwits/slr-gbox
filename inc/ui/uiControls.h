@@ -12,6 +12,7 @@ namespace slr {
     class ContainerItemView;
     class UnitDescriptor;
     struct SequenceView;
+    struct ModulationPatternView;
 }
 
 namespace UIControls {
@@ -53,6 +54,15 @@ void updateRouteManager();
 void updateMetronomeState(bool onoff);
 
 void createSequenceUI(const std::shared_ptr<slr::SequenceView> view);
+// void removeSequenceUI(slr::ID id);
+// void restoreSequenceUI(slr::ID id);
+// void deleteSequenceUI(slr::ID id);
+
+void createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view);
+void updateModulationTargetManager();
+// void removeModulationUI(slr::ID id);
+// void restoreModulationUI(slr::ID id);
+// void deleteModulationUI(slr::ID id);
 
 void clearUI();
 

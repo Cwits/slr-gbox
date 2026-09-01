@@ -109,7 +109,7 @@ void runGui() {
     UI::MainWindow * main = new UI::MainWindow(_main_screen);
     lv_screen_load(_main_screen);
 
-    // const uint32_t delayTicksUs = LV_DEF_REFR_PERIOD * 1000; //to micros
+    const uint32_t delayTicksUs = LV_DEF_REFR_PERIOD * 1000; //to micros
     // const uint32_t delayTicksUs = static_cast<uint32_t>( (float)(1000.0f/(float)60) * 1000.f);
     SDL_Event event;
 
@@ -187,11 +187,11 @@ void runGui() {
         mills = std::chrono::duration_cast<std::chrono::microseconds>(elapsed - now).count();
         // // LOG_INFO("render frame time: %d", mills);
 
-        //is this works?
-        // if(delayTicksUs > mills) {
-        //     // std::this_thread::sleep_for(std::chrono::microseconds(delayTicksUs - mills));
-        //     std::this_thread::sleep_for(std::chrono::milliseconds(ret));
-        // }
+        //is this works? - ok, this is necessary 'cause lvgl don't sleep by itself
+        if(delayTicksUs > mills) {
+            // std::this_thread::sleep_for(std::chrono::microseconds(delayTicksUs - mills));
+            std::this_thread::sleep_for(std::chrono::milliseconds(ret));
+        }
     }
 
 #if defined(__aarch64__)

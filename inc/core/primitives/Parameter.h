@@ -12,13 +12,6 @@
 
 namespace slr {
 
-/* 
-    то есть надо унифицированный метод - value() - используется в setParameter()
-    который возвращает чистое значение
-
-    и, так же, надо метод, который для аудио потока и возвращает значение с модуляциями
-*/
-
 class ParameterArray;
 class ParameterBase {
     public:
@@ -36,6 +29,10 @@ class ParameterBase {
 
     virtual float normalized() { return 0.0f; }
 
+    /* 
+        both append and remove can happen outside the rtcore? 
+        in rt only copy-assign all ptrs and amt?
+    */
     void appendModulation(const float * ptr, int ammount) { //ammount between 0 and 100
         if(ptr == nullptr) return;
         for(int i=0; i<8; ++i) {

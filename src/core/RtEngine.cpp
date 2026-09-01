@@ -12,10 +12,7 @@
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
 #include "core/StepSequencer.h"
-#include "core/RtEngine.h"
-
-// #include "core/ModulationEngine.h"
-
+#include "core/ModulationEngine.h"
 
 #include "core/Project.h"
 #include "core/Timeline.h"
@@ -244,6 +241,13 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     //     }
     // }
     */
+
+    if(_prj->modulationEngine()->playable().size()) {
+        auto &mod = _prj->modulationEngine()->playable();
+        for(auto &m : mod) {
+            m->process(ctx);
+        }
+    }
 
     if(_prj->stepSequencer()->sequenceCount()) {
         auto &seq = _prj->stepSequencer()->playable();

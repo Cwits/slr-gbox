@@ -8,6 +8,7 @@
 #include "core/primitives/ControlContext.h"
 #include "core/ControlEngine.h"
 #include "core/StepSequencer.h"
+#include "core/ModulationEngine.h"
 #include "logger.h"
 
 #include <algorithm>
@@ -38,6 +39,7 @@ Project::Project() : _timeline(*this) {
 
     _metronome = std::make_unique<Metronome>();
     _stepSequencer = std::make_unique<StepSequencerEngine>();
+    _modulationEngine = std::make_unique<ModulationEngine>();
 
     _isSolo = false;
     _planInWork = false;

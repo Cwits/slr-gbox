@@ -92,6 +92,10 @@ class AudioUnit {
     
     bool hasParameterWithId(ID parameterId);
 
+    ParameterBase * getParameterByID(ID parameterID) {
+        return _flatParameterList[parameterID];
+    }
+
     const ClipContainer * clips() const { return _clipContainer; }
     inline void setClipContainer(const ClipContainer *cont) { _clipContainer = cont; }
     

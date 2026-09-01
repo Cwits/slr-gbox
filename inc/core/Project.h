@@ -22,6 +22,7 @@ class UnitDescriptor;
 class ControlContext;
 struct BufferManager;
 struct StepSequencerEngine;
+struct ModulationEngine;
 
 class Project {
     public:
@@ -76,6 +77,7 @@ class Project {
     ClipItem * findClipItemById(ID id);
 
     StepSequencerEngine * stepSequencer() const { return _stepSequencer.get(); }
+    ModulationEngine * modulationEngine() const { return _modulationEngine.get(); }
 
     private:
     bool _isSolo;
@@ -104,6 +106,7 @@ class Project {
     ClipStorage _clipStorage; 
 
     std::unique_ptr<StepSequencerEngine> _stepSequencer;
+    std::unique_ptr<ModulationEngine> _modulationEngine;
     //std::unique_ptr<ModulationEngine> _modEngine;
     //_globalParameterList??
 

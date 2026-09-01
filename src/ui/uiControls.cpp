@@ -4,6 +4,7 @@
 #include "ui/uiControls.h"
 #include "ui/display/MainWindow.h"
 #include "ui/display/RouteManager.h"
+#include "ui/display/ModEngineView.h"
 
 #include "ui/pushThread.h"
 #include "ui/push/RootWidget.h"
@@ -143,6 +144,22 @@ void createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
     if(PushThread::isRunning()) {
         //...
     }
+}
+
+void createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view) {
+    postToLvgl([view]() {
+        UI::MainWindow::inst()->createModulationUI(view);
+    });
+
+    if(PushThread::isRunning()) {
+        //...
+    }
+}
+
+void updateModulationTargetManager() {
+    postToLvgl([]() {
+        UI::MainWindow::inst()->_modEngineTargetManagerPopup->update();
+    });
 }
 
 void clearUI() {

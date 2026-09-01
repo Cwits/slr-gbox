@@ -117,6 +117,11 @@ Render Plan:
         (also, if unchecked than need some notifying icon to show up when new routes were added, but wasn't plan wasnt rebuilded)
 [ ] - Sequences, Modulations processors, as well as Timeline pointer must be passed through RenderPlan
 
+
+Modulation Engine:
+[ ] - lfo rate < 1.0 must impact overall length of oscillator
+        i mean that with rate > 1.0 everything ok, but with < 1.0 than not full cycle happens
+
 Timeline: 
 [ ] - framesPerBeat() and calcFramesPerBeat() not valid anymore, use framesInStep() together with getBarSize()
         in order to calculate UI's pixelPerBar.
@@ -162,6 +167,7 @@ other:
 [ ] - //TODO: this + after map is odd... need to fix it in FileView::draw()
 [ ] - periodically updates need different algorithm, see TODO in postToLvgl
 [ ] - in uiControls.cpp postToLvgl() with lambdas will cause memory fragmentation.
+[ ] - in uiControls.cpp must be check that Display ui thread is running(the same way as it is for push)
 [\] - //sometimes visible() failed because of nullptr lvhost?? MainWindow.cpp::hitTest()::if(!child->visible())
         in route manager it was because of duplicating pointers(not deleting from childrens), now BaseWidget deleting itself from parent->childs() on delete
         but not sure that was the case.

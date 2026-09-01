@@ -131,8 +131,9 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
     }
 
     //process volume
-    const float volume = _volume;
+    float volume = 0.0f;
     for(frame_t f=0; f<ctx.frames; ++f) {
+        volume = _volume.value(f);
         (*_outputs)[0][f] *= volume;
         (*_outputs)[1][f] *= volume;
     }

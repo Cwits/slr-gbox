@@ -80,6 +80,8 @@ void CreateNewSequenceAction::exec(ControlContext &ctx) {
             } break;
             case(2): {
                 //created
+                //UI will remove itself
+                LOG_WARN("Deleting UI not finished"); //but delete it from UI, not from here
                 // _rflat.extracted.release();
                 setState(ActionState::Finished);
             } break;
