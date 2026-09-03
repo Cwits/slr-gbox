@@ -30,8 +30,8 @@ constexpr int TAB_BUTTON_H = 120;
 SettingsPopup::SettingsPopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx)
 {
-    setSize(LayoutDef::SETTINGS_POP_WIDTH, LayoutDef::SETTINGS_POP_HEIGHT);
-    setPos(LayoutDef::SETTINGS_POP_X, LayoutDef::SETTINGS_POP_Y);
+    setSize(Layout::SETTINGS_POP_WIDTH, Layout::SETTINGS_POP_HEIGHT);
+    setPos(Layout::SETTINGS_POP_X, Layout::SETTINGS_POP_Y);
     setColor(lv_color_hex(0x858585));
 
     int posy = 0;
@@ -81,7 +81,7 @@ SettingsPopup::SettingsPopup(BaseWidget * parent, UIContext * const uictx) :
 
     _btnSave = new Button(this, LV_SYMBOL_SAVE);
     _btnSave->setFont(&DEFAULT_FONT);
-    _btnSave->setPos(0, LayoutDef::SETTINGS_POP_HEIGHT-TAB_BUTTON_H);
+    _btnSave->setPos(0, Layout::SETTINGS_POP_HEIGHT-TAB_BUTTON_H);
     _btnSave->setSize(TAB_BUTTON_W, TAB_BUTTON_H);
     _btnSave->setCallback([this]() {
         // this->switchTab(Tab::Midi);
@@ -141,7 +141,7 @@ SettingsPopup::GeneralTab::GeneralTab(BaseWidget * parent, UIContext * const uic
     BaseWidget(parent, true),
     _uictx(uictx)
 {
-    setSize(LayoutDef::SETTINGS_POP_WIDTH-TAB_BUTTON_W, LayoutDef::SETTINGS_POP_HEIGHT);
+    setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
     setColor(GRAY_COLOR);
 
@@ -156,7 +156,7 @@ SettingsPopup::ProjectTab::ProjectTab(BaseWidget * parent, UIContext * const uic
     BaseWidget(parent, true),
     _uictx(uictx)
 {
-    setSize(LayoutDef::SETTINGS_POP_WIDTH-TAB_BUTTON_W, LayoutDef::SETTINGS_POP_HEIGHT);
+    setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
     setColor(GRAY_COLOR);
 }
@@ -169,15 +169,15 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
     BaseWidget(parent, true),
     _uictx(uictx)
 {
-    setSize(LayoutDef::SETTINGS_POP_WIDTH-TAB_BUTTON_W, LayoutDef::SETTINGS_POP_HEIGHT);
+    setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
     setColor(GRAY_COLOR);
     
 
     const int lineHeight = lv_font_get_line_height(&DEFAULT_FONT);
-    int posy = LayoutDef::DEFAULT_MARGIN;
-    int textX = LayoutDef::DEFAULT_MARGIN;
-    int fieldX = (LayoutDef::DEFAULT_MARGIN*2) + 200;
+    int posy = Layout::Margin;
+    int textX = Layout::Margin;
+    int fieldX = (Layout::Margin*2) + 200;
 
     _lblAudioDriverText = lv_label_create(lvhost());
     lv_label_set_text(_lblAudioDriverText, "Audio Driver:");
@@ -203,7 +203,7 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
     });
     
 
-    posy += ((LayoutDef::DEFAULT_MARGIN*2)+lineHeight);
+    posy += ((Layout::Margin*2)+lineHeight);
     _lblSamplerateText = lv_label_create(lvhost());
     lv_label_set_text(_lblSamplerateText, "Sample Rate:");
     lv_obj_set_size(_lblSamplerateText, 200, lineHeight);
@@ -226,7 +226,7 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
     });
 
 
-    posy += (lineHeight + (LayoutDef::DEFAULT_MARGIN*2));
+    posy += (lineHeight + (Layout::Margin*2));
     _lblBlockSizeText = lv_label_create(lvhost());
     lv_label_set_text(_lblBlockSizeText, "Block Size:");
     lv_obj_set_size(_lblBlockSizeText, 200, lineHeight);
@@ -250,7 +250,7 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
         //TODO: Warning window "Please restart application"
     });
 
-    posy += (lineHeight + (LayoutDef::DEFAULT_MARGIN*2));
+    posy += (lineHeight + (Layout::Margin*2));
     
     _lblLatencyText = lv_label_create(lvhost());
     lv_label_set_text(_lblLatencyText, "Latency comp.:");
@@ -299,13 +299,13 @@ SettingsPopup::MidiTab::MidiTab(BaseWidget * parent, UIContext * const uictx) :
     BaseWidget(parent, true),
     _uictx(uictx)
 {
-    setSize(LayoutDef::SETTINGS_POP_WIDTH-TAB_BUTTON_W, LayoutDef::SETTINGS_POP_HEIGHT);
+    setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
     setColor(GRAY_COLOR);
     
     _btnRefresh = new Button(this, LV_SYMBOL_REFRESH);
-    _btnRefresh->setPos(LayoutDef::DEFAULT_MARGIN, LayoutDef::DEFAULT_MARGIN);
-    _btnRefresh->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRefresh->setPos(Layout::Margin, Layout::Margin);
+    _btnRefresh->setSize(Layout::Button, Layout::Button);
     _btnRefresh->setFont(&DEFAULT_FONT);
     _btnRefresh->setCallback([this]() {
         this->refreshDevices();
@@ -324,7 +324,7 @@ void SettingsPopup::MidiTab::refreshDevices() {
 
     clearMidiLabels();
 
-    int posy = (LayoutDef::DEFAULT_MARGIN*2)+LayoutDef::BUTTON_SIZE;
+    int posy = (Layout::Margin*2)+Layout::Button;
     int lineHeight = lv_font_get_line_height(&DEFAULT_FONT);
     int width = this->width();
     std::string text;
@@ -332,7 +332,7 @@ void SettingsPopup::MidiTab::refreshDevices() {
         text = dev._name;
         MidiLabels device;
         Label * devName = new Label(this, dev._name);
-        devName->setPos(LayoutDef::DEFAULT_MARGIN, posy);
+        devName->setPos(Layout::Margin, posy);
         devName->setSize(width/2, lineHeight);
         devName->setFont(&DEFAULT_FONT);
         device._deviceName = devName;
@@ -343,13 +343,13 @@ void SettingsPopup::MidiTab::refreshDevices() {
         presented->setFont(&DEFAULT_FONT);
         device._presented = presented;
 
-        posy += (lineHeight+LayoutDef::DEFAULT_MARGIN);
+        posy += (lineHeight+Layout::Margin);
         for(slr::MidiSubdevice &sub : dev._ports) {
-            const int subdevHeight = LayoutDef::CHECKBOX_SIZE;
+            const int subdevHeight = Layout::CHECKBOX;
             MidiSubdevLabel subdev;
 
             Label * path = new Label(this, sub._path);
-            path->setPos(LayoutDef::DEFAULT_MARGIN + 30, posy);
+            path->setPos(Layout::Margin + 30, posy);
             path->setSize(150, lineHeight);
             path->setFont(&DEFAULT_FONT);
             subdev._path = path;
@@ -359,13 +359,13 @@ void SettingsPopup::MidiTab::refreshDevices() {
                 text.append("In ");
                 text.append(sub._inputName);
                 Label * subInName = new Label(this, text);
-                subInName->setPos(LayoutDef::DEFAULT_MARGIN + 200, posy);
+                subInName->setPos(Layout::Margin + 200, posy);
                 subInName->setSize(width/2, lineHeight);
                 subInName->setFont(&DEFAULT_FONT);
                 subdev._subInName = subInName;
 
                 Checkbox * subInCheck = new Checkbox(this);
-                subInCheck->setPos(width/2 + LayoutDef::DEFAULT_MARGIN, posy);
+                subInCheck->setPos(width/2 + Layout::Margin, posy);
                 subInCheck->setCallback([sub, dev](bool isChecked) mutable {
                     LOG_INFO("%s %s device is %s",
                         (&sub)->_path.c_str(), 
@@ -387,7 +387,7 @@ void SettingsPopup::MidiTab::refreshDevices() {
 
                 });
                 subdev._inputEnabled = subInCheck;
-                posy += (subdevHeight+LayoutDef::DEFAULT_MARGIN);
+                posy += (subdevHeight+Layout::Margin);
             } else {
                 subdev._subInName = nullptr;
                 subdev._inputEnabled = nullptr;
@@ -398,13 +398,13 @@ void SettingsPopup::MidiTab::refreshDevices() {
                 text.append("Out ");
                 text.append(sub._outputName);
                 Label * subOutName = new Label(this, text);
-                subOutName->setPos(LayoutDef::DEFAULT_MARGIN + 200, posy);
+                subOutName->setPos(Layout::Margin + 200, posy);
                 subOutName->setSize(width/2, lineHeight);
                 subOutName->setFont(&DEFAULT_FONT);
                 subdev._subOutName = subOutName;
 
                 Checkbox * subOutCheck = new Checkbox(this);
-                subOutCheck->setPos(width/2 + LayoutDef::DEFAULT_MARGIN, posy);
+                subOutCheck->setPos(width/2 + Layout::Margin, posy);
                 subOutCheck->setCallback([sub, dev](bool isChecked) mutable {
                     LOG_INFO("%s %s device is %s",
                         sub._path.c_str(),
@@ -425,7 +425,7 @@ void SettingsPopup::MidiTab::refreshDevices() {
                     slr::EmitAction(std::move(act));
                 });
                 subdev._outputEnabled = subOutCheck;
-                posy += (subdevHeight+LayoutDef::DEFAULT_MARGIN);
+                posy += (subdevHeight+Layout::Margin);
             } else {
                 subdev._subOutName = nullptr;
                 subdev._outputEnabled = nullptr;
@@ -468,7 +468,7 @@ SettingsPopup::UITab::UITab(BaseWidget * parent, UIContext * const uictx) :
     BaseWidget(parent, true),
     _uictx(uictx)
 {
-    setSize(LayoutDef::SETTINGS_POP_WIDTH-TAB_BUTTON_W, LayoutDef::SETTINGS_POP_HEIGHT);
+    setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
     setColor(GRAY_COLOR);
 

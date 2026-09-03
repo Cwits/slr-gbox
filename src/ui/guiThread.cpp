@@ -23,8 +23,8 @@
     #define SDL_HOR_RES 1920
     #define SDL_VER_RES 1080
 #else
-    #define SDL_HOR_RES UI::LayoutDef::TOTAL_WIDTH
-    #define SDL_VER_RES UI::LayoutDef::TOTAL_HEIGHT
+    #define SDL_HOR_RES UI::Layout::TOTAL_WIDTH
+    #define SDL_VER_RES UI::Layout::TOTAL_HEIGHT
 #endif
 
 std::atomic<bool> _running;

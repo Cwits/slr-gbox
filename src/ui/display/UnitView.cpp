@@ -14,8 +14,8 @@
 namespace UI { 
 
 UnitView::UnitView(BaseWidget* parent, UIContext * const uictx) : View(parent, uictx) {
-    setPos(LayoutDef::WORKSPACE_POSITION_X, LayoutDef::WORKSPACE_POSITION_Y);
-    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
+    setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     lv_obj_add_style(_lvhost, &workspace, 0);
     lv_obj_set_style_bg_color(_lvhost, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN);
 

@@ -19,14 +19,14 @@
 
 namespace UI {
 
-const int FIRST_ITEM_Y = 10+LayoutDef::PARSED_PATH_Y+lv_font_get_line_height(&DEFAULT_FONT);
+const int FIRST_ITEM_Y = 10+Layout::PARSED_PATH_Y+lv_font_get_line_height(&DEFAULT_FONT);
 const int _lineHeight = lv_font_get_line_height(&BROWSER_ELEMENT_FONT)+3;
 
 // const std::string DEFAULE_PATH = "/home/portablejoe/music/";
 
 Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uictx) {
-    setPos(LayoutDef::WORKSPACE_POSITION_X, LayoutDef::WORKSPACE_POSITION_Y);
-    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
+    setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     lv_obj_add_style(_lvhost, &workspace, 0);
     lv_obj_set_style_bg_color(_lvhost, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN);
 
@@ -36,27 +36,27 @@ Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uic
     _flags.isDrag = true;
     _flags.isSwipe = true;
 
-    int posx = parent->width()-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN;
+    int posx = parent->width()-Layout::Button-Layout::Margin;
     _refresh = new Button(this, LV_SYMBOL_REFRESH);
-    _refresh->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _refresh->setPos(posx, LayoutDef::DEFAULT_MARGIN);
+    _refresh->setSize(Layout::Button, Layout::Button);
+    _refresh->setPos(posx, Layout::Margin);
     _refresh->setFont(&DEFAULT_FONT);
     _refresh->setCallback([this]() {
         this->parse();
     });
 
-    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    posx -= (Layout::Button+Layout::Margin);
     _dirUp = new Button(this, LV_SYMBOL_UP);
-    _dirUp->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _dirUp->setPos(posx, LayoutDef::DEFAULT_MARGIN);
+    _dirUp->setSize(Layout::Button, Layout::Button);
+    _dirUp->setPos(posx, Layout::Margin);
     _dirUp->setFont(&DEFAULT_FONT);
     _dirUp->setCallback([this]() {
         this->goUp();
     });
 
     _lastPath = new Label(this, "");
-    _lastPath->setSize(LayoutDef::PARSED_PATH_W, lv_font_get_line_height(&DEFAULT_FONT));
-    _lastPath->setPos(LayoutDef::PARSED_PATH_X, LayoutDef::PARSED_PATH_Y);
+    _lastPath->setSize(Layout::PARSED_PATH_W, lv_font_get_line_height(&DEFAULT_FONT));
+    _lastPath->setPos(Layout::PARSED_PATH_X, Layout::PARSED_PATH_Y);
     _lastPath->setFont(&DEFAULT_FONT);
 
     _lastTouched = nullptr;
@@ -333,12 +333,12 @@ void Browser::element::init(Browser *parent, std::string &iconText, std::string 
     lv_obj_t * icon = lv_label_create(parent->lvhost());
     lv_label_set_text(icon, iconText.c_str());
     lv_obj_set_size(icon, _lineHeight, _lineHeight);
-    lv_obj_set_pos(icon, LayoutDef::BROWSER_ELEMENT_ICON_X, ypos);
+    lv_obj_set_pos(icon, Layout::BROWSER_ELEMENT_ICON_X, ypos);
     lv_obj_set_style_text_font(icon, &BROWSER_ELEMENT_FONT, 0);
 
     Label * lb = new Label(parent, labelText);
-    lb->setPos(_lineHeight+LayoutDef::BROWSER_ELEMENT_ICON_X, ypos);
-    lb->setSize(LayoutDef::BROWSER_ELEMENT_TEXT_W, _lineHeight);
+    lb->setPos(_lineHeight+Layout::BROWSER_ELEMENT_ICON_X, ypos);
+    lb->setSize(Layout::BROWSER_ELEMENT_TEXT_W, _lineHeight);
     lb->setFont(&BROWSER_ELEMENT_FONT);
     lb->setTextPos(5, 0);
     //ugh... animation is heavy thing :/

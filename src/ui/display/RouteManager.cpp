@@ -33,8 +33,8 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx)
 {
     _currentUnitId = 0;
-    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT);
-    setPos(LayoutDef::ROUTE_MANAGER_X, LayoutDef::ROUTE_MANAGER_Y);
+    setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
+    setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     setColor(lv_color_hex(0x858585));
 
     _text = new Label(this, "Routes for");
@@ -44,7 +44,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     
     _ddCurrentUnit = new DropDown(this);
     _ddCurrentUnit->setPos(650, 40);
-    _ddCurrentUnit->setSize(600, LayoutDef::BUTTON_SIZE);
+    _ddCurrentUnit->setSize(600, Layout::Button);
     std::string tmptext = "None";
     _ddCurrentUnit->setSelected(tmptext);
     _ddCurrentUnit->selectedCallback([this, drop = _ddCurrentUnit](const std::string selected){
@@ -81,19 +81,19 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     /* First item right side */
     _inputsText = new Label(this, "Receiving from:");
     _inputsText->setSize(250, 33);
-    _inputsText->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, 150-35);
+    _inputsText->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, 150-35);
     _inputsText->setFont(&DEFAULT_FONT);
     _inputsText->setTextColor(BLACK_COLOR);
 
     /* left side */
     _outputsText = new Label(this, "Sending to:");
     _outputsText->setSize(250, 33);
-    _outputsText->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, 150-35);
+    _outputsText->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, 150-35);
     _outputsText->setFont(&DEFAULT_FONT);
     _outputsText->setTextColor(BLACK_COLOR);
 
     _btnAudioTab = new Button(this, "Audio Routes");
-    _btnAudioTab->setSize(200, LayoutDef::BUTTON_SIZE);
+    _btnAudioTab->setSize(200, Layout::Button);
     _btnAudioTab->setPos(10, 40);
     _btnAudioTab->setFont(&DEFAULT_FONT);
     _btnAudioTab->setCallback([this]() {
@@ -102,8 +102,8 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     });
 
     _btnAudioTab = new Button(this, "Midi Routes");
-    _btnAudioTab->setSize(200, LayoutDef::BUTTON_SIZE);
-    _btnAudioTab->setPos(200+LayoutDef::DEFAULT_MARGIN, 40);
+    _btnAudioTab->setSize(200, Layout::Button);
+    _btnAudioTab->setPos(200+Layout::Margin, 40);
     _btnAudioTab->setFont(&DEFAULT_FONT);
     _btnAudioTab->setCallback([this]() {
         this->_audioTab->hide();
@@ -127,7 +127,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _midiThruText = new Label(this, "Midi Thru");
     _midiThruText->setSize(200, 40);
-    _midiThruText->setPos(1300+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _midiThruText->setPos(1300+10+Layout::CHECKBOX, 55);
     _midiThruText->setFont(&DEFAULT_FONT);
     
     _omniHwInput = new Checkbox(this);
@@ -148,7 +148,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _omniHwInputText = new Label(this, "Omni HW");
     _omniHwInputText->setSize(300, 40);
-    _omniHwInputText->setPos(1500+10+LayoutDef::CHECKBOX_SIZE, 55);
+    _omniHwInputText->setPos(1500+10+Layout::CHECKBOX, 55);
     _omniHwInputText->setFont(&DEFAULT_FONT);
 }
 
@@ -201,7 +201,7 @@ RouteManager::AudioTab::AudioTab(BaseWidget *parent, const slr::ID &id)
     _currentId(id)
 {
     setPos(0, 150);
-    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT-150);
+    setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT-150);
     setColor(lv_color_hex(0xac0000));
 
     _inputs.reserve(5);
@@ -254,28 +254,28 @@ void RouteManager::AudioTab::update() {
         if(r._sourceId != _currentId && r._targetId != _currentId) continue;
 
         if(r._targetId == _currentId && r._targetType == slr::AudioRoute::Type::INT) {
-            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
-                        (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
-                        (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+            int posy = Layout::ROUTE_LINE_MARGIN + 
+                        (Layout::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                        (Layout::ROUTE_LINE_MARGIN*_inputs.size());
             addAsInput(false, r, posy);
         } else if(r._sourceId == _currentId && r._sourceType == slr::AudioRoute::Type::INT) {
-            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
-                        (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
-                        (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+            int posy = Layout::ROUTE_LINE_MARGIN + 
+                        (Layout::ROUTE_LINE_HEIGHT*_outputs.size()) +
+                        (Layout::ROUTE_LINE_MARGIN*_outputs.size());
             
             addAsOutput(false, r, posy);
         }
     }   //(gdb) p parent->spec_attr->child_cnt
 
-    int posy = LayoutDef::ROUTE_LINE_MARGIN + 
-                (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
-                (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+    int posy = Layout::ROUTE_LINE_MARGIN + 
+                (Layout::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                (Layout::ROUTE_LINE_MARGIN*_inputs.size());
     slr::AudioRoute dummy;
     addAsInput(true, dummy, posy);
 
-    posy = LayoutDef::ROUTE_LINE_MARGIN + 
-            (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
-            (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+    posy = Layout::ROUTE_LINE_MARGIN + 
+            (Layout::ROUTE_LINE_HEIGHT*_outputs.size()) +
+            (Layout::ROUTE_LINE_MARGIN*_outputs.size());
     addAsOutput(true, dummy, posy);
 }
 
@@ -335,8 +335,8 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
         extint = new Button(this, "EXT");
     else 
         extint = new Button(this, in._sourceType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
-    extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
-    extint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posY);
+    extint->setSize(Layout::ROUTE_CTL_LEFT_EXT_W, Layout::ROUTE_CTL_LEFT_EXT_H);
+    extint->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, Layout::ROUTE_CTL_LEFT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->setCallback([this]() {
@@ -374,8 +374,8 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
 
     
     DropDown * drop = new DropDown(this);
-    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
-    drop->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H); 
+    drop->setPos(Layout::ROUTE_CTL_LEFT_DD_X, Layout::ROUTE_CTL_LEFT_DD_Y+posY);
+    drop->setSize(Layout::ROUTE_CTL_LEFT_DD_W, Layout::ROUTE_CTL_LEFT_DD_H); 
     if(isNew) {
         // slr::DriverView *dri = slr::DriverView::driverView(); -> fetch driver name
         std::vector<std::string> items;
@@ -399,14 +399,14 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
     r._dropdown = drop;
 
     Button * map = new Button(this, "MAP");
-    map->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posY);
-    map->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
+    map->setPos(Layout::ROUTE_CTL_LEFT_MAP_X, Layout::ROUTE_CTL_LEFT_MAP_Y+posY);
+    map->setSize(Layout::ROUTE_CTL_LEFT_MAP_W, Layout::ROUTE_CTL_LEFT_MAP_H);
     map->setFont(&DEFAULT_FONT);
     r._channelMap = map;
 
     Button * addremove = new Button(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
-    addremove->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posY);
-    addremove->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
+    addremove->setPos(Layout::ROUTE_CTL_LEFT_ADD_X, Layout::ROUTE_CTL_LEFT_ADD_Y+posY);
+    addremove->setSize(Layout::ROUTE_CTL_LEFT_ADD_W, Layout::ROUTE_CTL_LEFT_ADD_H);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
         addremove->setCallback([this]() {
@@ -436,8 +436,8 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
         extint = new Button(this, "EXT");
     else 
         extint = new Button(this, out._targetType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
-    extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
-    extint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posY);
+    extint->setSize(Layout::ROUTE_CTL_RIGHT_EXT_W, Layout::ROUTE_CTL_RIGHT_EXT_H);
+    extint->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, Layout::ROUTE_CTL_RIGHT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->setCallback([this]() {
@@ -472,8 +472,8 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
     r._extint = extint;
 
     DropDown * drop = new DropDown(this);
-    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
-    drop->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
+    drop->setPos(Layout::ROUTE_CTL_RIGHT_DD_X, Layout::ROUTE_CTL_RIGHT_DD_Y+posY);
+    drop->setSize(Layout::ROUTE_CTL_RIGHT_DD_W, Layout::ROUTE_CTL_RIGHT_DD_H);
     
     if(isNew) {
         // slr::DriverView *dri = slr::DriverView::driverView(); -> fetch driver name
@@ -498,14 +498,14 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
     r._dropdown = drop;
 
     Button * map = new Button(this, "Map");
-    map->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
-    map->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posY);
+    map->setSize(Layout::ROUTE_CTL_RIGHT_MAP_W, Layout::ROUTE_CTL_RIGHT_MAP_H);
+    map->setPos(Layout::ROUTE_CTL_RIGHT_MAP_X, Layout::ROUTE_CTL_RIGHT_MAP_Y+posY);
     map->setFont(&DEFAULT_FONT);
     r._channelMap = map;
 
     Button * addremove = new Button(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
-    addremove->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
-    addremove->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posY);
+    addremove->setSize(Layout::ROUTE_CTL_RIGHT_ADD_W, Layout::ROUTE_CTL_RIGHT_ADD_H);
+    addremove->setPos(Layout::ROUTE_CTL_RIGHT_ADD_X, Layout::ROUTE_CTL_RIGHT_ADD_Y+posY);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
         addremove->setCallback([this]() {
@@ -634,7 +634,7 @@ RouteManager::MidiTab::MidiTab(BaseWidget *parent, const slr::ID &id)
     _currentId(id)
 {
     setPos(0, 150);
-    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT-150);
+    setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT-150);
     setColor(lv_color_hex(0x00ac00));
 
     _inputs.reserve(5);
@@ -661,27 +661,27 @@ void RouteManager::MidiTab::update() {
         if(r._sourceId != _currentId && r._targetId != _currentId) continue;
         
          if(r._targetId == _currentId && r._targetType == slr::MidiRoute::Type::INT) {
-            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
-                        (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
-                        (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+            int posy = Layout::ROUTE_LINE_MARGIN + 
+                        (Layout::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                        (Layout::ROUTE_LINE_MARGIN*_inputs.size());
             addAsInput(false, r, posy);
         } else if(r._sourceId == _currentId && r._sourceType == slr::MidiRoute::Type::INT) {
-            int posy = LayoutDef::ROUTE_LINE_MARGIN + 
-                        (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
-                        (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+            int posy = Layout::ROUTE_LINE_MARGIN + 
+                        (Layout::ROUTE_LINE_HEIGHT*_outputs.size()) +
+                        (Layout::ROUTE_LINE_MARGIN*_outputs.size());
             addAsOutput(false, r, posy);
         }
     }
     
-    int posy = LayoutDef::ROUTE_LINE_MARGIN + 
-                (LayoutDef::ROUTE_LINE_HEIGHT*_inputs.size()) +
-                (LayoutDef::ROUTE_LINE_MARGIN*_inputs.size());
+    int posy = Layout::ROUTE_LINE_MARGIN + 
+                (Layout::ROUTE_LINE_HEIGHT*_inputs.size()) +
+                (Layout::ROUTE_LINE_MARGIN*_inputs.size());
     slr::MidiRoute dummy;
     addAsInput(true, dummy, posy);
 
-    posy = LayoutDef::ROUTE_LINE_MARGIN + 
-            (LayoutDef::ROUTE_LINE_HEIGHT*_outputs.size()) +
-            (LayoutDef::ROUTE_LINE_MARGIN*_outputs.size());
+    posy = Layout::ROUTE_LINE_MARGIN + 
+            (Layout::ROUTE_LINE_HEIGHT*_outputs.size()) +
+            (Layout::ROUTE_LINE_MARGIN*_outputs.size());
     addAsOutput(true, dummy, posy);
 }
 
@@ -738,8 +738,8 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
     else 
         extint = new Button(this, in._sourceType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
 
-    extint->setSize(LayoutDef::ROUTE_CTL_LEFT_EXT_W, LayoutDef::ROUTE_CTL_LEFT_EXT_H);
-    extint->setPos(LayoutDef::ROUTE_CTL_LEFT_EXT_X, LayoutDef::ROUTE_CTL_LEFT_EXT_Y+posY);
+    extint->setSize(Layout::ROUTE_CTL_LEFT_EXT_W, Layout::ROUTE_CTL_LEFT_EXT_H);
+    extint->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, Layout::ROUTE_CTL_LEFT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->setCallback([this]() {
@@ -779,8 +779,8 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
     r._extint = extint;
 
     DropDown * drop = new DropDown(this);
-    drop->setPos(LayoutDef::ROUTE_CTL_LEFT_DD_X, LayoutDef::ROUTE_CTL_LEFT_DD_Y+posY);
-    drop->setSize(LayoutDef::ROUTE_CTL_LEFT_DD_W, LayoutDef::ROUTE_CTL_LEFT_DD_H);
+    drop->setPos(Layout::ROUTE_CTL_LEFT_DD_X, Layout::ROUTE_CTL_LEFT_DD_Y+posY);
+    drop->setSize(Layout::ROUTE_CTL_LEFT_DD_W, Layout::ROUTE_CTL_LEFT_DD_H);
     if(isNew) {
         const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();    
     
@@ -813,8 +813,8 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
     r._dropdown = drop;
 
     Button * map = new Button(this, "Map");
-    map->setSize(LayoutDef::ROUTE_CTL_LEFT_MAP_W, LayoutDef::ROUTE_CTL_LEFT_MAP_H);
-    map->setPos(LayoutDef::ROUTE_CTL_LEFT_MAP_X, LayoutDef::ROUTE_CTL_LEFT_MAP_Y+posY);
+    map->setSize(Layout::ROUTE_CTL_LEFT_MAP_W, Layout::ROUTE_CTL_LEFT_MAP_H);
+    map->setPos(Layout::ROUTE_CTL_LEFT_MAP_X, Layout::ROUTE_CTL_LEFT_MAP_Y+posY);
     map->setFont(&DEFAULT_FONT);
     r._channelMap = map;
 
@@ -823,8 +823,8 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
         addremove = new Button(this, LV_SYMBOL_PLUS);
     else 
         addremove = new Button(this, LV_SYMBOL_MINUS);
-    addremove->setSize(LayoutDef::ROUTE_CTL_LEFT_ADD_W, LayoutDef::ROUTE_CTL_LEFT_ADD_H);
-    addremove->setPos(LayoutDef::ROUTE_CTL_LEFT_ADD_X, LayoutDef::ROUTE_CTL_LEFT_ADD_Y+posY);
+    addremove->setSize(Layout::ROUTE_CTL_LEFT_ADD_W, Layout::ROUTE_CTL_LEFT_ADD_H);
+    addremove->setPos(Layout::ROUTE_CTL_LEFT_ADD_X, Layout::ROUTE_CTL_LEFT_ADD_Y+posY);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
         addremove->setCallback([this]() {
@@ -849,8 +849,8 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
         extint = new Button(this, "EXT");
     else 
         extint = new Button(this, out._targetType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
-    extint->setSize(LayoutDef::ROUTE_CTL_RIGHT_EXT_W, LayoutDef::ROUTE_CTL_RIGHT_EXT_H);
-    extint->setPos(LayoutDef::ROUTE_CTL_RIGHT_EXT_X, LayoutDef::ROUTE_CTL_RIGHT_EXT_Y+posY);
+    extint->setSize(Layout::ROUTE_CTL_RIGHT_EXT_W, Layout::ROUTE_CTL_RIGHT_EXT_H);
+    extint->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, Layout::ROUTE_CTL_RIGHT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->setCallback([this]() {
@@ -888,8 +888,8 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
     r._extint = extint;
 
     DropDown * drop = new DropDown(this);
-    drop->setPos(LayoutDef::ROUTE_CTL_RIGHT_DD_X, LayoutDef::ROUTE_CTL_RIGHT_DD_Y+posY);
-    drop->setSize(LayoutDef::ROUTE_CTL_RIGHT_DD_W, LayoutDef::ROUTE_CTL_RIGHT_DD_H);
+    drop->setPos(Layout::ROUTE_CTL_RIGHT_DD_X, Layout::ROUTE_CTL_RIGHT_DD_Y+posY);
+    drop->setSize(Layout::ROUTE_CTL_RIGHT_DD_W, Layout::ROUTE_CTL_RIGHT_DD_H);
     if(isNew) {
         const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();    
     
@@ -923,8 +923,8 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
     r._dropdown = drop;
 
     Button * map = new Button(this, "Map");
-    map->setSize(LayoutDef::ROUTE_CTL_RIGHT_MAP_W, LayoutDef::ROUTE_CTL_RIGHT_MAP_H);
-    map->setPos(LayoutDef::ROUTE_CTL_RIGHT_MAP_X, LayoutDef::ROUTE_CTL_RIGHT_MAP_Y+posY);
+    map->setSize(Layout::ROUTE_CTL_RIGHT_MAP_W, Layout::ROUTE_CTL_RIGHT_MAP_H);
+    map->setPos(Layout::ROUTE_CTL_RIGHT_MAP_X, Layout::ROUTE_CTL_RIGHT_MAP_Y+posY);
     map->setFont(&DEFAULT_FONT);
     r._channelMap = map;
 
@@ -933,8 +933,8 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
         addremove = new Button(this, LV_SYMBOL_PLUS);
     else 
         addremove = new Button(this, LV_SYMBOL_MINUS);
-    addremove->setSize(LayoutDef::ROUTE_CTL_RIGHT_ADD_W, LayoutDef::ROUTE_CTL_RIGHT_ADD_H);
-    addremove->setPos(LayoutDef::ROUTE_CTL_RIGHT_ADD_X, LayoutDef::ROUTE_CTL_RIGHT_ADD_Y+posY);
+    addremove->setSize(Layout::ROUTE_CTL_RIGHT_ADD_W, Layout::ROUTE_CTL_RIGHT_ADD_H);
+    addremove->setPos(Layout::ROUTE_CTL_RIGHT_ADD_X, Layout::ROUTE_CTL_RIGHT_ADD_Y+posY);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
         addremove->setCallback([this]() {

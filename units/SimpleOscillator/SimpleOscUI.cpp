@@ -52,7 +52,7 @@ SimpleOscUI::SimpleOscUnitUI::SimpleOscUnitUI(BaseWidget *parent, SimpleOscUI * 
     : DefaultUnitUI(parent, parentUI),
     _parentUI(parentUI)
 {
-    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     setPos(0, 0);
 
 

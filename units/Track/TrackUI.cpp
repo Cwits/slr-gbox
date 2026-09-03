@@ -56,12 +56,12 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
 {
     int posx = 10;
     int posy = 50;
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
+    posx += (Layout::Margin + Layout::Button);
+    posx += (Layout::Margin + Layout::Button);
 
     _btnRecord = std::make_unique<Button>(this, "R");
     _btnRecord->setPos(posx, posy);
-    _btnRecord->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRecord->setSize(Layout::Button, Layout::Button);
     _btnRecord->setFont(&lv_font_montserrat_40);
     _btnRecord->setCallback([this]() {
         auto act = std::make_unique<slr::Actions::RecordArm>();
@@ -74,11 +74,11 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
         slr::EmitAction(std::move(act));
     });
     
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
+    posx += (Layout::Margin + Layout::Button);
     
     _btnSource = std::make_unique<Button>(this, "Audio");
     _btnSource->setPos(posx, posy);
-    _btnSource->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnSource->setSize(Layout::Button, Layout::Button);
     _btnSource->setFont(&lv_font_montserrat_20);
     _btnSource->setCallback([this]() {
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
@@ -134,7 +134,7 @@ TrackUI::TrackUnitUI::TrackUnitUI(BaseWidget *parent, TrackUI * parentUI)
     : DefaultUnitUI(parent, parentUI),
     _parentUI(parentUI)
 {
-    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     setPos(0, 0);
 
 

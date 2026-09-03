@@ -133,7 +133,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     /* let it be last one because of order of drawing */
     _floatingText = lv_label_create(_lvhost);
     lv_obj_set_style_text_font(_floatingText, &lv_font_montserrat_40, 0);
-    lv_obj_set_pos(_floatingText, 30, LayoutDef::TOTAL_HEIGHT-200);
+    lv_obj_set_pos(_floatingText, 30, Layout::TOTAL_HEIGHT-200);
     _floatingTimer = lv_timer_create(&MainWindow::floatingTimercb, FLOATING_TEXT_TIMEOUT, _floatingText);
     lv_timer_set_auto_delete(_floatingTimer, false);
 
@@ -210,10 +210,10 @@ bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
             node = pop;
         } else {
 
-            if(y <= LayoutDef::TOP_PANEL_HEIGHT) {
+            if(y <= Layout::TOP_PANEL_HEIGHT) {
                 //look in top panel
                 node = _topPanel.get();
-            } else if(y > LayoutDef::TOP_PANEL_HEIGHT && y < (LayoutDef::WORKSPACE_HEIGHT+LayoutDef::TOP_PANEL_HEIGHT)) {
+            } else if(y > Layout::TOP_PANEL_HEIGHT && y < (Layout::WORKSPACE_HEIGHT+Layout::TOP_PANEL_HEIGHT)) {
                 //look in workspace
                 node = getSwitchViewTarget(_currentView);
             } else {
@@ -499,7 +499,7 @@ void MainWindow::restoreUI(slr::ID id) {
     for(std::size_t i=0; i<size; ++i) {
         UnitUIBase * tr = _uiContext._unitsUI.at(i).get();
         int x = 0;
-        int y = LayoutDef::calcTrackY(i);
+        int y = Layout::calcTrackY(i);
         tr->gridUI()->updatePosition(x, y);
     }
 
@@ -531,7 +531,7 @@ void MainWindow::removeUI(slr::ID id) {
     for(std::size_t i=0; i<size; ++i) {
         UnitUIBase * tr = _uiContext._unitsUI.at(i).get();
         int x = 0;
-        int y = LayoutDef::calcTrackY(i);
+        int y = Layout::calcTrackY(i);
         tr->gridUI()->updatePosition(x, y);
     }
 

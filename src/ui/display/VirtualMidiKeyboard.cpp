@@ -11,7 +11,7 @@
 
 constexpr int WHITE_KEYS_COUNT = 14;
 constexpr int BLACK_KEYS_COUNT = 10;
-constexpr int WHITE_WIDTH = UI::LayoutDef::TOTAL_WIDTH/WHITE_KEYS_COUNT; //two octaves
+constexpr int WHITE_WIDTH = UI::Layout::TOTAL_WIDTH/WHITE_KEYS_COUNT; //two octaves
 constexpr int BLACK_WIDTH = WHITE_WIDTH - (WHITE_WIDTH/3);
 constexpr int _defaultWhiteNotes[WHITE_KEYS_COUNT] = { 
     36, 38, 40, 41, 43, 45, 47, 

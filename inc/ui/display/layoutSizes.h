@@ -8,19 +8,20 @@
 
 namespace UI {
 
-namespace LayoutDef {
+namespace Layout {
 
 /* General */
 #define DEFAULT_FONT lv_font_montserrat_30
-constexpr int BUTTON_SIZE = 80;
-
-constexpr int CHECKBOX_SIZE = 70;
 
 /* Main Window Defines */
 constexpr int TOTAL_WIDTH = 1920;
 constexpr int TOTAL_HEIGHT = 1080;
 
-constexpr int DEFAULT_MARGIN = 20;
+constexpr int Button = TOTAL_WIDTH / 24;
+constexpr int Margin = 20;
+
+constexpr int CHECKBOX = 70;
+
 
 constexpr int TOP_PANEL_HEIGHT = ((TOTAL_HEIGHT/100) * 8);
 constexpr int TOP_PANEL_WIDTH = TOTAL_WIDTH;
@@ -58,8 +59,8 @@ constexpr int TIMELINE_LINE_Y = TIMELINE_HEIGHT+1;
 constexpr int TIMELINE_LINE_WIDTH = 5;
 constexpr int TIMELINE_LINE_HEIGHT = (GRID_HEIGHT - TIMELINE_LINE_Y)+30;
 
-constexpr int TIMELINE_LOOP_HANDLE_W = BUTTON_SIZE-20;
-constexpr int TIMELINE_LOOP_HANDLE_H = BUTTON_SIZE-20;
+constexpr int TIMELINE_LOOP_HANDLE_W = Button-20;
+constexpr int TIMELINE_LOOP_HANDLE_H = Button-20;
 
 /* Timeline Popup */
 constexpr int TIMELINE_POPUP_X = 500;
@@ -67,8 +68,8 @@ constexpr int TIMELINE_POPUP_Y = 400;
 constexpr int TIMELINE_POPUP_W = 300;
 constexpr int TIMELINE_POPUP_H = 400;
 
-constexpr int TLPOP_APPLY_X = TIMELINE_POPUP_W - (BUTTON_SIZE + 10);
-constexpr int TLPOP_APPLY_Y = TIMELINE_POPUP_H - (BUTTON_SIZE - 10);
+constexpr int TLPOP_APPLY_X = TIMELINE_POPUP_W - (Button + 10);
+constexpr int TLPOP_APPLY_Y = TIMELINE_POPUP_H - (Button - 10);
 // constexpr int TLPOP_BPM_X = (TIMELINE_POPUP_W/2)-50;
 // constexpr int TLPOP_BPM_Y = 20;
 
@@ -169,7 +170,7 @@ constexpr int KEYBOARD_W = TOTAL_WIDTH;
 constexpr int KEYBOARD_X = 0;
 constexpr int KEYBOARD_Y = (TOTAL_HEIGHT - KEYBOARD_H);
 
-constexpr int KB_BUTTON_SIZE = BUTTON_SIZE;
+constexpr int KB_BUTTON_SIZE = Button;
 constexpr int KB_BUTTON_MARGIN = 10;
 
 constexpr int KB_TEXT_AREA_X = 0;
@@ -180,12 +181,12 @@ constexpr int KB_TEXT_AREA_H = 50;
 constexpr int KB_BACKSPACE_W = KB_BUTTON_SIZE*2;
 constexpr int KB_BACKSPACE_H = KB_BUTTON_SIZE;
 constexpr int KB_BACKSPACE_X = KEYBOARD_W - KB_BACKSPACE_W - KB_BUTTON_MARGIN;
-constexpr int KB_BACKSPACE_Y = KB_TEXT_AREA_H + DEFAULT_MARGIN;
+constexpr int KB_BACKSPACE_Y = KB_TEXT_AREA_H + Margin;
 
 constexpr int KB_ENTER_W = KB_BUTTON_SIZE*2;
 constexpr int KB_ENTER_H = KB_BUTTON_SIZE;
 constexpr int KB_ENTER_X = KEYBOARD_W - KB_ENTER_W - KB_BUTTON_MARGIN;
-constexpr int KB_ENTER_Y = KB_TEXT_AREA_H + (DEFAULT_MARGIN*4) + (KB_BUTTON_SIZE*3);
+constexpr int KB_ENTER_Y = KB_TEXT_AREA_H + (Margin*4) + (KB_BUTTON_SIZE*3);
 
 constexpr int KB_CLEAR_W = KB_BUTTON_SIZE*2;
 constexpr int KB_CLEAR_H = KB_BUTTON_SIZE;

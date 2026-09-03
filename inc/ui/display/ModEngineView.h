@@ -117,7 +117,6 @@ struct ModEngineTargetManager : public Popup {
     ~ModEngineTargetManager();
 
     void update();
-    void clear();
 
     private:
     ModEngineView * _view;

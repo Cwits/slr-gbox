@@ -64,11 +64,11 @@ void UnitUIBase::hide() {
 UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx) {
     setSize(300, 300);
-    setPos(LayoutDef::TRACK_CONTROL_PANEL_WIDTH-100, 150);
+    setPos(Layout::TRACK_CONTROL_PANEL_WIDTH-100, 150);
 
     _btnDelete = std::make_unique<Button>(this, LV_SYMBOL_TRASH);
     _btnDelete->setPos(10, 10);
-    _btnDelete->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnDelete->setSize(Layout::Button, Layout::Button);
     _btnDelete->setFont(&DEFAULT_FONT);
     _btnDelete->setCallback([this]() {
         // std::cout << "Delete track: " << (int)_track->id() << std::endl;
@@ -82,9 +82,9 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
     });
 
     _btnRouteManager = std::make_unique<Button>(this, "Routes");
-    _btnRouteManager->setPos(LayoutDef::BUTTON_SIZE+20, 10);
+    _btnRouteManager->setPos(Layout::Button+20, 10);
     _btnRouteManager->setFont(&DEFAULT_FONT);
-    _btnRouteManager->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRouteManager->setSize(Layout::Button, Layout::Button);
     _btnRouteManager->setCallback([this]() {
         // LOG_INFO("Call the manager!!! track %i", _currentTrack->id());
         this->_uictx->_popManager->disableUnitControl();
@@ -102,8 +102,8 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
 {
     _flags.isDoubleTap = true;
 
-    setSize(LayoutDef::TRACK_CONTROL_PANEL_WIDTH, LayoutDef::TRACK_HEIGHT);
-    int y = LayoutDef::calcTrackY(_uibase->uictx()->_unitsUI.size());
+    setSize(Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_HEIGHT);
+    int y = Layout::calcTrackY(_uibase->uictx()->_unitsUI.size());
     // LOG_INFO("Setting grid y position of %u to %i", _uibase->id(), y);
     setPos(0, y);
 
@@ -113,8 +113,8 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
                                     _uibase->view()->color().b), 0);
 
     _lblName = std::make_unique<Label>(this, _uibase->view()->name().c_str());
-    _lblName->setSize(LayoutDef::TRACK_NAME_LABEL_W, lv_font_get_line_height(&DEFAULT_FONT));
-    _lblName->setPos(LayoutDef::TRACK_NAME_LABEL_X, LayoutDef::TRACK_NAME_LABEL_Y);
+    _lblName->setSize(Layout::TRACK_NAME_LABEL_W, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblName->setPos(Layout::TRACK_NAME_LABEL_X, Layout::TRACK_NAME_LABEL_Y);
     _lblName->setFont(&DEFAULT_FONT);
     _lblName->setTextColor(lv_color_hex(0xffffff));
     _lblName->setHoldCallback([this]() {
@@ -132,7 +132,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
 
     _lblVolume = std::make_unique<Label>(this, std::to_string(_uibase->view()->volume()));
     _lblVolume->setSize(80, lv_font_get_line_height(&DEFAULT_FONT));
-    _lblVolume->setPos(280, LayoutDef::TRACK_NAME_LABEL_Y);
+    _lblVolume->setPos(280, Layout::TRACK_NAME_LABEL_Y);
     _lblVolume->setFont(&DEFAULT_FONT);
     _lblVolume->setTapCallback([this]() {
         this->_uibase->uictx()->_popManager->enableKeyboard(
@@ -156,7 +156,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     int posy = 50;
     _btnMute = std::make_unique<Button>(this, "M");
     _btnMute->setPos(posx, posy);
-    _btnMute->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnMute->setSize(Layout::Button, Layout::Button);
     _btnMute->setFont(&lv_font_montserrat_40);
     _btnMute->setCallback([this]() {
         auto act = std::make_unique<slr::Actions::SetParameter>();
@@ -166,10 +166,10 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
         slr::EmitAction(std::move(act));
     });
 
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
+    posx += (Layout::Margin + Layout::Button);
     _btnSolo = std::make_unique<Button>(this, "S");
     _btnSolo->setPos(posx, posy);
-    _btnSolo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnSolo->setSize(Layout::Button, Layout::Button);
     _btnSolo->setFont(&lv_font_montserrat_40);
     _btnSolo->setCallback([this]() {
         // std::cout << "Solo track: " << (int)_track->id() << " parid: " << "1" << std::endl;

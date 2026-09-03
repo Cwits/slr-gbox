@@ -13,12 +13,12 @@ namespace UI {
 NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
     Popup(parent, uictx)
 {
-    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT);
-    setPos(LayoutDef::ROUTE_MANAGER_X, LayoutDef::ROUTE_MANAGER_Y);
+    setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
+    setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     setColor(lv_color_hex(0x858585));
 
     _btnTrack = std::make_unique<Button>(this, "Track");
-    _btnTrack->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnTrack->setSize(Layout::Button, Layout::Button);
     _btnTrack->setPos(100, 100);
     _btnTrack->setCallback([this]() {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
@@ -27,7 +27,7 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
     });
 
     _btnMixer = std::make_unique<Button>(this, "Mixer");
-    _btnMixer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnMixer->setSize(Layout::Button, Layout::Button);
     _btnMixer->setPos(300, 100);
     _btnMixer->setCallback([this]() {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
@@ -36,7 +36,7 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
     });
 
     _btnOsc = std::make_unique<Button>(this, "SimpleOSC");
-    _btnOsc->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnOsc->setSize(Layout::Button, Layout::Button);
     _btnOsc->setPos(500, 100);
     _btnOsc->setCallback([this]() {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
@@ -45,7 +45,7 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
     });
 
     _btnSampler = std::make_unique<Button>(this, "Sampler");
-    _btnSampler->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnSampler->setSize(Layout::Button, Layout::Button);
     _btnSampler->setPos(100, 200);
     _btnSampler->setCallback([this]() {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();

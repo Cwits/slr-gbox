@@ -54,7 +54,7 @@ MixerUI::MixerUnitUI::MixerUnitUI(BaseWidget *parent, MixerUI *parentUI) :
     DefaultUnitUI(parent, parentUI),
     _parentUI(parentUI)
 {
-    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     setPos(0, 0);
     const std::shared_ptr<const slr::MixerView> m = _parentUI->_mixer.lock();
     slr::Color clr = m->color();

@@ -24,7 +24,7 @@
 
 #define BUTTON(x, y) \
     x = std::make_unique<Button>(this, y); \
-    x->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE); \
+    x->setSize(Layout::Button, Layout::Button); \
     x->setFont(&DEFAULT_FONT);
 
 namespace UI {
@@ -35,8 +35,8 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
     View(parent, uictx),
     _container(this)
 {
-    setPos(LayoutDef::STEP_SEQ_X, LayoutDef::STEP_SEQ_Y);
-    setSize(LayoutDef::STEP_SEQ_WIDTH, LayoutDef::STEP_SEQ_HEIGHT);
+    setPos(Layout::STEP_SEQ_X, Layout::STEP_SEQ_Y);
+    setSize(Layout::STEP_SEQ_WIDTH, Layout::STEP_SEQ_HEIGHT);
     setColor(lv_color_hex(0xac857e));
 
     /* First Line */
@@ -117,7 +117,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
 
     BUTTON(_btnTargetManager, "Targets");
     _btnTargetManager->setPos(1600, 100);
-    _btnTargetManager->setSize(LayoutDef::BUTTON_SIZE*2, LayoutDef::BUTTON_SIZE);
+    _btnTargetManager->setSize(Layout::Button*2, Layout::Button);
     _btnTargetManager->setCallback([this]() {
         this->_tpop->clear();
         this->_uictx->_popManager->enableTargetSelectPopup();
@@ -128,7 +128,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
     int maxPages = slr::EVENTS_COUNT/slr::STEPS_PER_PAGE;
     for(int i=0; i<maxPages; ++i) {
         std::unique_ptr<Button> btn = std::make_unique<Button>(this, "");
-        btn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+        btn->setSize(Layout::Button, Layout::Button);
         btn->setPos(tmpx, 190);
         btn->setCallback([idx = i, this]() {
             this->_currentPage = idx;
@@ -274,7 +274,7 @@ void StepSequencerView::pollUIUpdate() {
             }
         }
             
-        int btnY = (layers * (LayoutDef::BUTTON_SIZE-10+10)) + 30;
+        int btnY = (layers * (Layout::Button-10+10)) + 30;
         _container._btnAddLayer->setPos(_container._btnAddLayer->getX(), btnY);
         _container._btnRemoveLayer->setPos(_container._btnRemoveLayer->getX(), btnY);
     }
@@ -375,7 +375,7 @@ void StepSequencerView::showByPos(std::size_t pos) {
         _container._btnRemoveLayer->show();
     }
 
-    int btnY = (layers * (LayoutDef::BUTTON_SIZE-10+10)) + 30; //if swiped than wrong number
+    int btnY = (layers * (Layout::Button-10+10)) + 30; //if swiped than wrong number
     _container._btnAddLayer->setPos(_container._btnAddLayer->getX(), btnY);
     _container._btnRemoveLayer->setPos(_container._btnRemoveLayer->getX(), btnY);
 }
@@ -457,12 +457,12 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
     _view(parent)
 {
     setPos(0, 290);
-    setSize(LayoutDef::STEP_SEQ_WIDTH, LayoutDef::STEP_SEQ_HEIGHT-290); //overlaps with bottom panel
+    setSize(Layout::STEP_SEQ_WIDTH, Layout::STEP_SEQ_HEIGHT-290); //overlaps with bottom panel
     setColor(lv_color_hex(0xac857e));
     // setColor(lv_color_make(rand()%255, rand()%255, rand()%255));
     
     int ypos = 10;
-    int size = LayoutDef::BUTTON_SIZE-10;
+    int size = Layout::Button-10;
     for(int i=0; i<slr::LAYERS_COUNT; ++i) {
         StepSequencerView::SequenceLayer l;
 
@@ -533,8 +533,8 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
     }
 
     _btnAddLayer = std::make_unique<Button>(this, LV_SYMBOL_PLUS);
-    _btnAddLayer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _btnAddLayer->setPos(LayoutDef::STEP_SEQ_WIDTH/2, LayoutDef::STEP_SEQ_HEIGHT-290-LayoutDef::BUTTON_SIZE-10);
+    _btnAddLayer->setSize(Layout::Button, Layout::Button);
+    _btnAddLayer->setPos(Layout::STEP_SEQ_WIDTH/2, Layout::STEP_SEQ_HEIGHT-290-Layout::Button-10);
     _btnAddLayer->setCallback([this]() {
         const SequenceUI *sui = this->_view->currentSequence();
         if(!sui) return;
@@ -557,8 +557,8 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
     _btnAddLayer->hide();
 
     _btnRemoveLayer = std::make_unique<Button>(this, LV_SYMBOL_MINUS);
-    _btnRemoveLayer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
-    _btnRemoveLayer->setPos(LayoutDef::STEP_SEQ_WIDTH/2+LayoutDef::BUTTON_SIZE+10, LayoutDef::STEP_SEQ_HEIGHT-290-LayoutDef::BUTTON_SIZE-10);
+    _btnRemoveLayer->setSize(Layout::Button, Layout::Button);
+    _btnRemoveLayer->setPos(Layout::STEP_SEQ_WIDTH/2+Layout::Button+10, Layout::STEP_SEQ_HEIGHT-290-Layout::Button-10);
     _btnRemoveLayer->setCallback([this]() {
         const SequenceUI *sui = this->_view->currentSequence();
         if(!sui) return;
@@ -625,9 +625,9 @@ bool StepSequencerView::LayersContainer::handleSwipe(GestLib::SwipeGesture & swi
             }
         } else if(swipe.dy < 0) {
             //scroll down (finger move from bottom to top)
-            //y max == LayoutDef::STEP_SEQ_HEIGHT-290
+            //y max == Layout::STEP_SEQ_HEIGHT-290
             int y = _btnAddLayer->getY();
-            constexpr int tmp = (LayoutDef::STEP_SEQ_HEIGHT-290)+10 - LayoutDef::BUTTON_SIZE+10 - LayoutDef::BOTTOM_PANEL_HEIGHT; 
+            constexpr int tmp = (Layout::STEP_SEQ_HEIGHT-290)+10 - Layout::Button+10 - Layout::BOTTOM_PANEL_HEIGHT; 
             if(y > tmp) { //do i need those +10??
                 int diff = y + swipe.dy;
                 int toScroll = 0;
@@ -658,21 +658,21 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
     Popup(parent, uictx),
     _view(sParent)
 {
-    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT);
-    setPos(LayoutDef::ROUTE_MANAGER_X, LayoutDef::ROUTE_MANAGER_Y);
+    setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
+    setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     setColor(lv_color_hex(0xa415f7));
 
     _lblSequenceIdText = std::make_unique<Label>(this, "Current sequence:");
     _lblSequenceIdText->setSize(300, 40);
-    _lblSequenceIdText->setPos(LayoutDef::ROUTE_MANAGER_WIDTH/2-300, 10);
+    _lblSequenceIdText->setPos(Layout::ROUTE_MANAGER_WIDTH/2-300, 10);
 
     _lblSequenceId = std::make_unique<Label>(this, "NaN");
     _lblSequenceId->setSize(300, 40);
-    _lblSequenceId->setPos(LayoutDef::ROUTE_MANAGER_WIDTH/2, 10);
+    _lblSequenceId->setPos(Layout::ROUTE_MANAGER_WIDTH/2, 10);
 
     _ddSelector = std::make_unique<DropDown>(this);
     _ddSelector->setPos(50, 100);
-    _ddSelector->setSize(1000, LayoutDef::BUTTON_SIZE);
+    _ddSelector->setSize(1000, Layout::Button);
     _ddSelector->selectedCallback([this](std::string selected) {
         //nothing to do here?
     });
@@ -718,7 +718,7 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
 
     _btnAddTarget = std::make_unique<Button>(this, LV_SYMBOL_PLUS);
     _btnAddTarget->setPos(1400, 100);
-    _btnAddTarget->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnAddTarget->setSize(Layout::Button, Layout::Button);
     _btnAddTarget->setCallback([this]() {
         SequenceUI *sc = this->_view->currentSequence();
         if(!sc) return;
@@ -776,10 +776,10 @@ void TargetSelectPopup::update() {
         Target tg;
         tg._lblName = std::make_unique<Label>(this, v->name());
         tg._lblName->setPos(50, ypos);
-        tg._lblName->setSize(1000, LayoutDef::BUTTON_SIZE);
+        tg._lblName->setSize(1000, Layout::Button);
 
         tg._btnRemoveTarget = std::make_unique<Button>(this, LV_SYMBOL_MINUS);
-        tg._btnRemoveTarget->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+        tg._btnRemoveTarget->setSize(Layout::Button, Layout::Button);
         tg._btnRemoveTarget->setPos(1400, ypos);
         tg._btnRemoveTarget->setCallback([sqid = curr->view()->id(), tgid = targets[i]]() {
             auto act = std::make_unique<slr::Actions::ModifySequenceTarget>();

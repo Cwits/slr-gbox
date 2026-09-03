@@ -74,7 +74,7 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
     : DefaultUnitUI(parent, parentUI),
     _parentUI(parentUI)
 {
-    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     setPos(0, 0);
 
     _flags.isDrag = true;
@@ -100,7 +100,7 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
                                     parentUI->color().g, 
                                     parentUI->color().b);
     _fillColor = lv_color_hex(0x000000);
-    _canvasWidth = LayoutDef::WORKSPACE_WIDTH-40;
+    _canvasWidth = Layout::WORKSPACE_WIDTH-40;
     _canvasHeight = 600;
     lv_obj_set_pos(_canvas, 20, 280);
     _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(_canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE)];    

@@ -19,8 +19,8 @@ namespace UI {
 TimelinePopup::TimelinePopup(BaseWidget * parent, UIContext * const uictx) : 
     Popup(parent, uictx) 
 {
-    setSize(LayoutDef::TIMELINE_POPUP_W, LayoutDef::TIMELINE_POPUP_H);
-    setPos(LayoutDef::TIMELINE_POPUP_X, LayoutDef::TIMELINE_POPUP_Y);
+    setSize(Layout::TIMELINE_POPUP_W, Layout::TIMELINE_POPUP_H);
+    setPos(Layout::TIMELINE_POPUP_X, Layout::TIMELINE_POPUP_Y);
     setColor(lv_color_hex(0x4a5cf1));
 
     _bpm = new Label(this, "bpm");
@@ -34,8 +34,8 @@ TimelinePopup::TimelinePopup(BaseWidget * parent, UIContext * const uictx) :
     _timeSignature->setFont(TLPOP_FONT);
 
     _applyBtn = new Button(this);
-    _applyBtn->setPos(LayoutDef::TLPOP_APPLY_X, LayoutDef::TLPOP_APPLY_Y);
-    _applyBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _applyBtn->setPos(Layout::TLPOP_APPLY_X, Layout::TLPOP_APPLY_Y);
+    _applyBtn->setSize(Layout::Button, Layout::Button);
     _applyBtn->setCallback([this]() {
         LOG_WARN("Update bpm and signature not implemented yet");
         //update timeline bpm and signature event

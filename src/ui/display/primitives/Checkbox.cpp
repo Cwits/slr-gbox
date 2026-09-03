@@ -12,7 +12,7 @@ Checkbox::Checkbox(BaseWidget * parent) :
     _flags.isTap = true;
     _state = false;
 
-    setSize(LayoutDef::CHECKBOX_SIZE, LayoutDef::CHECKBOX_SIZE);
+    setSize(Layout::CHECKBOX, Layout::CHECKBOX);
 
     _checked = lv_label_create(lvhost());
     lv_obj_center(_checked);

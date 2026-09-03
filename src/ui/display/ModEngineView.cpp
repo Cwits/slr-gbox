@@ -56,33 +56,33 @@ slr::ID ModulationUI::id() const {
 ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
     View(parent, uictx)
 {
-    setPos(LayoutDef::STEP_SEQ_X, LayoutDef::STEP_SEQ_Y);
-    setSize(LayoutDef::STEP_SEQ_WIDTH, LayoutDef::STEP_SEQ_HEIGHT);
+    setPos(Layout::STEP_SEQ_X, Layout::STEP_SEQ_Y);
+    setSize(Layout::STEP_SEQ_WIDTH, Layout::STEP_SEQ_HEIGHT);
     setColor(lv_color_hex(0x06e17e));
 
-    LABEL(_lblModNumText, LayoutDef::DEFAULT_MARGIN, LayoutDef::DEFAULT_MARGIN+10, 200, 40, "Modulation: ");
-    LABEL(_lblModNum,     210,                       LayoutDef::DEFAULT_MARGIN+10, 100, 40, "x / x");
+    LABEL(_lblModNumText, Layout::Margin, Layout::Margin+10, 200, 40, "Modulation: ");
+    LABEL(_lblModNum,     210,                       Layout::Margin+10, 100, 40, "x / x");
     
-    BUTTON(_btnNextMod, 1600, LayoutDef::DEFAULT_MARGIN, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_RIGHT);
+    BUTTON(_btnNextMod, 1600, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_RIGHT);
     _btnNextMod->setCallback([this]() { 
         if(this->_currentSelectedMod+1 < _modUIs.size())
             this->showByPos(this->_currentSelectedMod+1);
     });
-    BUTTON(_btnPrevMod, 1500, LayoutDef::DEFAULT_MARGIN, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_LEFT);
+    BUTTON(_btnPrevMod, 1500, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_LEFT);
     _btnPrevMod->setCallback([this]() { 
         if(this->_currentSelectedMod > 0)
             this->showByPos(this->_currentSelectedMod-1);
     });
-    BUTTON(_btnNewMod,  1700, LayoutDef::DEFAULT_MARGIN, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_PLUS);
+    BUTTON(_btnNewMod,  1700, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_PLUS);
     _btnNewMod->setCallback([this]() {
         auto act = std::make_unique<slr::Actions::CreateNewModulation>();
         slr::EmitAction(std::move(act));
     });
 
-    BUTTON(_btnDelMod,  1800, LayoutDef::DEFAULT_MARGIN, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_TRASH);
+    BUTTON(_btnDelMod,  1800, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_TRASH);
 
     int y = 120;
-    LABEL(_lblTypeText, LayoutDef::DEFAULT_MARGIN, y, 100, 40, "Type: ");
+    LABEL(_lblTypeText, Layout::Margin, y, 100, 40, "Type: ");
     _ddType = std::make_unique<DropDown>(this);
     _ddType->setPos(110, y);
     _ddType->setSize(160, 40);
@@ -123,7 +123,7 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
         );
     });
 
-    BUTTON(_btnRate,    300+50, y+40, LayoutDef::BUTTON_SIZE+80, 40, "Hz/Beat");
+    BUTTON(_btnRate,    300+50, y+40, Layout::Button+80, 40, "Hz/Beat");
     
     LABEL(_lblPhaseText, 600+50, y, 100, 40, "Phase: ");
     LABEL(_lblPhase,   710+50, y, 100, 40, "x");
@@ -149,11 +149,11 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
     // LABEL(_lblLengthText, 1200+50, y, 120, 40, "Length: ");
     // LABEL(_lblLength,   1200+140+50, y, 100, 40, "Err");
 
-    // BUTTON(_btnLength,  1200+50, y+40, LayoutDef::BUTTON_SIZE+80, 40, "Sec/Beat");
+    // BUTTON(_btnLength,  1200+50, y+40, Layout::Button+80, 40, "Sec/Beat");
 
-    BUTTON(_btnTargetManager, 1700, y, LayoutDef::BUTTON_SIZE*2, LayoutDef::BUTTON_SIZE, "Targets");
+    BUTTON(_btnTargetManager, 1700, y, Layout::Button*2, Layout::Button, "Targets");
     _btnTargetManager->setCallback([this]() {
-        this->_tpop->clear();
+        // this->_tpop->clear();
         this->_tpop->update();
         this->_uictx->_popManager->enableModEngineTargetManager();
     });
@@ -361,14 +361,14 @@ ModEngineTargetManager::ModEngineTargetManager(BaseWidget *parent, ModEngineView
     Popup(parent, uictx),
     _view(sParent)
 {
-    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT);
-    setPos(LayoutDef::ROUTE_MANAGER_X, LayoutDef::ROUTE_MANAGER_Y);
+    setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
+    setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     setColor(lv_color_hex(0xa415f7));
     
-    LABEL(_lblCurrentMod, LayoutDef::ROUTE_MANAGER_WIDTH/2 - 150, 40, 300, 40, "Modulation: x/x");
+    LABEL(_lblCurrentMod, Layout::ROUTE_MANAGER_WIDTH/2 - 150, 40, 300, 40, "Modulation: x/x");
 
-    BUTTON(_btnNextMod, LayoutDef::ROUTE_MANAGER_WIDTH - (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN), LayoutDef::DEFAULT_MARGIN, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_NEXT);
-    BUTTON(_btnPrevMod, LayoutDef::ROUTE_MANAGER_WIDTH - (LayoutDef::BUTTON_SIZE*2 + LayoutDef::DEFAULT_MARGIN*2), LayoutDef::DEFAULT_MARGIN, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_PREV);
+    BUTTON(_btnNextMod, Layout::ROUTE_MANAGER_WIDTH - (Layout::Button + Layout::Margin), Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_NEXT);
+    BUTTON(_btnPrevMod, Layout::ROUTE_MANAGER_WIDTH - (Layout::Button*2 + Layout::Margin*2), Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_PREV);
     
     _ddTargetSelector = std::make_unique<DropDown>(this);
     _ddParameterSelector = std::make_unique<DropDown>(this);
@@ -378,7 +378,7 @@ ModEngineTargetManager::ModEngineTargetManager(BaseWidget *parent, ModEngineView
     _ddTargetSelector->setSize(300, 40);
     _ddParameterSelector->setSize(300, 40);
     _lblAmmount->setSize(200, 40);
-    _btnAddTarget->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnAddTarget->setSize(Layout::Button, Layout::Button);
 
     _ddTargetSelector->close();
     _ddTargetSelector->hide();
@@ -434,7 +434,7 @@ void ModEngineTargetManager::update() {
         } //must contain name of parameter
         LABEL(t._lblParameter, x+350, y+20, 300, 40, text);
         LABEL(t._lblAmmount, x+700, y+20, 200, 40, "100%");
-        BUTTON(t._btnDeleteTarget, x+920, y, LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE, LV_SYMBOL_TRASH);
+        BUTTON(t._btnDeleteTarget, x+920, y, Layout::Button, Layout::Button, LV_SYMBOL_TRASH);
         t._btnDeleteTarget->setCallback([name = t._lblName.get(), par = t._lblParameter.get(), this]() {
             slr::ID targetID = 0;
             slr::ID parID = 0;
@@ -481,7 +481,7 @@ void ModEngineTargetManager::update() {
         }); //end of Delete Target Button Callback
 
         _targets.push_back(std::move(t));
-        y += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
+        y += (Layout::Button + Layout::Margin);
     }
     
     //prepare dropdown line
@@ -569,11 +569,6 @@ void ModEngineTargetManager::update() {
     _ddParameterSelector->show(); _ddParameterSelector->close();
     _lblAmmount->show();
     _btnAddTarget->show();
-}
-
-
-void ModEngineTargetManager::clear() {
-    
 }
 
 

@@ -61,7 +61,7 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     float pixelPerFrame = (float)pixPerBar/framesPerBar;
     int pixels = frames * pixelPerFrame;
     
-    setSize(pixels, UI::LayoutDef::TRACK_HEIGHT);
+    setSize(pixels, UI::Layout::TRACK_HEIGHT);
     
     float xposition = UIUtility::frameToPixel(_clipItem->startPosition(), _uictx->gridHorizontalZoom());
     int ypos = parentUI->gridUI()->getY();
@@ -77,10 +77,10 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
 
 
     _canvasWidth = pixels;
-    _canvasHeight = LayoutDef::TRACK_HEIGHT;
+    _canvasHeight = Layout::TRACK_HEIGHT;
 
     //allocate buffer
-    _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(pixels, LayoutDef::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE)];
+    _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE)];
     
     //set buffer
     lv_canvas_set_buffer(_canvas, _drawBuffer, _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
@@ -110,7 +110,7 @@ void FileView::draw() {
             _clipItem->fileOffset(),
             _clipItem->length(),
             _canvas,
-            LayoutDef::TRACK_HEIGHT,
+            Layout::TRACK_HEIGHT,
             _canvasWidth,
             _peakColor,
             _fillColor
@@ -128,7 +128,7 @@ void FileView::draw() {
             int channels = buffer->channels();
             float ratio = (float)buffer->bufferSize()/(float)xsize;
 
-            int heightPerChannel = (LayoutDef::TRACK_HEIGHT/channels);
+            int heightPerChannel = (Layout::TRACK_HEIGHT/channels);
             int midpoint = 0 + (heightPerChannel/channels);
             // int center = midpoint;//+(heightPerChannel/2);
 
@@ -193,8 +193,8 @@ bool FileView::handleDoubleTap(GestLib::DoubleTapGesture & dtap) {
 
 bool FileView::handleHold(GestLib::HoldGesture &hold) {
     //for dragging file across timeline
-    int cx = hold.x-LayoutDef::TRACK_CONTROL_PANEL_WIDTH;
-    int cy = hold.y-LayoutDef::TOP_PANEL_HEIGHT;
+    int cx = hold.x-Layout::TRACK_CONTROL_PANEL_WIDTH;
+    int cy = hold.y-Layout::TOP_PANEL_HEIGHT;
     if(hold.state == GestLib::GestureState::Start) {
         //grab item
         _originalX = getX();
@@ -229,11 +229,11 @@ bool FileView::handleHold(GestLib::HoldGesture &hold) {
 FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx) 
 {
-    setSize(LayoutDef::FILE_POPUP_W, LayoutDef::FILE_POPUP_H);
+    setSize(Layout::FILE_POPUP_W, Layout::FILE_POPUP_H);
 
     _deleteBtn = new Button(this, LV_SYMBOL_TRASH);
-    _deleteBtn->setPos(LayoutDef::FILE_POP_DELETE_BTN_X, LayoutDef::FILE_POP_DELETE_BTN_Y);
-    _deleteBtn->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _deleteBtn->setPos(Layout::FILE_POP_DELETE_BTN_X, Layout::FILE_POP_DELETE_BTN_Y);
+    _deleteBtn->setSize(Layout::Button, Layout::Button);
     _deleteBtn->setFont(&DEFAULT_FONT);
     _deleteBtn->setCallback([this]() {
         // LOG_INFO("Remove item event");

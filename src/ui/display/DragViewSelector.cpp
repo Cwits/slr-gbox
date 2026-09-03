@@ -38,8 +38,8 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
     Popup(parent, uictx)
 {
     
-    setSize(LayoutDef::ROUTE_MANAGER_WIDTH, LayoutDef::ROUTE_MANAGER_HEIGHT);
-    setPos(LayoutDef::ROUTE_MANAGER_X, LayoutDef::ROUTE_MANAGER_Y);
+    setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
+    setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     setColor(lv_color_hex(0x858585));
 
     _flags.isDrag = true;
@@ -64,7 +64,7 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
 
     _lblName = std::make_unique<Label>(this, "Select target");
     _lblName->setSize(200, 40);
-    _lblName->setPos(LayoutDef::ROUTE_MANAGER_WIDTH, 20);
+    _lblName->setPos(Layout::ROUTE_MANAGER_WIDTH, 20);
     _lblName->setFont(&DEFAULT_FONT);
     
     _lblGrid = std::make_unique<Label>(this, "Grid");

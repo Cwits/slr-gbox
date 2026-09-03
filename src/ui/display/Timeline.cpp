@@ -20,8 +20,8 @@
 namespace UI {
 
 Timeline::Timeline(BaseWidget * parent, UIContext * uictx) : BaseWidget(parent, true), _uictx(uictx) {
-    setPos(LayoutDef::TIMELINE_X, LayoutDef::TIMELINE_Y);
-    setSize(LayoutDef::TIMELINE_WIDTH, LayoutDef::TIMELINE_HEIGHT);
+    setPos(Layout::TIMELINE_X, Layout::TIMELINE_Y);
+    setSize(Layout::TIMELINE_WIDTH, Layout::TIMELINE_HEIGHT);
     lv_obj_add_style(_lvhost, &workspace, 0);
     setColor(lv_palette_main(LV_PALETTE_PINK));
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
@@ -62,7 +62,7 @@ Timeline::~Timeline() {
 void Timeline::update() {
     //recalc zoom, lines and etc.
     int pixPerBar = UIUtility::pixelPerBar(_horizontalZoom);
-    int barsOnDisplay = (LayoutDef::TIMELINE_WIDTH / pixPerBar) + 2;
+    int barsOnDisplay = (Layout::TIMELINE_WIDTH / pixPerBar) + 2;
 
     if(!_firstTime) {
         for(line &l : _lines) {
@@ -79,7 +79,7 @@ void Timeline::update() {
     _labels.reserve(barsOnDisplay);
     for(int i=0; i<barsOnDisplay; ++i) {
         lv_obj_t * lbl = lv_label_create(_lvhost);
-        lv_obj_set_size(lbl, LayoutDef::TIMELINE_LABEL_SIZE, LayoutDef::TIMELINE_LABEL_SIZE);
+        lv_obj_set_size(lbl, Layout::TIMELINE_LABEL_SIZE, Layout::TIMELINE_LABEL_SIZE);
         lv_obj_set_pos(lbl, pixPerBar*i, 0);
         // lv_label_set_text(lbl, std::to_string(i+1).c_str());
         lv_label_set_text_fmt(lbl, "%d", (i+1));
@@ -93,16 +93,16 @@ void Timeline::update() {
         _lines.emplace_back();
         line &lin = _lines.back();
         lin._line = lv_line_create(parent()->lvhost());
-        lin._points[0] = {pixPerBar*i, LayoutDef::TIMELINE_LINE_Y};
-        lin._points[1] = {pixPerBar*i, LayoutDef::TIMELINE_LINE_HEIGHT};
+        lin._points[0] = {pixPerBar*i, Layout::TIMELINE_LINE_Y};
+        lin._points[1] = {pixPerBar*i, Layout::TIMELINE_LINE_HEIGHT};
         lv_line_set_points(lin._line, &lin._points[0], 2);
         
         lv_obj_add_style(lin._line, &gridLine, 0);
     }
 
     _playhead._line = lv_line_create(parent()->lvhost());
-    _playhead._points[0] = {0, LayoutDef::TIMELINE_LINE_Y};
-    _playhead._points[1] = {0, LayoutDef::TIMELINE_LINE_HEIGHT};
+    _playhead._points[0] = {0, Layout::TIMELINE_LINE_Y};
+    _playhead._points[1] = {0, Layout::TIMELINE_LINE_HEIGHT};
     lv_line_set_points(_playhead._line, &_playhead._points[0], 2);
     lv_obj_add_style(_playhead._line, &playheadStyle, 0);
 
@@ -123,8 +123,8 @@ void Timeline::updatePlayhead(slr::frame_t position) {
     float framesPerPixel = (float)pixPerBar / tl.framesPerBar();
     float res = std::round(framesPerPixel*(position-_currentNudge));
 
-    _playhead._points[0] = {res, LayoutDef::TIMELINE_LINE_Y}; 
-    _playhead._points[1] = {res, LayoutDef::TIMELINE_LINE_HEIGHT};
+    _playhead._points[0] = {res, Layout::TIMELINE_LINE_Y}; 
+    _playhead._points[1] = {res, Layout::TIMELINE_LINE_HEIGHT};
     lv_line_set_points(_playhead._line, &_playhead._points[0], 2);
 
     lv_obj_invalidate(_playhead._line);
@@ -158,8 +158,8 @@ void Timeline::setNudge(slr::frame_t nudge) {
         lv_label_set_text_fmt(label, "%d", startBar);
 
         line & l = _lines.at(i);
-        l._points[0] = {x, LayoutDef::TIMELINE_LINE_Y};
-        l._points[1] = {x, LayoutDef::TIMELINE_LINE_HEIGHT};
+        l._points[0] = {x, Layout::TIMELINE_LINE_Y};
+        l._points[1] = {x, Layout::TIMELINE_LINE_HEIGHT};
         lv_line_set_points(l._line, &l._points[0], 2);
         
         lv_obj_invalidate(label);
@@ -200,11 +200,11 @@ void Timeline::loop::update(float hZoom, bool firstTime) {
     _loopMarkers[0]._line = lv_line_create(_timeline->parent()->lvhost());
     _loopMarkers[1]._line = lv_line_create(_timeline->parent()->lvhost());
 
-    _loopMarkers[0]._points[0] = {resStart, LayoutDef::TIMELINE_LINE_Y};
-    _loopMarkers[0]._points[1] = {resStart, LayoutDef::TIMELINE_LINE_HEIGHT};
+    _loopMarkers[0]._points[0] = {resStart, Layout::TIMELINE_LINE_Y};
+    _loopMarkers[0]._points[1] = {resStart, Layout::TIMELINE_LINE_HEIGHT};
     
-    _loopMarkers[1]._points[0] = {resEnd, LayoutDef::TIMELINE_LINE_Y};
-    _loopMarkers[1]._points[1] = {resEnd, LayoutDef::TIMELINE_LINE_HEIGHT};
+    _loopMarkers[1]._points[0] = {resEnd, Layout::TIMELINE_LINE_Y};
+    _loopMarkers[1]._points[1] = {resEnd, Layout::TIMELINE_LINE_HEIGHT};
     
     lv_line_set_points(_loopMarkers[0]._line, &_loopMarkers[0]._points[0], 2);
     lv_line_set_points(_loopMarkers[1]._line, &_loopMarkers[1]._points[0], 2);
@@ -214,8 +214,8 @@ void Timeline::loop::update(float hZoom, bool firstTime) {
 
     //fill rect
     _fillRect = lv_obj_create(_timeline->parent()->lvhost());
-    lv_obj_set_size(_fillRect, resEnd-resStart, LayoutDef::TIMELINE_LINE_HEIGHT);
-    lv_obj_set_pos(_fillRect, resStart, LayoutDef::TIMELINE_LINE_Y);
+    lv_obj_set_size(_fillRect, resEnd-resStart, Layout::TIMELINE_LINE_HEIGHT);
+    lv_obj_set_pos(_fillRect, resStart, Layout::TIMELINE_LINE_Y);
     lv_obj_add_style(_fillRect, &loopFillStyle, 0);
 
     lv_obj_invalidate(_loopMarkers[0]._line);
@@ -225,10 +225,10 @@ void Timeline::loop::update(float hZoom, bool firstTime) {
     //loop handles
     _loopStartHandle = new loopHandle(_timeline->parent(), true, _timeline);
     _loopStartHandle->nudge(resStart);
-    _loopStartHandle->setY(LayoutDef::TIMELINE_LINE_Y);
+    _loopStartHandle->setY(Layout::TIMELINE_LINE_Y);
     _loopEndHandle = new loopHandle(_timeline->parent(), false, _timeline);
-    _loopEndHandle->nudge(resEnd-LayoutDef::TIMELINE_LOOP_HANDLE_W);
-    _loopEndHandle->setY(LayoutDef::TIMELINE_LINE_HEIGHT-LayoutDef::TIMELINE_LOOP_HANDLE_H);
+    _loopEndHandle->nudge(resEnd-Layout::TIMELINE_LOOP_HANDLE_W);
+    _loopEndHandle->setY(Layout::TIMELINE_LINE_HEIGHT-Layout::TIMELINE_LOOP_HANDLE_H);
 }
 
 void Timeline::loop::clear() {
@@ -290,25 +290,25 @@ void Timeline::loop::nudge(slr::frame_t oldnudge, slr::frame_t nudge, float hzoo
     resStart -= wtf2;
     resEnd -= wtf2;
 
-    _loopMarkers[0]._points[0] = {resStart, LayoutDef::TIMELINE_LINE_Y};
-    _loopMarkers[0]._points[1] = {resStart, LayoutDef::TIMELINE_LINE_HEIGHT};
+    _loopMarkers[0]._points[0] = {resStart, Layout::TIMELINE_LINE_Y};
+    _loopMarkers[0]._points[1] = {resStart, Layout::TIMELINE_LINE_HEIGHT};
     
-    _loopMarkers[1]._points[0] = {resEnd, LayoutDef::TIMELINE_LINE_Y};
-    _loopMarkers[1]._points[1] = {resEnd, LayoutDef::TIMELINE_LINE_HEIGHT};
+    _loopMarkers[1]._points[0] = {resEnd, Layout::TIMELINE_LINE_Y};
+    _loopMarkers[1]._points[1] = {resEnd, Layout::TIMELINE_LINE_HEIGHT};
     
     // LOG_WARN("points start %f, end %f", _loopMarkers[0]._points[0].x, _loopMarkers[1]._points[0].x);
     lv_line_set_points(_loopMarkers[0]._line, &_loopMarkers[0]._points[0], 2);
     lv_line_set_points(_loopMarkers[1]._line, &_loopMarkers[1]._points[0], 2);
 
-    lv_obj_set_pos(_fillRect, resStart, LayoutDef::TIMELINE_LINE_Y);
-    lv_obj_set_size(_fillRect, resEnd-resStart, LayoutDef::TIMELINE_LINE_HEIGHT);
+    lv_obj_set_pos(_fillRect, resStart, Layout::TIMELINE_LINE_Y);
+    lv_obj_set_size(_fillRect, resEnd-resStart, Layout::TIMELINE_LINE_HEIGHT);
 
     lv_obj_invalidate(_loopMarkers[0]._line);
     lv_obj_invalidate(_loopMarkers[1]._line);
     lv_obj_invalidate(_fillRect);
 
     _loopStartHandle->nudge(resStart);
-    _loopEndHandle->nudge(resEnd-LayoutDef::TIMELINE_LOOP_HANDLE_W);
+    _loopEndHandle->nudge(resEnd-Layout::TIMELINE_LOOP_HANDLE_W);
 }
 
 Timeline::loop::loopHandle::loopHandle(BaseWidget * parent, const bool isStartHandle, Timeline * timeline) :
@@ -319,7 +319,7 @@ Timeline::loop::loopHandle::loopHandle(BaseWidget * parent, const bool isStartHa
     _flags.isDrag = true;
     _handle = lv_obj_create(parent->lvhost());
     _lvhost = _handle;
-    lv_obj_set_size(_handle, LayoutDef::TIMELINE_LOOP_HANDLE_W, LayoutDef::TIMELINE_LOOP_HANDLE_H);
+    lv_obj_set_size(_handle, Layout::TIMELINE_LOOP_HANDLE_W, Layout::TIMELINE_LOOP_HANDLE_H);
     lv_obj_add_style(_handle, &loopHandleStyle, 0);
 }
 
@@ -341,7 +341,7 @@ bool Timeline::loop::loopHandle::handleDrag(GestLib::DragGesture & drag) {
         } break;
         case(GestLib::GestureState::Move): {
             //TODO: need to snap to grid...
-            int cx = drag.x - LayoutDef::GRID_X;
+            int cx = drag.x - Layout::GRID_X;
             lv_obj_set_x(_handle, cx);
             if(_isStartHandle) {
                 _timeline->_loop._loopMarkers[0]._points[0].x = cx;
@@ -355,13 +355,13 @@ bool Timeline::loop::loopHandle::handleDrag(GestLib::DragGesture & drag) {
                 lv_obj_set_x(_timeline->_loop._fillRect, cx);
                 lv_obj_set_width(_timeline->_loop._fillRect, origwidth + diff);
             } else {
-                _timeline->_loop._loopMarkers[1]._points[0].x = cx+LayoutDef::TIMELINE_LOOP_HANDLE_W;
-                _timeline->_loop._loopMarkers[1]._points[1].x = cx+LayoutDef::TIMELINE_LOOP_HANDLE_W;
+                _timeline->_loop._loopMarkers[1]._points[0].x = cx+Layout::TIMELINE_LOOP_HANDLE_W;
+                _timeline->_loop._loopMarkers[1]._points[1].x = cx+Layout::TIMELINE_LOOP_HANDLE_W;
                 lv_line_set_points(_timeline->_loop._loopMarkers[1]._line, 
                                     &_timeline->_loop._loopMarkers[1]._points[0], 2);
                 
                 int origx = lv_obj_get_x(_timeline->_loop._fillRect);
-                lv_obj_set_width(_timeline->_loop._fillRect, cx+LayoutDef::TIMELINE_LOOP_HANDLE_W-origx);
+                lv_obj_set_width(_timeline->_loop._fillRect, cx+Layout::TIMELINE_LOOP_HANDLE_W-origx);
             }
         } break;
         case(GestLib::GestureState::End): {
@@ -371,7 +371,7 @@ bool Timeline::loop::loopHandle::handleDrag(GestLib::DragGesture & drag) {
                 //loop start event
             } else {
                 //loop end event
-                cx += LayoutDef::TIMELINE_LOOP_HANDLE_W;
+                cx += Layout::TIMELINE_LOOP_HANDLE_W;
             }
 
             slr::frame_t res = UIUtility::pixelToFrame(cx, _timeline->_horizontalZoom);

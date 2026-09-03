@@ -22,15 +22,15 @@ namespace UI {
 BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx) 
     : View(parent, uictx) 
 {
-    setPos(LayoutDef::BOTTOM_PANEL_X, LayoutDef::BOTTOM_PANEL_Y);
-    setSize(LayoutDef::BOTTOM_PANEL_WIDTH, LayoutDef::BOTTOM_PANEL_HEIGHT);
+    setPos(Layout::BOTTOM_PANEL_X, Layout::BOTTOM_PANEL_Y);
+    setSize(Layout::BOTTOM_PANEL_WIDTH, Layout::BOTTOM_PANEL_HEIGHT);
     setColor(lv_palette_main(LV_PALETTE_TEAL));  
 
     int posy = 10;
     int posx = 10;
 
     _btnPlay = std::make_unique<Button>(this, LV_SYMBOL_PLAY);
-    _btnPlay->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnPlay->setSize(Layout::Button, Layout::Button);
     _btnPlay->setPos(posx, posy);
     _btnPlay->setFont(&DEFAULT_FONT);
     _btnPlay->setCallback([this]() { 
@@ -41,9 +41,9 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
         slr::EmitAction(std::move(act));
     });
     
-    posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
+    posx += (Layout::Button + Layout::Margin);
     _btnStop = std::make_unique<Button>(this, LV_SYMBOL_STOP);
-    _btnStop->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnStop->setSize(Layout::Button, Layout::Button);
     _btnStop->setPos(posx, posy);
     _btnStop->setFont(&DEFAULT_FONT);
     _btnStop->setCallback([this]() { 
@@ -55,9 +55,9 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
         slr::EmitAction(std::move(act));
     });
 
-    posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
+    posx += (Layout::Button + Layout::Margin);
     _btnRec = std::make_unique<Button>(this, LV_SYMBOL_EDIT);
-    _btnRec->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRec->setSize(Layout::Button, Layout::Button);
     _btnRec->setPos(posx, posy);
     _btnRec->setFont(&DEFAULT_FONT);
     _btnRec->setCallback([this]() { 
@@ -68,9 +68,9 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
         slr::EmitAction(std::move(act));
     });
 
-    posx += (LayoutDef::BUTTON_SIZE + LayoutDef::DEFAULT_MARGIN);
+    posx += (Layout::Button + Layout::Margin);
     _btnLoop = std::make_unique<Button>(this, LV_SYMBOL_LOOP);
-    _btnLoop->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnLoop->setSize(Layout::Button, Layout::Button);
     _btnLoop->setPos(posx, posy);
     _btnLoop->setFont(&DEFAULT_FONT);
     _btnLoop->setCallback([this]() { 
@@ -265,8 +265,8 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _lblTestPlayhead->setFont(&DEFAULT_FONT);
 
     _btnNewUnit = std::make_unique<Button>(this, LV_SYMBOL_PLUS);
-    _btnNewUnit->setPos(LayoutDef::BOTTOM_PANEL_WIDTH-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN, posy);
-    _btnNewUnit->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnNewUnit->setPos(Layout::BOTTOM_PANEL_WIDTH-Layout::Button-Layout::Margin, posy);
+    _btnNewUnit->setSize(Layout::Button, Layout::Button);
     _btnNewUnit->setFont(&DEFAULT_FONT);
     _btnNewUnit->setCallback([uictx = _uictx]() {
         uictx->_popManager->enableNewUnitPopup();

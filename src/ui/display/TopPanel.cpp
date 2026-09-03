@@ -18,7 +18,7 @@ namespace UI {
 
 TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, uictx) {
     setPos(0, 0);
-    setSize(LayoutDef::TOP_PANEL_WIDTH, LayoutDef::TOP_PANEL_HEIGHT);
+    setSize(Layout::TOP_PANEL_WIDTH, Layout::TOP_PANEL_HEIGHT);
     //set style
     // lv_obj_add_style(_lvhost, &workspace, 0);
     // lv_obj_set_style_pad_all(_lvhost, DEFAULT_MARGIN, LV_PART_MAIN);
@@ -47,7 +47,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
 
     _btnSave = std::make_unique<Button>(this, "Save");
     _btnSave->setPos(450, 0);
-    _btnSave->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnSave->setSize(Layout::Button, Layout::Button);
     _btnSave->setFont(&DEFAULT_FONT);
     _btnSave->setCallback([]() {
         auto act = std::make_unique<slr::Actions::SaveProject>();
@@ -55,8 +55,8 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     _btnLoad = std::make_unique<Button>(this, "Load");
-    _btnLoad->setPos(450+LayoutDef::BUTTON_SIZE+20, 0);
-    _btnLoad->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnLoad->setPos(450+Layout::Button+20, 0);
+    _btnLoad->setSize(Layout::Button, Layout::Button);
     _btnLoad->setFont(&DEFAULT_FONT);
     _btnLoad->setCallback([]() {
         // auto act = std::make_unique<slr::Actions::SaveProject>();
@@ -68,81 +68,81 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     int posx = 750;
     _btnGrid = std::make_unique<Button>(this, "Grid");
     _btnGrid->setPos(posx, 0);
-    _btnGrid->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnGrid->setSize(Layout::Button, Layout::Button);
     _btnGrid->setFont(&DEFAULT_FONT);
     _btnGrid->setCallback([uictx = _uictx]() {
         uictx->switchToView(MainView::Grid);
     });
 
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
+    posx += (Layout::Margin + Layout::Button);
     _btnTrack = std::make_unique<Button>(this, "Unit");
     _btnTrack->setPos(posx, 0);
-    _btnTrack->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnTrack->setSize(Layout::Button, Layout::Button);
     _btnTrack->setFont(&DEFAULT_FONT);
     _btnTrack->setCallback([uictx = _uictx]() {
         uictx->switchToView(MainView::Unit);
     });
     
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
+    posx += (Layout::Margin + Layout::Button);
     _btnBrowser = std::make_unique<Button>(this, LV_SYMBOL_FILE);
     _btnBrowser->setPos(posx, 0);
-    _btnBrowser->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnBrowser->setSize(Layout::Button, Layout::Button);
     _btnBrowser->setFont(&DEFAULT_FONT);
     _btnBrowser->setCallback([uictx = _uictx]() {
         uictx->switchToView(MainView::Browser);
     });
 
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
+    posx += (Layout::Margin + Layout::Button);
     _btnStepSequencer = std::make_unique<Button>(this, "StepS");
     _btnStepSequencer->setPos(posx, 0);
-    _btnStepSequencer->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnStepSequencer->setSize(Layout::Button, Layout::Button);
     _btnStepSequencer->setFont(&DEFAULT_FONT);
     _btnStepSequencer->setCallback([uictx = _uictx]() {
         uictx->switchToView(MainView::StepSequencer);
     });
 
-    posx += (LayoutDef::DEFAULT_MARGIN + LayoutDef::BUTTON_SIZE);
+    posx += (Layout::Margin + Layout::Button);
     _btnModEngine = std::make_unique<Button>(this, "ModE");
     _btnModEngine->setPos(posx, 0);
-    _btnModEngine->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnModEngine->setSize(Layout::Button, Layout::Button);
     _btnModEngine->setFont(&DEFAULT_FONT);
     _btnModEngine->setCallback([uictx = _uictx]() {
         // LOG_INFO("Modulation Engine will be added in future versions");
         uictx->switchToView(MainView::ModEngine);
     });
       
-    posx = parent->width()-LayoutDef::BUTTON_SIZE-LayoutDef::DEFAULT_MARGIN;
+    posx = parent->width()-Layout::Button-Layout::Margin;
     _btnSettings = std::make_unique<Button>(this, LV_SYMBOL_LIST); //LV_SYMBOL_SETTINGS
     _btnSettings->setPos(posx, 0);
-    _btnSettings->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnSettings->setSize(Layout::Button, Layout::Button);
     _btnSettings->setFont(&DEFAULT_FONT);
     _btnSettings->setCallback([this]() {
         this->_uictx->_popManager->enableSettingsPopup();
     });
 
-    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    posx -= (Layout::Button+Layout::Margin);
     _btnToggleMetronome = std::make_unique<Button>(this, LV_SYMBOL_BELL);
     _btnToggleMetronome->setPos(posx, 0);
-    _btnToggleMetronome->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnToggleMetronome->setSize(Layout::Button, Layout::Button);
     _btnToggleMetronome->setFont(&DEFAULT_FONT);
     _btnToggleMetronome->setCallback([]() {
         auto act = std::make_unique<slr::Actions::ToggleMetronome>();
         slr::EmitAction(std::move(act));
     });
 
-    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    posx -= (Layout::Button+Layout::Margin);
     _btnMidiKbd = std::make_unique<Button>(this, "MIDI Kbd");
     _btnMidiKbd->setPos(posx, 0);
-    _btnMidiKbd->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnMidiKbd->setSize(Layout::Button, Layout::Button);
     _btnMidiKbd->setFont(&DEFAULT_FONT);
     _btnMidiKbd->setCallback([this]() {
         this->_uictx->_popManager->enableMidiKeyboard();
     });
 
-    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    posx -= (Layout::Button+Layout::Margin);
     _btnRedo = std::make_unique<Button>(this, LV_SYMBOL_RIGHT);
     _btnRedo->setPos(posx, 0);
-    _btnRedo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnRedo->setSize(Layout::Button, Layout::Button);
     _btnRedo->setFont(&DEFAULT_FONT);
     _btnRedo->setCallback([this]() {
         // LOG_INFO("Redo action");
@@ -150,10 +150,10 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
         slr::EmitAction(std::move(act));
     });
 
-    posx -= (LayoutDef::BUTTON_SIZE+LayoutDef::DEFAULT_MARGIN);
+    posx -= (Layout::Button+Layout::Margin);
     _btnUndo = std::make_unique<Button>(this, LV_SYMBOL_LEFT);
     _btnUndo->setPos(posx, 0);
-    _btnUndo->setSize(LayoutDef::BUTTON_SIZE, LayoutDef::BUTTON_SIZE);
+    _btnUndo->setSize(Layout::Button, Layout::Button);
     _btnUndo->setFont(&DEFAULT_FONT);
     _btnUndo->setCallback([this]() {
         // LOG_INFO("Undo action");

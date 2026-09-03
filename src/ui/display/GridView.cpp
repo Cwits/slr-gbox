@@ -27,8 +27,8 @@ GridControl::GridControl(GridView * parent, UIContext * const uictx)
     _uictx(uictx)
 {
     setColor(lv_palette_main(LV_PALETTE_CYAN));
-    setPos(LayoutDef::TRACK_CONTROL_PANEL_X, LayoutDef::TRACK_CONTROL_PANEL_Y);
-    setSize(LayoutDef::TRACK_CONTROL_PANEL_WIDTH, LayoutDef::TRACK_CONTROL_PANEL_HEIGHT);
+    setPos(Layout::TRACK_CONTROL_PANEL_X, Layout::TRACK_CONTROL_PANEL_Y);
+    setSize(Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_CONTROL_PANEL_HEIGHT);
     
     _flags.isTap = true;
 
@@ -37,7 +37,7 @@ GridControl::GridControl(GridView * parent, UIContext * const uictx)
 
     _lastSelectedRect = lv_obj_create(_lvhost);
     lv_obj_add_flag(_lastSelectedRect, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_set_size(_lastSelectedRect, LayoutDef::TRACK_CONTROL_PANEL_WIDTH, LayoutDef::TRACK_HEIGHT);
+    lv_obj_set_size(_lastSelectedRect, Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_HEIGHT);
     lv_obj_set_style_bg_opa(_lastSelectedRect, LV_OPA_0, 0);
     
     show();
@@ -48,13 +48,13 @@ GridControl::~GridControl() {
 }
 
 bool GridControl::handleTap(GestLib::TapGesture &tap) {
-    int notAbsY = tap.y - LayoutDef::TOP_PANEL_HEIGHT;
+    int notAbsY = tap.y - Layout::TOP_PANEL_HEIGHT;
     UnitUIBase * u = nullptr;
     const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
     for(std::size_t i=0; i<list.size(); ++i) {
         UnitUIBase * unit = list.at(i).get();
         int cy = unit->gridUI()->getY();
-        if(notAbsY >= cy && notAbsY <= (cy+LayoutDef::TRACK_HEIGHT)) {
+        if(notAbsY >= cy && notAbsY <= (cy+Layout::TRACK_HEIGHT)) {
             u = unit;
             break;
         }
@@ -78,8 +78,8 @@ GridGrid::GridGrid(GridView * parent, UIContext * const uictx)
     _uictx(uictx)
 {
     setColor(lv_palette_main(LV_PALETTE_AMBER));
-    setPos(LayoutDef::GRID_X, LayoutDef::GRID_Y);
-    setSize(LayoutDef::GRID_WIDTH, LayoutDef::GRID_HEIGHT);
+    setPos(Layout::GRID_X, Layout::GRID_Y);
+    setSize(Layout::GRID_WIDTH, Layout::GRID_HEIGHT);
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
     
     lv_obj_add_style(_lvhost, &workspace, 0);
@@ -122,11 +122,11 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
     //         } else {
     //             //try find appropriate track
     //             const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
-    //             int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
+    //             int notAbsY = drag.y - (Layout::TOP_PANEL_HEIGHT + Layout::TIMELINE_HEIGHT);
     //             for(const std::unique_ptr<UnitUIBase> &u : list) {
     //                 UnitUIBase *unit = u.get();
     //                 if(notAbsY >= unit->gridUI()->gridY() && 
-    //                     notAbsY <= (unit->gridUI()->gridY()+LayoutDef::TRACK_HEIGHT) && 
+    //                     notAbsY <= (unit->gridUI()->gridY()+Layout::TRACK_HEIGHT) && 
     //                     unit->canLoadFiles()) {
     //                     LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
                         
@@ -149,8 +149,8 @@ bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
 
 
 GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx) {
-    setPos(LayoutDef::WORKSPACE_POSITION_X, LayoutDef::WORKSPACE_POSITION_Y);
-    setSize(LayoutDef::WORKSPACE_WIDTH, LayoutDef::WORKSPACE_HEIGHT); 
+    setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT); 
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
     
     _control = std::make_unique<GridControl>(this, uictx);
@@ -215,14 +215,14 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
             int mul = swipe.dy;
             //make grid(tracks) up-down scroll
             const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI; 
-            int tmp = LayoutDef::GRID_HEIGHT-LayoutDef::TRACK_HEIGHT;
-            if(list.size()*LayoutDef::TRACK_HEIGHT < tmp) return true;
+            int tmp = Layout::GRID_HEIGHT-Layout::TRACK_HEIGHT;
+            if(list.size()*Layout::TRACK_HEIGHT < tmp) return true;
 
 
             if(swipe.dy > 0) {
                 //from top to bottom -> scroll down
                 int tmpgrid = list.at(0).get()->gridUI()->getY();
-                int tmpcalc = LayoutDef::calcTrackY(0);
+                int tmpcalc = Layout::calcTrackY(0);
                 // LOG_INFO("%d %d", tmpgrid, tmpcalc);
                 if(tmpgrid < tmpcalc) {
                     int diff = list.at(0)->gridUI()->getY() - mul;
@@ -240,7 +240,7 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
             } else if(swipe.dy < 0) {
                 //from bottom to top -> scroll up
                 const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
-                if(list.back().get()->gridUI()->getY() < (LayoutDef::GRID_HEIGHT-LayoutDef::TRACK_HEIGHT)) return true;
+                if(list.back().get()->gridUI()->getY() < (Layout::GRID_HEIGHT-Layout::TRACK_HEIGHT)) return true;
                 
                 for(auto &base : list) {
                     base.get()->gridUI()->updatePosition(0, base.get()->gridUI()->getY()+mul);
@@ -285,11 +285,11 @@ bool GridView::handleDrag(GestLib::DragGesture &drag) {
             } else {
                 //try find appropriate track
                 const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
-                int notAbsY = drag.y - (LayoutDef::TOP_PANEL_HEIGHT + LayoutDef::TIMELINE_HEIGHT);
+                int notAbsY = drag.y - (Layout::TOP_PANEL_HEIGHT + Layout::TIMELINE_HEIGHT);
                 for(const std::unique_ptr<UnitUIBase> &u : list) {
                     UnitUIBase *unit = u.get();
                     if(notAbsY >= unit->gridUI()->getY() && 
-                        notAbsY <= (unit->gridUI()->getY()+LayoutDef::TRACK_HEIGHT) && 
+                        notAbsY <= (unit->gridUI()->getY()+Layout::TRACK_HEIGHT) && 
                         unit->canLoadFiles()) {
                         LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
                         
