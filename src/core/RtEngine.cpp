@@ -5,7 +5,7 @@
 
 #include "core/drivers/AudioDriver.h"
 #include "core/primitives/AudioBuffer.h"
-#include "core/primitives/AudioContext.h"
+#include "core/utility/AudioContext.h"
 #include "core/primitives/RtTask.h"
 #include "core/utility/basicAudioManipulation.h"
 
@@ -19,7 +19,7 @@
 
 #include "core/Metronome.h"
 
-#include "defines.h"
+#include "common/defines.h"
 
 #include "common/Profiler.h"
 
@@ -28,15 +28,21 @@
 
 namespace slr {
 
+#if RT_PROFILE == 1
 const std::string TEST = "Rt Engine"; 
 Profiler::ResultQueue * profQueue = nullptr;
+#endif
+
+Dependencies metroDeps;
 
 RtEngine::RtEngine() {
     _midiInLocal = new std::vector<RtMidiBuffer>();
     _midiInputMap = new std::vector<RtMidiQueue>();
     _midiOutputMap = new std::vector<RtMidiOutput>();
     _isFirstCallback = true;
+#if RT_PROFILE == 1
     profQueue = Profiler::prepare(TEST);
+#endif
 }
 
 RtEngine::~RtEngine() {
@@ -110,8 +116,9 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
     //at this point inputs contains hw input data, and outputs buffers are zeroed out
 
+#if RT_PROFILE == 1
     Profiler::start(profQueue);
-
+#endif
     //handle rt control tasks
     {
         RtTask * task = nullptr;
@@ -216,8 +223,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     
     const RenderPlan * plan = (_prj->isSolo() ? _prj->soloPlan() : _prj->runPlan());
     for(uint32_t n=0; n<plan->nodesCount; ++n) {
-        // const RenderPlan::Node & node = plan->nodes[n];
-        plan->nodes[n].target->clearMidiBuffer();
+        plan->nodes[n].target->clearMidiInput();
     }
 
     /* 
@@ -289,11 +295,12 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
  
     Metronome * metro = _prj->metronome();
     if(ctx.playing) {
-        Dependencies dummy;
-        metro->process(ctx, dummy);
+        metro->process(ctx, metroDeps);
     }
 
+#if RT_PROFILE == 1
     Profiler::end(profQueue);
+#endif
 
     return frames;
 }
@@ -330,5 +337,15 @@ void RtEngine::setMidiOut(std::vector<RtMidiOutput> *buf) {
 void RtEngine::addRtResponse(RtTask * task) {
     ControlEngine::rtEngine()->_rtResponses.push(task);
 }
+
+// void RtEngine::processResponses() {
+// // SPSCQueue<RtTask*, 256> & resps = _engine->getResponses();
+            
+//     RtTask * task = nullptr;
+//     while(_rtResponses.pop(task)) {
+//         task->fn(task->obj);
+//     }
+
+// }
 
 }

@@ -6,7 +6,7 @@
 #include "units/Track/Track.h"
 
 #include "snapshots/AudioUnitView.h"
-#include "defines.h"
+#include "common/defines.h"
 
 #include <string>
 

@@ -1,0 +1,29 @@
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
+#include "push/primitives/Pointer.h"
+
+#include "push/core/PushFonts.h"
+#include "push/core/PushPainter.h"
+
+namespace PushUI {
+
+Pointer::Pointer(PushLib::Widget *parent) :
+    PushLib::Widget(parent)
+{
+    _font = PushLib::Font_7x10;
+    _newFont = PushLib::Font_7x10;
+    _color = PushLib::Colors::White;
+    _x = 0;
+    _y = 0;
+    markDirty();
+}
+
+Pointer::~Pointer() {
+
+}
+
+void Pointer::paint(PushLib::Painter &painter) {
+    painter.writeChar(_x, _y, '>', _font, _color);
+}
+
+}

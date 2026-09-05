@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "units/Sampler/Sampler.h"
 
-#include "core/primitives/AudioContext.h"
+#include "core/utility/AudioContext.h"
 #include "core/BufferManager.h"
 
 #include "core/utility/basicAudioManipulation.h"
@@ -50,7 +50,7 @@ bool Sampler::destroy(BufferManager *man) {
     return true;
 }
 
-frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) {
+frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) const {
     if(_mute) {
         if(_buffersClear) return ctx.frames;
 

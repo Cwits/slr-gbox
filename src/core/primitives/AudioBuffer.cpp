@@ -3,7 +3,7 @@
 
 #include "core/primitives/AudioBuffer.h"
 #include <cstring>
-#include "defines.h"
+#include "common/defines.h"
 
 namespace slr {
 /*

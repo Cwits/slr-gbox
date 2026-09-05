@@ -1,0 +1,92 @@
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
+#pragma once
+
+#include "push/core/Widget.h"
+#include "push/utility/PushUIContext.h"
+
+#include "common/defines.h"
+
+#include <memory>
+#include <vector>
+
+namespace PushLib {
+    class Painter;
+}
+
+namespace slr {
+    class AudioUnitView;
+}
+
+namespace PushUI {
+
+class PushUIContext;
+class DefaultGridUI;
+class DefaultUnitUI;
+
+struct UnitUIBase {
+    UnitUIBase(const std::shared_ptr<const slr::AudioUnitView> &view, PushUIContext * const puictx);
+    virtual ~UnitUIBase();
+
+    virtual bool create(PushUIContext * ctx) = 0;
+    virtual bool destroy(PushUIContext * ctx) = 0;
+
+    virtual DefaultGridUI * gridUI() = 0;
+    virtual DefaultUnitUI * unitUI() = 0;
+
+    void show();
+    void hide();
+
+    const slr::AudioUnitView * view() const { return _view.get(); }
+    // slr::AudioUnitView * view() { return _view.get(); }
+
+    PushUIContext * uictx() const { return _puictx; }
+
+    const slr::ID id() const { return _uniqueId; }
+
+    private:
+    const std::shared_ptr<const slr::AudioUnitView> _view;
+    PushUIContext * const _puictx;
+
+    const slr::ID _uniqueId;
+};
+
+
+class Label;
+class Rectangle;
+
+struct DefaultGridUI : public PushLib::Widget {
+    DefaultGridUI(PushLib::Widget *parent, UnitUIBase * parentUI);
+    ~DefaultGridUI();
+
+    // void pollUIUpdate() override;
+    void paint(PushLib::Painter &p) override;
+
+    void up();
+    void down();
+    void left();
+    void right();
+
+    private:
+    UnitUIBase * _parentUI;
+    // std::vector<std::unique_ptr<FileView>> _fileUIs; //make the simplified version of waveform(as in messengers or smth)
+    std::unique_ptr<Label> _label;
+    std::unique_ptr<Rectangle> _rectangle;
+    std::unique_ptr<Rectangle> _rectangle2;
+    
+};
+
+struct DefaultUnitUI : public PushLib::Widget {
+    DefaultUnitUI(PushLib::Widget *parent, UnitUIBase * parentUI);
+    ~DefaultUnitUI();
+
+    // void pollUIUpdate() override;
+
+    private:
+    UnitUIBase * _parentUI;
+    
+    std::unique_ptr<Label> _label;
+    std::unique_ptr<Rectangle> _rectangle;
+};
+
+}

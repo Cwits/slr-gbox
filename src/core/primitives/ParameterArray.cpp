@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/primitives/ParameterArray.h"
-#include "logger.h"
+#include "common/logger.h"
 #include "core/primitives/Parameter.h"
 
 

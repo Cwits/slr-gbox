@@ -14,7 +14,7 @@ class Mixer : public AudioUnit {
     Mixer(const ClipContainer *initContainer, const ID forcedId);
     ~Mixer();
 
-    frame_t process(const AudioContext &ctx,  const Dependencies &inputs) override;
+    frame_t process(const AudioContext &ctx,  const Dependencies &inputs) const override;
     void prepareToPlay() override;
     void prepareToRecord() override;
     void stopPlaying() override;

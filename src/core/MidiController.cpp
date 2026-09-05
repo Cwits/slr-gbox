@@ -3,28 +3,30 @@
 
 #include "core/MidiController.h"
 
-#include "slr_config.h"
+#include "common/core_config.h"
 
-#include "logger.h"
+#include "common/logger.h"
 #include "core/primitives/MidiEvent.h"
 #include "core/primitives/MidiPort.h"
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
 #include "core/RtEngine.h"
-// #include "core/FlatEvents.h"
 
-#if (USE_PUSH == 1)
-// #include "push/PushCore.h"
-#include "ui/pushThread.h"
-// #include "ui/push/MainWindow.h" //does not belong here...
-#endif
-
-#include <alsa/asoundlib.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 
 #include <sys/eventfd.h>
+
+#if (USE_PUSH == 1)
+#include "push/pushThread.h"
+
+    #if (USE_FAKE_PUSH == 1)
+    std::unique_ptr<MidiDevice> _pdev;
+    std::unique_ptr<MidiPort> pushPort;
+    #endif
+
+#endif
 
 namespace slr {
 
@@ -35,17 +37,6 @@ frame_t _block_size = 0;
 MidiDevice _virtualDev;
 MidiSubdevice _virtualSub;
 std::unique_ptr<MidiPort> _virtualPort;
-
-
-#if (USE_PUSH == 1)
-#include "ui/pushThread.h"
-
-    #if (USE_FAKE_PUSH == 1)
-    std::unique_ptr<MidiDevice> _pdev;
-    std::unique_ptr<MidiPort> pushPort;
-    #endif
-
-#endif
 
 MidiController::MidiController() {
     _input_constant_delay = SettingsManager::getBlockSize();
@@ -233,6 +224,11 @@ std::vector<MidiDevice> MidiController::devList() {
     }
 
     return ret;
+}
+
+void MidiController::addNewPort(std::unique_ptr<MidiPort> port) {
+    port->_controller = this;
+    _activePorts.push_back(std::move(port));
 }
 
 void MidiController::openDevice(MidiPort *port, bool input, bool output) {

@@ -1,14 +1,13 @@
 #include "core/primitives/MidiPort.h"
 
-#include "slr_config.h"
+#include "common/core_config.h"
 
-#include "logger.h"
+#include "common/logger.h"
 #include "core/primitives/MidiEvent.h"
 #include "core/primitives/MidiPort.h"
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
 #include "core/RtEngine.h"
-// #include "core/FlatEvents.h"
 #include "core/MidiController.h"
 
 #include <iostream>

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/BufferManager.h"
-#include "logger.h"
-#include "slr_config.h"
+#include "common/logger.h"
+#include "common/core_config.h"
 
 #include <exception>
 

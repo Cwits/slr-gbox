@@ -5,11 +5,11 @@
 #include "core/primitives/AudioUnit.h"
 #include "core/Metronome.h"
 #include "core/UnitManager.h"
-#include "core/primitives/ControlContext.h"
+#include "core/utility/ControlContext.h"
 #include "core/ControlEngine.h"
 #include "core/StepSequencer.h"
 #include "core/ModulationEngine.h"
-#include "logger.h"
+#include "common/logger.h"
 
 #include <algorithm>
 #include <cmath>
@@ -132,20 +132,6 @@ std::unique_ptr<AudioUnit> Project::removeUnit(ID id) {
     std::unique_ptr<AudioUnit> ret = std::move(*it);
     _unitList.erase(it);
     return std::move(ret);
-
-    // std::size_t size = _unitList.size();
-    // for(std::size_t i=0; i<size; ++i) {
-    //     // if(_trackList.at(i) == nullptr) continue;
-    //     if(_unitList.at(i).get()->id() == id) {
-    //         // _unitList.erase(_unitList.begin()+i);
-    //         std::unique_ptr<AudioUnit> ret = std::move(_unitList.at(i));
-    //         _unitList.erase(_unitList.begin()+i);
-    //         return std::move(ret);
-    //         // return true;
-    //     }
-    // }
-    // // return false;
-    // return nullptr;
 }
 
 void Project::appendUnit(std::unique_ptr<AudioUnit> unit) { //for delete undo??

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/drivers/jackDriver.h"
-#include "logger.h"
+#include "common/logger.h"
 
 #include "core/primitives/AudioBuffer.h"
 #include "core/utility/basicAudioManipulation.h"

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
-#include "ui/push/primitives/UnitUIBase.h"
+#include "push/primitives/UnitUIBase.h"
 
 #include <memory>
 

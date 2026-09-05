@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "core/primitives/ActionBase.h"
-#include "defines.h"
+#include "core/actions/ActionBase.h"
+#include "common/defines.h"
 
 #include <variant>
 #include <string>

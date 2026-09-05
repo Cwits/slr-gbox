@@ -3,9 +3,8 @@
 
 #include "core/UnitManager.h"
 #include "core/primitives/AudioUnit.h"
-#include "ui/display/primitives/UnitUIBase.h"
 
-#include "core/ActionsMap.h"
+#include "core/actions/ActionsMap.h"
 
 #include "units/Track/TrackUnit.h"
 #include "units/Mixer/MixerUnit.h"
@@ -26,7 +25,14 @@ void UnitManagerFactory::init() {
     registerDefaultActions(map);
 
     //this should happen during application startup - discover all possible units and test them, only than register as available
-    registerTrackActions(map);
+    registerTrackActions(map); 
+    /* 
+        either some static methode should be called on startup to register actions, or... ? 
+        better with static method and factory i guess, than plugins must be discovered,
+        because there will be no dynamic action adding-removing?
+    */
+
+
     inst.registerUnit(&TrackDescriptor);
     
     inst.registerUnit(&MixerDescriptor);

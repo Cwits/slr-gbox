@@ -1,0 +1,98 @@
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
+#pragma once
+
+#include "core/primitives/MidiEvent.h"
+#include "common/defines.h"
+
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <memory>
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <chrono>
+#include <functional>
+#include <alsa/asoundlib.h>
+
+namespace slr {
+
+struct MidiController;
+struct MidiSubdevice;
+struct MidiPort;
+
+struct MidiDevice {
+    // MidiDevice(const MidiDevice &other) = delete;
+    std::string _name;
+    std::vector<MidiSubdevice> _ports;
+    int _card;
+    // bool _presented;
+    bool _check;
+
+    bool _online; //use this instead of check\presented??
+    MidiDevice() = default;
+    MidiDevice(const MidiDevice &oth) {
+        _name = oth._name; //??
+        _ports = oth._ports; //??
+        _card = oth._card;
+        _check = oth._check;
+        _online = oth._online;
+    }
+};
+
+struct MidiSubdevice {
+    //actual thing here
+    bool _hasInput;
+    bool _hasOutput;
+    std::string _path;
+    std::string _inputName;
+    std::string _outputName;    
+};
+
+struct ControlContext;
+struct VMKTriggerAction;
+struct MidiPort;
+
+struct MidiController {
+    MidiController();
+    ~MidiController();
+
+    void checkDevices();
+    std::vector<MidiDevice> devList();
+    std::vector<std::unique_ptr<MidiPort>> & activePorts() { 
+        return _activePorts;
+    }
+    const std::vector<std::unique_ptr<MidiPort>> & activePorts() const { 
+        return _activePorts;
+    }
+
+    void addNewPort(std::unique_ptr<MidiPort> port);
+
+    void openDevice(MidiPort *port, bool input, bool output);
+    void closeDevice(MidiPort *port);
+
+    void setAnchor(frame_t framesPassed) {
+        _midiAnchorTimepoint.store(std::chrono::steady_clock::now(), std::memory_order_relaxed);
+        _lastSample.store(framesPassed, std::memory_order_relaxed);
+    }
+    std::chrono::time_point<std::chrono::steady_clock> getAnchor() const { return _midiAnchorTimepoint.load(std::memory_order_acquire); }
+    frame_t getLastSample() const { return _lastSample.load(std::memory_order_acquire); }
+
+    private:
+    std::mutex _mutex;
+    std::vector<std::unique_ptr<MidiDevice>> _deviceList;
+    std::vector<std::unique_ptr<MidiPort>> _activePorts;
+
+    std::vector<MidiDevice> discoverMidiDevices();
+    bool is_input(snd_ctl_t *ctl, int card, int device, int sub);
+    bool is_output(snd_ctl_t *ctl, int card, int device, int sub);
+
+    std::atomic<std::chrono::time_point<std::chrono::steady_clock>> _midiAnchorTimepoint;
+    std::atomic<frame_t> _lastSample;
+
+    void addVirtualKbdEvent(const MidiEvent ev);
+    friend struct VMKTriggerAction;
+};
+
+}

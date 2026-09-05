@@ -3,10 +3,11 @@
 #include "snapshots/ModulationView.h"
 
 #include "core/ModulationEngine.h"
-#include "core/primitives/AudioContext.h"
 #include "core/primitives/AudioUnit.h"
 
-#include "logger.h"
+#include "common/logger.h"
+
+#include <algorithm>
 
 namespace slr {
 

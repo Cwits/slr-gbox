@@ -5,7 +5,7 @@
 
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/AudioBuffer.h"
-#include "defines.h"
+#include "common/defines.h"
 
 namespace slr {
 
@@ -14,12 +14,12 @@ class SimpleOsc : public AudioUnit {
     SimpleOsc(const ClipContainer *initContainer, const ID forcedId);
     ~SimpleOsc();
 
-    RT_FUNC frame_t process(const AudioContext &ctx, const Dependencies &inputs) override;
+    frame_t process(const AudioContext &ctx, const Dependencies &inputs) const override;
     
-    RT_FUNC void prepareToPlay() override;
-    RT_FUNC void prepareToRecord() override;
-    RT_FUNC void stopPlaying() override;
-    RT_FUNC void stopRecording() override;
+    void prepareToPlay() override;
+    void prepareToRecord() override;
+    void stopPlaying() override;
+    void stopRecording() override;
 
     private:
     
@@ -34,8 +34,8 @@ class SimpleOsc : public AudioUnit {
         float _time;
     };
 
-    voice _voices[16];
-    int _activeVoices = 0;
+    mutable voice _voices[16];
+    mutable int _activeVoices = 0;
 
 };
 

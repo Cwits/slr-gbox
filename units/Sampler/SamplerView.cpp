@@ -4,10 +4,10 @@
 #include "units/Sampler/SamplerUnit.h"
 #include "core/primitives/AudioFile.h"
 
-#include "core/Actions.h"
+#include "core/actions/Actions.h"
 #include "units/Sampler/SamplerActions.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <filesystem>
 

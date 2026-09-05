@@ -3,19 +3,20 @@
 #include "units/Sampler/SamplerUI.h"
 #include "units/Sampler/SamplerView.h"
 
-#include "ui/display/primitives/UIContext.h"
-#include "ui/display/primitives/DragContext.h"
-#include "ui/display/primitives/Label.h"
-#include "ui/display/layoutSizes.h"
-#include "ui/display/helpers/AudioFileToCanvas.h"
+#include "display/primitives/Label.h"
+
+#include "display/utility/UIContext.h"
+#include "display/utility/DragContext.h"
+#include "display/utility/layoutSizes.h"
+#include "display/utility/AudioFileToCanvas.h"
 
 #include "snapshots/AudioUnitView.h"
 
 #include "core/primitives/AudioFile.h"
-#include "core/Actions.h"
+#include "core/actions/Actions.h"
 #include "units/Sampler/SamplerActions.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <cassert>
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
-#include "ui/display/primitives/UnitUIBase.h"
+#include "display/primitives/UnitUIBase.h"
 #include <memory>
 
 namespace slr {

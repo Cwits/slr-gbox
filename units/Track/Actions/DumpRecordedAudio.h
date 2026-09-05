@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "core/primitives/ActionExecutable.h"
+#include "core/actions/ActionExecutable.h"
 #include "core/primitives/RtTask.h"
 #include "units/Track/TrackActions.h"
 

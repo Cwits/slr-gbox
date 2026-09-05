@@ -5,7 +5,7 @@
 #include "core/primitives/AudioBuffer.h"
 #include "core/utility/basicAudioManipulation.h"
 #include "core/utility/helper.h"
-#include "logger.h"
+#include "common/logger.h"
 
 #include <unistd.h> //fsync()
 

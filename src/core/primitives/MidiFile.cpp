@@ -4,7 +4,7 @@
 #include "core/primitives/MidiFile.h"
 #include "core/utility/helper.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <iostream>
 #include <vector>

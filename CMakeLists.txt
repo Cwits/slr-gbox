@@ -46,8 +46,7 @@ if((NOT LIBUSB_INCLUDE_DIR) OR (NOT LIBUSB_LIBRARY))
 endif()
 
 
-include_directories(${PROJECT_SOURCE_DIR}/inc)
-include_directories(${PROJECT_SOURCE_DIR}/shared)
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 add_subdirectory(external)
 
@@ -78,88 +77,93 @@ set(LIBRARIES lvgl::lvgl
 
 file(GLOB SOURCES
   #actions
-  src/core/Actions/AudioUnit/LoadAsClip.cpp
-  src/core/Actions/AudioUnit/RemoveClip.cpp
-  src/core/Actions/AudioUnit/SetParameter.cpp
-  src/core/Actions/AudioUnit/ToggleMidiThru.cpp
-  src/core/Actions/AudioUnit/ToggleOmniHwInput.cpp
-  src/core/Actions/AudioUnit/SetName.cpp
-  src/core/Actions/AudioUnit/SetColor.cpp
+  src/core/actions/AudioUnit/LoadAsClip.cpp
+  src/core/actions/AudioUnit/RemoveClip.cpp
+  src/core/actions/AudioUnit/SetParameter.cpp
+  src/core/actions/AudioUnit/ToggleMidiThru.cpp
+  src/core/actions/AudioUnit/ToggleOmniHwInput.cpp
+  src/core/actions/AudioUnit/SetName.cpp
+  src/core/actions/AudioUnit/SetColor.cpp
 
-  src/core/Actions/Project/CreateNewUnit.cpp
-  src/core/Actions/Project/DeleteUnit.cpp
-  src/core/Actions/Project/AddNewAudioRoute.cpp
-  src/core/Actions/Project/AddNewMidiRoute.cpp
-  src/core/Actions/Project/ModifyClipItem.cpp
-  src/core/Actions/Project/SaveProject.cpp
-  src/core/Actions/Project/LoadProject.cpp
-  src/core/Actions/Project/UpdateRenderPlan.cpp
-  src/core/Actions/Project/Undo.cpp
-  src/core/Actions/Project/Redo.cpp
+  src/core/actions/Project/CreateNewUnit.cpp
+  src/core/actions/Project/DeleteUnit.cpp
+  src/core/actions/Project/AddNewAudioRoute.cpp
+  src/core/actions/Project/AddNewMidiRoute.cpp
+  src/core/actions/Project/ModifyClipItem.cpp
+  src/core/actions/Project/SaveProject.cpp
+  src/core/actions/Project/LoadProject.cpp
+  src/core/actions/Project/UpdateRenderPlan.cpp
+  src/core/actions/Project/Undo.cpp
+  src/core/actions/Project/Redo.cpp
 
-  src/core/Actions/Timeline/ChangeSignatureBpm.cpp
-  src/core/Actions/Timeline/ChangeTimelineState.cpp
-  src/core/Actions/Timeline/LoopPosition.cpp
-  src/core/Actions/Timeline/ToggleLoop.cpp
-  src/core/Actions/Timeline/UpdatePlayhead.cpp
+  src/core/actions/Timeline/ChangeSignatureBpm.cpp
+  src/core/actions/Timeline/ChangeTimelineState.cpp
+  src/core/actions/Timeline/LoopPosition.cpp
+  src/core/actions/Timeline/ToggleLoop.cpp
+  src/core/actions/Timeline/UpdatePlayhead.cpp
   
-  src/core/Actions/MidiController/ToggleMidiDevice.cpp
-  src/core/Actions/MidiController/VirtualMidiKbdAction.cpp
+  src/core/actions/MidiController/ToggleMidiDevice.cpp
+  src/core/actions/MidiController/VirtualMidiKbdAction.cpp
   
-  src/core/Actions/Metronome/ToggleMetronome.cpp
+  src/core/actions/Metronome/ToggleMetronome.cpp
 
-  src/core/Actions/StepSequencer/CreateNewSequence.cpp
-  src/core/Actions/StepSequencer/ModifySequence.cpp
-  src/core/Actions/StepSequencer/ModifySequenceLayer.cpp
-  src/core/Actions/StepSequencer/ModifySequenceEvent.cpp
-  src/core/Actions/StepSequencer/ModifySequenceTarget.cpp
+  src/core/actions/StepSequencer/CreateNewSequence.cpp
+  src/core/actions/StepSequencer/ModifySequence.cpp
+  src/core/actions/StepSequencer/ModifySequenceLayer.cpp
+  src/core/actions/StepSequencer/ModifySequenceEvent.cpp
+  src/core/actions/StepSequencer/ModifySequenceTarget.cpp
 
-  src/core/Actions/ModulationEngine/CreateNewModulation.cpp
-  src/core/Actions/ModulationEngine/ModifyModulation.cpp
-  src/core/Actions/ModulationEngine/ModifyModulationTarget.cpp
+  src/core/actions/ModulationEngine/CreateNewModulation.cpp
+  src/core/actions/ModulationEngine/ModifyModulation.cpp
+  src/core/actions/ModulationEngine/ModifyModulationTarget.cpp
 
-  #core
-  inc/core/drivers/AudioDriver.h
+  src/core/actions/Actions.cpp
+  src/core/actions/ActionsMap.cpp
+
+  #drivers
   src/core/drivers/AudioDriver.cpp
   src/core/drivers/dummyDriver.cpp
   src/core/drivers/jackDriver.cpp
 
-  src/core/primitives/AudioUnit.cpp
+  #filetasks
+  src/core/filetasks/FileTasks.cpp
+
+  #primitives
   src/core/primitives/AudioBuffer.cpp
   src/core/primitives/AudioFile.cpp
   src/core/primitives/AudioPeakFile.cpp
   src/core/primitives/AudioPeaks.cpp
+  src/core/primitives/AudioUnit.cpp
   src/core/primitives/File.cpp
+  src/core/primitives/ClipItem.cpp
   src/core/primitives/MidiFile.cpp
+  src/core/primitives/MidiPort.cpp
   src/core/primitives/Parameter.cpp
   src/core/primitives/ParameterArray.cpp
-  src/core/primitives/RenderPlan.cpp
-  src/core/primitives/MidiPort.cpp
-  src/core/primitives/FileContainer.cpp
-  src/core/primitives/ControlContext.cpp
   src/core/primitives/RtTask.cpp
-  src/core/primitives/FileWorkerContext.cpp
 
+  #utility
   src/core/utility/basicAudioManipulation.cpp
   src/core/utility/basicMidiManipulation.cpp
+  src/core/utility/ControlContext.cpp
+  src/core/utility/FileWorkerContext.cpp
 
-  src/core/Actions.cpp
-  src/core/ActionsMap.cpp
-  src/core/BufferManager.cpp
+  #core
   src/core/AudioPeakBuilder.cpp
+  src/core/BufferManager.cpp
   src/core/ControlEngine.cpp
-  src/core/FileTasks.cpp
   src/core/FileWorker.cpp
-  src/core/Project.cpp
-  src/core/RtEngine.cpp
-  src/core/SettingsManager.cpp
-  src/core/Timeline.cpp
   src/core/Metronome.cpp
-  src/core/UnitManager.cpp
   src/core/MidiController.cpp
-  src/core/Serializer.cpp
-  src/core/StepSequencer.cpp
   src/core/ModulationEngine.cpp
+  src/core/Project.cpp
+  src/core/RenderPlan.cpp
+  src/core/RtEngine.cpp
+  src/core/Serializer.cpp       #move to utility
+  src/core/SettingsManager.cpp
+  src/core/StepSequencer.cpp
+  src/core/Timeline.cpp
+  src/core/UnitManager.cpp
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
@@ -203,84 +207,85 @@ file(GLOB SOURCES
   units/Sampler/Actions/LoadAsset.cpp
 
   #ui
-  src/ui/display/primitives/BaseWidget.cpp
-  src/ui/display/primitives/Button.cpp
-  src/ui/display/primitives/Label.cpp
-  src/ui/display/primitives/FileView.cpp
-  src/ui/display/primitives/Popup.cpp
-  src/ui/display/primitives/DropDown.cpp
-  src/ui/display/primitives/UnitUIBase.cpp
-  src/ui/display/primitives/View.cpp
-  src/ui/display/primitives/UIContext.cpp
-  src/ui/display/primitives/Slider.cpp
-  src/ui/display/primitives/Checkbox.cpp
+  src/display/elements/BottomPanel.cpp
+  src/display/elements/Browser.cpp
+  src/display/elements/GridView.cpp
+  src/display/elements/MainWindow.cpp
+  src/display/elements/ModEngineView.cpp
+  src/display/elements/SplashScreen.cpp
+  src/display/elements/StepSequencerView.cpp
+  src/display/elements/Timeline.cpp
+  src/display/elements/TopPanel.cpp
+  src/display/elements/UnitView.cpp
+  
+  src/display/popups/DialogWindows.cpp
+  src/display/popups/DragViewSelector.cpp
+  src/display/popups/ModEngineTargetManager.cpp
+  src/display/popups/NewUnitPopup.cpp
+  src/display/popups/PopupManager.cpp
+  src/display/popups/RouteManager.cpp
+  src/display/popups/ScreenKeyboard.cpp
+  src/display/popups/SettingsPopup.cpp
+  src/display/popups/TimelinePopup.cpp
+  src/display/popups/VirtualMidiKeyboard.cpp
 
-  src/ui/display/defaultStyles.cpp
-  src/ui/display/defaultColors.cpp
-  src/ui/display/SplashScreen.cpp
-  src/ui/display/Timeline.cpp
-  src/ui/display/TopPanel.cpp
-  src/ui/display/BottomPanel.cpp
-  src/ui/display/GridView.cpp
-  src/ui/display/UnitView.cpp
-  src/ui/display/Browser.cpp
-  src/ui/display/MainWindow.cpp
-  src/ui/display/RouteManager.cpp
-  src/ui/display/TimelinePopup.cpp
-  src/ui/display/ScreenKeyboard.cpp
-  src/ui/display/PopupManager.cpp
-  src/ui/display/NewUnitPopup.cpp
-  src/ui/display/SettingsPopup.cpp
-  src/ui/display/VirtualMidiKeyboard.cpp
-  src/ui/display/DialogWindows.cpp
-  src/ui/display/DragViewSelector.cpp
-  src/ui/display/StepSequencerView.cpp
-  src/ui/display/ModEngineView.cpp
+  src/display/primitives/BaseWidget.cpp
+  src/display/primitives/Button.cpp
+  src/display/primitives/Checkbox.cpp
+  src/display/primitives/DropDown.cpp
+  src/display/primitives/FileView.cpp
+  src/display/primitives/Label.cpp
+  src/display/primitives/Popup.cpp
+  src/display/primitives/Slider.cpp
+  src/display/primitives/UnitUIBase.cpp
+  src/display/primitives/View.cpp
 
-  src/ui/FakeGestures.cpp
-  src/ui/uiControls.cpp
-  src/ui/guiThread.cpp
+  src/display/utility/AudioFileToCanvas.cpp
+  src/display/utility/defaultColors.cpp
+  src/display/utility/defaultStyles.cpp
+  src/display/utility/DragContext.cpp
+  src/display/utility/UIContext.cpp
 
-  src/ui/display/helpers/AudioFileToCanvas.cpp
+  src/display/FakeGestures.cpp
+  src/display/guiThread.cpp
 
   #push core
-  src/push/PushFaker.cpp
-  src/push/PushCore.cpp
-  src/push/PushDisplay.cpp
-  src/push/PushMidi.cpp
-  src/push/PushSysex.cpp
-  src/push/PushLeds.cpp
-  src/push/PushPads.cpp
-  src/push/PushPainter.cpp
-  src/push/PushFonts.cpp
-  src/push/PushContext.cpp
-  src/push/Widget.cpp
+  src/push/core/PushContext.cpp
+  src/push/core/PushCore.cpp
+  src/push/core/PushDisplay.cpp
+  src/push/core/PushFaker.cpp
+  src/push/core/PushFonts.cpp
+  src/push/core/PushLeds.cpp
+  src/push/core/PushMidi.cpp
+  src/push/core/PushPads.cpp
+  src/push/core/PushPainter.cpp
+  src/push/core/PushSysex.cpp
+  src/push/core/Widget.cpp
 
-  #push ui
-  src/ui/push/primitives/Pointer.cpp
-  src/ui/push/primitives/StaticLabel.cpp
-  src/ui/push/primitives/Canvas.cpp
-  src/ui/push/primitives/Rectangle.cpp
-  src/ui/push/primitives/UnitUIBase.cpp
-  src/ui/push/primitives/Label.cpp
+  #widgets
+  src/push/elements/BrowserWidget.cpp
+  src/push/elements/GridWidget.cpp
+  src/push/elements/PadLayoutWidget.cpp
+  src/push/elements/RootWidget.cpp
+  src/push/elements/UnitWidget.cpp
 
-  src/ui/push/PushUIContext.cpp
-  src/ui/push/RootWidget.cpp
-  src/ui/push/GridWidget.cpp
-  src/ui/push/UnitWidget.cpp
-  src/ui/push/BrowserWidget.cpp
-  
-  src/ui/push/PadLayoutWidget.cpp
-  src/ui/push/PadNoteLayout.cpp
-  src/ui/push/PadLayout.cpp
-  
+  #primitives
+  src/push/primitives/Canvas.cpp
+  src/push/primitives/Label.cpp
+  src/push/primitives/Pointer.cpp
+  src/push/primitives/Rectangle.cpp
+  src/push/primitives/StaticLabel.cpp
+  src/push/primitives/UnitUIBase.cpp
 
-  src/ui/pushThread.cpp
+  #utility
+  src/push/utility/PadNoteLayout.cpp
+  src/push/utility/PushUIContext.cpp
 
+  src/push/pushThread.cpp
 
-  #other
-  src/defines.cpp
-
+  #common
+  src/common/defines.cpp
+  src/common/uiControls.cpp
   src/common/Profiler.cpp
 )
 

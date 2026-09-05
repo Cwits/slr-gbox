@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/Project.h"
-#include "core/primitives/RenderPlan.h"
+#include "core/RenderPlan.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
 #include "core/primitives/AudioUnit.h"
@@ -24,14 +24,14 @@ struct Dummy : public slr::AudioUnit {
     }
     ~Dummy() {}
 
-    RT_FUNC slr::frame_t process(const slr::AudioContext &ctx, const slr::Dependencies * const inputs, const uint32_t inputsCount) { 
+    slr::frame_t process(const slr::AudioContext &ctx, const slr::Dependencies * const inputs, const uint32_t inputsCount) { 
         return 0;
     }
 
-    RT_FUNC void prepareToPlay() {}
-    RT_FUNC void prepareToRecord() {}
-    RT_FUNC void stopPlaying() {}
-    RT_FUNC void stopRecording() {}
+    void prepareToPlay() {}
+    void prepareToRecord() {}
+    void stopPlaying() {}
+    void stopRecording() {}
 
 };
 

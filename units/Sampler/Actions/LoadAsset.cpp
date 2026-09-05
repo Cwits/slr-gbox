@@ -4,11 +4,11 @@
 
 #include "units/Sampler/Sampler.h"
 
-#include "core/primitives/ActionBase.h"
+#include "core/actions/ActionBase.h"
 #include "core/primitives/AudioFile.h"
-#include "core/primitives/ControlContext.h"
+#include "core/utility/ControlContext.h"
 #include "core/FileWorker.h"
-#include "core/FileTasks.h"
+#include "core/filetasks/FileTasks.h"
 #include "core/utility/helper.h"
 
 #include "core/Project.h"
@@ -16,7 +16,7 @@
 // #include "snapshots/AudioUnitView.h"
 #include "units/Sampler/SamplerView.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <cassert>
 

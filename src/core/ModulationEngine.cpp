@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/ModulationEngine.h"
 
-#include "core/primitives/AudioContext.h"
+#include "core/utility/AudioContext.h"
+
+#include <algorithm>
 
 namespace slr {
 
@@ -53,6 +55,23 @@ float ModulationPattern::value(frame_t frame) const {
     // return res;
 }
 
+
+void ModulationPattern::prepareToPlay() {
+
+}
+
+void ModulationPattern::prepareToRecord() {
+
+}
+
+void ModulationPattern::stopPlaying() {
+
+}
+
+void ModulationPattern::stopRecording() {
+
+}
+
 ModulationEngine::ModulationEngine() {
     _playable.reserve(16);
 }
@@ -89,21 +108,6 @@ ModulationPattern * ModulationEngine::findPatternById(ID id) {
     return (*found).get();
 }
 
-void ModulationEngine::prepareToPlay() {
-
-}
-
-void ModulationEngine::prepareToRecord() {
-
-}
-
-void ModulationEngine::stopPlaying() {
-
-}
-
-void ModulationEngine::stopRecording() {
-
-}
 
 
 }

@@ -3,12 +3,13 @@
 
 #include "core/Metronome.h"
 
-#include "core/primitives/AudioContext.h"
+#include "core/utility/AudioContext.h"
 #include "core/utility/basicAudioManipulation.h"
 #include "core/Timeline.h"
 #include "core/SettingsManager.h"
 
-#include "logger.h"
+#include "common/Math.h"
+#include "common/logger.h"
 
 namespace slr {
     
@@ -32,9 +33,7 @@ Metronome::~Metronome() {
 
 }
 
-frame_t Metronome::process(const AudioContext &ctx, 
-                    const Dependencies &inputs) 
-{
+frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) const {
     bool tick = false;
     frame_t delay = 0;
     frame_t samplesToPlay = 0;
@@ -92,7 +91,7 @@ frame_t Metronome::process(const AudioContext &ctx,
             frame_t delta = s + (_soundLength - _remainedSamplesToPlay);
 
             // sample_t amp = std::exp(-(float)delta / _tau) * std::sin(2.0f*M_PI * freq * (delta/44100));
-            sample_t amp = 0.7*std::sin(2.0f*M_PI * freq * ((float)delta/(float)_sampleRate));
+            sample_t amp = 0.7*sMath::sin(sMath::TWOPIF * freq * ((float)delta/(float)_sampleRate));
             //TODO: add simple decay
             (*_outputs)[0][s] = amp;
             (*_outputs)[1][s] = amp;

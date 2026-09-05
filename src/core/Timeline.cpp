@@ -4,7 +4,6 @@
 #include "core/Timeline.h"
 #include "core/Project.h"
 #include "core/SettingsManager.h"
-#include "defines.h"
 
 namespace slr {
 

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "units/SimpleOscillator/SimpleOsc.h"
 
-#include "core/primitives/AudioContext.h"
-#include "core/primitives/RenderPlan.h"
+#include "core/utility/AudioContext.h"
+#include "core/RenderPlan.h"
 
 #include "core/SettingsManager.h"
 
@@ -24,7 +24,7 @@ SimpleOsc::~SimpleOsc() {
 
 }
 
-frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) {
+frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) const {
     if(isMuted(ctx)) return ctx.frames;
 
     _midiOutput->clear();

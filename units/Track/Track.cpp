@@ -3,16 +3,18 @@
 
 #include "units/Track/Track.h"
 
-#include "core/primitives/AudioContext.h"
+#include "core/utility/AudioContext.h"
 #include "core/primitives/Parameter.h"
 #include "core/primitives/AudioFile.h"
-#include "core/primitives/RenderPlan.h"
+#include "core/RenderPlan.h"
 #include "core/primitives/MidiBuffer.h"
 #include "core/primitives/MidiFile.h"
 
+#include "common/FileIO.h"
+
 #include "core/BufferManager.h"
 #include "core/FileWorker.h"
-#include "core/FileTasks.h"
+#include "core/filetasks/FileTasks.h"
 #include "core/SettingsManager.h"
 #include "core/ControlEngine.h"
 #include "core/RtEngine.h"
@@ -23,8 +25,8 @@
 
 #include "units/Track/TrackActions.h"
 
-#include "logger.h"
-#include "defines.h"
+#include "common/logger.h"
+#include "common/defines.h"
 
 namespace slr {
 
@@ -68,7 +70,7 @@ bool Track::destroy(BufferManager *man) {
     return true;
 }
 
-frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
+frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) const {
     /* 
     handle spsc control queue events(because some may be injected via mod engine or automations)
     */
@@ -206,7 +208,7 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) {
     if(_midiThru)
         copyMidiBuffer(_midiInput, _midiOutput);
 
-    applyMidiEvents(_midiInput);
+    // applyMidiEvents(_midiInput); //better call it like applyLearnedCC?
 
 
     /* preFX buffers completed */
@@ -271,7 +273,7 @@ void Track::stopRecording() {
 }
 
 //latencyToCompensate comes from RecordArm or ReinitRecord events...
-bool Track::prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate) {
+bool Track::prepareAudioRecord(RtEngine * engine, FileWorker * fw, frame_t latencyToCompensate) {
     if(_recordTarget != nullptr) {
         if(!_recordTarget->release(fw)) {
             LOG_ERROR("Failed to release record target");
@@ -283,12 +285,13 @@ bool Track::prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate) {
     bool ret = false;
 
     _recordTarget = new AudioRecord(this);
+    _recordTarget->_engine = engine;
     ret = _recordTarget->prepare(fw, latencyToCompensate);
     // _recordTarget->parent = this;
     return ret;
 }
     
-bool Track::prepareMidiRecord(FileWorker * fw) {
+bool Track::prepareMidiRecord(RtEngine * engine, FileWorker * fw) {
     // LOG_WARN("Midi recording now available yet");
     if(_recordTarget != nullptr) {
         if(!_recordTarget->release(fw)) {
@@ -300,6 +303,7 @@ bool Track::prepareMidiRecord(FileWorker * fw) {
     }
     bool ret = false;
     _recordTarget = new MidiRecord(this);
+    _recordTarget->_engine = engine;
     ret = _recordTarget->prepare(fw, 0);
 
     return ret;
@@ -321,8 +325,8 @@ bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
     // _bufferInUse = AudioBufferManager::acquireRecord();
     _bufferInUse = _parent->_bufferManager->acquireAudioRecord();
 
-    std::string generated = getDateTime();
-    generated.append(generateRandomName(4));
+    std::string generated = Common::FileIO::getDateTime();
+    generated.append(Common::FileIO::generateRandomName(4));
     std::string path = SettingsManager::getTmpRecordPath();
     path.append(generated);
     path.append(".wav");
@@ -442,7 +446,7 @@ void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file,
     _flat.fileStartPosition = fileStartPosition;
     _flat.trackId = _parent->id();
     _task = makeRtTask(&_flat);
-    RtEngine::addRtResponse(&_task);
+    _engine->addRtResponse(&_task);
 
     _fileUsed = true;
 }
@@ -452,8 +456,8 @@ void Track::AudioRecord::dumpDataCommand(AudioBuffer * buffer, AudioFile * file,
 bool Track::MidiRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
     _bufferInUse = _parent->_bufferManager->acquireMidiRecord();
     
-    std::string generated = getDateTime();
-    generated.append(generateRandomName(4));
+    std::string generated = Common::FileIO::getDateTime();
+    generated.append(Common::FileIO::generateRandomName(4));
     std::string path = SettingsManager::getTmpRecordPath();
     path.append(generated);
     path.append(".mid");

@@ -3,7 +3,7 @@
 
 #include "snapshots/ParameterArrayView.h"
 #include "snapshots/ParameterView.h"
-#include "logger.h"
+#include "common/logger.h"
 
 namespace slr {
 

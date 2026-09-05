@@ -6,20 +6,21 @@
 #include "units/SimpleOscillator/SimpleOscView.h"
 #include "snapshots/AudioUnitView.h"
 
-#include "ui/display/Timeline.h"
-#include "ui/display/layoutSizes.h"
-#include "ui/display/defaultStyles.h"
-#include "ui/display/defaultColors.h"
-#include "ui/display/primitives/UIContext.h"
-#include "ui/display/primitives/Button.h"
-#include "ui/display/primitives/Label.h"
-#include "ui/display/primitives/FileView.h"
-#include "ui/uiutility.h"
+#include "display/elements/Timeline.h"
+#include "display/utility/layoutSizes.h"
+#include "display/utility/defaultStyles.h"
+#include "display/utility/defaultColors.h"
+#include "display/utility/UIContext.h"
+
+#include "display/primitives/Button.h"
+#include "display/primitives/Label.h"
+#include "display/primitives/FileView.h"
+#include "common/uiutility.h"
 
 #include "core/utility/helper.h"
 // #include "core/Events.h"
 
-#include "logger.h"
+#include "common/logger.h"
 #include <cassert>
 
 namespace UI {

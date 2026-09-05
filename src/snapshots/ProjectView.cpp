@@ -8,11 +8,11 @@
 
 #include "core/Timeline.h"
 #include "core/ControlEngine.h"
-#include "core/primitives/ControlContext.h"
+#include "core/utility/ControlContext.h"
 #include "core/UnitManager.h"
 #include "core/SettingsManager.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <algorithm>
 

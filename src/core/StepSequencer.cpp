@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "core/StepSequencer.h"
-#include "core/primitives/AudioContext.h"
+#include "core/utility/AudioContext.h"
 #include "core/primitives/AudioUnit.h"
 
 #include "core/Project.h"
 #include "core/Timeline.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 
 namespace slr {
 

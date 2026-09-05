@@ -8,9 +8,9 @@
 #include <atomic>
 #include <stdlib.h>
 
-#include "ui/guiThread.h"
+#include "display/guiThread.h"
 #include "core/ControlEngine.h"
-#include "logger.h"
+#include "common/logger.h"
 
 void handle_sigint(int i) {
     (void)i;

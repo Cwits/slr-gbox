@@ -3,10 +3,10 @@
 #include "snapshots/SequenceView.h"
 
 #include "core/StepSequencer.h"
-#include "core/primitives/AudioContext.h"
 #include "core/primitives/AudioUnit.h"
 
-#include "logger.h"
+#include "common/logger.h"
+#include <algorithm>
 
 namespace slr {
 

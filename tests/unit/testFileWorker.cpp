@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/FileWorker.h"
-#include "core/primitives/Task.h"
+#include "core/filetasks/FileTask.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioBuffer.h"
 #include "testhelper.h"

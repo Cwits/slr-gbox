@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "units/Track/Actions/ReinitTrackRecord.h"
 
-#include "core/primitives/ActionBase.h"
-#include "core/primitives/ControlContext.h"
+#include "core/actions/ActionBase.h"
+#include "core/utility/ControlContext.h"
 
 #include "core/drivers/AudioDriver.h"
 #include "core/Project.h"
@@ -11,7 +11,7 @@
 #include "core/RtEngine.h"
 #include "units/Track/Track.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <cassert>
 
@@ -57,11 +57,11 @@ void ReinitTrackRecordAction::exec(ControlContext &ctx) {
             slr::frame_t latencyToCompensate = inputLatency+outputLatency+SettingsManager::getManualLatencyCompensation();
             LOG_INFO("Total latency compensation for recording is %lu", latencyToCompensate);
             if(src == RecordSource::Audio) {
-                if(!track->prepareAudioRecord(ctx.fileWorker, latencyToCompensate)) {
+                if(!track->prepareAudioRecord(ctx.engine, ctx.fileWorker, latencyToCompensate)) {
                     success = false;
                 }
             } else {
-                if(!track->prepareMidiRecord(ctx.fileWorker)) {
+                if(!track->prepareMidiRecord(ctx.engine, ctx.fileWorker)) {
                     success = false;
                 }
             }

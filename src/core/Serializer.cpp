@@ -5,11 +5,11 @@
 
 #include "common/FileIO.h"
 
-#include "core/primitives/ControlContext.h"
+#include "core/utility/ControlContext.h"
 
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/File.h"
-#include "core/primitives/FileContainer.h"
+#include "core/primitives/ClipItem.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
 
@@ -17,16 +17,16 @@
 #include "core/SettingsManager.h"
 #include "core/Project.h"
 #include "core/Timeline.h"
-#include "core/FileTasks.h"
+#include "core/filetasks/FileTasks.h"
 #include "core/FileWorker.h"
 
-#include "core/Actions.h"
+#include "core/actions/Actions.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
 #include "snapshots/FileContainerView.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <nlohmann/json.hpp>
 #include <fstream>

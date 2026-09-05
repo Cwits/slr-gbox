@@ -100,17 +100,6 @@ Project:
 [ ] - make undo/redo system
 
 Render Plan:
-[x] - treat mixer as regular audio unit.
-[x] - instead of mixer dependencies make output dependencies, so after processing all the units rt engine can do:
-        TODO: RtEngine.cpp:150
-        int mainoutsnum = plan->mainoutscount;
-        for(int i=0; i<mainoutsnum; ++i) {
-                for(frame_t f=0; f<ctx.frames; ++f) { 
-                (*ctx.mainOutputs)[0][f] += (*plan->mainouts)[0][f];
-                (*ctx.mainOutputs)[1][f] += (*plan->mainouts)[1][f];
-                }
-        }
-        so, if there will be some units that will send directly to output - it will mix together
 [ ] - implement settings checkbox "automatically update Render Plan on each new route" or smth
         so, if checked - render plan would be rebuilt every time new route(audio or midi) would be added.
         if unchecked - render plan would be updated only if user press specific button.(so can add bunch of routes and than update).

@@ -4,7 +4,7 @@
 #include "core/primitives/AudioBuffer.h"
 #include "core/SettingsManager.h"
 #include "testhelper.h"
-#include "slr_config.h"
+#include "common/core_config.h"
 #include <gtest/gtest.h>
 #include <malloc.h>
 #include <iostream>

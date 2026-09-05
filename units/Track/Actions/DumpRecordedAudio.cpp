@@ -2,24 +2,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "units/Track/Actions/DumpRecordedAudio.h"
 
-#include "core/primitives/ActionBase.h"
-#include "core/primitives/ControlContext.h"
-#include "core/ActionsMap.h"
+#include "core/actions/ActionBase.h"
+#include "core/actions/ActionsMap.h"
+#include "core/utility/ControlContext.h"
 
 #include "core/Project.h"
 #include "core/FileWorker.h"
-#include "core/FileTasks.h"
+#include "core/filetasks/FileTasks.h"
 #include "core/primitives/File.h"
 #include "core/primitives/AudioFile.h"
 #include "core/utility/basicAudioManipulation.h"
 #include "core/BufferManager.h"
 
-#include "core/Actions.h"
+#include "core/actions/Actions.h"
 
 #include "units/Track/Track.h"
 #include "units/Track/TrackActions.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <cassert>
 

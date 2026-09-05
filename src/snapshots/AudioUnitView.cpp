@@ -4,9 +4,9 @@
 #include "snapshots/AudioUnitView.h"
 #include "core/primitives/AudioUnit.h"
 
-#include "core/Actions.h"
+#include  "core/actions/Actions.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 namespace slr {
 

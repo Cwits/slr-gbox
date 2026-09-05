@@ -5,13 +5,14 @@
 
 #include "core/primitives/Parameter.h"
 #include "core/primitives/AudioFile.h"
-#include "core/primitives/AudioContext.h"
-#include "core/primitives/RenderPlan.h"
+#include "core/primitives/ClipItem.h"
+#include "core/utility/AudioContext.h"
+#include "core/RenderPlan.h"
 
 #include "core/utility/basicAudioManipulation.h"
 
 #include "core/BufferManager.h"
-#include "logger.h"
+#include "common/logger.h"
 
 #include <cmath>
 #include <algorithm>
@@ -73,7 +74,7 @@ bool AudioUnit::hasParameterWithId(ID parameterId) {
     return false;
 }
 
-bool AudioUnit::isMuted(const AudioContext &ctx) {
+bool AudioUnit::isMuted(const AudioContext &ctx) const {
     if(_mute) {
         if(!_buffersClear) {
             _buffersClear = true;
@@ -87,11 +88,11 @@ bool AudioUnit::isMuted(const AudioContext &ctx) {
     return false;
 }
 
-void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
+// void AudioUnit::applyMidiEvents(MidiBuffer *buf) {
 
-}
+// }
 
-void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid) {
+void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuffer *mid) const {
     if(!_clipContainer) return; //because container created only when some files is loaded
 
     for(const ClipItem * const item : *_clipContainer) {
@@ -163,11 +164,11 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
     }
 }
 
-void AudioUnit::clearMidiBuffer() { _midiInput->clear(); }
+void AudioUnit::clearMidiInput() const { _midiInput->clear(); }
 
 //fetch midi data from inputs to _midiInput buffer and sort them all
 //events from step sequencer will be there already
-void AudioUnit::fetchAndSortMidi(const AudioContext &ctx, const Dependencies &inputs) {
+void AudioUnit::fetchAndSortMidi(const AudioContext &ctx, const Dependencies &inputs) const {
     //_midiInput already clear and (probably) filled with some events from step sequencer or wherever
     if(inputs.midiDepsCnt == 0) return;
 

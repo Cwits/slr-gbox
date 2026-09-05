@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "units/Mixer/Mixer.h"
-#include "core/primitives/AudioContext.h"
+#include "core/utility/AudioContext.h"
 #include "core/utility/basicAudioManipulation.h"
-#include "core/primitives/RenderPlan.h"
+#include "core/RenderPlan.h"
 
 namespace slr {
 
@@ -16,7 +16,7 @@ Mixer::~Mixer() {
 
 }
 
-frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs)  {
+frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs) const {
     if(isMuted(ctx)) return ctx.frames;
 
     clearAudioBuffer((*_outputs)[0], ctx.frames);

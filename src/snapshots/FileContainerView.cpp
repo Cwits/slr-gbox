@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "snapshots/FileContainerView.h"
-#include "core/primitives/FileContainer.h"
+#include "core/primitives/ClipItem.h"
 #include "core/primitives/File.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <algorithm>
 

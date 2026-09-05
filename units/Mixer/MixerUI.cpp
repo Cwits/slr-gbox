@@ -4,21 +4,20 @@
 #include "units/Mixer/MixerUI.h"
 
 #include "units/Mixer/MixerView.h"
-#include "ui/display/layoutSizes.h"
-#include "ui/display/defaultColors.h"
-#include "ui/display/primitives/Button.h"
-#include "ui/display/primitives/Label.h"
-#include "ui/display/primitives/UIContext.h"
-#include "ui/display/primitives/Slider.h"
-#include "ui/uiutility.h"
+#include "display/primitives/Button.h"
+#include "display/primitives/Label.h"
+#include "display/primitives/Slider.h"
+#include "display/utility/layoutSizes.h"
+#include "display/utility/defaultColors.h"
+#include "display/utility/UIContext.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/utility/helper.h"
-#include "core/Actions.h"
-// #include "core/Events.h"
-#include "logger.h"
+#include "core/actions/Actions.h"
+#include "common/uiutility.h"
+#include "common/logger.h"
 
 #include <vector>
 #include <algorithm>

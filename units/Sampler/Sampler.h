@@ -5,7 +5,7 @@
 #include "core/primitives/AudioUnit.h"
 // #include "core/FlatEvents.h"
 // #include "common/Status.h"
-#include "defines.h"
+#include "common/defines.h"
 
 namespace slr {
 
@@ -24,12 +24,12 @@ struct Sampler : public AudioUnit {
     bool create(BufferManager *man);
     bool destroy(BufferManager *man);
 
-    RT_FUNC frame_t process(const AudioContext &ctx,  const Dependencies &inputs) override;
+    frame_t process(const AudioContext &ctx,  const Dependencies &inputs) const override;
 
-    RT_FUNC void prepareToPlay() override;
-    RT_FUNC void prepareToRecord() override;
-    RT_FUNC void stopPlaying() override;
-    RT_FUNC void stopRecording() override;
+    void prepareToPlay() override;
+    void prepareToRecord() override;
+    void stopPlaying() override;
+    void stopRecording() override;
 
     // const AudioBuffer * outputs() const { return _postFX; }
     

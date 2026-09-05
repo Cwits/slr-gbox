@@ -5,8 +5,8 @@
 
 #include "core/primitives/ClipContainer.h"
 
-#include "ui/display/primitives/UnitUIBase.h"
-#include "ui/push/primitives/UnitUIBase.h"
+#include "display/primitives/UnitUIBase.h"
+#include "push/primitives/UnitUIBase.h"
 
 #include "units/Sampler/Sampler.h"
 #include "units/Sampler/SamplerUI.h"

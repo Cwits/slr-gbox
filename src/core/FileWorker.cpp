@@ -3,17 +3,12 @@
 
 #include "core/FileWorker.h"
 
-#include "core/primitives/File.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/MidiFile.h"
-#include "core/primitives/FileWorkerContext.h"
-#include "core/ControlEngine.h"
-#include "core/FileTasks.h"
-#include "logger.h"
+#include "core/utility/FileWorkerContext.h"
+#include "core/filetasks/FileTasks.h"
+#include "common/logger.h"
 
-#include <iomanip>  //for getDateTime
-#include <ctime>    //for getDateTime
-#include <sstream>  //for getDateTime
 #include <algorithm>
 
 namespace slr {
@@ -293,38 +288,6 @@ const std::vector<File*> FileWorker::listFiles() {
     }
 
     return ret;
-}
-
-
-//returns string with d-m-Y H-M-S
-std::string getDateTime()
-{
-    auto t = std::time(nullptr);
-    auto tm = *std::localtime(&t);
-
-    std::stringstream ss;
-    ss << std::put_time(&tm, "%d-%m-%Y:%H-%M-%S");
-
-    return ss.str();
-}
-
-//generate random string with specified length
-//len should be > 1
-std::string generateRandomName(int length)
-{
-    char letters[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
-    char randLetters[length] = {0};
-
-    for(int i=0; i<length-1; ++i)
-    {
-        randLetters[i] = letters[rand()%26];
-    }
-    randLetters[length] = '\0';
-    
-    std::string str;
-    str.append(randLetters);
-
-    return str;
 }
 
 }

@@ -4,7 +4,7 @@
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/AudioFile.h"
 #include "core/utility/helper.h"
-#include "logger.h"
+#include "common/logger.h"
 #include <string>
 #include <cstdio>
 #include <cstdint>

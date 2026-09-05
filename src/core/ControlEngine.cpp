@@ -5,15 +5,12 @@
 
 #include "core/drivers/AudioDriver.h"
 
-#include "core/primitives/ControlContext.h"
-#include "core/primitives/SPSCQueue.h"
-#include "core/primitives/ActionBase.h"
-#include "core/primitives/ActionExecutable.h"
-#include "core/primitives/MidiEvent.h"
+#include "core/utility/ControlContext.h"
 #include "core/primitives/RtTask.h"
 
-#include "core/ActionsMap.h"
-// #include "core/AudioBufferManager.h"
+#include "core/actions/ActionsMap.h"
+#include "core/actions/ActionBase.h"
+#include "core/actions/ActionExecutable.h"
 #include "core/BufferManager.h"
 #include "core/RtEngine.h"
 #include "core/Project.h"
@@ -25,14 +22,14 @@
 
 #include "core/utility/helper.h"
 
-#include "logger.h"
+#include "common/logger.h"
 #include "common/Profiler.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/FileContainerView.h"
 #include "snapshots/DriverView.h"
 
-#include "ui/uiControls.h"
+#include "common/uiControls.h"
 
 #include <cassert>
 #include <thread>
@@ -188,6 +185,7 @@ void processLoop() {
         {
             //is it still used??s
             //check for responses from RT
+            // _engine->processResponses();
             SPSCQueue<RtTask*, 256> & resps = _engine->getResponses();
             
             RtTask * task = nullptr;

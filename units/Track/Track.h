@@ -6,7 +6,7 @@
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/RtTask.h"
 #include "units/Track/TrackActions.h"
-#include "defines.h"
+#include "common/defines.h"
 
 namespace slr {
 
@@ -14,6 +14,7 @@ class ParameterBase;
 class FileWorker;
 class BufferManager;
 class MidiFile;
+struct RtEngine;
 
 class Track : public AudioUnit {
     public:
@@ -24,12 +25,12 @@ class Track : public AudioUnit {
     bool create(BufferManager *man);
     bool destroy(BufferManager *man);
 
-    RT_FUNC frame_t process(const AudioContext &ctx,  const Dependencies &inputs) override;
+    frame_t process(const AudioContext &ctx,  const Dependencies &inputs) const override;
 
-    RT_FUNC void prepareToPlay() override;
-    RT_FUNC void prepareToRecord() override;
-    RT_FUNC void stopPlaying() override;
-    RT_FUNC void stopRecording() override;
+    void prepareToPlay() override;
+    void prepareToRecord() override;
+    void stopPlaying() override;
+    void stopRecording() override;
 
     // const AudioBuffer * outputs() const { return _postFX; }
 
@@ -38,8 +39,8 @@ class Track : public AudioUnit {
     const RecordSource recordSource() const { return _recordSource; }
     inline void setRecordSource(RecordSource src) { _recordSource = src; }
 
-    bool prepareAudioRecord(FileWorker * fw, frame_t latencyToCompensate);
-    bool prepareMidiRecord(FileWorker * fw);
+    bool prepareAudioRecord(RtEngine * engine, FileWorker * fw, frame_t latencyToCompensate);
+    bool prepareMidiRecord(RtEngine * engine, FileWorker * fw);
     bool releaseRecordTarget(FileWorker * fw);
 
     private:
@@ -60,19 +61,21 @@ class Track : public AudioUnit {
         virtual bool prepare(FileWorker * fw, frame_t latencyToCompensate) = 0;
         virtual bool release(FileWorker * fw) = 0;
 
-        RT_FUNC virtual void startRecord() = 0;
-        RT_FUNC virtual void stopRecord() = 0;
-        RT_FUNC virtual void incrementCounter(frame_t frames) = 0;
-        RT_FUNC virtual void finalize() = 0;
-        RT_FUNC virtual void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) = 0;
+        virtual void startRecord() = 0;
+        virtual void stopRecord() = 0;
+        virtual void incrementCounter(frame_t frames) = 0;
+        virtual void finalize() = 0;
+        virtual void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) = 0;
         
-        RT_FUNC void setFileStartPosition(frame_t frame) { _fileStartPosition = frame; }
-        RT_FUNC bool isFirstWrite() const { return _firstWrite; }
-        RT_FUNC void markDirty() { _firstWrite = false; }
-        RT_FUNC const frame_t & fileStartPosition() { return _fileStartPosition; }
+        void setFileStartPosition(frame_t frame) { _fileStartPosition = frame; }
+        bool isFirstWrite() const { return _firstWrite; }
+        void markDirty() { _firstWrite = false; }
+        const frame_t & fileStartPosition() { return _fileStartPosition; }
 
         bool used() const { return _fileUsed; }
         // Track * parent = nullptr;
+
+        RtEngine * _engine = nullptr;
         protected:
         bool _fileUsed = false;
         bool _finalizeRequested = false;
@@ -86,11 +89,12 @@ class Track : public AudioUnit {
         bool prepare(FileWorker * fw, frame_t latencyToCompensate) override;
         bool release(FileWorker * fw) override;
         
-        RT_FUNC void startRecord() override;
-        RT_FUNC void stopRecord() override;
-        RT_FUNC void incrementCounter(frame_t frames) override;
-        RT_FUNC void finalize() override;
-        RT_FUNC void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) override;
+        void startRecord() override;
+        void stopRecord() override;
+        void incrementCounter(frame_t frames) override;
+        void finalize() override;
+        void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) override;
+        
         private:
         Track * _parent = nullptr;
         AudioFile * _recordFile = nullptr;
@@ -106,7 +110,6 @@ class Track : public AudioUnit {
 
         void dumpDataCommand(AudioBuffer * buffer, AudioFile * file, frame_t size, frame_t fileStartPosition/*, const AudioContext &ctx*/);
     
-        
         RtTasks::DumpAudioFlat _flat;
         RtTask _task;
     };
@@ -117,11 +120,11 @@ class Track : public AudioUnit {
         virtual bool prepare(FileWorker * fw, frame_t latencyToCompensate) override;
         virtual bool release(FileWorker * fw) override;
 
-        RT_FUNC virtual void startRecord() override;
-        RT_FUNC virtual void stopRecord() override;
-        RT_FUNC virtual void incrementCounter(frame_t frames) override;
-        RT_FUNC virtual void finalize() override;
-        RT_FUNC virtual void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) override;
+        virtual void startRecord() override;
+        virtual void stopRecord() override;
+        virtual void incrementCounter(frame_t frames) override;
+        virtual void finalize() override;
+        virtual void writeData(void * data, frame_t frames, uint8_t numChannels, bool compensateLatency) override;
         
         private:
         Track * _parent = nullptr;

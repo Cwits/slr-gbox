@@ -1,0 +1,37 @@
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
+#include "push/elements/BrowserWidget.h"
+
+#include "push/core/PushContext.h"
+#include "push/core/PushPainter.h"
+
+#include "push/utility/PushUIContext.h"
+
+namespace PushUI {
+
+BrowserWidget::BrowserWidget(PushLib::Widget *parent, PushUIContext * const puictx) :
+    Widget(parent),
+    _pUIctx(puictx)
+{
+    position(0, 0);
+    size(PushLib::DISPLAY_WIDTH, PushLib::DISPLAY_HEIGHT);
+}
+
+BrowserWidget::~BrowserWidget() {
+
+}
+
+void BrowserWidget::paint(PushLib::Painter &p) {
+    p.clearScreen();
+}
+
+bool BrowserWidget::handleButton(PushLib::ButtonEvent &ev) {
+    return _pUIctx->tryHandleButtonDefault(ev);
+}
+
+bool BrowserWidget::handleEncoder(PushLib::EncoderEvent &ev) {
+    return false;
+}
+
+
+}

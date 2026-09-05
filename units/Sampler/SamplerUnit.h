@@ -3,7 +3,7 @@
 
 #pragma once
 #include "core/UnitManager.h"
-#include "core/ActionsMap.h"
+#include "core/actions/ActionsMap.h"
 
 extern const slr::UnitDescriptor SamplerDescriptor;
 

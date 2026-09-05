@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "core/primitives/ActionBase.h"
+#include "core/actions/ActionBase.h"
 #include "core/primitives/RtTask.h"
 #include "core/primitives/AudioBuffer.h"
 #include "common/Status.h"
-#include "defines.h"
+#include "common/defines.h"
 
 namespace slr {
 

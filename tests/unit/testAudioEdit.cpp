@@ -10,22 +10,10 @@
 
 #include "core/primitives/AudioBuffer.h"
 #include "core/utility/basicAudioManipulation.h"
+#include "common/FileIO.h"
 
 const std::string pathToTestFiles = "/home/portablejoe/slr/tests/files/";
 const slr::frame_t testFileSize = 64;
-
-bool file_exists(const std::string& path) {
-    FILE* file = std::fopen(path.c_str(), "r");
-    if (file) {
-        std::fclose(file);
-        return true;
-    }
-    return false;
-}
-
-bool delete_file(const std::string& path) {
-    return std::remove(path.c_str()) == 0;
-}
 
 TEST(AudioEdit, Cut) {
     

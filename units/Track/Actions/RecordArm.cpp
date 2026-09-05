@@ -4,8 +4,8 @@
 #include "units/Track/Track.h"
 #include "units/Track/TrackView.h"
 
-#include "core/primitives/ActionBase.h"
-#include "core/primitives/ControlContext.h"
+#include "core/actions/ActionBase.h"
+#include "core/utility/ControlContext.h"
 
 #include "core/drivers/AudioDriver.h"
 #include "core/SettingsManager.h"
@@ -15,7 +15,7 @@
 
 #include "snapshots/ProjectView.h"
 
-#include "logger.h"
+#include "common/logger.h"
 
 #include <cassert>
 #include <cmath>
@@ -46,9 +46,10 @@ void RecordArmAction::exec(ControlContext &ctx) {
 
             bool state = floatToBool(_action.recordState);
             LOG_INFO("Track id: %u record arm toggled, new state %s, source %s", 
-            _action.targetId, 
-            (state ? "On" : "Off"), 
-            (_action.recordSource == RecordSource::Audio ? "Audio" : "Midi"));
+                _action.targetId, 
+                (state ? "On" : "Off"), 
+                (_action.recordSource == RecordSource::Audio ? "Audio" : "Midi")
+            );
             
             if(state) {
                 LOG_INFO("Preparing to record on track id: %u", _action.targetId);
@@ -69,12 +70,12 @@ void RecordArmAction::exec(ControlContext &ctx) {
                 slr::frame_t latencyToCompensate = inputLatency+outputLatency+SettingsManager::getManualLatencyCompensation();
                 LOG_INFO("Total latency compensation for recording is %lu", latencyToCompensate);
                 if(_action.recordSource == RecordSource::Audio) {
-                    if(!track->prepareAudioRecord(ctx.fileWorker, latencyToCompensate)) {
+                    if(!track->prepareAudioRecord(ctx.engine, ctx.fileWorker, latencyToCompensate)) {
                         LOG_ERROR("Failed to prepare for audio record");
                         return;
                     }
                 } else {
-                    if(!track->prepareMidiRecord(ctx.fileWorker)) {
+                    if(!track->prepareMidiRecord(ctx.engine, ctx.fileWorker)) {
                         LOG_ERROR("Failed to prepare for midi record");
                         return;
                     }
