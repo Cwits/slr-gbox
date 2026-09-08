@@ -213,7 +213,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     const bool recording = tl.recording();
     const bool freewheeling = false;
     const frame_t elapsed = tl.elapsed(framesPassed);
-    
+
     AudioContext ctx(playing,
                     recording,
                     freewheeling, //freewheeling mode
@@ -243,17 +243,17 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     // }
     */
 
-    // if(plan->modulationPatterns) {
-    //     for(const auto *ptrn : *plan->modulationPatterns) {
-    //         ptrn->process(ctx);
-    //     }
-    // }
+    if(plan->modPatternCount) {
+        for(uint32_t p=0; p<plan->modPatternCount; ++p) {
+            plan->modulationPatterns[p].process(ctx);
+        }
+    }
 
-    // if(plan->sequences) {
-    //     for(const auto *sqc : *plan->sequences) {
-    //         sqc->tick(ctx);
-    //     }
-    // }
+    if(plan->sequenceCount) {
+        for(uint32_t s=0; s<plan->sequenceCount; ++s) {
+            plan->sequences[s].tick(ctx);
+        }
+    }
    
     
     //for debugging...
