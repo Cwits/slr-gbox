@@ -421,8 +421,10 @@ bool copyUnits(PlanHolder *dst, const PlanHolder *src) {
 }
 bool buildModulations(ControlContext &ctx, PlanHolder *holder) {
     holder->modPatterns = ctx.project->modulationEngine()->allPatterns();
-    holder->plan->modulationPatterns = holder->modPatterns.data()[0];
-    holder->plan->modPatternCount = holder->modPatterns.size();
+    if(holder->modPatterns.size()) {
+        holder->plan->modulationPatterns = holder->modPatterns.data()[0];
+        holder->plan->modPatternCount = holder->modPatterns.size();
+    }
     return true;
 }
 bool copyModulations(PlanHolder *dst, const PlanHolder *src) {
@@ -430,8 +432,10 @@ bool copyModulations(PlanHolder *dst, const PlanHolder *src) {
 }
 bool buildSequences(ControlContext &ctx, PlanHolder *holder) {
     holder->sequences = ctx.project->stepSequencer()->allSequences();
-    holder->plan->sequences = holder->sequences.data()[0];
-    holder->plan->sequenceCount = holder->sequences.size();
+    if(holder->sequences.size()) {
+        holder->plan->sequences = holder->sequences.data()[0];
+        holder->plan->sequenceCount = holder->sequences.size();
+    }
     return true;
 }
 bool copySequences(PlanHolder *dst, const PlanHolder *src) {
