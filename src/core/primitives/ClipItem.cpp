@@ -33,37 +33,37 @@ ClipItem::ClipItem(const File * const file, frame_t startPos, long forcedId) :
 
 ClipItem::~ClipItem() {}
 
-ClipContainerBuffer::ClipContainerBuffer() {
-    _container1 = std::make_unique<ClipContainer>();
-    _container2 = std::make_unique<ClipContainer>();
-    _container1->reserve(2);
-    _container2->reserve(2);
+// ClipContainerBuffer::ClipContainerBuffer() {
+//     _container1 = std::make_unique<ClipContainer>();
+//     _container2 = std::make_unique<ClipContainer>();
+//     _container1->reserve(2);
+//     _container2->reserve(2);
 
-    // std::unique_ptr<ClipContainer> b1 = std::make_unique<ClipContainer>();
-    // std::unique_ptr<ClipContainer> b2 = std::make_unique<ClipContainer>();
-    // b1->reserve(2); b2->reserve(2);
-    // _containers.init(std::move(b1), std::move(b2));
+//     // std::unique_ptr<ClipContainer> b1 = std::make_unique<ClipContainer>();
+//     // std::unique_ptr<ClipContainer> b2 = std::make_unique<ClipContainer>();
+//     // b1->reserve(2); b2->reserve(2);
+//     // _containers.init(std::move(b1), std::move(b2));
 
-    _inUse = false;
-}
+//     _inUse = false;
+// }
 
-ClipContainer * ClipContainerBuffer::modifiableContainer() {
-    if(!_inUse) return _container1.get();
-    else return _container2.get();
-}
+// ClipContainer * ClipContainerBuffer::modifiableContainer() {
+//     if(!_inUse) return _container1.get();
+//     else return _container2.get();
+// }
 
-const ClipContainer * ClipContainerBuffer::inUseContainer() {
-    if(!_inUse) return _container2.get();
-    else return _container1.get();
-}
+// const ClipContainer * ClipContainerBuffer::inUseContainer() {
+//     if(!_inUse) return _container2.get();
+//     else return _container1.get();
+// }
 
-void ClipContainerBuffer::clear() {
-    LOG_WARN("Not implemented");
-}
+// void ClipContainerBuffer::clear() {
+//     LOG_WARN("Not implemented");
+// }
 
-void ClipContainerBuffer::containerSwapped() {
-    _inUse = !_inUse;
-}
+// void ClipContainerBuffer::containerSwapped() {
+//     _inUse = !_inUse;
+// }
 
 ClipStorage::~ClipStorage() {
 

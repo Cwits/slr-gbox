@@ -27,7 +27,7 @@ class Timeline {
     const bool looping() const { return _isLoop ? true : false; }
     const RollState state() const { return _state; }
 
-    const frame_t elapsed(frame_t & framesPassed);
+    const frame_t elapsed(frame_t & framesPassed) const;
     frame_t lastElapsed() const { return _lastElapsed; }
     const frame_t loopStartFrame() const { return _loopStartFrame; }
     const frame_t loopEndFrame() const { return _loopEndFrame; }
@@ -62,19 +62,19 @@ class Timeline {
     int _sampleRate;
     int _blockSize;
 
-    RollState _state;
+    mutable RollState _state;
     bool _isRecording;
     bool _isLoop;
 
-    bool _resumed;
-    frame_t _frameOnPaused;
+    mutable bool _resumed;
+    mutable frame_t _frameOnPaused;
 
-    frame_t _startCountFrame;
+    mutable frame_t _startCountFrame;
 
-    frame_t _lastLoopStamp;
+    mutable frame_t _lastLoopStamp;
     frame_t _loopStartFrame;
     frame_t _loopEndFrame;
-    bool _loopOnGoing; //internal thing
+    mutable bool _loopOnGoing; //internal thing
 
     Project & _prj;
 
@@ -83,7 +83,7 @@ class Timeline {
     uint32_t calcFramesPerBeat() const;
     uint32_t calcFramesPerBar() const;
 
-    frame_t _lastElapsed; //for ui updates
+    mutable frame_t _lastElapsed; //for ui updates
 
     void play();
     void record();

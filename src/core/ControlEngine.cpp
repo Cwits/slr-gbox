@@ -263,8 +263,11 @@ bool init() {
     _project = std::make_unique<Project>();
     _project->metronome()->create(_bufferManager.get());
     _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
+    
+    const AudioDriver *dri = _engine->driver();
 
-    _engine->setProject(_project.get());
+    _project->timeline().init(dri->sampleRate(), dri->bufferSize());
+    // _engine->setProject(_project.get());
     if(!_engine->start([ctl = _midiController.get()](frame_t framesPassed) {
         ctl->setAnchor(framesPassed);
     })) {
@@ -332,7 +335,10 @@ void prepareForProjectLoading() {
     _project->metronome()->create(_bufferManager.get());
     _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
 
-    _engine->setProject(_project.get());
+    // _engine->setProject(_project.get());
+    const AudioDriver *dri = _engine->driver();
+
+    _project->timeline().init(dri->sampleRate(), dri->bufferSize());
     if(!_engine->start([ctl = _midiController.get()](frame_t framesPassed) {
         ctl->setAnchor(framesPassed);
     })) {

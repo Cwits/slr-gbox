@@ -73,16 +73,13 @@ void ModulationPattern::stopRecording() {
 }
 
 ModulationEngine::ModulationEngine() {
-    _playable.reserve(16);
 }
 
 ModulationEngine::~ModulationEngine() {
 
 }
 
-ModulationPattern * ModulationEngine::createNewModulationPattern(const frame_t blockSize, const frame_t sampleRate) {
-    if(_playable.size() >= 16) return nullptr;
-    
+ModulationPattern * ModulationEngine::createNewModulationPattern(const frame_t blockSize, const frame_t sampleRate) {    
     _modulations.push_back(std::make_unique<ModulationPattern>(patternIdCounter, sampleRate));
     patternIdCounter++;
 
@@ -108,6 +105,15 @@ ModulationPattern * ModulationEngine::findPatternById(ID id) {
     return (*found).get();
 }
 
+std::vector<ModulationPattern*> ModulationEngine::allPatterns() const {
+    std::vector<ModulationPattern*> ret;
+    ret.reserve(_modulations.size());
+    for(auto &mod : _modulations) {
+        ret.push_back(mod.get());
+    }
+
+    return ret;
+}
 
 
 }

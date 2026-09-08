@@ -26,8 +26,8 @@ class JackDriver : public AudioDriver {
     const bool autoconnect() const { return _autoconnect; }
     void setAutoconnect(bool val) { _autoconnect = val; }
     
-    const frame_t inputLatency(int port) override;
-    const frame_t outputLatency(int port) override;
+    frame_t inputLatency(int port) const override;
+    frame_t outputLatency(int port) const override;
 
     private:
     // std::thread _jackServerThread;

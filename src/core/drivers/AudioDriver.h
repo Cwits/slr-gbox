@@ -37,8 +37,8 @@ class AudioDriver {
     const int inputCount() const { return _numInputs; }
     const int outputCount() const { return _numOutputs; }
 
-    virtual const frame_t inputLatency(int port) = 0;
-    virtual const frame_t outputLatency(int port) = 0;
+    virtual frame_t inputLatency(int port) const = 0;
+    virtual frame_t outputLatency(int port) const = 0;
 
     const bool isRunning() const { return _isRunning; }
 
@@ -98,8 +98,8 @@ class AudioDriverFactory {
         bool restart() override {return true;}
         bool changeParameters(frame_t sampleRate, frame_t bufferSize, int numInputs, int numOutputs) override {return true;}
     
-        const frame_t inputLatency(int port) override { return 0; }
-        const frame_t outputLatency(int port) override { return 0; }
+        frame_t inputLatency(int port) const override { return 0; }
+        frame_t outputLatency(int port) const override { return 0; }
     };
 };
 

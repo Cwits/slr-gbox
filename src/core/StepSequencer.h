@@ -4,6 +4,7 @@
 
 #include "common/defines.h"
 #include "core/primitives/StepEvent.h"
+#include "core/primitives/DoubleBuffer.h"
 #include "core/Timeline.h" //this is excessive
  
 #include <vector>
@@ -82,20 +83,13 @@ struct StepSequencerEngine {
     Sequence* findSequenceById(ID id);
     const Sequence* findSequenceById(ID id) const;
 
-    // std::size_t sequenceCount() const { if(!_playableSequences) return 0; else return _playableSequences->size(); }
-    // const std::vector<Sequence*> * sequences() const { return _playableSequences; }
-    [[deprecated]]
-    std::size_t sequenceCount() const { return _playable.size(); } 
-    // [[deprecated]]
-    // const std::vector<std::unique_ptr<Sequence>>& sequences() const { return _sequences; }
-
-    std::vector<Sequence*> &playable() { return _playable; }
-    const std::vector<Sequence*>& playable() const { return _playable; }
-
+    std::vector<Sequence*> allSequences() const;
     
     private:
     std::vector<std::unique_ptr<Sequence>> _sequences;
     std::vector<Sequence*> _playable; //this is temporary, until list won't move to render plan
+
+    
 };
 
 

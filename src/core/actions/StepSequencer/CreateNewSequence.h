@@ -41,6 +41,8 @@ struct CreateNewSequenceAction : public ActionExecutable, public Undoable {
         std::atomic<bool> completed;
     };
 
+    RtTasks::SwapRenderPlan _flatSwap;
+
     AddFlat _flat;
     RemoveFlat _rflat;
     RtTask _task;

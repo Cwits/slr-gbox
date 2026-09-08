@@ -32,13 +32,22 @@ void UpdateRenderPlanAction::exec(ControlContext &ctx) {
 
     switch(_step) {
     	case(1): {
-            if(!ctx.project->prepareSwappablePlan()) {
-                LOG_ERROR("Failed to create swappable plan");
+            // if(!ctx.project->prepareSwappablePlan()) {
+            //     LOG_ERROR("Failed to create swappable plan");
+            //     abortAction();
+            //     return;
+            // }
+            
+            // _flat.project = ctx.project;
+            const RenderPlan * plan = ctx.project->getSwappablePlan(ctx, (uint16_t)PlanBuilder::PlanRebuild::All);
+            if(!plan) {
+                LOG_ERROR("Failed to rebuild plan");
                 abortAction();
                 return;
             }
-            
-            _flat.project = ctx.project;
+
+            _flat.plan = plan;
+            _flat.engine = ctx.engine;
             _flat.completed.store(false);
             _task = makeRtTask(&_flat);
             

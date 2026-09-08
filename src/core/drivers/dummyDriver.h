@@ -22,8 +22,8 @@ class DummyDriver : public AudioDriver {
     bool restart() override;
     bool changeParameters(frame_t sampleRate, frame_t bufferSize, int numInputs, int numOutputs) override;
 
-    const frame_t inputLatency(int port) override { return 64; }
-    const frame_t outputLatency(int port) override { return 128; }
+    frame_t inputLatency(int port) const override { return 64; }
+    frame_t outputLatency(int port) const override { return 128; }
 
     private:
     std::thread _timerThread;

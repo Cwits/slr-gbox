@@ -31,6 +31,8 @@ RtTask makeRtTask(T* obj) {
 
 struct Project;
 struct AudioUnit;
+struct RenderPlan;
+struct RtEngine;
 
 namespace RtTasks {
 
@@ -47,7 +49,8 @@ struct SetParameterFlat : public FlatTask {
 struct SwapRenderPlan : public FlatTask {
 	void execRT();
 	
-	Project * project;
+	const RenderPlan * plan;
+    RtEngine * engine;
 	std::atomic<bool> completed;
 };
 

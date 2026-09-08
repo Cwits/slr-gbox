@@ -13,14 +13,13 @@
 #include "core/ControlEngine.h"
 #include "core/StepSequencer.h"
 #include "core/ModulationEngine.h"
+#include "core/RenderPlan.h"
 
-#include "core/Project.h"
+// #include "core/Project.h"
 #include "core/Timeline.h"
-
 #include "core/Metronome.h"
 
 #include "common/defines.h"
-
 #include "common/Profiler.h"
 
 #include <memory>
@@ -127,6 +126,9 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         }
     }
 
+    
+    if(!_plan) return 0;
+
     //midi work
     for(RtMidiBuffer &b : *_midiInLocal) {
         b.buffer->clear();
@@ -204,11 +206,14 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         }
     }*/
     
-    Timeline & tl = _prj->timeline();
+    const RenderPlan * plan = _plan;
+
+    const Timeline &tl = *plan->timeline;
     const bool playing = tl.playing();//must be called before elapsed because if prevstate == preparing than we can do 
     const bool recording = tl.recording();
     const bool freewheeling = false;
     const frame_t elapsed = tl.elapsed(framesPassed);
+    
     AudioContext ctx(playing,
                     recording,
                     freewheeling, //freewheeling mode
@@ -221,46 +226,35 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
                     // _outputControl,
                     _midiInLocal);
     
-    const RenderPlan * plan = (_prj->isSolo() ? _prj->soloPlan() : _prj->runPlan());
     for(uint32_t n=0; n<plan->nodesCount; ++n) {
         plan->nodes[n].target->clearMidiInput();
     }
 
-    /* 
-    _prj->modEngine->process(ctx, nullptr, 0); -> control events to parameters by target->injectControl(ctrl);
-
-    _prj->stepSequencer->process(ctx, nullptr, 0); -> midi events by target->injectMidi(midi);
-    */
-
     /*
+    //while in freewheeling than some sequences may run out of sync? 
+    // but imo freewheeling must be moved to timeline, so when it is freewheeling than
+    // timeline->elapsed() just return frames, instead of 0 and playing = true?
+
     // if(plan->syncSequences.load(std::memory_order_acquire)) {
     //     for(uint32_t s=0; s<plan->sequenceCount; ++s) {
     //         plan->sequences[s]->setReferencePoint(ctx.totalFrames);
     //     }
     //     plan->syncSequences.store(std::memory_order_relaxed);
     // }
-
-    // if(_prj->stepSequencer()->sequenceCount()) {
-    //     const std::vector<Sequence*> * seq = _prj->stepSequencer()->sequences();
-    //     for(const Sequence *s : *seq) {
-    //         s->tick(ctx);
-    //     }
-    // }
     */
 
-    if(_prj->modulationEngine()->playable().size()) {
-        auto &mod = _prj->modulationEngine()->playable();
-        for(auto &m : mod) {
-            m->process(ctx);
-        }
-    }
+    // if(plan->modulationPatterns) {
+    //     for(const auto *ptrn : *plan->modulationPatterns) {
+    //         ptrn->process(ctx);
+    //     }
+    // }
 
-    if(_prj->stepSequencer()->sequenceCount()) {
-        auto &seq = _prj->stepSequencer()->playable();
-        for(auto &s : seq) {
-            s->tick(ctx);
-        }
-    }
+    // if(plan->sequences) {
+    //     for(const auto *sqc : *plan->sequences) {
+    //         sqc->tick(ctx);
+    //     }
+    // }
+   
     
     //for debugging...
 #if (RT_TRACE == 1)
@@ -293,7 +287,8 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         }
     }
  
-    Metronome * metro = _prj->metronome();
+    // Metronome * metro = _prj->metronome();
+    const Metronome * metro = plan->metro;
     if(ctx.playing) {
         metro->process(ctx, metroDeps);
     }
@@ -317,11 +312,6 @@ const int RtEngine::channels() const {
     return _driver->outputCount();
 }
 
-void RtEngine::setProject(Project * prj) { 
-    prj->timeline().init(_driver->sampleRate(), _driver->bufferSize());
-    _prj = prj; 
-}
-
 void RtEngine::setMidiLocal(std::vector<RtMidiBuffer> *buf) {
     _midiInLocal = buf;
 }
@@ -336,6 +326,10 @@ void RtEngine::setMidiOut(std::vector<RtMidiOutput> *buf) {
 
 void RtEngine::addRtResponse(RtTask * task) {
     ControlEngine::rtEngine()->_rtResponses.push(task);
+}
+
+void RtEngine::SwapRenderPlan(const RenderPlan * plan) {
+    _plan = plan;
 }
 
 // void RtEngine::processResponses() {

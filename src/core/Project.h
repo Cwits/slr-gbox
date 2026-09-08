@@ -21,12 +21,16 @@ struct ControlContext;
 struct BufferManager;
 struct StepSequencerEngine;
 struct ModulationEngine;
+struct RenderPlan;
+struct Sequence;
+struct ModulationPattern;
 
 class Project {
     public:
     Project();
     ~Project();
 
+    //TODO: need somehow remove this 4 guys from here, and, maybe, pass RenderPlan to timeline or smth?
     void prepareForRecord();
     void prepareForPlay();
     void stopAfterRecord();
@@ -34,14 +38,7 @@ class Project {
 
     const bool isSolo() const { return _isSolo; }
 
-    bool prepareSwappablePlan();
-    const RenderPlan * editablePlan() const;
-    void swapPlans();
-    const RenderPlan * runPlan() const;
-    const RenderPlan * soloPlan() const;
-
     //nonRT
-    // AudioUnit * createUnit(const ControlContext &ctx, const UnitDescriptor *desc, const ID forcedId);
     AudioUnit * createUnit(BufferManager * bmem, const UnitDescriptor *desc, const ID forcedId);
     std::unique_ptr<AudioUnit> removeUnit(ID id);
     void appendUnit(std::unique_ptr<AudioUnit> unit); //for delete undo??
@@ -68,7 +65,7 @@ class Project {
     Timeline & timeline() { return _timeline; }
     Metronome * metronome() const;
 
-    ClipContainerBuffer & getClipContainerBufferById(ID id);
+    ContainerBuffer & getClipContainerBufferById(ID id);
     ClipContainerMap & clipContainerMap() { return _clipContainerMap; }
     ClipStorage & clipStorage() { return _clipStorage; }
     
@@ -77,14 +74,12 @@ class Project {
     StepSequencerEngine * stepSequencer() const { return _stepSequencer.get(); }
     ModulationEngine * modulationEngine() const { return _modulationEngine.get(); }
 
+    const RenderPlan * getSwappablePlan(ControlContext &ctx, uint16_t bitmask);
+    void swapPlan() { _plans.swap(); }
+
     private:
     bool _isSolo;
-    RenderPlan * _soloPlan;
 
-    std::atomic<int> _planInWork;
-    RenderPlan * _renderPlan1;
-    RenderPlan * _renderPlan2;
-    
     Timeline _timeline;
 
     ID _unitIDCounter;
@@ -105,9 +100,9 @@ class Project {
 
     std::unique_ptr<StepSequencerEngine> _stepSequencer;
     std::unique_ptr<ModulationEngine> _modulationEngine;
-    //std::unique_ptr<ModulationEngine> _modEngine;
     //_globalParameterList??
 
+    DoubleBuffer<std::unique_ptr<PlanBuilder::PlanHolder>> _plans;
     
 };
 

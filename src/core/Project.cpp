@@ -2,49 +2,55 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/Project.h"
+
 #include "core/primitives/AudioUnit.h"
+#include "core/utility/ControlContext.h"
+
 #include "core/Metronome.h"
 #include "core/UnitManager.h"
-#include "core/utility/ControlContext.h"
 #include "core/ControlEngine.h"
 #include "core/StepSequencer.h"
 #include "core/ModulationEngine.h"
+#include "core/RenderPlan.h"
+#include "core/RtEngine.h"
+#include "core/SettingsManager.h"
+#include "core/drivers/AudioDriver.h"
+
 #include "common/logger.h"
 
 #include <algorithm>
 #include <cmath>
+#include <set>
+#include <queue>
 
 #define INITIAL_UNIT_SIZE 10
 
 namespace slr {
 
-Dependencies dummyDep = {
-    .audio = nullptr,
-    .audioDepsCnt = 0,
-    .midi = nullptr,
-    .midiDepsCnt = 0
-};
-
-RenderPlan dummyPlan = {
-    .nodes = nullptr,
-    .nodesCount = 0,
-    .outputDeps = dummyDep
-};
-
 Project::Project() : _timeline(*this) {
     _unitList.reserve(INITIAL_UNIT_SIZE);
-    _soloPlan = &dummyPlan;
-    _renderPlan1 = &dummyPlan;
-    _renderPlan2 = &dummyPlan;
-
+    
     _metronome = std::make_unique<Metronome>();
     _stepSequencer = std::make_unique<StepSequencerEngine>();
     _modulationEngine = std::make_unique<ModulationEngine>();
 
-    _isSolo = false;
-    _planInWork = false;
-
+    std::unique_ptr<PlanBuilder::PlanHolder> p1 = std::make_unique<PlanBuilder::PlanHolder>();
+    std::unique_ptr<PlanBuilder::PlanHolder> p2 = std::make_unique<PlanBuilder::PlanHolder>();
     
+    p1->plan = std::make_unique<RenderPlan>();
+    p1->nodes.reserve(20);
+    p1->nodeDepHolder.reserve(20);
+    p1->modPatterns.reserve(10);
+    p1->sequences.reserve(10);
+    
+    p2->plan = std::make_unique<RenderPlan>();
+    p2->nodes.reserve(20);
+    p2->nodeDepHolder.reserve(20);
+    p2->modPatterns.reserve(10);
+    p2->sequences.reserve(10);
+
+    _plans.init(p1, p2);
+
     _unitIDCounter = 0;
     _clipIDCounter = 0;
     _audioRouteIDCounter = 0;
@@ -54,9 +60,9 @@ Project::Project() : _timeline(*this) {
 }
 
 Project::~Project() {
-    destroyPlan(_soloPlan);
-    destroyPlan(_renderPlan1);
-    destroyPlan(_renderPlan2);
+    // destroyPlan(_soloPlan);
+    // destroyPlan(_renderPlan1);
+    // destroyPlan(_renderPlan2);
 
     BufferManager * man = ControlEngine::bufferManager();
     for(auto & unit : _unitList) {
@@ -73,7 +79,7 @@ AudioUnit * Project::createUnit(BufferManager * bmem, const UnitDescriptor *desc
         ID nextId = forcedId;
         ClipContainerMap &map = _clipContainerMap; //.project->clipContainerMap();
         auto [it, inserted] = map.try_emplace(nextId);
-        ClipContainerBuffer & storage = it->second;
+        ContainerBuffer & storage = it->second;
 
         if(!inserted) {
             /*
@@ -90,10 +96,17 @@ AudioUnit * Project::createUnit(BufferManager * bmem, const UnitDescriptor *desc
                 return nullptr;
             }
             LOG_WARN("Unit doesn't exist, safe to proceed, but may be some skew");
-            storage.clear();
+            // storage.clear();
+            //need to clear both buffers somehow
+        } else {
+            auto b1 = std::make_unique<ClipContainer>();
+            auto b2 = std::make_unique<ClipContainer>();
+            b1->reserve(2);
+            b2->reserve(2);
+            storage.init(b1, b2);
         }
         
-        std::unique_ptr<AudioUnit> unit = desc->createRT(storage.inUseContainer(), nextId);
+        std::unique_ptr<AudioUnit> unit = desc->createRT(storage.readable().get(), nextId);
         au = unit.get();
 
         if(au->id() != nextId) {
@@ -204,49 +217,6 @@ bool Project::unitHaveRoutes(ID unitId) const {
     return false;
 }
 
-bool Project::prepareSwappablePlan() {
-    RenderPlan * newPlan = buildPlan(this);
-				
-	if(!newPlan) {
-	    return false;
-	}
-	
-    if(_planInWork.load(std::memory_order_acquire) == 0) {
-        _renderPlan2 = newPlan;
-    } else {
-        _renderPlan1 = newPlan;
-    }
-    return true;
-}
-
-void Project::swapPlans() {
-    _planInWork.fetch_xor(1, std::memory_order_release);
-}
-
-const RenderPlan * Project::editablePlan() const {
-    const RenderPlan *ret = nullptr;
-    if(_planInWork.load(std::memory_order_acquire) == 0) {
-        ret = _renderPlan2;
-    } else {
-        ret = _renderPlan1;
-    }
-    return ret;
-}
-
-const RenderPlan * Project::runPlan() const {
-    const RenderPlan *ret = nullptr;
-    if(_planInWork.load(std::memory_order_acquire) == 0) {
-        ret = _renderPlan1;
-    } else {
-        ret = _renderPlan2;
-    }
-    return ret;
-}
-
-const RenderPlan * Project::soloPlan() const {
-    return _soloPlan;
-}
-
 void Project::removeRoutesForId(ID id) {
     _routes.erase(std::remove_if(_routes.begin(), _routes.end(), 
         [&id](const AudioRoute &r) {
@@ -269,12 +239,45 @@ void Project::removeRoutesForId(ID id) {
     }), _midiRoutes.end());
 }
 
-ClipContainerBuffer & Project::getClipContainerBufferById(ID id) {
+ContainerBuffer & Project::getClipContainerBufferById(ID id) {
     return _clipContainerMap.at(id);
 }
 
 ClipItem * Project::findClipItemById(ID id) {
     return _clipStorage.findClipById(id);
+}
+
+const RenderPlan * Project::getSwappablePlan(ControlContext &ctx, uint16_t bitmask) {
+    using namespace PlanBuilder;
+
+    PlanHolder * writable = _plans.writable().get();
+    const PlanHolder * readable = _plans.readable().get();
+    clearHolder(writable);
+
+    writable->plan->metro = metronome();
+    writable->plan->timeline = &timeline();
+
+    bool success = true;
+    if(bitmask & (uint16_t)PlanRebuild::All) {
+        success &= buildUnits(ctx, writable);
+        success &= buildSequences(ctx, writable);
+        success &= buildModulations(ctx, writable);
+    } else if(bitmask & (uint16_t)PlanRebuild::Units) {
+        success &= buildUnits(ctx, writable);
+        success &= copySequences(writable, readable);
+        success &= copyModulations(writable, readable);
+    } else if(bitmask & (uint16_t)PlanRebuild::Sequences) {
+        success &= copyUnits(writable, readable);
+        success &= buildSequences(ctx, writable);
+        success &= copyModulations(writable, readable);
+    } else if(bitmask & (uint16_t)PlanRebuild::Modulations) {
+        success &= copyUnits(writable, readable);
+        success &= copySequences(writable, readable);
+        success &= buildModulations(ctx, writable);
+    }
+
+    if(success) return writable->plan.get();
+    else return nullptr;
 }
 
 }

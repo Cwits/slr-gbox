@@ -9,6 +9,7 @@
 #include "core/drivers/AudioDriver.h" //for sample rate
 #include "core/ModulationEngine.h"
 #include "core/Project.h"
+#include "core/RenderPlan.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/ModulationView.h"
@@ -37,21 +38,31 @@ void CreateNewModulationAction::exec(ControlContext &ctx) {
     if(_direction == ActionDirection::Forward) {
         switch(_step) {
             case(1): {
-                ModulationPattern *ptrn = ctx.project->modulationEngine()->createNewModulationPattern(ctx.engine->driver()->bufferSize(), ctx.engine->driver()->sampleRate());
+                ModulationEngine * engine = ctx.project->modulationEngine();
+                
+                ModulationPattern *ptrn = engine->createNewModulationPattern(ctx.engine->driver()->bufferSize(), ctx.engine->driver()->sampleRate());
                 if(ptrn == nullptr) { abortAction(); LOG_ERROR("Full"); return; }
                 //but actually need to prepare and swap modulation struct in render plan - the same way as with sequences, but this a bit later...
                 _createdPtrn = ptrn;
+                
+                const RenderPlan * plan = ctx.project->getSwappablePlan(ctx, (uint16_t)PlanBuilder::PlanRebuild::All);
+                if(!plan) {
+                    LOG_ERROR("Failed to rebuild Render Plan");
+                    abortAction();
+                    return;
+                }
 
-                _flat.engine = ctx.project->modulationEngine();
-                _flat.createdPtrn = ptrn;
-                _flat.completed.store(false);
-                _task = makeRtTask(&_flat);
+                _flatSwap.plan = plan;
+                _flatSwap.engine = ctx.engine;
+                _flatSwap.completed.store(false);
+                _task = makeRtTask(&_flatSwap);
 
                 setState(ActionState::Waiting);
                 ctx.EmitRtTask(&_task);
             } break;
             case(2): {
                 //creatd... 
+                ctx.project->swapPlan();
                 std::shared_ptr<ModulationPatternView> modView = ctx.projectView->modulationEngine()->createModulationView(_createdPtrn);
                 
                 UIControls::createModulationUI(modView);
@@ -62,6 +73,9 @@ void CreateNewModulationAction::exec(ControlContext &ctx) {
     } else if(_direction == ActionDirection::Backward) {
         switch(_step) {
             case(1): {
+                LOG_WARN("Not working yet");
+                abortAction();
+                return;
                 _rflat.engine = ctx.project->modulationEngine();
                 _rflat.createdPtrn = _createdPtrn;
                 _rflat.completed.store(false);
@@ -103,24 +117,24 @@ void CreateNewModulationAction::checkWaitingCondition(ControlContext &ctx) {
 
 
 void CreateNewModulationAction::NewModulation::execRT() {
-    engine->playable().push_back(createdPtrn);
+    // engine->playable().push_back(createdPtrn);
     completed.store(true, std::memory_order_release);
 }
 
 void CreateNewModulationAction::RemoveMod::execRT() {
-    std::vector<ModulationPattern*> &v = engine->playable();
+    // std::vector<ModulationPattern*> &v = engine->playable();
 
-    auto it = std::find_if(
-        v.begin(),
-        v.end(),
-        [ptr = createdPtrn](const ModulationPattern *p) {
-            return ptr == p;
-        }
-    );
+    // auto it = std::find_if(
+    //     v.begin(),
+    //     v.end(),
+    //     [ptr = createdPtrn](const ModulationPattern *p) {
+    //         return ptr == p;
+    //     }
+    // );
 
-    if(it != v.end()) {
-        v.erase(it);
-    }
+    // if(it != v.end()) {
+    //     v.erase(it);
+    // }
 
     completed.store(true, std::memory_order_release);
 }

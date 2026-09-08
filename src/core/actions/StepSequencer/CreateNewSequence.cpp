@@ -7,6 +7,7 @@
 
 #include "core/Project.h"
 #include "core/StepSequencer.h"
+#include "core/RenderPlan.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/SequenceView.h"
@@ -35,29 +36,30 @@ void CreateNewSequenceAction::exec(ControlContext &ctx) {
     if(_direction == ActionDirection::Forward) {
         switch(_step) {
             case(1): {
-                /* 
-                    ideally - just swap render plan. 
-                    1. don't need to rebuild whole plan, only the sequence part, 
-                        so copy all related to units to new one to ensure that nothing will change
-                        than rebuild for sequences
-                        and swap the plans, same for backwards direction
-                */
                 Sequence * seq = ctx.project->stepSequencer()->createNewSequence();
                 seq->initDefault(ctx.project->timeline());
 
                 _createdPtr = seq;
+                
+                const RenderPlan * plan = ctx.project->getSwappablePlan(ctx, (uint16_t)PlanBuilder::PlanRebuild::All);
+                if(!plan) {
+                    LOG_ERROR("Failed to rebuild Render Plan");
+                    abortAction();
+                    return;
+                }
 
-                _flat.engine = ctx.project->stepSequencer();
-                _flat.newSeq = seq;
-                _flat.completed.store(false);
-                _task = makeRtTask(&_flat);
+                _flatSwap.plan = plan;
+                _flatSwap.engine = ctx.engine;
+                _flatSwap.completed.store(false);
+
+                _task = makeRtTask(&_flatSwap);
                 
                 setState(ActionState::Waiting);
                 ctx.EmitRtTask(&_task);
             } break;
             case(2): {
                 //created
-
+                ctx.project->swapPlan();
                 std::shared_ptr<SequenceView> seqv = ctx.projectView->stepSequencer()->createSequenceView(_createdPtr);
 
                 UIControls::createSequenceUI(seqv);
@@ -69,7 +71,9 @@ void CreateNewSequenceAction::exec(ControlContext &ctx) {
     } else {
         switch(_step) {
             case(1): {
-                
+                LOG_WARN("Not working yet");
+                abortAction();
+                return;
                 _rflat.engine = ctx.project->stepSequencer();
                 _rflat.tofind = _createdPtr;
                 _rflat.completed.store(false);
@@ -113,22 +117,22 @@ void CreateNewSequenceAction::checkWaitingCondition(ControlContext &ctx) {
 
 
 void CreateNewSequenceAction::AddFlat::execRT() {
-    engine->playable().push_back(newSeq);
+    // engine->playable().push_back(newSeq);
     completed.store(true, std::memory_order_release);
 }
 
 void CreateNewSequenceAction::RemoveFlat::execRT() {
-    std::vector<Sequence*> & vec = engine->playable();
+    // std::vector<Sequence*> & vec = engine->playable();
     
-    auto it = std::find_if(vec.begin(), vec.end(), [ptr = tofind](const Sequence * s) {
-        return ptr == s;
-    });
+    // auto it = std::find_if(vec.begin(), vec.end(), [ptr = tofind](const Sequence * s) {
+    //     return ptr == s;
+    // });
 
-    if(it != vec.end()) {
-        vec.erase(it);
-    }
+    // if(it != vec.end()) {
+    //     vec.erase(it);
+    // }
 
-    completed.store(true, std::memory_order_release);
+    // completed.store(true, std::memory_order_release);
 }
 
 std::unique_ptr<ActionExecutable> createCreateNewSequenceAction(const ActionBase *base) {

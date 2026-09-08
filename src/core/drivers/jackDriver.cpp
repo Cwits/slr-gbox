@@ -353,13 +353,13 @@ bool JackDriver::connect() {
     return ret;
 }
 
-const frame_t JackDriver::inputLatency(int port) { 
+frame_t JackDriver::inputLatency(int port) const { 
     jack_latency_range_t lat = {0, 0};
     jack_port_get_latency_range(_inputs.at(port), JackCaptureLatency, &lat);
     return static_cast<frame_t>(lat.min);
 }
 
-const frame_t JackDriver::outputLatency(int port) { 
+frame_t JackDriver::outputLatency(int port) const { 
     jack_latency_range_t lat = {0, 0};
     jack_port_get_latency_range(_outputs.at(port), JackPlaybackLatency, &lat);
     return static_cast<frame_t>(lat.min);

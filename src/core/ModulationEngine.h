@@ -7,7 +7,6 @@
 #include "core/primitives/MidiEvent.h"
  
 #include "common/logger.h"
-
 #include "common/Math.h"
 
 #include <vector>
@@ -64,20 +63,14 @@ struct ModulationEngine {
     ModulationEngine();
     ~ModulationEngine();
 
-    std::vector<ModulationPattern*> & playable() { return _playable; }
-    
     ModulationPattern * createNewModulationPattern(const frame_t blockSize, const frame_t sampleRate);
     ModulationPattern * findPatternById(ID id);
+
+    std::vector<ModulationPattern*> allPatterns() const;
     
     private:
     std::vector<std::unique_ptr<ModulationPattern>> _modulations;
     std::vector<std::unique_ptr<float>> _dataStorage;
-
-    /*
-    don't want to change building Render Plan now, keep it as with step sequencer
-    but... should pass constant pointers to engine via render plan in future
-    */
-    std::vector<ModulationPattern*> _playable;
 };
 
 }

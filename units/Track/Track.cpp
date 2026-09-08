@@ -136,7 +136,7 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) con
     if(_record) {
         //process midi input
         for(uint32_t i=0; i<inputs.midiDepsCnt; ++i) {
-            MidiDependencie &mdep = inputs.midi[i];
+            const MidiDependencie &mdep = inputs.midi[i];
 
             const MidiBuffer *buf = mdep.external ? getMidiBuffer(ctx, mdep.extId) : mdep.buf;
             std::size_t bufSize = buf->size();

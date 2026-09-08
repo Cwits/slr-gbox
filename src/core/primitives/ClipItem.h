@@ -59,26 +59,25 @@ struct ClipStorage {
 
 //for use in Audio Unit
 
-struct ClipContainerBuffer {
-    ClipContainerBuffer();
+// struct ClipContainerBuffer {
+//     ClipContainerBuffer();
 
-    ClipContainer * modifiableContainer();
-    const ClipContainer * inUseContainer();
-    void clear();
+//     ClipContainer * modifiableContainer();
+//     const ClipContainer * inUseContainer();
+//     void clear();
 
-    void containerSwapped();
+//     void containerSwapped();
     
-    private:
-    bool _inUse;
+//     private:
+//     bool _inUse;
 
-    std::unique_ptr<ClipContainer> _container1; //passing this to RTEngine
-    std::unique_ptr<ClipContainer> _container2; //passing this to RTEngine
-    DoubleBuffer<std::unique_ptr<ClipContainer>> _containers;
-};
+//     std::unique_ptr<ClipContainer> _container1; //passing this to RTEngine
+//     std::unique_ptr<ClipContainer> _container2; //passing this to RTEngine
+//     DoubleBuffer<std::unique_ptr<ClipContainer>> _containers;
+// };
 
 
-
-using ClipContainerMap = std::unordered_map<ID, ClipContainerBuffer>;
-
+using ContainerBuffer = DoubleBuffer<std::unique_ptr<ClipContainer>>;
+using ClipContainerMap = std::unordered_map<ID, ContainerBuffer>;
 
 }

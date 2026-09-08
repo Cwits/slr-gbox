@@ -20,8 +20,9 @@ namespace slr {
 
 class AudioDriver;
 // class AudioBuffer;
-class Project;
+// class Project;
 struct RtTask;
+struct RenderPlan;
 
 class RtEngine {
     public:
@@ -36,8 +37,7 @@ class RtEngine {
 
     const RtState getState() const { return _state; } 
     
-    [[deprecated]] //update render plan thru actions and store pointer to actual one
-    void setProject(Project * prj);
+    void SwapRenderPlan(const RenderPlan * plan);
 
     void addTask(RtTask * task);
 
@@ -63,7 +63,8 @@ class RtEngine {
     frame_t processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed);
 
     std::unique_ptr<AudioDriver> _driver;
-    Project * _prj;
+    // Project * _prj;
+    const RenderPlan * _plan;
 
     SPSCQueue<RtTask*, 256> _rtTasks;
     SPSCQueue<RtTask*, 256> _rtResponses;

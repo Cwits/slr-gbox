@@ -97,10 +97,10 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            ClipContainerBuffer &unitStorage = ctx.project->getClipContainerBufferById(_action.targetId);
+            ContainerBuffer &unitStorage = ctx.project->getClipContainerBufferById(_action.targetId);
 
-            ClipContainer *modContainer = unitStorage.modifiableContainer();
-            const ClipContainer *inUseContainer = unitStorage.inUseContainer();
+            ClipContainer *modContainer = unitStorage.writable().get();
+            const ClipContainer *inUseContainer = unitStorage.readable().get();
 
             if(inUseContainer->size()+1 > inUseContainer->capacity()) {
                 if(ctx.prohibitAllocation(inUseContainer->capacity()*2*sizeof(ClipItem*))) {
@@ -139,8 +139,8 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
             ctx.EmitRtTask(&_task);
         } break;
         case(4): {
-            ClipContainerBuffer &unitStorage = ctx.project->getClipContainerBufferById(_action.targetId);
-            unitStorage.containerSwapped();
+            ContainerBuffer &unitStorage = ctx.project->getClipContainerBufferById(_action.targetId);
+            unitStorage.swap();
 
             AudioUnitView * uview = ctx.projectView->getUnitById(_action.targetId);
             if(!uview) {

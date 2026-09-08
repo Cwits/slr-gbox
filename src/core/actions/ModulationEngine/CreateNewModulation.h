@@ -14,6 +14,7 @@ namespace slr {
 struct ActionBase;
 struct ModulationPattern;
 struct ModulationEngine;
+struct RenderPlan;
 
 struct CreateNewModulationAction : public ActionExecutable {
     CreateNewModulationAction(const ActionBase *base);
@@ -35,6 +36,8 @@ struct CreateNewModulationAction : public ActionExecutable {
         ModulationPattern * createdPtrn;
         std::atomic<bool> completed;
     };
+
+    RtTasks::SwapRenderPlan _flatSwap;
 
     struct RemoveMod : public FlatTask {
         void execRT();

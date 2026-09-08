@@ -3,6 +3,7 @@
 #include "core/primitives/RtTask.h"
 
 #include "core/Project.h"
+#include "core/RtEngine.h"
 #include "core/primitives/AudioUnit.h"
 
 namespace slr {
@@ -16,7 +17,7 @@ void SetParameterFlat::execRT() {
 }
 
 void SwapRenderPlan::execRT() {
-	project->swapPlans();
+    engine->SwapRenderPlan(plan);
 	completed.store(true, std::memory_order_release);
 }
 

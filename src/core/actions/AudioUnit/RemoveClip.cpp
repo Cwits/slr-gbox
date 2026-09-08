@@ -73,8 +73,8 @@ void RemoveClipAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            ClipContainerBuffer &storage = ctx.project->getClipContainerBufferById(_action.targetId);
-            ClipContainer *modifiable = storage.modifiableContainer();
+            ContainerBuffer &storage = ctx.project->getClipContainerBufferById(_action.targetId);
+            ClipContainer *modifiable = storage.writable().get();
 
             modifiable->clear();
             if(modifiable->capacity() < clips->capacity()) {
@@ -119,6 +119,8 @@ void RemoveClipAction::exec(ControlContext &ctx) {
             //     return itemId == itm->_uniqueId;
             // }), owner.end());
 
+            ContainerBuffer &storage = ctx.project->getClipContainerBufferById(_action.targetId);
+            storage.swap();
             LOG_INFO("Clip %u removed from unit %u successfully", _action.clipId, _action.targetId);
         
             setState(ActionState::Finished);

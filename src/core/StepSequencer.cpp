@@ -343,4 +343,13 @@ void Sequence::clear() {
 }
 
 
+std::vector<Sequence*> StepSequencerEngine::allSequences() const {
+    std::vector<Sequence*> ret;
+    ret.reserve(_sequences.size());
+    for(auto &seq : _sequences) {
+        ret.push_back(seq.get());
+    }
+    return ret;
+}
+
 }

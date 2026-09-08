@@ -6,6 +6,7 @@
 #include "core/utility/ControlContext.h"
 
 #include "core/Project.h"
+#include "core/RenderPlan.h"
 
 #include "snapshots/ProjectView.h"
 
@@ -63,13 +64,24 @@ void AddNewMidiRouteAction::exec(ControlContext &ctx) {
             }
 
             if(_action.swapPlan) {
-                if(!ctx.project->prepareSwappablePlan()) {
-                    LOG_ERROR("Failed to create swappable plan");
+                // if(!ctx.project->prepareSwappablePlan()) {
+                //     LOG_ERROR("Failed to create swappable plan");
+                //     abortAction();
+                //     return;
+                // }
+                
+                // _flat.project = ctx.project;
+                // _flat.completed.store(false);
+                // const RenderPlan * plan = buildPlan((uint16_t)PlanRebuild::Units, ctx.project);
+                const RenderPlan * plan = ctx.project->getSwappablePlan(ctx, (uint16_t)PlanBuilder::PlanRebuild::All);
+                if(!plan) {
+                    LOG_ERROR("Failed to rebuild plan");
                     abortAction();
                     return;
                 }
-                
-                _flat.project = ctx.project;
+
+                _flat.plan = plan;
+                _flat.engine = ctx.engine;
                 _flat.completed.store(false);
                 _task = makeRtTask(&_flat);
                 setState(ActionState::Waiting);
