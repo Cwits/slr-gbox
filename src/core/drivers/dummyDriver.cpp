@@ -10,8 +10,6 @@
 
 namespace slr {
 
-// static DriverRegistrar<DummyDriver>  __attribute__((used)) dummy_reg("Dummy Driver");
-
 DummyDriver::DummyDriver() {
 
 }

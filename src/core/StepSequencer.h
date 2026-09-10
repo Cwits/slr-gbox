@@ -4,8 +4,6 @@
 
 #include "common/defines.h"
 #include "core/primitives/StepEvent.h"
-#include "core/primitives/DoubleBuffer.h"
-#include "core/Timeline.h" //this is excessive
  
 #include <vector>
 #include <memory>
@@ -15,20 +13,25 @@ namespace slr {
 
 struct AudioUnit;
 struct AudioContext;
+struct Timeline;
 
 const int TARGET_COUNT = 8;
 const int EVENTS_COUNT = 256;
 const int LAYERS_COUNT = 16;
 const int STEPS_PER_PAGE = 16;
+
 struct Sequence {
     Sequence(ID uniqueId);
-    frame_t tick(const AudioContext &ctx) const;
+
+    void prepareToPlay() const;
+    void stopAfterPlay() const;
+
+    frame_t process(const AudioContext &ctx) const;
     void onFlySwap(const Sequence *original) const {} //copy the refpoint, framesbeforenoteoff and lastplayedstep
 
     const ID _uniqueId;
 
     std::array<const AudioUnit*, TARGET_COUNT> _targets;
-    
     uint32_t _stepCount;
     
     struct Layer {
@@ -49,18 +52,21 @@ struct Sequence {
     };
     
     std::array<Layer, LAYERS_COUNT> _layers;
-    std::array<frame_t, EVENTS_COUNT> _eventPositions;
-
-    mutable frame_t _referencePoint; //needs to be updated on swap
+    // std::array<frame_t, EVENTS_COUNT> _eventPositions;
 
     void initDefault(const Timeline &tl);
-    void recalculateEventPositions(const Timeline &tl, StepDuration newDuration); 
+    // void recalculateEventPositions(const Timeline &tl, StepDuration newDuration); 
     void initLayer(int layer, int note, int velocity);
     void clearAllLayers();
     void clearLayer(int id);
     void clear();
 
     StepDuration stepDuration() const { return _stepDuration; }
+    void setDuration(StepDuration dur) { _stepDuration = dur; }
+
+    mutable frame_t _framesTillNextStep;
+    mutable frame_t _framesTillNoteOff;
+    // mutable bool _noteTriggered;
 
     private:
     StepDuration _stepDuration;
@@ -70,13 +76,8 @@ struct StepSequencerEngine {
     StepSequencerEngine();
     ~StepSequencerEngine();
 
-    // void syncSequences();
-    void setReferencePoint(const frame_t frame);
-
     Sequence * createNewSequence();
     // Sequence * cloneSequence(const Sequence *seq);
-
-    // std::vector<StepEvent>* changeSequenceSize(ID seqId, int stepsPerBar, int bars);
 
     std::unique_ptr<Sequence> deleteById(ID id);
 
@@ -85,11 +86,11 @@ struct StepSequencerEngine {
 
     std::vector<Sequence*> allSequences() const;
     
+    //TODO: hack, get rid of this
+    std::vector<std::unique_ptr<Sequence>> & notToUseSequences() { return _sequences; }
     private:
     std::vector<std::unique_ptr<Sequence>> _sequences;
     std::vector<Sequence*> _playable; //this is temporary, until list won't move to render plan
-
-    
 };
 
 

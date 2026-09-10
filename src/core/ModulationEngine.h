@@ -68,6 +68,8 @@ struct ModulationEngine {
 
     std::vector<ModulationPattern*> allPatterns() const;
     
+    //TODO: hack, get rid of this
+    std::vector<std::unique_ptr<ModulationPattern>> & notToUsePatterns() { return _modulations; }
     private:
     std::vector<std::unique_ptr<ModulationPattern>> _modulations;
     std::vector<std::unique_ptr<float>> _dataStorage;

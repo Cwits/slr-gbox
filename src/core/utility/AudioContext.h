@@ -17,7 +17,6 @@ struct AudioContext {
     public:
     AudioContext(const bool playing,
                 const bool recording,
-                const bool freewheeling,
                 const frame_t frames,
                 const frame_t elapsed, 
                 const frame_t totalFrames,
@@ -28,7 +27,6 @@ struct AudioContext {
                 :
                 playing(playing),
                 recording(recording),
-                freewheeling(freewheeling),
                 frames(frames),
                 elapsed(elapsed),
                 totalFrames(totalFrames),
@@ -41,7 +39,6 @@ struct AudioContext {
     
     const bool playing;
     const bool recording;
-    const bool freewheeling;
     
     const frame_t frames; //ammount of frames to process == block size
     const frame_t elapsed; //if playing than diff, else = 0

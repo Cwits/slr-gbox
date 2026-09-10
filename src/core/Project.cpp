@@ -182,6 +182,12 @@ void Project::prepareForPlay() {
         au->prepareToPlay();
     }
     _metronome->prepareToPlay();
+    for(auto &s : _stepSequencer->notToUseSequences()) {
+        s->prepareToPlay();
+    }
+    for(auto &p : _modulationEngine->notToUsePatterns()) {
+        p->prepareToPlay();
+    }
 }
 
 void Project::stopAfterRecord() {
@@ -196,6 +202,12 @@ void Project::stopAfterPlay() {
         au->stopPlaying();
     }
     _metronome->stopPlaying();
+    for(auto &s : _stepSequencer->notToUseSequences()) {
+        s->stopAfterPlay();
+    }
+    for(auto &p : _modulationEngine->notToUsePatterns()) {
+        p->stopPlaying();
+    }
 }
 
 bool Project::evaluateRoute(const AudioRoute & route) {

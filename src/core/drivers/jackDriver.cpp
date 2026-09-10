@@ -22,7 +22,6 @@ TODO: handle xruns, shutdown, errors? smth else?
 */
 namespace slr {
 
-// static DriverRegistrar<JackDriver>  __attribute__((used)) jack_reg("Jack Driver");
 
 int JackDriver::jack_process(jack_nframes_t nframes, void *arg) {
     JackDriver * dri = static_cast<JackDriver*>(arg);

@@ -8,10 +8,13 @@
 #include "core/Timeline.h"
 
 #include "common/logger.h"
+#include "common/Math.h"
+#include "common/core_config.h"
 
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <limits>
 
 namespace slr {
 
@@ -26,20 +29,6 @@ StepSequencerEngine::StepSequencerEngine()
 
 StepSequencerEngine::~StepSequencerEngine() {
 
-}
-
-/* 
-    must be called on when freewheeling mode is set, 
-    because if we use play-stop than everything is fine, read elapsed,
-    but in freewheeling we need some kind of reference point to be able to determine
-    at what position now things are
-
-    set in total driver frame
-*/
-void StepSequencerEngine::setReferencePoint(const frame_t frame) {
-    for(std::unique_ptr<Sequence> &s : _sequences) {
-        s->_referencePoint = frame;
-    }
 }
 
 Sequence * StepSequencerEngine::createNewSequence() {
@@ -67,7 +56,6 @@ std::unique_ptr<Sequence> StepSequencerEngine::deleteById(ID id) {
 
     if(it == _sequences.end()) {
         LOG_ERROR("Failed to find sequence with id %lu", id);
-        // return std::make_pair<std::unique_ptr<Sequence>, EventHolder>(std::unique_ptr<Sequence>(), EventHolder{});
         return std::unique_ptr<Sequence>();
     }
 
@@ -111,63 +99,62 @@ Sequence * StepSequencerEngine::findSequenceById(ID id) {
     return (*it).get();
 }
 
-// std::vector<StepEvent>* StepSequencerEngine::changeSequenceSize(ID seqId, int stepsPerBar, int bars) {
-//     EventHolder * tmp = nullptr;
-//     for(EventHolder &h : _holders) {
-//         if(h._sequenceId == seqId) {
-//             tmp = &h;
-//         }
-//     }
-
-//     EventHolder &holder = *tmp;
-//     Sequence * seq = findSequenceById(seqId);
-//     //assume that such seq exists ofc...
-
-//     std::vector<StepEvent> *editable = nullptr;
-//     const std::vector<StepEvent> *other = nullptr;
-//     if(seq->_events == holder._holder1.get()) {
-//         editable = holder._holder2.get();
-//         other = holder._holder1.get();
-//     } else {
-//         editable = holder._holder1.get();
-//         other = holder._holder2.get();
-//     }
-
-//     editable->resize(stepsPerBar*bars);
-//     for(std::size_t i=0; i<editable->size(); ++i) {
-//         if(i < other->size()) {
-//             (*editable)[i] = (*other)[i];
-//         } else {
-//             (*editable)[i].clear();
-//         }
-//     }
-
-//     return editable;
-// }
-
 Sequence::Sequence(ID uniqueId) : 
     _uniqueId(uniqueId),
     _stepCount(16),
-    _stepDuration(StepDuration::d16),
-    _referencePoint(0)
+    _stepDuration(StepDuration::d16)
 {
     for(int i=0; i<TARGET_COUNT; ++i) _targets[i] = nullptr;
-    for(int i=0; i<EVENTS_COUNT; ++i) _eventPositions[i] = 0;
+    // for(int i=0; i<EVENTS_COUNT; ++i) _eventPositions[i] = 0;
 }
 
 void Sequence::initDefault(const Timeline &tl) {
     clearAllLayers();
     _stepCount = 16;
-    _referencePoint = 0;
 
     for(int i=0; i<LAYERS_COUNT; ++i) initLayer(i, 36+i, 120);
     for(int i=0; i<TARGET_COUNT; ++i) _targets[i] = nullptr;
-    for(int i=0; i<EVENTS_COUNT; ++i) _eventPositions[i] = 0;
-    recalculateEventPositions(tl, StepDuration::d16);
+    // for(int i=0; i<EVENTS_COUNT; ++i) _eventPositions[i] = 0;
+    // recalculateEventPositions(tl, StepDuration::d16);
+    _framesTillNextStep = 0;
+    _framesTillNoteOff = std::numeric_limits<frame_t>::max();
+    // _noteTriggered = false;
 }
 
-frame_t Sequence::tick(const AudioContext &ctx) const {
-    if(!ctx.playing && !ctx.freewheeling) return ctx.frames;
+void Sequence::prepareToPlay() const {
+    _framesTillNextStep = 0;
+    _framesTillNoteOff = std::numeric_limits<frame_t>::max();
+    // _noteTriggered = false;
+}
+
+void Sequence::stopAfterPlay() const {
+    _framesTillNextStep = 0;
+    _framesTillNoteOff = std::numeric_limits<frame_t>::max();
+    
+    for(int i=0; i<LAYERS_COUNT; ++i) {
+        const Layer &l = _layers[i];
+            
+        if(!l._active) continue;
+        if(l._mute) continue;
+            
+        if(!l._eventTriggered) continue;
+
+        //send note off to all targets
+        MidiEvent ev = l._events[l._lastTriggeredEvent]._event;
+        ev.type = MidiEventType::NoteOff;
+            
+        if(!l._target) {
+            for(int i=0; i<TARGET_COUNT; ++i) {
+                if(_targets[i]) _targets[i]->injectMidi(ev);
+            }
+        } else {
+            l._target->injectMidi(ev);
+        }
+    }
+}
+
+frame_t Sequence::process(const AudioContext &ctx) const {
+    if(!ctx.playing) return ctx.frames;
     
     bool hasTargets = false;
     for(int i=0; i<TARGET_COUNT; ++i) {
@@ -177,31 +164,12 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
     if(!hasTargets) return ctx.frames;
 
     frame_t framesPerStep = ctx.timeline.framesInStep(_stepDuration);
-    frame_t frameHalf = framesPerStep/2;
-    frame_t loopLength = framesPerStep * _stepCount;
+    float frameFraction = ctx.timeline.framesInStepFraction(_stepDuration);
+    frame_t fraction = sMath::floor(frameFraction * _stepCount);
+    frame_t loopLength = framesPerStep * _stepCount + fraction;
     
     frame_t positionWithinLoop = 0;
-    if(ctx.freewheeling) {
-        positionWithinLoop = (ctx.totalFrames - _referencePoint) % loopLength;
-    } else {
-        positionWithinLoop = ctx.elapsed % loopLength;
-    }
-
-    //we getting value [0, _stepCount) 
-    unsigned int step = positionWithinLoop / framesPerStep; 
-    bool toTrigger = false;
-    //some processing to figure out step and whether it should be triggered
-
-    //is this one right? problem is that on step 0 we have to be in frame 0, but otherwise we have to check next step
-    // if(step != 0) step++;
-    if(positionWithinLoop != 0) {
-        step++;
-    } 
-
-    if(_eventPositions[step] >= positionWithinLoop && _eventPositions[step] <= positionWithinLoop+ctx.frames) {
-        toTrigger = true;
-    }
-
+    positionWithinLoop = ctx.elapsed % loopLength;
     
     /* 
         TODO: sooo... the events in StepEvent must remain clean(note = 0. velocity = 0).
@@ -215,47 +183,43 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
         have something - than it overrides.
         
     */
-    for(int i=0; i<LAYERS_COUNT; ++i) {
-        const Layer &l = _layers[i];
-        if(!l._active) continue;
-        if(l._mute) continue;
+
+    float fps = framesPerStep + frameFraction;
+    
+    if(_framesTillNextStep < ctx.frames) {
+        _framesTillNoteOff = framesPerStep/2;
         
-        //somehow check that previous event was on long enough
-        if(l._eventTriggered) {
-            frame_t elapsedSince = 0;
-            const frame_t &evPosition = _eventPositions[l._lastTriggeredEvent];
-            if(positionWithinLoop > evPosition) 
-                elapsedSince = positionWithinLoop - evPosition;
-            else 
-                elapsedSince = (loopLength - evPosition) + positionWithinLoop;
+        frame_t delay = _framesTillNextStep;
 
-            if(elapsedSince >= frameHalf-ctx.frames) {
-                //send noteOff for prev active event
-                MidiEvent ev = l.findLastActive(l._lastTriggeredEvent);
-                ev.note = l._note;
-                ev.velocity = 0;
-                ev.type = MidiEventType::NoteOff;
 
-                if(!l._target) {
-                    for(int i=0; i<TARGET_COUNT; ++i) {
-                        if(_targets[i]) _targets[i]->injectMidi(ev);
-                    }
-                } else {
-                    l._target->injectMidi(ev);
-                }
+        int eventStep = (positionWithinLoop + ctx.frames) / framesPerStep;
+        frame_t tmp = fps * (eventStep+1);
+        _framesTillNextStep = tmp - positionWithinLoop;
 
-                // LOG_INFO("Step off %d on at %lu, with delay %lu, total %lu", l._lastTriggeredEvent, evPosition, 0, positionWithinLoop);
-                l._eventTriggered = false;
-            }
-        }
+#if STEP_SEQUENCER_TRACE == 1
+        LOG_INFO("Step %d: note on: position %lu, with delay %lu, current %lu, next: %lu", 
+                    eventStep, 
+                    positionWithinLoop, 
+                    delay, 
+                    positionWithinLoop+delay,
+                    positionWithinLoop+_framesTillNextStep);
+#endif
 
-        if(l._events[step]._enabled && toTrigger) {
+        //possible NoteOn Event
+        //check if layer have event enabled
+        int step = eventStep % _stepCount;
+        for(int i=0; i<LAYERS_COUNT; ++i) {
+            const Layer &l = _layers[i];
+            if(!l._active) continue;
+            if(l._mute) continue;
+            
+            if(!l._events[step]._enabled) continue;
+
             MidiEvent ev = l._events[step]._event;
             ev.note = l._note;
             ev.velocity = l._velocity;
-            //do some magic with ev.offset e.g. swing and/or delay
-            frame_t delay = _eventPositions[step] - positionWithinLoop;
             ev.offset = delay;
+            ev.type = MidiEventType::NoteOn;
 
             if(!l._target) {
                 for(int i=0; i<TARGET_COUNT; ++i) {
@@ -265,17 +229,58 @@ frame_t Sequence::tick(const AudioContext &ctx) const {
                 l._target->injectMidi(ev);
             }
 
-            // LOG_INFO("Step on %d on at %lu, with delay %lu, total %lu", step, _eventPositions[step], delay, positionWithinLoop);
             l._lastTriggeredEvent = step;
             l._eventTriggered = true;
         }
     }
 
-    if(ctx.freewheeling) {
-        if(ctx.totalFrames+64 - _referencePoint >= loopLength) {
-            _referencePoint = ctx.totalFrames+64;
+    if(_framesTillNoteOff < ctx.frames) {
+        int step = positionWithinLoop / framesPerStep;
+        frame_t frac = sMath::floor(frameFraction * ((step%_stepCount)+1));
+        frame_t delay = _framesTillNoteOff;
+
+#if STEP_SEQUENCER_TRACE == 1
+            // LOG_INFO("Step %d: note off: position %lu, with delay %lu, leftover: 0, total %lu", 
+            //             (positionWithinLoop + ctx.frames) / framesPerStep, 
+            //             positionWithinLoop, 
+            //             delay, 
+            //             positionWithinLoop+delay);
+#endif
+
+        //possible NoteOff Event
+        //check if layer had event triggered
+        for(int i=0; i<LAYERS_COUNT; ++i) {
+            const Layer &l = _layers[i];
+            if(!l._active) continue;
+            if(l._mute) continue;
+
+            if(!l._eventTriggered) continue;
+
+            MidiEvent ev = l._events[l._lastTriggeredEvent]._event;
+            ev.note = l._note;
+            ev.velocity = l._velocity;
+            ev.offset = delay;
+            ev.type = MidiEventType::NoteOff;
+
+            if(!l._target) {
+                for(int i=0; i<TARGET_COUNT; ++i) {
+                    if(_targets[i]) _targets[i]->injectMidi(ev);
+                }
+            } else {
+                l._target->injectMidi(ev);
+            }
+
+            l._lastTriggeredEvent = 0;
+            l._eventTriggered = false;
+
         }
+
+        _framesTillNoteOff = std::numeric_limits<frame_t>::max();
     }
+
+    _framesTillNextStep -= ctx.frames;
+    _framesTillNoteOff -= ctx.frames;
+
    return ctx.frames;
 }
 
@@ -302,13 +307,13 @@ const MidiEvent Sequence::Layer::findLastActive(unsigned int current) const {
     return MidiEvent{};
 }
 
-void Sequence::recalculateEventPositions(const Timeline &tl, StepDuration newDuration) {
-    _stepDuration = newDuration;
-    frame_t framesPerStep = tl.framesInStep(newDuration);
-    float frameFraction = tl.framesInStepFraction(newDuration);
-    for(int i=0; i<EVENTS_COUNT; ++i)
-        _eventPositions[i] = (i*framesPerStep) + std::floor(i*frameFraction);
-}
+// void Sequence::recalculateEventPositions(const Timeline &tl, StepDuration newDuration) {
+//     _stepDuration = newDuration;
+//     frame_t framesPerStep = tl.framesInStep(newDuration);
+//     float frameFraction = tl.framesInStepFraction(newDuration);
+//     for(int i=0; i<EVENTS_COUNT; ++i)
+//         _eventPositions[i] = (i*framesPerStep) + std::floor(i*frameFraction);
+// }
 
 void Sequence::initLayer(int layer, int note, int velocity) {
     if(layer >= LAYERS_COUNT) return;
@@ -339,7 +344,11 @@ void Sequence::clearLayer(int id) {
 
 void Sequence::clear() {
     clearAllLayers();
-    for(int i=0; i<EVENTS_COUNT; ++i) _eventPositions[i] = 0;
+    
+    _framesTillNextStep = 0;
+    _framesTillNoteOff = std::numeric_limits<frame_t>::max();
+    // _noteTriggered = false;
+    // for(int i=0; i<EVENTS_COUNT; ++i) _eventPositions[i] = 0;
 }
 
 

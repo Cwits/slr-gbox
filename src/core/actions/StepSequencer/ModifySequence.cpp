@@ -96,7 +96,8 @@ void ModifySequenceAction::checkWaitingCondition(ControlContext &ctx) {
 
 void ModifySequenceAction::Modify::execRT() {
     if(editable->stepDuration() != duration) {
-        editable->recalculateEventPositions(*tl, duration);
+        // editable->recalculateEventPositions(*tl, duration);
+        editable->setDuration(duration);
     }
 
     if(editable->_stepCount != stepCount) {

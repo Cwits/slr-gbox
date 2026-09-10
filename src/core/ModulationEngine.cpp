@@ -21,13 +21,13 @@ frame_t ModulationPattern::process(const AudioContext &ctx) const {
     //fill the _data[frame] with value(frame)
     frame_t nudge = 0;
 
-    if(ctx.freewheeling) {
-        nudge = ctx.totalFrames % static_cast<frame_t>(_sampleRate);
-    } else {
+    // if(ctx.freewheeling) {
+    //     nudge = ctx.totalFrames % static_cast<frame_t>(_sampleRate);
+    // } else {
         if(!ctx.playing) return ctx.frames;
 
         nudge = ctx.elapsed % static_cast<frame_t>(_sampleRate);
-    }
+    // }
 
     for(frame_t f=nudge; f<nudge+ctx.frames; ++f) {
         _data[f-nudge] = value(nudge+f);

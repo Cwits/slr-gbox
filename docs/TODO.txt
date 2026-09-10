@@ -74,20 +74,16 @@ Refactoring:
         ... ugh, lvgl compiles as static library and need to recompile it with -fPIC in order to get everything as shared
 [ ] - separate defines.h to two files - slr_config.h and common.h
 [ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
-[ ] - Folder structure need bit of changes:
-        [ ] - separate RT core from everything else(but than timeline should live in RT and not in project?)
-                RT must become separate compilable entity?
-                eee...
-                PROFIT?!
-        [ ] - primitives folder needs to be in inc/ but not in inc/core/ (1 layer higher)
 
 [ ] - rewrite snapshots to some kind of subscribe model.??
         when some parameter changed and snapshots updated - call functions...?? 
 
 RtEngine:
-[ ] - ideally RtEngine should not know anything about Project. The RenderPlan can be stored in Project as std::unique_ptr, and passed as it happens now
+[\] - ideally RtEngine should not know anything about Project. The RenderPlan can be stored in Project as std::unique_ptr, and passed as it happens now
         but what to do with timeline? should RtEngine own timeline, or Project(and pass together with render plan?)? Feels like first option be better...
         But if timeline stored in RtEngine than it would make things as prepareToPlay()\record() more difficult?
+
+        [ ] - need to solve prepareToPlay\stopAfterPlay. So ideally remove it from project, and remove project ref from timeline as well.
 
 [ ] - must obrain buffers through MidiController. Basically - MidiController owning vectors:
         std::unique_ptr<std::vector<RtMidiBuffer>> and ... etc, rtengine just using them?
@@ -120,7 +116,7 @@ Timeline:
 
         plus rounding somewhere must be involved
 
-
+[ ] - timeline must handle freewheeling by itself, no unit must worry about that things
 
 Units:
 [ ] - Make a proper CMakeLists.txt template for easier to implement each module and not to edit main CMakeLists in order to add new one

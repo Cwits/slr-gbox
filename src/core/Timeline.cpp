@@ -202,6 +202,7 @@ uint32_t Timeline::calcFramesPerBar() const {
 }
 
 void Timeline::setTimelineState(TimelineState state) {
+    
     switch(state) {
         case(TimelineState::Stop): stop(); break;
         case(TimelineState::Play): play(); break;

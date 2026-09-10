@@ -118,6 +118,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 #if RT_PROFILE == 1
     Profiler::start(profQueue);
 #endif
+
     //handle rt control tasks
     {
         RtTask * task = nullptr;
@@ -211,12 +212,10 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     const Timeline &tl = *plan->timeline;
     const bool playing = tl.playing();//must be called before elapsed because if prevstate == preparing than we can do 
     const bool recording = tl.recording();
-    const bool freewheeling = false;
     const frame_t elapsed = tl.elapsed(framesPassed);
 
     AudioContext ctx(playing,
                     recording,
-                    freewheeling, //freewheeling mode
                     frames,
                     elapsed,
                     framesPassed,
@@ -251,7 +250,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 
     if(plan->sequenceCount) {
         for(uint32_t s=0; s<plan->sequenceCount; ++s) {
-            plan->sequences[s].tick(ctx);
+            plan->sequences[s].process(ctx);
         }
     }
    

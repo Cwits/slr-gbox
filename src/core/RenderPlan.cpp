@@ -230,7 +230,7 @@ bool buildUnits(ControlContext &ctx, PlanHolder *holder) {
     if(order.size() == 0) {
         //cycle detected or there is no ID's
         LOG_WARN("No items to render, returning dummy Render Plan");
-        return false; 
+        return true; 
     }
 
     /*
