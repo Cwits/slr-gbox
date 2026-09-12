@@ -93,6 +93,10 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
             (*_outputs)[1][s] = amp;
         }
 
+        
+        sumAudioBuffers((*_outputs)[0], (*ctx.mainOutputs)[0], ctx.blockSize);
+        sumAudioBuffers((*_outputs)[1], (*ctx.mainOutputs)[1], ctx.blockSize);
+
         _remainedSamplesToPlay -= samplesToPlay;
     } else {
         if(!_buffersClear) {
