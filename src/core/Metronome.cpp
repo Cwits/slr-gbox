@@ -67,9 +67,10 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
         
         frame_t expectedPosition = _lastPlayedStep * ctx.timeline.framesPerBeat();
         frame_t elapsed = ctx.elapsed % ctx.timeline.framesPerBar();
-        delay = (expectedPosition > ctx.elapsed) ? expectedPosition - elapsed : ctx.timeline.framesPerBar() - elapsed;
-        if(expectedPosition > ctx.elapsed) expectedPosition - elapsed;
-        else if(expectedPosition < ctx.elapsed) ctx.timeline.framesPerBar() - elapsed;
+
+        if(expectedPosition > elapsed) expectedPosition - elapsed;
+        else if(expectedPosition < elapsed) elapsed;
+        else if(expectedPosition == elapsed) delay = 0;
         
         if(delay != 0) samplesToPlay = ctx.blockSize - delay;
         else samplesToPlay = ctx.blockSize;
