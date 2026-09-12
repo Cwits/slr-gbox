@@ -25,7 +25,7 @@ SimpleOsc::~SimpleOsc() {
 }
 
 frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) const {
-    if(isMuted(ctx)) return ctx.frames;
+    if(isMuted(ctx)) return ctx.blockSize;
 
     _midiOutput->clear();
 
@@ -105,8 +105,8 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
 
     //TODO: pass to midi thru
 
-    clearAudioBuffer((*_outputs)[0], ctx.frames);
-    clearAudioBuffer((*_outputs)[1], ctx.frames);
+    clearAudioBuffer((*_outputs)[0], ctx.blockSize);
+    clearAudioBuffer((*_outputs)[1], ctx.blockSize);
 
     if(ctx.playing) {
         playbackFiles(ctx, _outputs, _midiInput);
@@ -116,7 +116,7 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
     for(int i=0; i<_activeVoices; ++i) {
         voice &v = _voices[i];
         
-        for(frame_t f=0; f<ctx.frames; ++f) {
+        for(frame_t f=0; f<ctx.blockSize; ++f) {
             if(v.framesDelay != 0) v.framesDelay--;
             else {
                 float freq = std::pow(2, (float)(v.pitch-24)/12) * 440.0f;
@@ -132,13 +132,13 @@ frame_t SimpleOsc::process(const AudioContext &ctx, const Dependencies &inputs) 
 
     //process volume
     float volume = 0.0f;
-    for(frame_t f=0; f<ctx.frames; ++f) {
+    for(frame_t f=0; f<ctx.blockSize; ++f) {
         volume = _volume.value(f);
         (*_outputs)[0][f] *= volume;
         (*_outputs)[1][f] *= volume;
     }
 
-    return ctx.frames;
+    return ctx.blockSize;
 }
 
 void SimpleOsc::prepareToPlay() {

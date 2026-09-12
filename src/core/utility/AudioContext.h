@@ -17,7 +17,7 @@ struct AudioContext {
     public:
     AudioContext(const bool playing,
                 const bool recording,
-                const frame_t frames,
+                const frame_t blockSize,
                 const frame_t elapsed, 
                 const frame_t totalFrames,
                 const AudioBuffer * in, 
@@ -27,7 +27,7 @@ struct AudioContext {
                 :
                 playing(playing),
                 recording(recording),
-                frames(frames),
+                blockSize(blockSize),
                 elapsed(elapsed),
                 totalFrames(totalFrames),
                 mainInputs(in), 
@@ -40,7 +40,7 @@ struct AudioContext {
     const bool playing;
     const bool recording;
     
-    const frame_t frames; //ammount of frames to process == block size
+    const frame_t blockSize; //ammount of frames to process == block size
     const frame_t elapsed; //if playing than diff, else = 0
     const frame_t totalFrames;//total ammount frames passed since audio driver started
 

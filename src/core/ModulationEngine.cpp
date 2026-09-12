@@ -24,16 +24,16 @@ frame_t ModulationPattern::process(const AudioContext &ctx) const {
     // if(ctx.freewheeling) {
     //     nudge = ctx.totalFrames % static_cast<frame_t>(_sampleRate);
     // } else {
-        if(!ctx.playing) return ctx.frames;
+        if(!ctx.playing) return ctx.blockSize;
 
         nudge = ctx.elapsed % static_cast<frame_t>(_sampleRate);
     // }
 
-    for(frame_t f=nudge; f<nudge+ctx.frames; ++f) {
+    for(frame_t f=nudge; f<nudge+ctx.blockSize; ++f) {
         _data[f-nudge] = value(nudge+f);
     }
 
-    return ctx.frames;
+    return ctx.blockSize;
 }
 
 float ModulationPattern::value(frame_t frame) const {

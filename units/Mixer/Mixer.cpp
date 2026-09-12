@@ -17,10 +17,10 @@ Mixer::~Mixer() {
 }
 
 frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs) const {
-    if(isMuted(ctx)) return ctx.frames;
+    if(isMuted(ctx)) return ctx.blockSize;
 
-    clearAudioBuffer((*_outputs)[0], ctx.frames);
-    clearAudioBuffer((*_outputs)[1], ctx.frames);
+    clearAudioBuffer((*_outputs)[0], ctx.blockSize);
+    clearAudioBuffer((*_outputs)[1], ctx.blockSize);
 
     if(ctx.playing) {
         playbackFiles(ctx, _outputs, _midiInput);
@@ -34,13 +34,13 @@ frame_t Mixer::process(const AudioContext &ctx,  const Dependencies &inputs) con
         for(int ch=0; ch<32; ++ch) {
             if(ext.channelMap[ch] == -1) continue;
 
-            for(frame_t f=0; f<ctx.frames; ++f) {
+            for(frame_t f=0; f<ctx.blockSize; ++f) {
                 (*_outputs)[ch][f] += (*source)[ext.channelMap[ch]][f];
             }
         }
     }
 
-    return ctx.frames;
+    return ctx.blockSize;
 }
 
 void Mixer::prepareToPlay() {

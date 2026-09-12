@@ -21,13 +21,13 @@ struct Metronome : public AudioUnit {
     frame_t latency() override;
 
     private:
-    mutable frame_t _lastTickFrame;
+    // mutable frame_t _framesTillTick;
     mutable frame_t _remainedSamplesToPlay;
+    mutable int _lastPlayedStep;
 
     float _tau;
     frame_t _sampleRate;
 
-    mutable int _lastPlayedStep;
 
     frame_t _soundLength;
     float freq_high;

@@ -14,8 +14,8 @@
 namespace slr {
     
 Metronome::Metronome() : AudioUnit(nullptr, 0) {
-    _lastTickFrame = 0;
-    _lastPlayedStep = -1;
+    // _lastTickFrame = 0;
+    // _lastPlayedStep = -1;
     _remainedSamplesToPlay = 0;
     _soundLength = 4096;
     
@@ -34,6 +34,73 @@ Metronome::~Metronome() {
 }
 
 frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) const {
+    if(isMuted(ctx)) return ctx.blockSize;
+    
+    /*
+        надо как то высчитывать из elapsed какой нынче шаг, потом брать % tl->barSize()._denominator 
+        и... проверять какое состояние
+        если текущий шаг != последний сыгранный то начать играть -> меняешь стейт на играет
+        если текущий шаг == последний сыгранный -> значит либо ещё играем либо сыграли
+            если играем то считаем и играем.
+            если сыграли -> if(!_buffersClear) clearBuffers();
+        
+        нооо проблема в том что надо смотреть может ли быть шаг в текущем кадре т.к. он не всегда совпадает с ctx.elapsed
+    */
+
+    int currentStep = (ctx.elapsed + ctx.blockSize) / ctx.timeline.framesPerBeat();
+    
+    frame_t samplesToPlay = 0;
+    frame_t delay = 0;
+    if(currentStep == _lastPlayedStep) {
+        if(_remainedSamplesToPlay == 0 && _buffersClear) return ctx.blockSize;
+
+        if(_remainedSamplesToPlay >= ctx.blockSize) {
+            samplesToPlay = ctx.blockSize;
+        } else {
+            //less than
+            samplesToPlay = ctx.blockSize - _remainedSamplesToPlay;
+        }
+
+    } else if(currentStep != _lastPlayedStep) {
+        _lastPlayedStep = currentStep % ctx.timeline.getBarSize()._numerator;
+        _remainedSamplesToPlay = _soundLength;
+        
+        frame_t expectedPosition = _lastPlayedStep * ctx.timeline.framesPerBeat();
+        frame_t elapsed = ctx.elapsed % ctx.timeline.framesPerBar();
+        delay = (expectedPosition > ctx.elapsed) ? expectedPosition - elapsed : elapsed - expectedPosition;
+        if(delay != 0) samplesToPlay = ctx.blockSize - delay;
+        else samplesToPlay = ctx.blockSize;
+    }
+
+    if(samplesToPlay > 0 && _remainedSamplesToPlay > 0) {
+        _buffersClear = false;
+        //play some thing
+        
+        clearAudioBuffers((*_outputs)[0], (*_outputs)[1], ctx.blockSize);
+            
+        float freq = (_lastPlayedStep == 0 ? freq_high : freq_low); 
+        for(frame_t s=delay; s<samplesToPlay; ++s) {
+            frame_t delta = s + (_soundLength - _remainedSamplesToPlay);
+
+            // sample_t amp = std::exp(-(float)delta / _tau) * std::sin(2.0f*M_PI * freq * (delta/44100));
+            sample_t amp = 0.7*sMath::sin(sMath::TWOPIF * freq * ((float)delta/(float)_sampleRate));
+            //TODO: add simple decay
+            (*_outputs)[0][s] = amp;
+            (*_outputs)[1][s] = amp;
+        }
+
+        _remainedSamplesToPlay -= samplesToPlay;
+    } else {
+        if(!_buffersClear) {
+            clearAudioBuffers((*_outputs)[0], (*_outputs)[1], ctx.blockSize);
+            _buffersClear = true;
+        }
+    }
+
+    return ctx.blockSize;
+}
+/*
+frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) const {
     bool tick = false;
     frame_t delay = 0;
     frame_t samplesToPlay = 0;
@@ -44,33 +111,33 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
     } else {
         frame_t framesPerBeat = ctx.timeline.framesPerBeat();
         
-        if(ctx.elapsed + ctx.frames - _lastTickFrame >= framesPerBeat) {
+        if(ctx.elapsed + ctx.blockSize - _lastTickFrame >= framesPerBeat) {
             tick = true;
             delay = framesPerBeat - (ctx.elapsed-_lastTickFrame);
             _lastTickFrame = ctx.elapsed+delay;
         }
     }
 
-    if(isMuted(ctx)) return ctx.frames;
+    if(isMuted(ctx)) return ctx.blockSize;
 
     if(tick) {
         _remainedSamplesToPlay = _soundLength;
-        if(_soundLength > ctx.frames) {
-            // _remainedSamplesToPlay = _soundLength - (ctx.frames-delay);
-            samplesToPlay = ctx.frames-delay;
+        if(_soundLength > ctx.blockSize) {
+            // _remainedSamplesToPlay = _soundLength - (ctx.blockSize-delay);
+            samplesToPlay = ctx.blockSize-delay;
         } else {
             samplesToPlay = _soundLength;
         }
 
         
         // _remainedSamplesToPlay -= samplesToPlay;
-        _lastPlayedStep++;
+        _lastPlayedStep++; //lastPlayedStep counted wrong when looping
         if(_lastPlayedStep >= ctx.timeline.getBarSize()._numerator)
             _lastPlayedStep = 0;
     } else {
         if(_remainedSamplesToPlay > 0) {
-            if(_remainedSamplesToPlay > ctx.frames)
-                samplesToPlay = ctx.frames;
+            if(_remainedSamplesToPlay > ctx.blockSize)
+                samplesToPlay = ctx.blockSize;
             else 
                 samplesToPlay = _remainedSamplesToPlay;
         }
@@ -84,9 +151,9 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
         //                 samplesToPlay, 
         //                 _remainedSamplesToPlay,
         //                 _lastPlayedStep);
-        clearAudioBuffers((*_outputs)[0], (*_outputs)[1], ctx.frames);
+        clearAudioBuffers((*_outputs)[0], (*_outputs)[1], ctx.blockSize);
 
-        float freq = (_lastPlayedStep == 0 ? freq_high : freq_low);
+        float freq = (_lastPlayedStep == 0 ? freq_high : freq_low); 
         for(frame_t s=delay; s<samplesToPlay; ++s) {
             frame_t delta = s + (_soundLength - _remainedSamplesToPlay);
 
@@ -102,19 +169,19 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
         _buffersClear = false;
     } else {
         if(!_buffersClear) {
-            clearAudioBuffers((*_outputs)[0], (*_outputs)[1], ctx.frames);
+            clearAudioBuffers((*_outputs)[0], (*_outputs)[1], ctx.blockSize);
             _buffersClear = true;
         }
     }
 
-    sumAudioBuffers((*_outputs)[0], (*ctx.mainOutputs)[0], ctx.frames);
-    sumAudioBuffers((*_outputs)[1], (*ctx.mainOutputs)[1], ctx.frames);
+    sumAudioBuffers((*_outputs)[0], (*ctx.mainOutputs)[0], ctx.blockSize);
+    sumAudioBuffers((*_outputs)[1], (*ctx.mainOutputs)[1], ctx.blockSize);
 
-    return ctx.frames;
+    return ctx.blockSize;
 }
-
+*/
 void Metronome::prepareToPlay() {
-    _lastTickFrame = 0;
+    // _framesTillTick = 0;
     _lastPlayedStep = -1;
     _remainedSamplesToPlay = 0;
 }

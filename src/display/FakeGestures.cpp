@@ -69,6 +69,7 @@ void FakeGestures::handleMouseButton(SDL_MouseButtonEvent & button) {
     if(button.button != 1) return; // == 3 for left click
     
     if(button.state == SDL_PRESSED) {
+        // LOG_INFO("Pressed");
         switch(_gesture) {
             case(GestLib::Gestures::Tap): {
                 makeTouchDown(button.x, button.y);
@@ -98,6 +99,7 @@ void FakeGestures::handleMouseButton(SDL_MouseButtonEvent & button) {
             } break;
         }
     } else if(button.state == SDL_RELEASED) {
+        // LOG_INFO("Released");
         switch(_gesture) { 
             case(GestLib::Gestures::Tap): {
                 makeTap(button.x, button.y); 

@@ -154,14 +154,14 @@ void Sequence::stopAfterPlay() const {
 }
 
 frame_t Sequence::process(const AudioContext &ctx) const {
-    if(!ctx.playing) return ctx.frames;
+    if(!ctx.playing) return ctx.blockSize;
     
     bool hasTargets = false;
     for(int i=0; i<TARGET_COUNT; ++i) {
         if(_targets[i] != nullptr) { hasTargets = true; break; }
     }
 
-    if(!hasTargets) return ctx.frames;
+    if(!hasTargets) return ctx.blockSize;
 
     frame_t framesPerStep = ctx.timeline.framesInStep(_stepDuration);
     float frameFraction = ctx.timeline.framesInStepFraction(_stepDuration);
@@ -186,13 +186,13 @@ frame_t Sequence::process(const AudioContext &ctx) const {
 
     float fps = framesPerStep + frameFraction;
     
-    if(_framesTillNextStep < ctx.frames) {
+    if(_framesTillNextStep < ctx.blockSize) {
         _framesTillNoteOff = framesPerStep/2;
         
         frame_t delay = _framesTillNextStep;
 
 
-        int eventStep = (positionWithinLoop + ctx.frames) / framesPerStep;
+        int eventStep = (positionWithinLoop + ctx.blockSize) / framesPerStep;
         frame_t tmp = fps * (eventStep+1);
         _framesTillNextStep = tmp - positionWithinLoop;
 
@@ -234,14 +234,14 @@ frame_t Sequence::process(const AudioContext &ctx) const {
         }
     }
 
-    if(_framesTillNoteOff < ctx.frames) {
+    if(_framesTillNoteOff < ctx.blockSize) {
         int step = positionWithinLoop / framesPerStep;
         frame_t frac = sMath::floor(frameFraction * ((step%_stepCount)+1));
         frame_t delay = _framesTillNoteOff;
 
 #if STEP_SEQUENCER_TRACE == 1
             // LOG_INFO("Step %d: note off: position %lu, with delay %lu, leftover: 0, total %lu", 
-            //             (positionWithinLoop + ctx.frames) / framesPerStep, 
+            //             (positionWithinLoop + ctx.blockSize) / framesPerStep, 
             //             positionWithinLoop, 
             //             delay, 
             //             positionWithinLoop+delay);
@@ -278,10 +278,10 @@ frame_t Sequence::process(const AudioContext &ctx) const {
         _framesTillNoteOff = std::numeric_limits<frame_t>::max();
     }
 
-    _framesTillNextStep -= ctx.frames;
-    _framesTillNoteOff -= ctx.frames;
+    _framesTillNextStep -= ctx.blockSize;
+    _framesTillNoteOff -= ctx.blockSize;
 
-   return ctx.frames;
+   return ctx.blockSize;
 }
 
 void Sequence::Layer::initAllTo(MidiEvent ev) {

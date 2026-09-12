@@ -261,7 +261,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         LOG_INFO("playing %s, recording %s, block size %lu, elapsed %lu, total frames passed %lu", 
                     (ctx.playing ? "true" : "false"),
                     (ctx.recording ? "true" : "false"),
-                    ctx.frames, 
+                    ctx.blockSize, 
                     ctx.elapsed,
                     ctx.totalFrames); //2 times elapsed == 0 on dummy driver, but on jack driver - everything fine(only once)
     }
@@ -280,7 +280,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
         for(int ch=0; ch<32; ++ch) {
             if(ext.channelMap[ch] == -1) continue;
 
-            for(frame_t f=0; f<ctx.frames; ++f) {
+            for(frame_t f=0; f<ctx.blockSize; ++f) {
                 (*ctx.mainOutputs)[ch][f] += (*source)[ext.channelMap[ch]][f];
             }
         }

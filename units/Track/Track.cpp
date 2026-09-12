@@ -77,56 +77,56 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) con
     
     //TODO: must ensure that buffers are clear - i guess introduce some flag _buffersClear(as in metronome)
     if(_mute) {
-        if(_buffersClear) return ctx.frames;
+        if(_buffersClear) return ctx.blockSize;
 
-        clearAudioBuffer((*_recInt)[0], ctx.frames);
-        clearAudioBuffer((*_recInt)[1], ctx.frames);
-        clearAudioBuffer((*_recExt)[0], ctx.frames);
-        clearAudioBuffer((*_recExt)[1], ctx.frames);
+        clearAudioBuffer((*_recInt)[0], ctx.blockSize);
+        clearAudioBuffer((*_recInt)[1], ctx.blockSize);
+        clearAudioBuffer((*_recExt)[0], ctx.blockSize);
+        clearAudioBuffer((*_recExt)[1], ctx.blockSize);
 
-        clearAudioBuffer((*_preFX)[0], ctx.frames);
-        clearAudioBuffer((*_preFX)[1], ctx.frames);
+        clearAudioBuffer((*_preFX)[0], ctx.blockSize);
+        clearAudioBuffer((*_preFX)[1], ctx.blockSize);
 
-        clearAudioBuffer((*_postFX)[0], ctx.frames);
-        clearAudioBuffer((*_postFX)[1], ctx.frames);
+        clearAudioBuffer((*_postFX)[0], ctx.blockSize);
+        clearAudioBuffer((*_postFX)[1], ctx.blockSize);
                 
-        clearAudioBuffer((*_postPan)[0], ctx.frames);
-        clearAudioBuffer((*_postPan)[1], ctx.frames);
+        clearAudioBuffer((*_postPan)[0], ctx.blockSize);
+        clearAudioBuffer((*_postPan)[1], ctx.blockSize);
 
-        clearAudioBuffer((*_outputs)[0], ctx.frames);
-        clearAudioBuffer((*_outputs)[1], ctx.frames);
+        clearAudioBuffer((*_outputs)[0], ctx.blockSize);
+        clearAudioBuffer((*_outputs)[1], ctx.blockSize);
         
         _buffersClear = true;
-        return ctx.frames;
+        return ctx.blockSize;
     }
     
     _buffersClear = false;
 #if (DEFAULT_BUFFER_CHANNELS == 2)
-    clearAudioBuffer((*_recInt)[0], ctx.frames);
-    clearAudioBuffer((*_recInt)[1], ctx.frames);
-    clearAudioBuffer((*_recExt)[0], ctx.frames);
-    clearAudioBuffer((*_recExt)[1], ctx.frames);
+    clearAudioBuffer((*_recInt)[0], ctx.blockSize);
+    clearAudioBuffer((*_recInt)[1], ctx.blockSize);
+    clearAudioBuffer((*_recExt)[0], ctx.blockSize);
+    clearAudioBuffer((*_recExt)[1], ctx.blockSize);
 
-    clearAudioBuffer((*_preFX)[0], ctx.frames);
-    clearAudioBuffer((*_preFX)[1], ctx.frames);
+    clearAudioBuffer((*_preFX)[0], ctx.blockSize);
+    clearAudioBuffer((*_preFX)[1], ctx.blockSize);
 
-    clearAudioBuffer((*_postFX)[0], ctx.frames);
-    clearAudioBuffer((*_postFX)[1], ctx.frames);
+    clearAudioBuffer((*_postFX)[0], ctx.blockSize);
+    clearAudioBuffer((*_postFX)[1], ctx.blockSize);
         
-    clearAudioBuffer((*_postPan)[0], ctx.frames);
-    clearAudioBuffer((*_postPan)[1], ctx.frames);
+    clearAudioBuffer((*_postPan)[0], ctx.blockSize);
+    clearAudioBuffer((*_postPan)[1], ctx.blockSize);
 #else
     uint8_t channels = _preFX->channels(); 
     for(uint8_t i=0; i<channels; ++i) {
-        clearAudioBuffer((*_preFX)[i], ctx.frames);
+        clearAudioBuffer((*_preFX)[i], ctx.blockSize);
     }
     channels = _postFX->channels();
     for(uint8_t i=0; i<channels; ++i) {
-        clearAudioBuffer((*_postFX)[i], ctx.frames);
+        clearAudioBuffer((*_postFX)[i], ctx.blockSize);
     }
     channels = _postPan->channels();
     for(uint8_t i=0; i<channels; ++i) {
-        clearAudioBuffer((*_postPan)[i], ctx.frames);
+        clearAudioBuffer((*_postPan)[i], ctx.blockSize);
     }
 #endif
     _midiInput->clear();
@@ -163,7 +163,7 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) con
             for(int ch=0; ch<32; ++ch) {
                 if(ext.channelMap[ch] == -1) continue;
 
-                for(frame_t f=0; f<ctx.frames; ++f) {
+                for(frame_t f=0; f<ctx.blockSize; ++f) {
                     (*target)[ch][f] += (*source)[ext.channelMap[ch]][f];
                 }
             }
@@ -172,7 +172,7 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) con
             for(int ch=0; ch<32; ++ch) {
                 if(ext.channelMap[ch] == -1) continue;
 
-                for(frame_t f=0; f<ctx.frames; ++f) {
+                for(frame_t f=0; f<ctx.blockSize; ++f) {
                     (*_preFX)[ch][f] += (*source)[ext.channelMap[ch]][f];
                 }
             }
@@ -186,12 +186,12 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) con
             }
             
             if(_recordSource == RecordSource::Audio) {
-                _recordTarget->writeData(_recInt, ctx.frames, 2, false); //don't compensate
-                _recordTarget->writeData(_recExt, ctx.frames, 2, true); //compensate latency
-                _recordTarget->incrementCounter(ctx.frames);
+                _recordTarget->writeData(_recInt, ctx.blockSize, 2, false); //don't compensate
+                _recordTarget->writeData(_recExt, ctx.blockSize, 2, true); //compensate latency
+                _recordTarget->incrementCounter(ctx.blockSize);
             } else {
                 _recordTarget->writeData(_midiRecord, ctx.elapsed, 0, false);
-                _recordTarget->incrementCounter(ctx.frames);
+                _recordTarget->incrementCounter(ctx.blockSize);
             }
         } 
     }
@@ -213,14 +213,14 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) con
 
     /* preFX buffers completed */
 
-   copyAudioBuffer((*_preFX)[0], (*_postFX)[0], ctx.frames);
-   copyAudioBuffer((*_preFX)[1], (*_postFX)[1], ctx.frames);
+   copyAudioBuffer((*_preFX)[0], (*_postFX)[0], ctx.blockSize);
+   copyAudioBuffer((*_preFX)[1], (*_postFX)[1], ctx.blockSize);
 
     sample_t volume = 0.0f;
 #if (DEFAULT_BUFFER_CHANNELS == 2) 
-    // mulAudioBufferToValue((*_postFX)[0], ctx.frames, volume);
-    // mulAudioBufferToValue((*_postFX)[1], ctx.frames, volume);
-    for(frame_t f=0; f<ctx.frames; ++f) {
+    // mulAudioBufferToValue((*_postFX)[0], ctx.blockSize, volume);
+    // mulAudioBufferToValue((*_postFX)[1], ctx.blockSize, volume);
+    for(frame_t f=0; f<ctx.blockSize; ++f) {
         volume = _volume.value(f);
         (*_postFX)[0][f] *= volume;
         (*_postFX)[1][f] *= volume;
@@ -229,17 +229,17 @@ frame_t Track::process(const AudioContext &ctx,  const Dependencies &inputs) con
     uint8_t channels = _preFX->channels();
     channels = _postFX->channels();
     for(uint8_t i=0; i<channels; ++i) {
-        mulAudioBufferToValue((*_postFX)[i], ctx.frames, volume);
+        mulAudioBufferToValue((*_postFX)[i], ctx.blockSize, volume);
     }
 #endif
 
     //process pan
 
-    copyAudioBuffer((*_postFX)[0], (*_outputs)[0], ctx.frames);
-    copyAudioBuffer((*_postFX)[1], (*_outputs)[1], ctx.frames);
+    copyAudioBuffer((*_postFX)[0], (*_outputs)[0], ctx.blockSize);
+    copyAudioBuffer((*_postFX)[1], (*_outputs)[1], ctx.blockSize);
 
 
-    return ctx.frames;
+    return ctx.blockSize;
 }
 
 void Track::prepareToPlay() {

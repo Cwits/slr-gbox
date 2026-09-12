@@ -52,26 +52,26 @@ bool Sampler::destroy(BufferManager *man) {
 
 frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) const {
     if(_mute) {
-        if(_buffersClear) return ctx.frames;
+        if(_buffersClear) return ctx.blockSize;
 
-        clearAudioBuffer((*_preMix)[0], ctx.frames);
-        clearAudioBuffer((*_preMix)[1], ctx.frames);
-        clearAudioBuffer((*_mix)[0], ctx.frames);
-        clearAudioBuffer((*_mix)[1], ctx.frames);
-        clearAudioBuffer((*_outputs)[0], ctx.frames);
-        clearAudioBuffer((*_outputs)[1], ctx.frames);
+        clearAudioBuffer((*_preMix)[0], ctx.blockSize);
+        clearAudioBuffer((*_preMix)[1], ctx.blockSize);
+        clearAudioBuffer((*_mix)[0], ctx.blockSize);
+        clearAudioBuffer((*_mix)[1], ctx.blockSize);
+        clearAudioBuffer((*_outputs)[0], ctx.blockSize);
+        clearAudioBuffer((*_outputs)[1], ctx.blockSize);
         _buffersClear = true;
-        return ctx.frames;
+        return ctx.blockSize;
     }
     _buffersClear = false;
 
     
-    clearAudioBuffer((*_preMix)[0], ctx.frames);
-    clearAudioBuffer((*_preMix)[1], ctx.frames);
-    clearAudioBuffer((*_mix)[0], ctx.frames);
-    clearAudioBuffer((*_mix)[1], ctx.frames);
-    clearAudioBuffer((*_outputs)[0], ctx.frames);
-    clearAudioBuffer((*_outputs)[1], ctx.frames);
+    clearAudioBuffer((*_preMix)[0], ctx.blockSize);
+    clearAudioBuffer((*_preMix)[1], ctx.blockSize);
+    clearAudioBuffer((*_mix)[0], ctx.blockSize);
+    clearAudioBuffer((*_mix)[1], ctx.blockSize);
+    clearAudioBuffer((*_outputs)[0], ctx.blockSize);
+    clearAudioBuffer((*_outputs)[1], ctx.blockSize);
 
     // _midiInput->clear();
     // _midiOutput->clear();
@@ -99,7 +99,7 @@ frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) c
         }
     }
 
-    return ctx.frames;
+    return ctx.blockSize;
 }
 
 void Sampler::prepareToPlay() {

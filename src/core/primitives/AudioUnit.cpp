@@ -78,8 +78,8 @@ bool AudioUnit::isMuted(const AudioContext &ctx) const {
     if(_mute) {
         if(!_buffersClear) {
             _buffersClear = true;
-            clearAudioBuffer((*_outputs)[0], ctx.frames);
-            clearAudioBuffer((*_outputs)[1], ctx.frames);
+            clearAudioBuffer((*_outputs)[0], ctx.blockSize);
+            clearAudioBuffer((*_outputs)[1], ctx.blockSize);
         }
         return true;
     }
@@ -98,7 +98,7 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
     for(const ClipItem * const item : *_clipContainer) {
         if(item->isMuted()) continue;
 
-        if((ctx.elapsed+ctx.frames) <= item->startPosition()) continue;
+        if((ctx.elapsed+ctx.blockSize) <= item->startPosition()) continue;
         if(ctx.elapsed > (item->startPosition()+item->length())) continue;
 
         switch(item->_file->type()) {
@@ -113,17 +113,17 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
                 frame_t readPosition = 0;
                 if(ctx.elapsed < item->startPosition()) { 
                     //beginning
-                    framesToRead = ctx.frames - (item->startPosition() - ctx.elapsed);
+                    framesToRead = ctx.blockSize - (item->startPosition() - ctx.elapsed);
                     writePosition = item->startPosition() - ctx.elapsed;
                     readPosition = 0;
-                } else if(ctx.elapsed + ctx.frames > item->startPosition() + item->length()) {
+                } else if(ctx.elapsed + ctx.blockSize > item->startPosition() + item->length()) {
                     //end
                     framesToRead = (item->startPosition() + item->length()) - ctx.elapsed;
                     writePosition = 0;
                     readPosition = ctx.elapsed - item->startPosition();
                 } else {
                     //middle
-                    framesToRead = ctx.frames;
+                    framesToRead = ctx.blockSize;
                     writePosition = 0;
                     readPosition = ctx.elapsed - item->startPosition();
                 }
