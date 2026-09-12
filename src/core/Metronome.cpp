@@ -67,7 +67,10 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
         
         frame_t expectedPosition = _lastPlayedStep * ctx.timeline.framesPerBeat();
         frame_t elapsed = ctx.elapsed % ctx.timeline.framesPerBar();
-        delay = (expectedPosition > ctx.elapsed) ? expectedPosition - elapsed : elapsed - expectedPosition;
+        delay = (expectedPosition > ctx.elapsed) ? expectedPosition - elapsed : ctx.timeline.framesPerBar() - elapsed;
+        if(expectedPosition > ctx.elapsed) expectedPosition - elapsed;
+        else if(expectedPosition < ctx.elapsed) ctx.timeline.framesPerBar() - elapsed;
+        
         if(delay != 0) samplesToPlay = ctx.blockSize - delay;
         else samplesToPlay = ctx.blockSize;
     }
@@ -78,16 +81,21 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
         
         clearAudioBuffers((*_outputs)[0], (*_outputs)[1], ctx.blockSize);
             
-        float freq = (_lastPlayedStep == 0 ? freq_high : freq_low); 
-        for(frame_t s=delay; s<samplesToPlay; ++s) {
-            frame_t delta = s + (_soundLength - _remainedSamplesToPlay);
-
-            // sample_t amp = std::exp(-(float)delta / _tau) * std::sin(2.0f*M_PI * freq * (delta/44100));
-            sample_t amp = 0.7*sMath::sin(sMath::TWOPIF * freq * ((float)delta/(float)_sampleRate));
-            //TODO: add simple decay
-            (*_outputs)[0][s] = amp;
-            (*_outputs)[1][s] = amp;
+        if(delay > ctx.blockSize) {
+            int i=0; 
+            i+=66;
+            i-= 15;
         }
+        float freq = (_lastPlayedStep == 0 ? freq_high : freq_low); 
+        // for(frame_t s=delay; s<samplesToPlay; ++s) {
+        //     frame_t delta = s + (_soundLength - _remainedSamplesToPlay);
+
+        //     // sample_t amp = std::exp(-(float)delta / _tau) * std::sin(2.0f*M_PI * freq * (delta/44100));
+        //     sample_t amp = 0.7*sMath::sin(sMath::TWOPIF * freq * ((float)delta/(float)_sampleRate));
+        //     //TODO: add simple decay
+        //     (*_outputs)[0][s] = amp;
+        //     (*_outputs)[1][s] = amp;
+        // }
 
         _remainedSamplesToPlay -= samplesToPlay;
     } else {
