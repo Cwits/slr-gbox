@@ -38,7 +38,9 @@ MidiDevice _virtualDev;
 MidiSubdevice _virtualSub;
 std::unique_ptr<MidiPort> _virtualPort;
 
-MidiController::MidiController() {
+void discoverMidi(MidiController *ctl, std::atomic<bool> &shutdown);
+
+MidiController::MidiController(std::atomic<bool> &shutdown) {
     _input_constant_delay = SettingsManager::getBlockSize();
     _sample_rate = SettingsManager::getSampleRate();
     _block_size = SettingsManager::getBlockSize();
@@ -123,6 +125,8 @@ MidiController::MidiController() {
                 
     PushThread::start(aport);
 #endif            
+
+    _midiDiscoverThread = std::thread(discoverMidi, this, std::reference_wrapper(shutdown));
 }
 
 MidiController::~MidiController() {
@@ -139,6 +143,7 @@ MidiController::~MidiController() {
 
     //close virtual midi
 
+    _midiDiscoverThread.join();
 }
 
 void MidiController::checkDevices() {
@@ -440,5 +445,14 @@ void MidiController::addVirtualKbdEvent(const MidiEvent ev) {
     MidiPort * port = _activePorts.at(0).get();
     port->pushEvent(ev.type, ev.channel, ev.note, ev.velocity);
 }
+
+void discoverMidi(MidiController *ctl, std::atomic<bool> &shutdown) {
+    while(!shutdown) {
+        ctl->checkDevices();
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
 
 }

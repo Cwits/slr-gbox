@@ -50,7 +50,7 @@
 namespace slr {
 
 std::thread _controlThread;
-std::atomic<bool> _shutdown;
+// std::atomic<bool> _shutdown;
 std::condition_variable _cond;
 
 std::unique_ptr<BufferManager> _bufferManager;
@@ -63,7 +63,6 @@ std::unique_ptr<FileWorker> _fileWorker;
 std::unique_ptr<ProjectView> _projectSnapshot;
 std::unique_ptr<DriverView> _driverView;
 
-std::thread _midiDiscoverThread;
 std::unique_ptr<MidiController> _midiController;
 
 std::vector<std::unique_ptr<ActionExecutable>> _actions;
@@ -76,8 +75,6 @@ std::deque<std::unique_ptr<Undoable>> _redoList;
 
 namespace ControlEngine {
 
-void discoverMidi();
-
 ActionExecutable * getAction(std::size_t &index) {
     std::shared_lock l(_actionMutex);
 
@@ -89,10 +86,10 @@ ActionExecutable * getAction(std::size_t &index) {
     return ret;
 }
 
-void processLoop() {
+void processLoop(std::atomic<bool> &shutdown) {
     bool pendingDeleteEvent = false;
 
-    while(!_shutdown) {
+    while(!shutdown) {
         ControlContext ctx(
             _project.get(),
             _fileWorker.get(),
@@ -217,12 +214,12 @@ void processLoop() {
 }
 
 
-bool init() {
+bool init(std::atomic<bool> &shutdown) {
     SettingsManager::init();
     // _undoList.resize(64);
     // _redoList.resize(64);
 
-    _shutdown = false;
+    // _shutdown = false;
 
     _bufferManager = std::make_unique<BufferManager>();
     if(!_bufferManager->init(SettingsManager::getBlockSize(), DEFAULT_BUFFER_CHANNELS)) {
@@ -237,7 +234,7 @@ bool init() {
     // }
 
     _fileWorker = std::make_unique<FileWorker>();
-    if(!_fileWorker->init()) {
+    if(!_fileWorker->init(shutdown)) {
         LOG_ERROR("Failed to init File Worker");
         return false;
     }
@@ -250,9 +247,9 @@ bool init() {
 
     UnitManagerFactory::init();
 
-    _midiController = std::make_unique<MidiController>();
+    _midiController = std::make_unique<MidiController>(shutdown);
 
-    _controlThread = std::thread(ControlEngine::processLoop);
+    _controlThread = std::thread(ControlEngine::processLoop, std::reference_wrapper(shutdown));
 
     _driverView = std::make_unique<DriverView>(_engine->driver());
 
@@ -274,14 +271,11 @@ bool init() {
         LOG_ERROR("Failed to start RT Engine");
         return false;
     }
-    
-    _midiDiscoverThread = std::thread(ControlEngine::discoverMidi);
 
     return true;
 }
 
 bool shutdown() {
-    _shutdown = true;
     if(!_engine->stop()) {
         LOG_ERROR("Failed to stop RT Engine at shutdown");
         return false;
@@ -309,7 +303,6 @@ bool shutdown() {
     _midiController.reset();
 
     _controlThread.join();
-    _midiDiscoverThread.join();
 
     return true;
 }
@@ -382,15 +375,6 @@ MidiController * midiController() {
 BufferManager * bufferManager() {
     return _bufferManager.get();
 }
-
-void discoverMidi() {
-    while(!_shutdown) {
-        _midiController->checkDevices();
-        
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-}
-
 
 } //namespace ControlEngine
 

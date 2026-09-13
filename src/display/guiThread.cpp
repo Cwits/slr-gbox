@@ -27,12 +27,6 @@
     #define SDL_VER_RES UI::Layout::TOTAL_HEIGHT
 #endif
 
-std::atomic<bool> _running;
-
-namespace slr {
-extern std::atomic<bool> _shutdown;
-}
-
 lv_display_t *lvDisplay;
 UI::SplashScreen * _splash;
 lv_obj_t * _main_screen;
@@ -103,9 +97,7 @@ void initGui() {
 #endif
 }
 
-void runGui() {
-    _running = true;
-    
+void runGui(std::atomic<bool> &shutdown) {    
     UI::MainWindow * main = new UI::MainWindow(_main_screen);
     lv_screen_load(_main_screen);
 
@@ -118,7 +110,7 @@ void runGui() {
     std::chrono::time_point<std::chrono::steady_clock> now = lastTick;
     std::chrono::time_point<std::chrono::steady_clock> elapsed = lastTick;
     
-    while(_running) {
+    while(!shutdown) {
         now = std::chrono::steady_clock::now();
 #if defined(__aarch64__)
         std::vector<GestLib::Gesture> gestures = _recognizer.fetchGestures();
@@ -158,7 +150,7 @@ void runGui() {
                 //TODO: not always catching this event...
                 LOG_INFO("Sdl quit");
                 // _running = false;
-                shutdown();
+                shutdown = true;
             }
             // print_sdl_event(event);
         }
@@ -211,14 +203,6 @@ void runGui() {
 
     // _logFile.close();
 }
-
-void shutdown() {
-    _running = false;
-    slr::_shutdown = true;
-}
-
-
-
 
 
 // #include <SDL2/SDL.h>

@@ -21,7 +21,7 @@ FileWorker::~FileWorker() {
 
 }
 
-bool FileWorker::init() {
+bool FileWorker::init(std::atomic<bool> &shutdown) {
     for(int i=0; i<8; ++i) {
         std::unique_ptr<AudioFile> file = std::make_unique<AudioFile>();
         _tmpAudioFiles.push_back(std::move(file));
@@ -29,7 +29,7 @@ bool FileWorker::init() {
     }
     
     _shutdown = false;
-    _thread = std::thread(&FileWorker::run, this);
+    _thread = std::thread(&FileWorker::run, this, std::reference_wrapper(shutdown));
 
     return true;
 }
@@ -62,13 +62,13 @@ bool FileWorker::clear() {
     return true;
 }
 
-void FileWorker::run(FileWorker * f) {
-    while(!f->_shutdown) {
+void FileWorker::run(FileWorker * f, std::atomic<bool> &shutdown) {
+    while(!shutdown) {
         std::unique_lock<std::mutex> lock(f->_mutex);
 
         while(f->_queue.empty()) {
             if(f->_cond.wait_for(lock, std::chrono::milliseconds(100)) == std::cv_status::timeout) {
-                if(f->_shutdown) {
+                if(shutdown) {
                     goto exit;
                 }
             }

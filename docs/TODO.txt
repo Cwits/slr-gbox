@@ -61,11 +61,11 @@ StepSequencer:
 [ ] - future upgrade:
         instead of using vectors or arrays or smth just allocate at startup big arena for stepevents(e.g. 1MB) and use spans,
         so each Sequence will know the start pointer in that arena 
+[ ] - feels like i shouldn't use the option with injecting midi events to targets, 
+        but create buffers for each sequence and use regular midi routings and handle midi delivering as with everything else
+
 
 Refactoring:
-[x] - rewrite AudioBufferManager to namespace instead of singleton
-[x] - FileWorker as a class 
-[x] - rewrite ControlEngine to namespace instead of singleton ???
 [x?] - instead of local in counters switch to one global id counter for all the entities.
         (not only for track, but for fx, mod engine, mixer, etc...)
 [\] - move Track and Mixer out from core folder - to units folder, together with they ui's and other related stuff...
@@ -73,7 +73,7 @@ Refactoring:
         [ ] - create CMakeLists.txt for each module and add dynamic modules search in ModuleManager - 
         ... ugh, lvgl compiles as static library and need to recompile it with -fPIC in order to get everything as shared
 [ ] - separate defines.h to two files - slr_config.h and common.h
-[ ] - change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
+[ ] - ? change SPSCQueue from compile-time size to runtime-size so it would be possible to edit count of regular and record buffers without recompiling code(check in google drive)
 
 [ ] - rewrite snapshots to some kind of subscribe model.??
         when some parameter changed and snapshots updated - call functions...?? 

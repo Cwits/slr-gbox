@@ -22,7 +22,7 @@ class FileWorker {
     FileWorker();
     ~FileWorker();
 
-    bool init();
+    bool init(std::atomic<bool> &shutdown);
     bool shutdown();
     bool clear();
 
@@ -53,7 +53,7 @@ class FileWorker {
     void closeTmpMidiFile(MidiFile *file);
 
     private:
-    static void run(FileWorker * f);
+    static void run(FileWorker * f, std::atomic<bool> &shutdown);
 
     std::mutex _mutex;
     std::condition_variable _cond;

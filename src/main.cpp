@@ -12,10 +12,13 @@
 #include "core/ControlEngine.h"
 #include "common/logger.h"
 
+std::atomic<bool> _shutdown;
+
 void handle_sigint(int i) {
     (void)i;
     
-    shutdown();
+    // shutdown();
+    _shutdown = true;
 }
 
 int main(int argc, char *argv[]) {
@@ -30,16 +33,18 @@ int main(int argc, char *argv[]) {
 
     LOG_INFO("C++ version is %li", __cplusplus);
 
+    _shutdown = false;
+
     initGui();
 
-    if(!slr::ControlEngine::init()) {
+    if(!slr::ControlEngine::init(_shutdown)) {
         LOG_ERROR("Failed at startup!");
         return 1;
     }
     
     // std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-    runGui();
+    runGui(_shutdown);
 
     if(!slr::ControlEngine::shutdown()) {
         LOG_ERROR("Failed at shutdown");

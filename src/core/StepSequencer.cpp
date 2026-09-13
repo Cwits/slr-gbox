@@ -223,10 +223,14 @@ frame_t Sequence::process(const AudioContext &ctx) const {
 
             if(!l._target) {
                 for(int i=0; i<TARGET_COUNT; ++i) {
-                    if(_targets[i]) _targets[i]->injectMidi(ev);
+                    if(_targets[i]) {
+                        if(_targets[i]->mute()) continue;
+                        _targets[i]->injectMidi(ev);
+                    }
                 }
             } else {
-                l._target->injectMidi(ev);
+                if(!l._target->mute())
+                    l._target->injectMidi(ev);
             }
 
             l._lastTriggeredEvent = step;

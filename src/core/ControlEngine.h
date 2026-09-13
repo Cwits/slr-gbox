@@ -19,7 +19,7 @@ struct BufferManager;
 
 namespace ControlEngine {
 
-bool init();
+bool init(std::atomic<bool> &shutdown);
 bool shutdown();
 void emergencyStop();
 

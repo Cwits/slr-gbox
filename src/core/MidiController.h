@@ -55,7 +55,7 @@ struct VMKTriggerAction;
 struct MidiPort;
 
 struct MidiController {
-    MidiController();
+    MidiController(std::atomic<bool> &shutdown);
     ~MidiController();
 
     void checkDevices();
@@ -81,6 +81,9 @@ struct MidiController {
 
     private:
     std::mutex _mutex;
+    
+    std::thread _midiDiscoverThread;
+
     std::vector<std::unique_ptr<MidiDevice>> _deviceList;
     std::vector<std::unique_ptr<MidiPort>> _activePorts;
 
