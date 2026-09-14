@@ -289,7 +289,8 @@ void MidiPort::writeHandle(MidiPort *port) {
 
         if(buf_used == 0 && queue->empty()) {
             idle_pfd.revents = 0;
-            poll(&idle_pfd, 1, -1);
+            // poll(&idle_pfd, 1, -1); //otherwise it will stuck endlessly waiting on shutdown
+            poll(&idle_pfd, 1, 1000);
 
             if(idle_pfd.revents & POLLIN) {
                 uint64_t v;

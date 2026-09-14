@@ -103,7 +103,6 @@ class Project {
     //_globalParameterList??
 
     DoubleBuffer<std::unique_ptr<PlanBuilder::PlanHolder>> _plans;
-    
 };
 
 }

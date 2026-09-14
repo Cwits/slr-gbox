@@ -42,12 +42,16 @@ Project::Project() : _timeline(*this) {
     p1->nodeDepHolder.reserve(20);
     p1->modPatterns.reserve(10);
     p1->sequences.reserve(10);
+    p1->plan->metro = _metronome.get();
+    p1->plan->timeline = &_timeline;
     
     p2->plan = std::make_unique<RenderPlan>();
     p2->nodes.reserve(20);
     p2->nodeDepHolder.reserve(20);
     p2->modPatterns.reserve(10);
     p2->sequences.reserve(10);
+    p2->plan->metro = _metronome.get();
+    p2->plan->timeline = &_timeline;
 
     _plans.init(p1, p2);
 
@@ -60,9 +64,6 @@ Project::Project() : _timeline(*this) {
 }
 
 Project::~Project() {
-    // destroyPlan(_soloPlan);
-    // destroyPlan(_renderPlan1);
-    // destroyPlan(_renderPlan2);
 
     BufferManager * man = ControlEngine::bufferManager();
     for(auto & unit : _unitList) {
@@ -266,8 +267,8 @@ const RenderPlan * Project::getSwappablePlan(ControlContext &ctx, uint16_t bitma
     const PlanHolder * readable = _plans.readable().get();
     clearHolder(writable);
 
-    writable->plan->metro = metronome();
-    writable->plan->timeline = &timeline();
+    // writable->plan->metro = metronome();
+    // writable->plan->timeline = &timeline();
 
     bool success = true;
     if(bitmask & (uint16_t)PlanRebuild::All) {

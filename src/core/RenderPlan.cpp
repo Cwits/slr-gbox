@@ -32,8 +32,8 @@ void copyMap(const int8_t *src, int8_t *dst) {
 namespace PlanBuilder {
 
 bool clearPlan(RenderPlan * plan) {
-    plan->timeline = nullptr;
-    plan->metro = nullptr;
+    // plan->timeline = nullptr;
+    // plan->metro = nullptr;
     plan->nodes = nullptr;
     plan->nodesCount = 0;
     plan->modulationPatterns = nullptr;

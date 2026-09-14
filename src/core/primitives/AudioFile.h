@@ -43,10 +43,11 @@ class AudioFile : public File {
 
     const AudioPeakFile * peaks() const { return _peaks; }
     void setPeaks(AudioPeakFile * pk) { _peaks = pk; }
+    
     private:
     SNDFILE * _file;
     SF_INFO _info;
-    AudioBuffer * _data;
+    AudioBuffer * _data; //interleaved
     
     AudioPeakFile * _peaks;
     

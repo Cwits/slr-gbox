@@ -120,7 +120,8 @@ void runGui(std::atomic<bool> &shutdown) {
         while(SDL_PollEvent(&event)) {
             if(event.type == SDL_QUIT) {
                 LOG_INFO("SDL quit");
-                _running = false;
+                // _running = false;
+                shutdown = true;
             }
         }
 #else

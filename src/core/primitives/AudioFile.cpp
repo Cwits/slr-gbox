@@ -215,11 +215,7 @@ bool AudioFile::openInternal(std::string & path, bool tmp) {
 
     }
 
-    // std::size_t size = 0;
-    // std::size_t find = 0;
     _path = path;
-    // size = path.size();
-    // find = path.find_last_of("/", size);
     _name = std::string(
         path.substr(
             path.find_last_of("/", path.size())+1,
