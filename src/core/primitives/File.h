@@ -12,8 +12,8 @@ enum class FileType { Error = -1, Audio, Midi, AudioPeak };
 
 class File {
     public:
-    File();
-    File(FileType type, long forcedId);
+    // File();
+    File(FileType type, const ID forcedId);
     virtual ~File();
 
     //temporary meaned for recording only -> creates new file
@@ -25,7 +25,7 @@ class File {
     virtual void prepareForRecord() = 0;
     virtual void finishAfterRecord() = 0;
 
-    virtual const frame_t frames() const = 0;
+    virtual frame_t frames() const = 0;
 
     const FileType type() const { return _type; }
     const bool isAudio() const { return _type == FileType::Audio ? true : false; }

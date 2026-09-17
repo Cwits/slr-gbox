@@ -3,11 +3,15 @@
 
 #pragma once
 
+#include "common/logger.h"
+
 #include <string>
 #include <cstdio>
 #include <iomanip>  //for getDateTime
 #include <ctime>    //for getDateTime
 #include <sstream>  //for getDateTime
+#include <algorithm>
+#include <vector>
 
 namespace Common {
 
@@ -67,6 +71,62 @@ inline std::string generateRandomName(int length)
     str.append(randLetters);
 
     return str;
+}
+
+enum class Extention { Audio, Midi, AudioPeak };
+inline bool pathHasExtention(Extention e, const std::string & path) {
+    bool ret = false;
+    if(e == Extention::Audio) {
+        if(path.substr(path.size()-4).compare(".wav") == 0) {
+            ret = true;
+        }
+    } else if(e == Extention::Midi) {
+        if(path.substr(path.size()-4).compare(".mid") == 0) {
+            ret = true;
+        }
+    } else if(e == Extention::AudioPeak) {
+        if(path.substr(path.size()-6).compare(".slrpk") == 0) {
+            ret = true;
+        }
+    }
+
+    return ret;
+}
+
+inline bool pathIsValid(const std::string &path, bool createFolders = false) {
+    //TODO: create this func... lol :D
+    //in case if target exists - should happen nothing, otherwise create folders
+    return true;
+}
+
+const std::vector<std::string> KNOWN_EXTENTIONS = {
+    ".wav", ".mp3", ".ogg", ".slrpk", ".json", ".mid"
+};
+
+inline bool changeExtentionTo(std::string &path, std::string newExtention) {
+    bool success = false;
+    //check for known extention
+    std::string ext = path.substr(path.find_last_of('.')); 
+    for(auto &s : KNOWN_EXTENTIONS) {
+        if(ext == s) { success = true; break; }
+    }
+
+    if(!success) return false;
+
+    path = path.substr(0, path.find_last_of('.'));
+    path.append(newExtention);
+    return true;
+}
+
+inline bool pathOrFileExists(const std::string &path) {
+    if(path.find_last_of('.') != std::string::npos) {
+        //checking file
+        return fileExists(path);
+    } else {
+        //checking folder
+        LOG_WARN("Folder checking not implemented");
+        return true;
+    }
 }
 
 } //fileio

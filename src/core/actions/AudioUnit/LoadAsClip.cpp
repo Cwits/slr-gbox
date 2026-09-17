@@ -36,7 +36,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
     switch(_step) {
         case(1): {
             if(std::holds_alternative<std::string>(_action.data)) {
-                auto task = std::make_unique<Tasks::openFile>();
+                auto task = std::make_unique<Tasks::OpenFile>();
                 task->path = std::get<std::string>(_action.data);
                 if(_action.fileForcedId) task->forcedId = _action.fileForcedId.value();
                 task->finished = [opened = &_opened](const File *file, bool success) {

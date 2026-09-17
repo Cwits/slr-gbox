@@ -3,89 +3,67 @@
 
 #pragma once
 #include "common/defines.h"
-#include <cstring>
+#include <memory>
 
 namespace slr {
 
-class AudioBufferManagerInst;
-class JackDriver;
-class DummyDriver;
-class AudioFile;
-class AudioPeaks;
+/*
+    TODO: BufferView<T> class
+    Future improvement:
+    move the _accesors to bufferview
+*/
 
 template<typename T>
-class Buffer {
-    public:
-    Buffer(int blockSize, int channels, bool regular = true) {
-        _noDelete = false;
-        
-        _channels = static_cast<uint8_t>(channels);
-        _data = new T*[_channels];
-        
-        if(regular) {
-            _size = blockSize;
-        } else {
-            _size = blockSize;
-        }
-
-        for(int i=0; i<_channels; ++i) {
-            _data[i] = new T[_size];
-            std::memset(_data[i], 0.f, sizeof(T) * _size);
-        }
-    }
-
-    Buffer(T ** ptr, uint8_t channels, frame_t size) {
-        _noDelete = true;
-        _channels = channels;
+struct Buffer {
+    Buffer(size_t size, size_t channels, bool noData = false) {
         _size = size;
-        _data = ptr;
-    }
+        _channels = channels;
+        _accesors = std::unique_ptr<T*[]>(new T*[channels]);
 
-    ~Buffer() {
-        if(!_noDelete) {
-            // delete
-            for(int i=0; i<_channels; ++i) {
-                delete [] _data[i];
-                _data[i] = nullptr;
+        if(!noData) {
+            _data = std::unique_ptr<T[]>(new T[channels*size]{});
+    
+            for(int i=0; i<channels; ++i) {
+                _accesors.get()[i] = (_data.get() + (i*size));
             }
-            delete [] _data;
-            _data = nullptr;
-            _size = 0;
-            _channels = 0;
-        } else {
-            // delete [] _data;
-            // _data = nullptr;
-            _size = 0;
-            _channels = 0;
         }
     }
 
+    T* operator[](size_t channel) {
+        return _accesors.get()[channel];
+    }
+
+    const T* operator[](size_t channel) const {
+        return _accesors.get()[channel];
+    }
+
+    T* raw() { return _data.get(); }
+    const T* raw() const { return _data.get(); }
+
+    T** rawAccesor() { return _accesors.get(); }
+    const T** rawAccesor() const { return _accesors.get(); }
+    
+    size_t size() const { return _size; }
+    size_t channels() const { return _channels; }
 
     Buffer(const Buffer& other) = delete;
     Buffer(Buffer&& other) = delete;
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other) = delete;
-    
-    T * operator[](int ch) { return _data[ch]; }
-    const T * operator[](int ch) const { return _data[ch]; }
-    const uint8_t channels() const { return _channels; } 
-    const frame_t bufferSize() const { return _size; }
 
-    T ** data() { return _data; }
+    void setAccesor(T** ptrs) {
+        for(size_t i=0; i<_channels; ++i) {
+            _accesors[i] = ptrs[i];
+        }
+    }
+
+    bool hasData() const { return _data; }
+
     private:
-    bool _noDelete;
-    T ** _data;
-    uint8_t _channels;
-    frame_t _size;
-
-    
-    friend class AudioBufferManagerInst;
-    //for drivers to has access to _data and _channels
-    friend class JackDriver;
-    friend class DummyDriver;
-    friend class AudioFile;
-    friend class AudioPeaks;
-    friend class AudioPeakFile;
+    size_t _size;
+    size_t _channels;
+    std::unique_ptr<T*[]> _accesors;
+    std::unique_ptr<T[]> _data;
 };
 
 }

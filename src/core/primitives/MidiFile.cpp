@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/primitives/MidiFile.h"
-#include "core/utility/helper.h"
 
+#include "common/FileIO.h"
 #include "common/logger.h"
 
 #include <iostream>
@@ -24,7 +24,6 @@ struct __attribute__((packed)) midiTrackChunk {
 
 static uint32_t flip32(uint32_t val)
 {
-
     return ((val & 0x000000FF) << 24) | 
             ((val & 0x0000FF00) << 8) | 
             ((val & 0x00FF0000) >> 8) | 
@@ -62,10 +61,12 @@ bool MidiFile::open(std::string &path) {
         return false;
     }
 
-    if(!pathHasExtention(Extention::Midi, path)) {
+    if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::Midi, path)) {
         LOG_ERROR("Extention of %s is not .mid", path.c_str());
         return false;
     }
+    
+    // Common::FileIO::pathIsValid(path, true);
 
     _handle.open(path.c_str(), std::ios::binary | std::ios::in);
     if(!_handle.is_open()) {
@@ -213,7 +214,7 @@ void MidiFile::finishAfterRecord() {
 
 }
 
-const frame_t MidiFile::frames() const {
+frame_t MidiFile::frames() const {
     return 0;
 }
 

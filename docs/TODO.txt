@@ -15,9 +15,6 @@ Control Engine:
 [ ] - make a loopback latency test function that will be called from settings.
         (call a function -> warning("make a loopback from output to input" OK/Cancle) -> test completing -> 
         popup with result -> "Result measured X samples latency" Apply/Cancle)
-[x] - bit of rework for Events - have to make them get their own command id every time event fired(e.g. in EmitEvent())
-        ...emmm... problem: RequestPlayheadPosition event from UI::MainWindow.cpp:372 backfires because of same commandId of flat event
-        Done? now there is no need to assign ID manually - all is done in emitRtEvent(clt); function
         
 Parameters: 
 [\] - lil bit of rework. use std::vector instead of array, (use bool, int instead of using float everywhere... eeee...hz), (check in google drive)
@@ -51,7 +48,8 @@ AudioUnit:
         May add some reference counter to file and some kind of clean up process to close and free such memory.
         otherwise they stay in memory so user can reuse them quickly(need some kind of access procedure for it)
 
-
+Buffer:
+[ ] - TODO: at Buffer.h:11 - implement BufferView, so the RT will operate throu them mostly?
 
 Metronome:
 [\] - implement one(must live in rt class)(not tested)

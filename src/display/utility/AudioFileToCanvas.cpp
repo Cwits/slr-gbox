@@ -24,16 +24,16 @@ bool audioFileToCanvas(
     lv_color_t peakColor,
     lv_color_t fillColor) 
 {
-    const slr::AudioPeakFile * peakFile = file->peaks();
+    const slr::AudioPeaks * peakFile = file->peaks();
 
     int xsize = canvasWidth;
     float pickratio = (float)length / (float)xsize; 
-    slr::AudioPeaks::LODLevels nearestLvl = slr::AudioPeaks::pickLevel(pickratio);
+    // slr::LODLevels nearestLvl = slr::AudioPeaks::pickLevel(pickratio);
 
-    const slr::AudioPeaks::PeakData0 * buffer = peakFile->data0();
+    const slr::PeakData0 * buffer = peakFile->peaks0();
 
     int channels = buffer->channels();
-    float ratio = (float)buffer->bufferSize()/(float)xsize;
+    float ratio = (float)buffer->size()/(float)xsize;
 
     int heightPerChannel = (canvasHeight/channels);
     int midpoint = 0 + (heightPerChannel/channels);

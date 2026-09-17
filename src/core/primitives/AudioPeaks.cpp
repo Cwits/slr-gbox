@@ -4,6 +4,9 @@
 #include "core/primitives/AudioPeaks.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioBuffer.h"
+
+#include "common/logger.h"
+
 #include <cmath>
 
 namespace slr {
@@ -13,50 +16,51 @@ uint8_t mapSample(sample_t in) {
 }
 
 AudioPeaks::AudioPeaks() {
-    _lod0Data = nullptr;
-    _peaksData = nullptr;
 }
 
 AudioPeaks::~AudioPeaks() {
-    if(_level == LODLevels::LODLevel0) {
-        if(_lod0Data) delete _lod0Data;
-    } else {
-        if(_peaksData) delete _peaksData;
-    }
+  
 }
 
-void AudioPeaks::build(AudioFile * file, LODLevels level) {
+void AudioPeaks::build(const AudioFile * file) {
     frame_t size = file->frames();
     int channels = file->channels();
     // size /= static_cast<int>(level);
     // _dataSize = size;
-    switch(level) {
-        case(LODLevels::LODLevel0): {
-            // _lod0Data = new uint8_t[size*channels];
-            // AudioBuffer * dataBuf = file->getData();
-            _lod0Data = new PeakData0(size, channels);
-            uint8_t ** data = _lod0Data->_data;
-            sample_t ** datain = file->getData()->_data;
+    for(int i=0; i<TOTAL_LOD_LEVELS; ++i) {
+        if(i == 0) {
+            _peaks0 = std::make_unique<PeakData0>(size, channels);
+            uint8_t *ptrs[channels];
+            for(int i=0; i<channels; ++i) { ptrs[i] = (*_peaks0)[i]; }
+            uint8_t ** data = ptrs;
+            const sample_t *ptrssamples[channels];
+            for(int i=0; i<channels; ++i) { ptrssamples[i] = (*file->data())[i]; }
+            const sample_t ** datain = &ptrssamples[0]; //file->getData()->_data;
+
             for(frame_t f=0; f<size; ++f) {
                 for(int ch=0; ch<channels; ++ch) {
                     data[ch][f] = mapSample(datain[ch][f]); 
                 }
             }
-        } break;
-        case(LODLevels::LODLevel1):
-        case(LODLevels::LODLevel2):
-        case(LODLevels::LODLevel3):
-        case(LODLevels::LODLevel4):
-        case(LODLevels::LODLevel5):
-        case(LODLevels::LODLevel6): {
-            int samplesPerFrame = static_cast<int>(level);
+        } else {
+            int idx = i-1;
+            int samplesPerFrame = static_cast<int>(idx);
             frame_t newSize = size / samplesPerFrame;
             //TODO: need somehow handle tail
             frame_t diff = size - (newSize*samplesPerFrame);
 
-            _peaksData = new PeakData(newSize, channels);
-            PeakDataBase ** data = _peaksData->_data;
-            sample_t ** datain = file->getData()->_data;
+            _peaks[idx] = std::make_unique<PeakData>(newSize, channels);
+            PeakData * peakData = _peaks[idx].get();
+
+            PeakDataBase * ptrs[channels];
+            for(int i=0; i<channels; ++i) { ptrs[i] = (*peakData)[i]; }
+
+            PeakDataBase ** data = &ptrs[0]; //_peaksData->_data;
+
+            const sample_t * ptrssamples[channels];
+            for(int i=0; i<channels; ++i) { ptrssamples[i] = (*file->data())[i]; }
+
+            const sample_t ** datain = &ptrssamples[0]; //file->getData()->_data;
             
             for(int ch=0; ch<channels; ++ch) {
                 for(frame_t f=0; f<newSize; ++f) {
@@ -75,24 +79,46 @@ void AudioPeaks::build(AudioFile * file, LODLevels level) {
                     };
                 }
             }
-        } break;
+        }
     }
-    _level = level;
 }
 
-void AudioPeaks::extend(AudioBuffer * buf) {
-
-}
-
-void AudioPeaks::update(AudioFile * file) {
+void AudioPeaks::extend(const AudioBuffer * buf) {
 
 }
 
-void AudioPeaks::updateRegion(AudioFile * file, frame_t start, frame_t end) {
+void AudioPeaks::update(const AudioFile * file) {
 
 }
 
-AudioPeaks::LODLevels AudioPeaks::pickLevel(float ratio) {
+void AudioPeaks::updateRegion(const AudioFile * file, frame_t start, frame_t end) {
+
+}
+
+
+PeakData * AudioPeaks::peaks(LODLevels lvl) {
+    return getPeaks(numFromLevel(lvl));
+}
+const PeakData * AudioPeaks::peaks(LODLevels lvl) const {
+    return getPeaks(numFromLevel(lvl));
+}
+
+PeakData * AudioPeaks::peaks(int lvl) {
+    return getPeaks(lvl);
+}
+const PeakData * AudioPeaks::peaks(int lvl) const {
+    return getPeaks(lvl);
+}
+
+PeakData * AudioPeaks::getPeaks(int lvl) const {
+    PeakData * ret = nullptr;
+    if(lvl == 0) { LOG_ERROR("For LODLevel 0 use peaks0"); }
+    else { ret = _peaks[lvl-1].get(); }
+    return ret;
+}
+
+
+LODLevels pickLevel(float ratio) {
     LODLevels ret;
     if(ratio <= static_cast<float>(LODLevels::LODLevel0)) {
         ret = LODLevels::LODLevel0;
@@ -112,6 +138,20 @@ AudioPeaks::LODLevels AudioPeaks::pickLevel(float ratio) {
         ret = LODLevels::LODLevel6;
     }
 
+    return ret;
+}
+
+int numFromLevel(LODLevels lvl) {
+    int ret = 0;
+    switch(lvl) {
+        case(LODLevels::LODLevel0): ret = 0; break;
+        case(LODLevels::LODLevel1): ret = 0; break;
+        case(LODLevels::LODLevel2): ret = 1; break;
+        case(LODLevels::LODLevel3): ret = 2; break;
+        case(LODLevels::LODLevel4): ret = 3; break;
+        case(LODLevels::LODLevel5): ret = 4; break;
+        case(LODLevels::LODLevel6): ret = 5; break;
+    }
     return ret;
 }
 

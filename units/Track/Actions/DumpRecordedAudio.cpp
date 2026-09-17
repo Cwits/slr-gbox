@@ -56,7 +56,7 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
         AudioBuffer * buf = rec;
             
         for(int i=0; i<buf->channels(); ++i) {
-            clearAudioBuffer((*buf)[i], buf->bufferSize());
+            clearAudioBuffer((*buf)[i], buf->size());
         }
             
         // AudioBufferManager::releaseRecord(buf);
@@ -69,7 +69,7 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
         
         LOG_INFO("audio data dumped successfully to file %s", target->name().c_str());
             
-        if(target->finalize()) {
+        if(target->isFinalize()) {
             LOG_INFO("Finalizing audio file %s path %s", 
                 target->name().c_str(), 
                 target->path().c_str());

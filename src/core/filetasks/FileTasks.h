@@ -6,6 +6,8 @@
 #include "core/primitives/AudioBuffer.h"
 #include "common/defines.h"
 
+#include "core/filetasks/tasks/OpenFile.h"
+
 #include <string>
 #include <functional>
 #include <optional>
@@ -26,16 +28,6 @@ namespace Tasks {
 struct OneShotOpen : public FileTask {
     /* like for e.g. preset loading - you don't need keep file with preset always opened? */
     void exec(FileWorkerContext &ctx) override {}
-};
-
-struct openFile : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    std::string path;
-    // ID targetId;
-    // frame_t fileStartPosition;
-    std::optional<ID> forcedId;
-    std::function<void(const File * file, bool success)> finished;
 };
 
 struct closeFile : public FileTask {

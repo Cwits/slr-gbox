@@ -104,7 +104,7 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
         switch(item->_file->type()) {
             case(FileType::Audio): {
                 const AudioFile * const file = static_cast<const AudioFile* const>(item->_file);
-                const AudioBuffer * data = file->getData();
+                const AudioBuffer * data = file->data();
                 int channels = data->channels();
 
                 //TODO: i guess this can be optimized...

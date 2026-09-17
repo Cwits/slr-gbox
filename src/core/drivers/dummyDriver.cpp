@@ -24,27 +24,28 @@ bool DummyDriver::init(frame_t sampleRate, frame_t bufferSize, int numInputs, in
     _numInputs = numInputs;
     _numOutputs = numOutputs;
 
-    sample_t ** datain = new sample_t*[numInputs];
-    for(std::size_t i=0; i<numInputs; ++i) datain[i] = nullptr;
+    // sample_t ** datain = new sample_t*[numInputs];
+    // for(std::size_t i=0; i<numInputs; ++i) datain[i] = nullptr;
 
-    _inputBuffers = new AudioBuffer(datain, numInputs, _bufferSize);
+    // _inputBuffers = new AudioBuffer(datain, numInputs, _bufferSize);
+    _inputBuffers = std::make_unique<AudioBuffer>(numInputs, _bufferSize);
 
-    for(int i=0; i<numInputs; ++i) {
-        sample_t *in = static_cast<sample_t*>(new sample_t[bufferSize]);
-        _inputBuffers->_data[i] = in;
-        std::memset(in, 0.f, sizeof(sample_t) * _bufferSize);
-    }
+    // for(int i=0; i<numInputs; ++i) {
+    //     sample_t *in = static_cast<sample_t*>(new sample_t[bufferSize]);
+    //     _inputBuffers->_data[i] = in;
+    //     std::memset(in, 0.f, sizeof(sample_t) * _bufferSize);
+    // }
 
-    sample_t ** dataout = new sample_t*[numOutputs];
-    for(std::size_t i=0; i<numOutputs; ++i) dataout[i] = nullptr;
+    // sample_t ** dataout = new sample_t*[numOutputs];
+    // for(std::size_t i=0; i<numOutputs; ++i) dataout[i] = nullptr;
 
-    _outputBuffers = new AudioBuffer(dataout, numOutputs, _bufferSize);
-
-    for(int i=0; i<numOutputs; ++i) {
-        sample_t *out = static_cast<sample_t*>(new sample_t[bufferSize]);
-        _outputBuffers->_data[i] = out;
-        std::memset(out, 0.f, sizeof(sample_t) * _bufferSize);
-    }
+    // _outputBuffers = new AudioBuffer(dataout, numOutputs, _bufferSize);
+    _outputBuffers = std::make_unique<AudioBuffer>(numOutputs, _bufferSize);
+    // for(int i=0; i<numOutputs; ++i) {
+    //     sample_t *out = static_cast<sample_t*>(new sample_t[bufferSize]);
+    //     _outputBuffers->_data[i] = out;
+    //     std::memset(out, 0.f, sizeof(sample_t) * _bufferSize);
+    // }
 
     return true;
 }
@@ -80,21 +81,21 @@ bool DummyDriver::shutdown() {
     if(_keepRunning) _keepRunning = false;
     if(_timerThread.joinable()) _timerThread.join();
 
-    for(int i=0; i<_inputBuffers->_channels; ++i) {
-        delete [] _inputBuffers->_data[i];
-        _inputBuffers->_data[i] = nullptr;
-    }
-    delete [] _inputBuffers->_data;
-    delete _inputBuffers;
-    _inputBuffers = nullptr;
+    // for(int i=0; i<_inputBuffers->_channels; ++i) {
+    //     delete [] _inputBuffers->_data[i];
+    //     _inputBuffers->_data[i] = nullptr;
+    // }
+    // delete [] _inputBuffers->_data;
+    // delete _inputBuffers;
+    _inputBuffers.reset(nullptr);
 
-    for(int i=0; i<_outputBuffers->_channels; ++i) {
-        delete [] _outputBuffers->_data[i];
-        _outputBuffers->_data[i] = nullptr;
-    }
-    delete [] _outputBuffers->_data;
-    delete _outputBuffers;
-    _outputBuffers = nullptr;
+    // for(int i=0; i<_outputBuffers->_channels; ++i) {
+    //     delete [] _outputBuffers->_data[i];
+    //     _outputBuffers->_data[i] = nullptr;
+    // }
+    // delete [] _outputBuffers->_data;
+    // delete _outputBuffers;
+    _outputBuffers.reset(nullptr);
     return true;
 }
 
@@ -117,7 +118,7 @@ frame_t DummyDriver::process(frame_t frames) {
     // (*_inputBuffers)[0][40] = 0.2f;
     // (*_inputBuffers)[1][40] = 0.8f;
 
-    frame_t ret = _callback(_inputBuffers, _outputBuffers, frames, _framesPassed);
+    frame_t ret = _callback(_inputBuffers.get(), _outputBuffers.get(), frames, _framesPassed);
     _framesPassed += frames;
     
     return ret == frames ? 0 : ret;

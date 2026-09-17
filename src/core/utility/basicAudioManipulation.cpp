@@ -75,16 +75,16 @@ void packTwoMonoToStereo(sample_t * srcL, sample_t * srcR, sample_t * dst, const
     }
 }
 
-void packMulti(sample_t ** src, sample_t * dst, const int channels, const frame_t frames) {
-    frame_t framesTotal = frames * channels;
-    frame_t flocal = 0;
-    for(frame_t f=0; f<framesTotal; f+=channels) {
-        for(int i=0; i<channels; ++i) {
-            dst[f+i] = src[i][flocal];
-        }
-        ++flocal;
-    }
-}
+// void packMulti(sample_t ** src, sample_t * dst, const int channels, const frame_t frames) {
+//     frame_t framesTotal = frames * channels;
+//     frame_t flocal = 0;
+//     for(frame_t f=0; f<framesTotal; f+=channels) {
+//         for(int i=0; i<channels; ++i) {
+//             dst[f+i] = src[i][flocal];
+//         }
+//         ++flocal;
+//     }
+// }
 
 // for frames dstL[f] = src[f];
 //            dstR[f] = src[f+1];
@@ -97,16 +97,17 @@ void unpackStereo(sample_t * src, sample_t * dstL, sample_t * dstR, const frame_
     }
 }
 
-void unpackMulti(sample_t * src, sample_t ** dst, const int channels, frame_t frames) {
-    frame_t framesTotal = frames * channels;
-    frame_t flocal = 0;
-    for(frame_t f=0; f<framesTotal; f+=channels) {
-        for(int i=0; i<channels; ++i) {
-            dst[i][flocal] = src[f+i];
-        }
-        ++flocal;
-    }
-}
+// template<typename T>
+// void unpackMulti(sample_t * src, sample_t ** dst, const int channels, frame_t frames) {
+//     frame_t framesTotal = frames * channels;
+//     frame_t flocal = 0;
+//     for(frame_t f=0; f<framesTotal; f+=channels) {
+//         for(int i=0; i<channels; ++i) {
+//             dst[i][flocal] = src[f+i];
+//         }
+//         ++flocal;
+//     }
+// }
 
 //for frames src[f] = value;
 void fillAudioBuffer(sample_t * src, const frame_t frames, const sample_t value) {

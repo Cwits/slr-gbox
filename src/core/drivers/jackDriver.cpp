@@ -27,24 +27,33 @@ int JackDriver::jack_process(jack_nframes_t nframes, void *arg) {
     JackDriver * dri = static_cast<JackDriver*>(arg);
 
     std::size_t size = dri->_inputs.size();
+    sample_t *inputs[size];
     for(std::size_t i=0; i<size; ++i) {
         sample_t * in = static_cast<sample_t*>(jack_port_get_buffer(dri->_inputs.at(i), dri->_bufferSize));
-        dri->_inputBuffers->_data[i] = in;
+        // dri->_inputBuffers->_data[i] = in;
+        inputs[i] = in;
     }
+
     size = dri->_outputs.size();
+    sample_t *outputs[size];
     for(std::size_t i=0; i<size; ++i) {
         sample_t * out = static_cast<sample_t*>(jack_port_get_buffer(dri->_outputs.at(i), dri->_bufferSize));
-        dri->_outputBuffers->_data[i] = out;
+        // dri->_outputBuffers->_data[i] = out;
+        outputs[i] = out;
     }
 
-    clearAudioBuffers(dri->_outputBuffers->_data[0], 
-                        dri->_outputBuffers->_data[1],
-                        static_cast<frame_t>(nframes));
+    for(std::size_t o=0; o<size; ++o) {
+        clearAudioBuffer(outputs[o], static_cast<frame_t>(nframes));
+    }
 
-    frame_t ret = dri->_callback(dri->_inputBuffers, dri->_outputBuffers, static_cast<frame_t>(nframes), dri->_framesPassed); 
+    dri->_inputBuffers->setAccesor(inputs);
+    dri->_outputBuffers->setAccesor(outputs);
+    // clearAudioBuffers(dri->_outputBuffers->_data[0], 
+    //                     dri->_outputBuffers->_data[1],
+    //                     static_cast<frame_t>(nframes));
+
+    frame_t ret = dri->_callback(dri->_inputBuffers.get(), dri->_outputBuffers.get(), static_cast<frame_t>(nframes), dri->_framesPassed); 
     dri->_framesPassed += static_cast<frame_t>(nframes);
-
-    //how to get outputs?
 
     return (ret == static_cast<frame_t>(nframes)) ? 0 : static_cast<int>(ret); //return 0 on success
 }
@@ -272,14 +281,16 @@ bool JackDriver::createPorts(int numIn, int numOut) {
     if(ret) LOG_INFO("Default ports created!");
     
     std::size_t size = _inputs.size();
-    sample_t ** datain = new sample_t*[size];
-    for(std::size_t i=0; i<size; ++i) datain[i] = nullptr;
-    _inputBuffers = new AudioBuffer(datain, static_cast<uint8_t>(size), _bufferSize);
-    
+    _inputBuffers = std::make_unique<AudioBuffer>(size, _bufferSize, true);
+    // sample_t ** datain = new sample_t*[size];
+    // for(std::size_t i=0; i<size; ++i) datain[i] = nullptr;
+    // _inputBuffers = new AudioBuffer(datain, static_cast<uint8_t>(size), _bufferSize);
+
     size = _outputs.size();
-    sample_t ** dataout = new sample_t*[size];
-    for(std::size_t i=0; i<size; ++i) dataout[i] = nullptr;
-    _outputBuffers = new AudioBuffer(dataout, static_cast<uint8_t>(size), _bufferSize);
+    _outputBuffers = std::make_unique<AudioBuffer>(size, _bufferSize, true);
+    // sample_t ** dataout = new sample_t*[size];
+    // for(std::size_t i=0; i<size; ++i) dataout[i] = nullptr;
+    // _outputBuffers = new AudioBuffer(dataout, static_cast<uint8_t>(size), _bufferSize);
 
     if(!_inputBuffers || !_outputBuffers) ret = false;
     
@@ -299,9 +310,9 @@ bool JackDriver::destroyPorts() {
         }
     }
 
-    delete [] _inputBuffers->_data;
-    delete _inputBuffers;
-    _inputBuffers = nullptr;
+    // delete [] _inputBuffers->_data;
+    // delete _inputBuffers;
+    // _inputBuffers = nullptr;
     _inputs.clear();
 
     for(jack_port_t * port : _outputs) {
@@ -310,9 +321,9 @@ bool JackDriver::destroyPorts() {
         }
     }
 
-    delete [] _outputBuffers->_data;
-    delete _outputBuffers;
-    _outputBuffers = nullptr;
+    // delete [] _outputBuffers->_data;
+    // delete _outputBuffers;
+    // _outputBuffers = nullptr;
     _outputs.clear();
     
     if(!ret) LOG_ERROR("Failed to destroy jack port/ports!");

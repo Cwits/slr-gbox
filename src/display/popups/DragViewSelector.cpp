@@ -35,6 +35,8 @@ const Box2d gridZone = { .x = 20, .y = (980/2) - 100, .w = 200, .h = 200 };
 const Box2d unitZone = { .x = 250, .y = (980/2) - 100, .w = 200, .h = 200 };
 const Box2d modEngineZone = { .x = 500, .y = 20, .w = 200, .h = 200 };
 
+const int TIMEOUT_TIME = 700;
+
 DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) :
     Popup(parent, uictx)
 {
@@ -48,7 +50,7 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
     _lastDragX = -1;
     _lastDragY = -1;
 
-    _timDrag = lv_timer_create(&DragViewSelector::timerClb, 1500, this);
+    _timDrag = lv_timer_create(&DragViewSelector::timerClb, TIMEOUT_TIME, this);
     lv_timer_pause(_timDrag);
     lv_timer_set_auto_delete(_timDrag, false);
     // lv_timer_set_repeat_count(_timDrag, 1);

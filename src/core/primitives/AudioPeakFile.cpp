@@ -3,148 +3,156 @@
 
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/AudioFile.h"
-#include "core/utility/helper.h"
+#include "core/utility/basicAudioManipulation.h"
+#include "common/FileIO.h"
 #include "common/logger.h"
 #include <string>
 #include <cstdio>
 #include <cstdint>
+#include <cstring>
 
 namespace slr {
 
-AudioPeaks::LODLevels levelFromInt(uint8_t lvl) {
-    AudioPeaks::LODLevels level;
+LODLevels levelFromInt(uint8_t lvl) {
+    LODLevels level;
     switch(lvl) {
-        case(0): level = AudioPeaks::LODLevels::LODLevel0; break;
-        case(1): level = AudioPeaks::LODLevels::LODLevel1; break;
-        case(2): level = AudioPeaks::LODLevels::LODLevel2; break;
-        case(3): level = AudioPeaks::LODLevels::LODLevel3; break;
-        case(4): level = AudioPeaks::LODLevels::LODLevel4; break;
-        case(5): level = AudioPeaks::LODLevels::LODLevel5; break;
-        case(6): level = AudioPeaks::LODLevels::LODLevel6; break;
+        case(0): level = LODLevels::LODLevel0; break;
+        case(1): level = LODLevels::LODLevel1; break;
+        case(2): level = LODLevels::LODLevel2; break;
+        case(3): level = LODLevels::LODLevel3; break;
+        case(4): level = LODLevels::LODLevel4; break;
+        case(5): level = LODLevels::LODLevel5; break;
+        case(6): level = LODLevels::LODLevel6; break;
     }
     return level;
 }
 
-AudioPeakFile::AudioPeakFile() {
-    _header = {0};
+AudioPeakFile::AudioPeakFile(const ID forcedID) :
+    File(FileType::AudioPeak, forcedID)
+{
 }
 
 AudioPeakFile::~AudioPeakFile() {
-    if(_file) close();
+    close();
 }
 
 bool AudioPeakFile::open(std::string &path) {
-    //TODO: should handle if user defined separate folder for peak files
-    //now assuming that .slrpk stored near audio file
-
     if(path.empty()) return false;
-    if(!pathHasExtention(Extention::AudioPeak, path)) return false;
-
-    // _file.open(path, std::ios::in | std::ios::out | std::ios::binary);
-    _file = fopen(path.c_str(), "rb+");
-    if(!_file) {
-        LOG_ERROR("Failed to open slrpk file at: %s", path.c_str());
+    if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::AudioPeak, path)) return false;
+    if(_handle.is_open()) {
+        LOG_ERROR("File already opened");
         return false;
     }
 
-    fread(&_header, 1, sizeof(AudioPeakHeader), _file);
-
-    if(_header.magic[0] != 'S' || _header.magic[1] != 'L' || 
-        _header.magic[2] != 'R' || _header.magic[3] != 'P' ||
-        _header.magic[4] != 'K') {
-            LOG_ERROR("Wrong Audio Peak File Format");
-            // fclose(_file);
-            return false;
+    _handle.open(path.c_str(), std::ios::binary | std::ios::in);
+    if(!_handle.is_open()) {
+        LOG_ERROR("Failed to open file");
+        return false;
     }
 
-    //read chunks:
+    AudioPeakHeader _header;
+    _handle.read((char*)&_header, sizeof(AudioPeakHeader));
+    if(_header.magic[0] != 'S' ||
+        _header.magic[1] != 'L' ||
+        _header.magic[2] != 'R' ||
+        _header.magic[3] != 'P' ||
+        _header.magic[4] != 'K') 
+    {
+        LOG_ERROR("Wrong Audio Peak File magic");
+        return false;
+    }
+
     AudioPeakChunk chunk;
-    fread(&chunk, 1, sizeof(AudioPeakChunk), _file);
-    if(chunk.magic[0] != 'd' || chunk.magic[1] != 'a' ||
-        chunk.magic[2] != 't' || chunk.magic[3] != 'a') {
-        LOG_ERROR("Wrong slrpk chunk format");
-        // fclose(_file);
+    {
+        _handle.read((char*)&chunk, sizeof(AudioPeakChunk));
+        if(chunk.magic[0] != 'd' ||
+            chunk.magic[1] != 'a' ||
+            chunk.magic[2] != 't' ||
+            chunk.magic[3] != 'a') 
+        {
+            LOG_ERROR("Wrong chunk format");
+            return false;
+        }
+
+        //load lod0
+        int channels = _header.channels;
+        frame_t size = chunk.chunkSize;
+        _peaks._peaks0 = std::make_unique<PeakData0>(size, channels);
+        PeakData0 * data = _peaks._peaks0.get();
+        if(!data) {
+            LOG_ERROR("No memory? Error not handled");
+            // return false;
+        }
+
+        if(_header.channels == 1) {
+            _handle.read((char*)data->rawAccesor()[0], chunk.chunkSize);
+        } else {
+            frame_t total = chunk.chunkSize * _header.channels;
+            auto uninterleaved = std::make_unique<uint8_t[]>(total);
+            _handle.read((char*)uninterleaved.get(), total);
+
+            unpackMulti(uninterleaved.get(), data->rawAccesor(), _header.channels, chunk.chunkSize);
+        }
+    }
+
+    {
+        //load other lods
+        for(int i=1; i<TOTAL_LOD_LEVELS; ++i) {
+            int idx = i-1;
+
+            _handle.read((char*)&chunk, sizeof(AudioPeakChunk));
+            if(chunk.magic[0] != 'd' ||
+                chunk.magic[1] != 'a' ||
+                chunk.magic[2] != 't' ||
+                chunk.magic[3] != 'a') 
+            {
+                LOG_ERROR("Wrong chunk format");
+                return false;
+            }
+
+            int channels = _header.channels;
+            frame_t size = chunk.chunkSize;
+            _peaks._peaks[idx] = std::make_unique<PeakData>(size, channels);
+            PeakData * buffer = _peaks._peaks[idx].get();
+            if(!buffer) {
+                LOG_ERROR("No memory? Error not handled");
+                // return false;
+            }
+
+            if(chunk.chunkSize == 0) continue;
+
+            if(_header.channels == 1) {
+                _handle.read((char*)buffer->rawAccesor()[0], chunk.chunkSize);
+            } else {
+                frame_t total = chunk.chunkSize*_header.channels;
+                auto uninterleaved = std::make_unique<PeakDataBase[]>(total);
+
+                _handle.read((char*)uninterleaved.get(), total*sizeof(PeakDataBase));
+
+                unpackMulti(uninterleaved.get(), buffer->rawAccesor(), _header.channels, chunk.chunkSize);
+            }
+        }
+    }
+
+
+    return true;
+}
+
+bool AudioPeakFile::createAndBuild(const std::string &path, const AudioFile * file) {
+    if(path.empty()) return false;
+    if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::AudioPeak, path)) return false;
+    
+    std::unique_ptr<AudioPeakFile> tmp = std::make_unique<AudioPeakFile>();
+
+    // Common::FileIO::pathIsValid(path, true);
+    if(tmp->_handle.is_open()) {
+        LOG_ERROR("Already opened");
         return false;
     }
     
-    {
-        _lod0Peaks._level = levelFromInt(chunk.LODLevel);
-        AudioPeaks::PeakData0 * data0 = new AudioPeaks::PeakData0(chunk.chunkSize, _header.channels);
-        
-        uint8_t ** dataPtr = data0->_data;
-        if(_header.channels == 1) {
-            fread(dataPtr[0], 1, chunk.chunkSize, _file);
-        } else {
-            frame_t total = chunk.chunkSize * _header.channels;
-            uint8_t * uninterleaved = new uint8_t[total];
-            fread(uninterleaved, 1, total, _file);
-
-            frame_t flocal = 0;
-            for(frame_t f=0; f<total; f+=_header.channels) {
-                for(int ch=0; ch<_header.channels; ++ch) {
-                    dataPtr[ch][flocal] = uninterleaved[f+ch];
-                }
-                flocal++;
-            }
-
-            delete [] uninterleaved;
-        }
-
-        _lod0Peaks._lod0Data = data0;
-    }
-
-    for(int i=0; i<6; ++i) {
-        AudioPeakChunk chunk;
-        fread(&chunk, 1, sizeof(AudioPeakChunk), _file);
-        if(chunk.magic[0] != 'd' || chunk.magic[1] != 'a' ||
-            chunk.magic[2] != 't' || chunk.magic[3] != 'a') {
-            LOG_ERROR("Wrong slrpk chunk format");
-            // fclose(_file);
-            goto exit;
-        }
-
-        AudioPeaks::PeakData * buffer = new AudioPeaks::PeakData(chunk.chunkSize, _header.channels);
-        AudioPeaks::PeakDataBase ** dataPtr =  buffer->_data;
-
-        if(chunk.chunkSize == 0) continue;
-        
-        if(_header.channels == 1) {
-            fread(dataPtr[0], 2, chunk.chunkSize, _file);
-        } else {
-            frame_t total = chunk.chunkSize*_header.channels;
-            AudioPeaks::PeakDataBase * uninterleaved = new AudioPeaks::PeakDataBase[total];
-            fread(uninterleaved, 2, total, _file);
-
-            frame_t flocal = 0;
-            for(frame_t f=0; f<total; f+=_header.channels) {
-                for(int ch=0; ch<_header.channels; ++ch) {
-                    dataPtr[ch][flocal] = uninterleaved[f+ch];
-                }
-                flocal++;
-            }
-        }
-
-        _peaks[i]._peaksData = buffer;
-        _peaks[i]._level = levelFromInt(chunk.LODLevel);
-    }
-
-    return true;
-
-    exit:
-    if(_lod0Peaks._lod0Data) delete _lod0Peaks._lod0Data;
-    for(int i=0; i<6; ++i) {
-        if(_peaks[i]._peaksData) delete _peaks[i]._peaksData;
-    }
-    return false;
-}
-
-//open, build, close
-bool AudioPeakFile::createAndBuild(std::string &path, AudioFile * file) {
-    if(path.empty()) return false;
-    if(!pathHasExtention(Extention::AudioPeak, path)) return false;
-
-    _file = fopen(path.c_str(), "wb+"); //create new
-    if(!_file) {
+    tmp->_handle.open(path, std::ios_base::binary | std::ios_base::trunc);
+    if(!tmp->_handle.is_open()) {
+        LOG_ERROR("Failed to open");
         return false;
     }
 
@@ -165,28 +173,10 @@ bool AudioPeakFile::createAndBuild(std::string &path, AudioFile * file) {
         header.reserved[i] = 0;
     }
 
-    //write header...
-    fwrite(&header, 1, sizeof(AudioPeakHeader), _file); //version
-
-    //blahblah
-    _lod0Peaks.build(file, AudioPeaks::LODLevels::LODLevel0);
-
-    for(int i=0; i<6; ++i) {
-        AudioPeaks::LODLevels lvl;
-        switch(i) {
-            case(0): lvl = AudioPeaks::LODLevels::LODLevel1; break;
-            case(1): lvl = AudioPeaks::LODLevels::LODLevel2; break;
-            case(2): lvl = AudioPeaks::LODLevels::LODLevel3; break;
-            case(3): lvl = AudioPeaks::LODLevels::LODLevel4; break;
-            case(4): lvl = AudioPeaks::LODLevels::LODLevel5; break;
-            case(5): lvl = AudioPeaks::LODLevels::LODLevel6; break;
-        };
-        
-        _peaks[i].build(file, lvl);
-    }
-
-    //write peaks to file
-    uint8_t * data = nullptr;
+    tmp->_handle.write((char*)&header, sizeof(AudioPeakHeader));
+    
+    tmp->_peaks.build(file);
+    
     AudioPeakChunk chunk;
     chunk.magic[0] = 'd';
     chunk.magic[1] = 'a';
@@ -196,52 +186,22 @@ bool AudioPeakFile::createAndBuild(std::string &path, AudioFile * file) {
     chunk.reserved[1] = 0;
     chunk.reserved[2] = 0;
 
-    {//write LODLevel 0 peaks
-        AudioPeaks::PeakData0 * buffer = _lod0Peaks.lod0Data();
-        frame_t size = buffer->bufferSize();
+    {
+        //write lod0
+        PeakData0 * buffer = tmp->_peaks._peaks0.get();
+        frame_t size = buffer->size();
         int channels = buffer->channels();
-        //interleave
+
+        std::unique_ptr<uint8_t[]> holder;
+        uint8_t * data = nullptr;
         if(channels == 1) {
             data = (*buffer)[0];
         } else {
-            // interleave data...
-            frame_t totalSize = size*channels;
-            data = new uint8_t[size*channels];
-            std::memset(data, 0, size*channels*sizeof(uint8_t));
-            
-            frame_t flocal = 0;
-            for(frame_t f=0; f<totalSize; f+=channels) {
-                for(int ch=0; ch<channels; ++ch) {
-                    data[f+ch] = (*buffer)[ch][flocal];
-                }
-                flocal++;
-            }
-        }
-
-        chunk.LODLevel = 0;
-        chunk.chunkSize = size;
-
-        //write peak level 0
-        fwrite(&chunk, 1, sizeof(AudioPeakChunk), _file);
-        fwrite(data, 1, size*channels, _file);
-        header.totalSize += (size+16); //+ chunk size
-
-        if(channels != 1) delete [] data;
-    }
-
-    //write other peak levels
-    for(int i=0; i<6; ++i) {
-        AudioPeaks::PeakData * buffer = _peaks[i].data();
-        frame_t size = buffer->bufferSize();
-        int channels = buffer->channels();
-
-        AudioPeaks::PeakDataBase * data;
-        if(channels == 1) {
-            data = (*buffer)[0];
-        } else {
-            //interleave
             frame_t total = size*channels;
-            data = new AudioPeaks::PeakDataBase[total];
+            holder = std::make_unique<uint8_t[]>(total);
+            data = holder.get();
+            std::memset(data, 0, total*sizeof(uint8_t));
+
             frame_t flocal = 0;
             for(frame_t f=0; f<total; f+=channels) {
                 for(int ch=0; ch<channels; ++ch) {
@@ -249,40 +209,73 @@ bool AudioPeakFile::createAndBuild(std::string &path, AudioFile * file) {
                 }
                 flocal++;
             }
+            //data to be deleted later? 
         }
 
-        chunk.LODLevel = i+1;
+        chunk.LODLevel = 0;
         chunk.chunkSize = size;
 
-        //write peak level 0
-        fwrite(&chunk, 1, sizeof(AudioPeakChunk), _file);
-        // fwrite(data, 1, size*channels*2, _file); //*2 because we have min and max
-        fwrite(data, 2, size*channels, _file); //*2 because we have min and max
-        
-        header.totalSize += (size+16); //+ chunk size
-
-        //header.totalSize += (size+16);
-        if(channels != 1) delete [] data;
+        tmp->_handle.write((char*)&chunk, sizeof(AudioPeakChunk));
+        tmp->_handle.write((char*)data, size*channels);
+        header.totalSize += (size+16);
     }
 
-    fseek(_file, 16, SEEK_SET);
-    fwrite(&header.totalSize, 1, 8, _file);
+    {
+        //write other LOD's
+        for(int i=1; i<TOTAL_LOD_LEVELS; ++i) {
+            int idx = i-1;
+            PeakData * buffer = tmp->_peaks._peaks[idx].get();
 
+            frame_t size = buffer->size();
+            int channels = buffer->channels();
 
-    //close
-    fclose(_file);
-    _file = nullptr;
+            std::unique_ptr<PeakDataBase[]> holder;
+            PeakDataBase * data;
+            if(channels == 1) {
+                data = (*buffer)[0];
+            } else {
+                //interleave
+                frame_t total = size*channels;
+                holder = std::make_unique<PeakDataBase[]>(total);
+                data = holder.get();
+                frame_t flocal = 0;
+                for(frame_t f=0; f<total; f+=channels) {
+                    for(int ch=0; ch<channels; ++ch) {
+                        data[f+ch] = (*buffer)[ch][flocal];
+                    }
+                    flocal++;
+                }
+            }
+
+            chunk.LODLevel = i+1;
+            chunk.chunkSize = size;
+
+            tmp->_handle.write((char*)&chunk, sizeof(AudioPeakChunk));
+            tmp->_handle.write((char*)data, size*channels*sizeof(PeakDataBase));
+            
+            header.totalSize += (size+16);
+        }
+    }
+
+    tmp->_handle.seekp(16);
+    tmp->_handle.write((char*)&header.totalSize, 8);
+
+    tmp->_handle.close();
 
     return true;
 }
 
 bool AudioPeakFile::save() {
-
+    //??
     return false;
 }
 
 bool AudioPeakFile::close() {
-    fclose(_file);
+    // fclose(_file);
+    if(dirty()) {
+        save();
+    }
+    _handle.close();
     return true;
 }
 
@@ -294,71 +287,13 @@ void AudioPeakFile::finishAfterRecord() {
 
 }
 
-
-bool AudioPeakFile::build(AudioFile * file) {
-
-    return false;
-}
-
-bool AudioPeakFile::exists(std::string & path) {
-    //TODO: should handle if user defined separate folder for peak files
-    //now assuming that .slrpk stored near audio file
-    if(!pathHasExtention(Extention::AudioPeak, path)) {
-        LOG_ERROR("Wrong Audio Peak File extention");
-        return false;
-    }
-
-    FILE* f = std::fopen(path.c_str(), "r");
-    if(f) {
-        std::fclose(f);
-        return true;
-    }
-    return false;
-};
-
 bool AudioPeakFile::valid(AudioFile * file) {
     //check if channels == file channels
     //samplerate == file samplerate
     return true;
 }
 
-const AudioPeaks::PeakData * AudioPeakFile::data(AudioPeaks::LODLevels level) const {
-    const AudioPeaks::PeakData * ret;
-    switch(level) {
-        case(AudioPeaks::LODLevels::LODLevel0): ret = _peaks[0].data(); LOG_ERROR("For peak 0 level call data0()!!"); break;
-        case(AudioPeaks::LODLevels::LODLevel1): ret = _peaks[0].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel2): ret = _peaks[1].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel3): ret = _peaks[2].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel4): ret = _peaks[3].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel5): ret = _peaks[4].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel6): ret = _peaks[5].data(); break;
-    }
-    return ret;
-}
-
-AudioPeaks::PeakData * AudioPeakFile::data(AudioPeaks::LODLevels level) {
-    AudioPeaks::PeakData * ret;
-    switch(level) {
-        case(AudioPeaks::LODLevels::LODLevel0): ret = _peaks[0].data(); LOG_ERROR("For peak 0 level call data0()!!"); break;
-        case(AudioPeaks::LODLevels::LODLevel1): ret = _peaks[0].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel2): ret = _peaks[1].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel3): ret = _peaks[2].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel4): ret = _peaks[3].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel5): ret = _peaks[4].data(); break;
-        case(AudioPeaks::LODLevels::LODLevel6): ret = _peaks[5].data(); break;
-    }
-    return ret;
-}
-
-const AudioPeaks::PeakData0 * AudioPeakFile::data0() const {
-    return _lod0Peaks.lod0Data();
-}
-
-AudioPeaks::PeakData0 * AudioPeakFile::data0() {
-    return _lod0Peaks.lod0Data();
-}
-
-const frame_t AudioPeakFile::frames() const {
+frame_t AudioPeakFile::frames() const {
     return 0;
 }
 

@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/filetasks/FileTasks.h"
-#include "core/utility/helper.h"
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
 #include "core/utility/FileWorkerContext.h"
 #include "core/FileWorker.h"
-// #include "core/Events.h"
+
+#include "common/FileIO.h"
 #include "common/logger.h"
 
 #include <memory>
@@ -18,52 +18,6 @@ namespace slr {
 namespace Tasks {
 
 /* Generic Tasks */
-void openFile::exec(FileWorkerContext &ctx) {
-    if(pathHasExtention(Extention::Audio, path)) {
-        std::unique_ptr<AudioFile> file;
-        if(forcedId) file = std::make_unique<AudioFile>(forcedId.value());
-        else file = std::make_unique<AudioFile>();
-
-        if(file->open(path)) {
-            AudioFile * afile = file.get();
-            ctx.worker->appendFile(std::move(file));
-
-            std::unique_ptr<AudioPeakFile> apk = std::make_unique<AudioPeakFile>();
-            bool success = false;
-            std::string path = afile->path();
-            path = path.substr(0, path.size()-4);
-            path.append(".slrpk");
-
-            if(AudioPeakFile::exists(path)) {
-                if(apk->open(path)) {
-                    success = true;
-                }
-            } else {
-                if(apk->createAndBuild(path, afile)) {
-                    if(apk->open(path)) {
-                        success = true;
-                    }
-                }
-            }
-
-            if(!apk->valid(afile)) {
-                success = false;
-            }
-
-            if(success) {
-                afile->setPeaks(apk.get());
-                ctx.worker->appendFile(std::move(apk));
-            }
-            finished(afile, success);
-            
-        } else {
-            LOG_WARN("Failed to open Audio File");
-        }
-
-    } else if(pathHasExtention(Extention::Midi, path)) {
-        LOG_ERROR("No routine to open midi file");
-    }
-}
 
 void closeFile::exec(FileWorkerContext &ctx) {
     if(!file->close()) LOG_WARN("Failed to close file");

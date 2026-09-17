@@ -17,10 +17,35 @@ void copyAudioBuffer(sample_t * src, sample_t * dst, const frame_t frames);
 void clearAudioBuffer(sample_t * src, const frame_t frames);
 void clearAudioBuffers(sample_t * src1, sample_t * src2, const frame_t frames);
 void packTwoMonoToStereo(sample_t * srcL, sample_t * srcR, sample_t * dst, const frame_t frames);
-void packMulti(sample_t ** src, sample_t * dst, const int channels, const frame_t frames);
+// void packMulti(sample_t ** src, sample_t * dst, const int channels, const frame_t frames);
 void unpackStereo(sample_t * src, sample_t * dstL, sample_t * dstR, const frame_t frames);
-void unpackMulti(sample_t * src, sample_t ** dst, const int channels, const frame_t frames);
+// void unpackMulti(sample_t * src, sample_t ** dst, const int channels, const frame_t frames);
 void fillAudioBuffer(sample_t * src, const frame_t frames, const sample_t value);
+
+
+template<typename T>
+void unpackMulti(T * src, T ** dst, const int channels, frame_t frames) {
+    frame_t framesTotal = frames * channels;
+    frame_t flocal = 0;
+    for(frame_t f=0; f<framesTotal; f+=channels) {
+        for(int i=0; i<channels; ++i) {
+            dst[i][flocal] = src[f+i];
+        }
+        ++flocal;
+    }
+}
+
+template<typename T>
+void packMulti(T ** src, T * dst, const int channels, const frame_t frames) {
+    frame_t framesTotal = frames * channels;
+    frame_t flocal = 0;
+    for(frame_t f=0; f<framesTotal; f+=channels) {
+        for(int i=0; i<channels; ++i) {
+            dst[f+i] = src[i][flocal];
+        }
+        ++flocal;
+    }
+}
 
 /*
 //apply for all - if channels == 0 than do for all channels, otherwise for specified

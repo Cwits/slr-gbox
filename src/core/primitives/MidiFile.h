@@ -36,7 +36,7 @@ struct MidiFile : public File {
     void prepareForRecord() override;
     void finishAfterRecord() override;
     
-    const frame_t frames() const override; 
+    frame_t frames() const override; 
 
     const bool temporary() const { return _temporary; }
     const bool finalize() const { return _finalize; }

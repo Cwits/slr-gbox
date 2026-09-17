@@ -5,8 +5,9 @@
 #include "common/defines.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/Buffer.h"
-#include <cstdint>
 
+#include <cstdint>
+#include <array>
 
 namespace slr {
 
@@ -21,51 +22,51 @@ class AudioPeakFile;
     //in other cases: 
     //minmaxminmaxminmaxminmax according to channels
 */
+const int TOTAL_LOD_LEVELS = 7;
+enum class LODLevels {
+    LODLevel0 = 1,
+    LODLevel1 = 64,
+    LODLevel2 = 256,
+    LODLevel3 = 1024,
+    LODLevel4 = 2048,
+    LODLevel5 = 4096,
+    LODLevel6 = 8192
+};
 
-class AudioPeaks {
-    public:
-    enum class LODLevels {
-        LODLevel0 = 1,
-        LODLevel1 = 64,
-        LODLevel2 = 256,
-        LODLevel3 = 1024,
-        LODLevel4 = 2048,
-        LODLevel5 = 4096,
-        LODLevel6 = 8192
-    };
+struct PeakDataBase {
+    uint8_t min;
+    uint8_t max;
+};
 
-    struct PeakDataBase {
-        uint8_t min;
-        uint8_t max;
-    };
-    //127 - middle point(0.0f)
-    using PeakData0 = Buffer<uint8_t>;
-    using PeakData = Buffer<PeakDataBase>;
-    
+using PeakData0 = Buffer<uint8_t>;
+using PeakData = Buffer<PeakDataBase>;
+
+struct AudioPeaks {
     AudioPeaks();
     ~AudioPeaks();
 
-    void build(AudioFile * file, LODLevels level);
-    void extend(AudioBuffer * buf);
-    void update(AudioFile * file);
-    void updateRegion(AudioFile * file, frame_t start, frame_t end);
+    void build(const AudioFile * file);
+    void extend(const AudioBuffer * buf);
+    void update(const AudioFile * file);
+    void updateRegion(const AudioFile * file, frame_t start, frame_t end);
 
-    PeakData0 * lod0Data() { return _lod0Data; }
-    const PeakData0 * lod0Data() const { return _lod0Data; }
-    PeakData * data() { return _peaksData; }
-    const PeakData * data() const { return _peaksData; }
-    // const frame_t dataSize() const { return _dataSize; }
-    const LODLevels level() const { return _level; }
+    PeakData0 * peaks0() { return _peaks0.get(); }
+    const PeakData0 * peaks0() const { return _peaks0.get(); }
 
-    static LODLevels pickLevel(float ratio);
-
+    PeakData * peaks(LODLevels lvl);
+    const PeakData * peaks(LODLevels lvl) const;
+    PeakData * peaks(int lvl);
+    const PeakData * peaks(int lvl) const;
+    
     private:
-    PeakData0 * _lod0Data;
-    PeakData * _peaksData; //according to 7 levels of LODLevels
-    LODLevels _level;
+    std::unique_ptr<PeakData0> _peaks0;
+    std::array<std::unique_ptr<PeakData>, 6> _peaks;
+    
+    PeakData * getPeaks(int lvl) const;
 
     friend class AudioPeakFile;
-    // frame_t _dataSize;
 };
 
+LODLevels pickLevel(float ratio);
+int numFromLevel(LODLevels lvl);
 }

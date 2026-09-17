@@ -126,6 +126,7 @@ file(GLOB SOURCES
   src/core/drivers/jackDriver.cpp
 
   #filetasks
+  src/core/filetasks/tasks/OpenFile.cpp
   src/core/filetasks/FileTasks.cpp
 
   #primitives

@@ -4,22 +4,33 @@
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/utility/basicAudioManipulation.h"
-#include "core/utility/helper.h"
+#include "common/FileIO.h"
 #include "common/logger.h"
 
 #include <unistd.h> //fsync()
 
 namespace slr {
 
-AudioFile::AudioFile(long forcedId) : File(FileType::Audio, forcedId), _file(nullptr), _info({0}), _data(nullptr), _opened(false), _temporary(false), _finalize(false), _interleave(nullptr), _interleaveChannels(0) {
+AudioFile::AudioFile(const ID forcedId) : 
+    File(FileType::Audio, forcedId), 
+    _file(nullptr), 
+    _info({0}), 
+    _data(std::unique_ptr<AudioBuffer>()), 
+    _opened(false), 
+    _temporary(false), 
+    _finalize(false), 
+    _interleave(nullptr), 
+    _interleaveChannels(0) 
+{
 
 }
 
 AudioFile::~AudioFile() {
     if(_opened) close();
+    if(_interleave) _interleave.reset();
 }
 
-bool AudioFile::createTemporary(std::string & path, int channels, int samplerate) {
+bool AudioFile::prepareAsTemporary(std::string & path, int channels, int samplerate) {
     _temporary = true;
     
     _info.channels = channels;
@@ -33,8 +44,7 @@ bool AudioFile::createTemporary(std::string & path, int channels, int samplerate
     _info.sections = 0;
 
     _path = path;
-    return true; //openInternal(path, true);
-    // return openInternal(path, true);
+    return true;
 }
 
 //for files that exists in file system
@@ -51,18 +61,8 @@ bool AudioFile::save() {
 } 
 
 bool AudioFile::close() {
-    
     sf_close(_file);
     _file = nullptr;
-
-    if(!_temporary) {
-        for(int i=0; i<_data->channels(); ++i) {
-            delete [] (*_data)[i];
-        }
-        delete [] _data->_data;
-        delete _data;
-        _data = nullptr;
-    }
 
     _path.erase();
     _name.erase();
@@ -80,32 +80,39 @@ void AudioFile::finishAfterRecord() {
     sf_write_sync(_file);
     
     if(_interleaveChannels > 1) {
-        delete [] _interleave;
+        // delete [] _interleave; // better do this through buffer manager?
+        _interleave.reset();
         _interleaveChannels = 0;
+        // _interleave = nullptr;
     }
 }
 
-
 bool AudioFile::dumpRecordedData(AudioBuffer * recBuffer) {
-    // sample_t * dataPtr = nullptr;
     if(!_opened && _temporary) {
-        openInternal(_path, true);
+        if(!openInternal(_path, true)) {
+            return false;
+        }
     }
 
-    int channels = recBuffer->channels();
-    frame_t size = recBuffer->bufferSize();
+    size_t channels = recBuffer->channels();
+    frame_t size = recBuffer->size();
 
+    sample_t *ptr = nullptr;
     if(channels == 1) {
-        _interleave = (*recBuffer)[0];
+        ptr = (*recBuffer)[0];
     } else {
         if(!_interleave) {
-            _interleave = new sample_t[size*channels];
+            // _interleave = new sample_t[size*channels];
+            _interleave = std::unique_ptr<sample_t[]>(new sample_t[size*channels]{});
+            if(!_interleave) return false;
             _interleaveChannels = channels;
         }
-        packMulti(recBuffer->_data, _interleave, channels, size);
+        
+        packMulti(recBuffer->rawAccesor(), _interleave.get(), channels, size);
+        ptr = _interleave.get();
     }
         
-    frame_t res = sf_writef_float(_file, _interleave, size);// - for each incomming buffer
+    frame_t res = sf_writef_float(_file, ptr, size);// - for each incomming buffer
     
     if(res != size) {
         LOG_ERROR("Writing to file went wrong!");
@@ -117,25 +124,23 @@ bool AudioFile::dumpRecordedData(AudioBuffer * recBuffer) {
     //dump every 8 buffers
     if((_info.frames / size) % 8 == 0) 
         sf_write_sync(_file);
-    // if(bufferCounter % 4 == 0)
-    //     sf_write_sync() - periodically (either 1-2s or once for several buffers 6-8-10...) and at the end of record
 
     return true;
 }
 
-bool AudioFile::openInternal(std::string & path, bool tmp) {
+bool AudioFile::openInternal(std::string & path, bool isTemporary) {
     //TODO: check if already opened, and if file exists 
     if(path.empty()) {
         LOG_ERROR("Path to file empty");
         return false;
     }
 
-    if(!pathHasExtention(Extention::Audio, path)) {
+    if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::Audio, path)) {
         LOG_ERROR("Wrong file extention");
         return false;
     }
 
-    //check if folders exists
+    // Common::FileIO::pathIsValid(path, true);
 
     _file = sf_open(path.c_str(), SFM_READ | SFM_WRITE, &_info);
     
@@ -146,12 +151,12 @@ bool AudioFile::openInternal(std::string & path, bool tmp) {
     }
     
     if(_info.channels > 2) {
-        LOG_ERROR("Multichannel audio files not supported");
+        LOG_ERROR("Multichannel audio files not supported yet");
         sf_close(_file);
         return false;
     }
 
-    if(tmp)  {
+    if(isTemporary)  {
         _path = path;
         std::size_t size = path.size();
         std::size_t find = path.find_last_of("/", size);
@@ -160,61 +165,11 @@ bool AudioFile::openInternal(std::string & path, bool tmp) {
         return true; 
     }
 
-    sample_t * rawPtr = nullptr;
-    sample_t ** tmpPtr = nullptr;
-    if(!tmp) {
-        //read data
-        rawPtr = new sample_t[_info.frames*_info.channels];
-        if(!rawPtr) {
-            LOG_ERROR("Failed to allocate raw buffer");
-            sf_close(_file);
-            return false;
-        }
-
-        
-
-#if (SAMPLE_T == float)
-        sf_count_t res = sf_readf_float(_file, rawPtr, _info.frames);
-#elif (SAMPLE_T == double)
-        sf_count_t res = sf_readf_double(_file, rawPtr, _info.frames);
-#endif
-
-        if(res != _info.frames) {
-            LOG_ERROR("Failer to read data from file!");
-            delete [] rawPtr;
-            sf_close(_file);
-            return false;
-        }
-
-        //audio buffer workaround
-        //frame_t size = _info.frames*_info.channels;
-        tmpPtr = new sample_t*[_info.channels];
-        for(int i=0; i<_info.channels; ++i) tmpPtr[i] = nullptr;
-
-        for(int i=0; i<_info.channels; ++i) {
-            sample_t * buffer = static_cast<sample_t*>(new sample_t[_info.frames]);
-            if(buffer == nullptr) {
-                LOG_ERROR("Failed to allocate buffer for file");
-                goto clear;
-            }
-
-            clearAudioBuffer(buffer, _info.frames);
-            tmpPtr[i] = buffer;
-        }
-
-        _data = new AudioBuffer(tmpPtr, _info.channels, _info.frames);
-        if(!_data) {
-            LOG_ERROR("Failed to allocate AudioBuffer");
-            goto clear;
-        }
-
-        //unpack data
-        unpackMulti(rawPtr, _data->_data, _info.channels, _info.frames);
-        
-        delete [] rawPtr;
-
+    if(!readAndUnpack()) {
+        close();
+        return false;
     }
-
+    
     _path = path;
     _name = std::string(
         path.substr(
@@ -225,16 +180,48 @@ bool AudioFile::openInternal(std::string & path, bool tmp) {
 
     _opened = true;
     return true;
-
-    clear:
-    for(int i=0; i<_info.channels; ++i) {
-        delete [] tmpPtr[i];
-    }
-    delete [] tmpPtr;
-    delete _data;
-    delete [] rawPtr;
-    sf_close(_file);
-    return false;
 }   
+
+bool AudioFile::readAndUnpack() {
+    std::unique_ptr<sample_t[]> raw = std::unique_ptr<sample_t[]>(new sample_t[_info.frames*_info.channels]{});
+
+    if(!raw) {
+        LOG_ERROR("Failed to allocate raw buffer");
+        sf_close(_file);
+        return false;
+    }
+    
+    if(_data) {
+        LOG_WARN("Old audio data to be deleted");
+        _data.reset(nullptr);
+    }
+
+    _data = std::make_unique<AudioBuffer>(_info.channels, _info.frames);
+    if(!_data) {
+        LOG_ERROR("Failed to allocate AudioBuffer");
+        // delete [] rawPtr;
+        sf_close(_file);
+        return false;
+    }
+        
+
+#if (SAMPLE_T == float)
+    sf_count_t res = sf_readf_float(_file, raw.get(), _info.frames);
+#elif (SAMPLE_T == double)
+    sf_count_t res = sf_readf_double(_file, rawPtr, _info.frames);
+#endif
+
+    if(res != _info.frames) {
+        LOG_ERROR("Failer to read data from file!");
+        // delete [] rawPtr;
+        sf_close(_file);
+        return false;
+    }
+
+    unpackMulti(raw.get(), _data->rawAccesor(), _info.channels, _info.frames);
+
+    // delete [] rawPtr;
+    return true;
+}
 
 }

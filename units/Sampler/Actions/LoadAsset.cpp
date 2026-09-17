@@ -9,7 +9,7 @@
 #include "core/utility/ControlContext.h"
 #include "core/FileWorker.h"
 #include "core/filetasks/FileTasks.h"
-#include "core/utility/helper.h"
+#include "common/FileIO.h"
 
 #include "core/Project.h"
 #include "snapshots/ProjectView.h"
@@ -45,13 +45,13 @@ void LoadAssetAction::exec(ControlContext &ctx) {
                 }
 
                 const std::string &path = std::get<std::string>(_action.data);
-                if(!pathHasExtention(Extention::Audio, path)) {
+                if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::Audio, path)) {
                     LOG_ERROR("Only audio files accepted %s", path.c_str());
                     abortAction();
                     return;
                 }
 
-                auto task = std::make_unique<Tasks::openFile>();
+                auto task = std::make_unique<Tasks::OpenFile>();
                 task->path = std::get<std::string>(_action.data);
                 task->finished = [opened = &_opened](const File *file, bool success) {
                     opened->file = file;

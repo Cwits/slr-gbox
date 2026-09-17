@@ -29,8 +29,8 @@ class DummyDriver : public AudioDriver {
     std::thread _timerThread;
     std::atomic<bool> _keepRunning;
 
-    AudioBuffer * _inputBuffers;
-    AudioBuffer * _outputBuffers;
+    std::unique_ptr<AudioBuffer> _inputBuffers;
+    std::unique_ptr<AudioBuffer> _outputBuffers;
 
     frame_t process(frame_t frames);
 };

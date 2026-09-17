@@ -37,8 +37,8 @@ class JackDriver : public AudioDriver {
     std::vector<jack_port_t*> _outputs;
     bool _autoconnect;
 
-    AudioBuffer * _inputBuffers;
-    AudioBuffer * _outputBuffers;
+    std::unique_ptr<AudioBuffer> _inputBuffers;
+    std::unique_ptr<AudioBuffer> _outputBuffers;
     
     static int jack_process(jack_nframes_t nframes, void *arg);
     static int xrun_callback(void *arg);

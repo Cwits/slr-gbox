@@ -333,7 +333,7 @@ bool Track::AudioRecord::prepare(FileWorker * fw, frame_t latencyToCompensate) {
 
     LOG_INFO("Preparing audio file for record %s", path.c_str());
     _recordFile = fw->acquireTmpAudioFile();
-    _recordFile->createTemporary(path, DEFAULT_BUFFER_CHANNELS, SettingsManager::getSampleRate());
+    _recordFile->prepareAsTemporary(path, DEFAULT_BUFFER_CHANNELS, SettingsManager::getSampleRate());
     
     _fileUsed = false;
     _dumpOldBuffer = false;
@@ -365,7 +365,7 @@ void Track::AudioRecord::stopRecord() {
 }
 
 void Track::AudioRecord::finalize() {
-    _recordFile->finalizeFile();
+    _recordFile->finalize();
 
     dumpDataCommand(_bufferInUse, _recordFile, _currentBufferFill, fileStartPosition());
     _currentBufferFill = 0;
@@ -374,7 +374,7 @@ void Track::AudioRecord::finalize() {
 void Track::AudioRecord::incrementCounter(frame_t frames) {
     _currentBufferFill += frames;
     
-    if(_currentBufferFill >= _bufferInUse->bufferSize()) {
+    if(_currentBufferFill >= _bufferInUse->size()) {
         _currentBufferFill = 0;
     }
 
@@ -391,7 +391,7 @@ void Track::AudioRecord::incrementCounter(frame_t frames) {
     }
 
     if(_dumpOldBuffer) {
-        dumpDataCommand(_oldBuffer, _recordFile, _oldBuffer->bufferSize(), 0);
+        dumpDataCommand(_oldBuffer, _recordFile, _oldBuffer->size(), 0);
         _compensatedLatency = 0;
         _dumpOldBuffer = false;
         _oldBuffer = nullptr;
@@ -415,7 +415,7 @@ void Track::AudioRecord::writeData(void * data, frame_t frames, uint8_t numChann
         if(idx < 0) {
             if(_oldBuffer) {
                 readIdx = 0;
-                writeIdx = _oldBuffer->bufferSize()+idx; //+ since idx is negative
+                writeIdx = _oldBuffer->size()+idx; //+ since idx is negative
                 samplesToWrite = (test > 0) ? frames-test : frames;
 
                 sumAudioBuffers(&(*buffer)[0][readIdx], &(*_oldBuffer)[0][writeIdx], samplesToWrite);

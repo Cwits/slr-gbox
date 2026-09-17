@@ -9,32 +9,29 @@
 #include <array>
 #include <cstdio>
 #include <cstdint>
+#include <fstream>
 
 namespace slr {
 
 class AudioPeakFile : public File {
     public:
-    AudioPeakFile();
+    AudioPeakFile(const ID forcedID = 0);
     ~AudioPeakFile();
 
     bool open(std::string &path) override;
-    bool createAndBuild(std::string &path, AudioFile * file);
+    static bool createAndBuild(const std::string &path, const AudioFile * file);
     bool save() override;
     bool close() override;
     
     void prepareForRecord() override;
     void finishAfterRecord() override;
 
-    static bool exists(std::string & path);
     bool valid(AudioFile * file);
 
-    const AudioPeaks::PeakData * data(AudioPeaks::LODLevels level) const;
-    AudioPeaks::PeakData * data(AudioPeaks::LODLevels level);
-    const AudioPeaks::PeakData0 * data0() const;
-    AudioPeaks::PeakData0 * data0();
-    // const frame_t dataSize(AudioPeaks::LODLevels level) const;
+    AudioPeaks * peaks() { return &_peaks; }
+    const AudioPeaks * peaks() const { return &_peaks; }
     
-    const frame_t frames() const override; 
+    frame_t frames() const override; 
     
     private:
     
@@ -58,16 +55,11 @@ class AudioPeakFile : public File {
         // uint8_t * data;      //total 13+3 = 16 bytes
     };
 
+    std::fstream _handle;
 
-    AudioPeakHeader _header;
-    AudioPeaks _lod0Peaks;
-    std::array<AudioPeaks, 6> _peaks; //one for each level except level0
+    AudioPeaks _peaks;
+    
     AudioFile * _relatedAudioFile;
-    // uint8_t channels;
-
-    FILE * _file;
-
-    bool build(AudioFile * file);
 };
 
 }
