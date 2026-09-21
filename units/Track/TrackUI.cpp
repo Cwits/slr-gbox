@@ -67,7 +67,7 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
         auto act = std::make_unique<slr::Actions::RecordArm>();
         const std::shared_ptr<const slr::TrackView> track = _parentUI->_track.lock();
         act->targetId = track->id();
-        act->recordState = (track->record() ? 0.0f : 1.0f);
+        act->recordState = (track->record() ? false : true);
         act->recordSource = (track->recordSource() == slr::RecordSource::Audio) ? 
                                 slr::RecordSource::Audio : 
                                 slr::RecordSource::Midi;
@@ -89,7 +89,7 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
             auto act = std::make_unique<slr::Actions::RecordArm>();
             const std::shared_ptr<const slr::TrackView> track = _parentUI->_track.lock();
             act->targetId = track->id();
-            act->recordState = (track->record() ? 1.0f : 0.0f);
+            act->recordState = (track->record() ? true : false);
             act->recordSource = (track->recordSource() == slr::RecordSource::Audio) ? 
                                     slr::RecordSource::Midi :
                                     slr::RecordSource::Audio; 

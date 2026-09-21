@@ -16,7 +16,6 @@
 #include "units/Track/TrackActions.h"
 #include "units/Track/Actions/DumpRecordedAudio.h"
 #include "units/Track/Actions/RecordArm.h"
-#include "units/Track/Actions/ReinitTrackRecord.h"
 
 #include <memory>
 
@@ -50,6 +49,5 @@ namespace slr {
 void registerTrackActions(std::map<std::type_index, CreatorFn> &map) {
     map[typeid(Actions::DumpRecordedAudio)] = &createDumpRecAudioAction;
     map[typeid(Actions::RecordArm)] = &createRecordArmAction;
-    map[typeid(Actions::ReinitTrackRecord)] = &createReinitTrackRecordAction;
 }
 }

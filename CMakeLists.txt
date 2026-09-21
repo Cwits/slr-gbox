@@ -186,7 +186,6 @@ file(GLOB SOURCES
   units/Track/TrackActions.cpp
   units/Track/Actions/DumpRecordedAudio.cpp
   units/Track/Actions/RecordArm.cpp
-  units/Track/Actions/ReinitTrackRecord.cpp
 
   units/Mixer/Mixer.cpp
   units/Mixer/MixerUnit.cpp

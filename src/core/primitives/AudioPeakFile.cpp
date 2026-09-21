@@ -146,13 +146,13 @@ bool AudioPeakFile::createAndBuild(const std::string &path, const AudioFile * fi
 
     // Common::FileIO::pathIsValid(path, true);
     if(tmp->_handle.is_open()) {
-        LOG_ERROR("Already opened");
+        LOG_FAIL("Already opened");
         return false;
     }
     
-    tmp->_handle.open(path, std::ios_base::binary | std::ios_base::trunc);
+    tmp->_handle.open(path, std::ios::out | std::ios::binary | std::ios::trunc);
     if(!tmp->_handle.is_open()) {
-        LOG_ERROR("Failed to open");
+        LOG_FAIL("Failed to open file %s", path.c_str());
         return false;
     }
 

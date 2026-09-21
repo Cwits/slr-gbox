@@ -47,20 +47,20 @@ struct RecordArm : public ActionBase {
     std::type_index actionType() const override { return typeid(RecordArm); }
 
     ID targetId;
-    float recordState;
+    bool recordState;
     RecordSource recordSource;
 };
 
-struct ReinitTrackRecord : public ActionBase {
-    ReinitTrackRecord() {}
-    ReinitTrackRecord(const ReinitTrackRecord &rhs) :
-        ActionBase(rhs),
-        track(rhs.track) {}
+// struct ReinitTrackRecord : public ActionBase {
+//     ReinitTrackRecord() {}
+//     ReinitTrackRecord(const ReinitTrackRecord &rhs) :
+//         ActionBase(rhs),
+//         track(rhs.track) {}
 
-    std::type_index actionType() const override { return typeid(ReinitTrackRecord); }
+//     std::type_index actionType() const override { return typeid(ReinitTrackRecord); }
 
-    Track * track;
-};
+//     Track * track;
+// };
 
 }
 

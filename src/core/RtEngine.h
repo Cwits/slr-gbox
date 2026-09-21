@@ -58,6 +58,7 @@ class RtEngine {
     static void addRtResponse(RtTask * task);
     SPSCQueue<RtTask*, 256> & getResponses() { return _rtResponses; }
     // void processResponses();
+    void pushRtResponse(RtTask * task);
     
     private:
     frame_t processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, frame_t frames, frame_t framesPassed);

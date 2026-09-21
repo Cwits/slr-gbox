@@ -8,6 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <algorithm>
 
 #include "core/primitives/File.h"
 
@@ -35,22 +36,9 @@ class FileWorker {
         _cond.notify_one();
     }
 
-    void appendFile(std::unique_ptr<File> file);
-    bool removeFile(File * file);
-    
-    const std::vector<File*> listFiles();  
-
-
-    AudioFile * acquireTmpAudioFile();
-    void releaseTmpAudioFile(AudioFile * file);
-    void closeTmpAudioFile(AudioFile * file);
-    std::vector<std::unique_ptr<AudioFile>> & tmpAudioFilesList() { 
-        return _tmpAudioFiles;
-    }
-    
-    MidiFile * acquireTmpMidiFile();
-    void releaseTmpMidiFile(MidiFile *file);
-    void closeTmpMidiFile(MidiFile *file);
+    void appendFile(std::unique_ptr<File> file, bool asTemporary = false);
+    std::unique_ptr<File> removeFile(File * file, bool asTemporary = false);
+    const std::vector<File*> listFiles(FileType type, bool temporary = false);
 
     private:
     static void run(FileWorker * f, std::atomic<bool> &shutdown);
@@ -62,20 +50,8 @@ class FileWorker {
     std::atomic<bool> _shutdown;
 
     std::vector<std::unique_ptr<File>> _fileList;
+    std::vector<std::unique_ptr<File>> _tmpFileList;
 
-    bool expandTmpAudioFile();
-    enum class FileAvailability { NotInUse = 0, InUse };
-    std::vector<std::unique_ptr<AudioFile>> _tmpAudioFiles; 
-    std::vector<FileAvailability> _usedTmpAudioFiles;
-    std::size_t _freeTmpFiles;
-    
-    struct TmpMidi {
-        bool inUse;
-        std::unique_ptr<MidiFile> _file;
-    };
-    std::vector<TmpMidi> _tmpMidiFiles;
-    
-    // friend class FileWorker;
 };
 
 

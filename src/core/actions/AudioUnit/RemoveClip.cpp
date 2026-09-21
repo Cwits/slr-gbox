@@ -121,7 +121,7 @@ void RemoveClipAction::exec(ControlContext &ctx) {
 
             ContainerBuffer &storage = ctx.project->getClipContainerBufferById(_action.targetId);
             storage.swap();
-            LOG_INFO("Clip %u removed from unit %u successfully", _action.clipId, _action.targetId);
+            LOG_SUCCESS("Clip %u removed from unit %u successfully", _action.clipId, _action.targetId);
         
             setState(ActionState::Finished);
     	} break;

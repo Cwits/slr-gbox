@@ -90,6 +90,7 @@ void AudioFile::finishAfterRecord() {
 bool AudioFile::dumpRecordedData(AudioBuffer * recBuffer) {
     if(!_opened && _temporary) {
         if(!openInternal(_path, true)) {
+            LOG_ERROR("Failed to create or open a file %s", _path.c_str());
             return false;
         }
     }
@@ -112,10 +113,10 @@ bool AudioFile::dumpRecordedData(AudioBuffer * recBuffer) {
         ptr = _interleave.get();
     }
         
-    frame_t res = sf_writef_float(_file, ptr, size);// - for each incomming buffer
+    frame_t res = sf_writef_float(_file, ptr, size);
     
     if(res != size) {
-        LOG_ERROR("Writing to file went wrong!");
+        LOG_ERROR("Written %lu and expected to write %lu sizes not equal", res, size);
         return false;
     }
 

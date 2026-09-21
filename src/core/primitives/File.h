@@ -8,7 +8,7 @@
 
 namespace slr {
 
-enum class FileType { Error = -1, Audio, Midi, AudioPeak };
+enum class FileType { Error = -1, Audio, Midi, AudioPeak, All };
 
 class File {
     public:

@@ -22,11 +22,11 @@ FileWorker::~FileWorker() {
 }
 
 bool FileWorker::init(std::atomic<bool> &shutdown) {
-    for(int i=0; i<8; ++i) {
-        std::unique_ptr<AudioFile> file = std::make_unique<AudioFile>();
-        _tmpAudioFiles.push_back(std::move(file));
-        _usedTmpAudioFiles.push_back(FileAvailability::NotInUse);
-    }
+    // for(int i=0; i<8; ++i) {
+    //     std::unique_ptr<AudioFile> file = std::make_unique<AudioFile>();
+    //     _tmpAudioFiles.push_back(std::move(file));
+    //     _usedTmpAudioFiles.push_back(FileAvailability::NotInUse);
+    // }
     
     _shutdown = false;
     _thread = std::thread(&FileWorker::run, this, std::reference_wrapper(shutdown));
@@ -87,204 +87,51 @@ void FileWorker::run(FileWorker * f, std::atomic<bool> &shutdown) {
     LOG_INFO("Exiting File Worker thread");
 }
 
-void FileWorker::appendFile(std::unique_ptr<File> file) {
-    _fileList.push_back(std::move(file));
+void FileWorker::appendFile(std::unique_ptr<File> file, bool asTemporary) {
+    if(!asTemporary) _fileList.push_back(std::move(file));
+    else _tmpFileList.push_back(std::move(file));
 }
 
-bool FileWorker::removeFile(File * file) {
-    std::size_t id = 0;
-    bool found = false;
-    std::size_t size = _fileList.size();
+std::unique_ptr<File> FileWorker::removeFile(File * file, bool asTemporary) {
+    if(!file) {
+        LOG_ERROR("Invalid pointer");
+        return std::unique_ptr<File>();
+    }
 
-    for(std::size_t i=0; i<size; ++i) {
-        if(_fileList.at(i).get() == file) {
-            found = true;
-            id = i;
+    std::vector<std::unique_ptr<File>> &list = (!asTemporary) ? _fileList : _tmpFileList;
+
+    auto found = std::find_if(
+        list.begin(),
+        list.end(),
+        [file](const std::unique_ptr<File> &f) {
+            return f.get() == file;
         }
+    );
+
+    if(found == list.end()) {
+        LOG_FAIL("Failed to find such file %s", file->path().c_str());
+        return std::unique_ptr<File>();
     }
 
-    if(!found) {
-        LOG_ERROR("File not found");
-        return false;
-    }
-
-    _fileList.erase(_fileList.begin()+id);
-    return true;
-}
-
-// AudioFile * FileWorker::acquireTmpAudioFile() {
-//     return ControlEngine::getInstance()->_fileWorker->acquireTmpAudio();
-// }
-
-// void FileWorker::releaseTmpAudioFile(AudioFile * file) {
-//     ControlEngine::getInstance()->_fileWorker->releaseTmpAudio(file);
-// }
-
-AudioFile * FileWorker::acquireTmpAudioFile() {
-    if(_freeTmpFiles == 0) {
-        //TODO:tmp file expansion
-        //expand tmp files
-        if(!expandTmpAudioFile()) {
-            LOG_FATAL("Failed to expand tmp audio file storage");
-        }
-    }
-
-    bool found = false;
-    std::size_t id = 0;
-    std::size_t size = _usedTmpAudioFiles.size();
-    for(std::size_t i=0; i<size; ++i) {
-        if(_usedTmpAudioFiles.at(i) == FileAvailability::NotInUse) {
-            id = i;
-            found = true;
-        }
-    }
-
-    if(!found) {
-        LOG_FATAL("Failed to find new file");
-    }
-
-    _usedTmpAudioFiles.at(id) = FileAvailability::InUse;
-    _freeTmpFiles--;
-    return _tmpAudioFiles.at(id).get();
-}
-
-void FileWorker::releaseTmpAudioFile(AudioFile * file) {
-    std::size_t size = _usedTmpAudioFiles.size();
-    std::size_t id = 0;
-    bool found = false;
-    for(std::size_t i=0; i<size; ++i) {
-        if(_tmpAudioFiles.at(i).get() == file) {
-            found = true;
-            id = i;
-        }
-    }
-
-    if(!found) {
-        LOG_FATAL("Failed to found audio file");
-    }
-
-    _usedTmpAudioFiles.at(id) = FileAvailability::NotInUse;
-    _freeTmpFiles++;
-}
-
-bool FileWorker::expandTmpAudioFile() {
-    try {
-        for(int i=0; i<8; ++i) {
-            std::unique_ptr<AudioFile> file = std::make_unique<AudioFile>();
-            _tmpAudioFiles.push_back(std::move(file));
-            _usedTmpAudioFiles.push_back(FileAvailability::NotInUse);
-            _freeTmpFiles += 8;
-        }
-        return true;
-    } catch(...) {
-        return false;
-    }
-}
-
-void FileWorker::closeTmpAudioFile(AudioFile * file) {
-    try {
-        file->save();
-        file->close();
-
-        std::size_t idx = 0;
-        bool found = false;
-        for(std::size_t i=0; i<_tmpAudioFiles.size(); ++i) {
-            if(_tmpAudioFiles.at(i).get() == file) {
-                found = true;
-                idx = i;
-                break;
-            }
-        }
-
-        if(!found) {
-            LOG_ERROR("Failed to find such tmp file");
-            return;
-        }
-
-        _tmpAudioFiles.erase(_tmpAudioFiles.begin()+idx);
-        _usedTmpAudioFiles.erase(_usedTmpAudioFiles.begin()+idx);
-        _freeTmpFiles--;
-
-        std::unique_ptr<AudioFile> newfile = std::make_unique<AudioFile>();
-        _tmpAudioFiles.push_back(std::move(newfile));
-        _usedTmpAudioFiles.push_back(FileAvailability::NotInUse);
-        _freeTmpFiles++;
-    } catch(...) {
-        LOG_ERROR("Failed to close tmp file %s", file->name().c_str());
-    }
-}
-
-MidiFile * FileWorker::acquireTmpMidiFile() {
-    MidiFile * ret = nullptr;
-
-    for(TmpMidi &t : _tmpMidiFiles) {
-        if(!t.inUse) { 
-            ret = t._file.get();
-            t.inUse = true;
-            break;
-        }
-    }
-
-    if(!ret) {
-        std::unique_ptr<MidiFile> fil = std::make_unique<MidiFile>();
-        ret = fil.get();
-        _tmpMidiFiles.push_back({true, std::move(fil)});
-    }
+    std::unique_ptr<File> ret = std::move(*found);
+    list.erase(found);
 
     return ret;
 }
 
-void FileWorker::releaseTmpMidiFile(MidiFile *file) {
-    for(TmpMidi &t : _tmpMidiFiles) {
-        if(t._file.get() == file) {
-            if(!t.inUse) {
-                LOG_ERROR("Midi File not in use already, releasing it for second time!");
-            }
-            t.inUse = false;
-            return;
-        }
-    }
-}
-
-void FileWorker::closeTmpMidiFile(MidiFile *file) {
-    try {
-        file->save();
-        file->close();
-
-        std::size_t idx = 0;
-        bool found = false;
-        for(std::size_t i=0; i<_tmpMidiFiles.size(); ++i) {
-            TmpMidi &t = _tmpMidiFiles.at(i);
-            if(t._file.get() == file) {
-                if(!t.inUse) LOG_ERROR("Closing tmp file that not in use");
-                idx = i;
-                found = true;
-            }
-        }
-
-        if(!found) {
-            LOG_ERROR("Can't find such midi file in tmp files 0x%X", file);
-            return;
-        }
-
-        _tmpMidiFiles.erase(_tmpMidiFiles.begin()+idx);
-    } catch(...) {
-        LOG_ERROR("smth went wrong during closing tmp midi file");
-    }
-}
-
-
-const std::vector<File*> FileWorker::listFiles() {
-    std::size_t size = _fileList.size();
+const std::vector<File*> FileWorker::listFiles(FileType type, bool temporary) {
+    std::vector<std::unique_ptr<File>> &list = (!temporary) ? _fileList : _tmpFileList;
     std::vector<File*> ret;
-    ret.reserve(size);
+    ret.reserve(list.size());
 
-    for(std::size_t i=0; i<size; ++i) {
-        File * fil = _fileList.at(i).get();
-        if(fil->isAudio() || fil->isMidi()) {
-            //we don't need peak files here
-            ret.push_back(_fileList.at(i).get());
-        } 
+    if(type == FileType::All) {
+        for(auto &f : list) ret.push_back(f.get());
+    } else {
+        for(auto &f : list) {
+            if(f->type() != type) continue;
+            
+            ret.push_back(f.get());
+        }
     }
 
     return ret;

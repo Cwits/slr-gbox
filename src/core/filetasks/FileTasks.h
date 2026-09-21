@@ -34,6 +34,7 @@ struct closeFile : public FileTask {
     void exec(FileWorkerContext &ctx) override;
 
     File * file;  
+    bool temporary;
 };
 
 struct saveFile : public FileTask {

@@ -327,6 +327,10 @@ void RtEngine::addRtResponse(RtTask * task) {
     ControlEngine::rtEngine()->_rtResponses.push(task);
 }
 
+void RtEngine::pushRtResponse(RtTask * task) {
+    _rtResponses.push(task);
+}
+
 void RtEngine::SwapRenderPlan(const RenderPlan * plan) {
     _plan = plan;
 }

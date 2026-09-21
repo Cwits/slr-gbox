@@ -55,7 +55,7 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
         //clean and release buffer no matter what happened
         AudioBuffer * buf = rec;
             
-        for(int i=0; i<buf->channels(); ++i) {
+        for(size_t i=0; i<buf->channels(); ++i) {
             clearAudioBuffer((*buf)[i], buf->size());
         }
             
@@ -63,22 +63,28 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
         ctx.bufferManager->releaseAudioRecord(buf);
 
         if(!success) {
-            LOG_ERROR("Failed to dump audio data to file");
+            LOG_ERROR("Failed to dump audio data to file %s", target->path().c_str());
+            LOG_WARN("Disabling track %u record", trackId);
+
+            auto act = std::make_unique<Actions::RecordArm>();
+            act->targetId = trackId;
+            act->recordState = false;
+            act->recordSource = RecordSource::Audio;
+
+            EmitAction(std::move(act));
             return;
         }
         
-        LOG_INFO("audio data dumped successfully to file %s", target->name().c_str());
+        LOG_SUCCESS("audio data dumped successfully to file %s", target->name().c_str());
             
         if(target->isFinalize()) {
             LOG_INFO("Finalizing audio file %s path %s", 
                 target->name().c_str(), 
                 target->path().c_str());
-            // LOG_WARN("Finalizing audio file not implemented");
-            //finalize file and return it to track
             std::string path = target->path();
 
-            fw->closeTmpAudioFile(target);
-
+            fw->removeFile(target, true);
+            
             auto act = std::make_unique<slr::Actions::LoadAsClip>();
             act->data = path;
             act->targetId = trackId;

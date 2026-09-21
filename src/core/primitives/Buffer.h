@@ -23,7 +23,7 @@ struct Buffer {
         if(!noData) {
             _data = std::unique_ptr<T[]>(new T[channels*size]{});
     
-            for(int i=0; i<channels; ++i) {
+            for(size_t i=0; i<channels; ++i) {
                 _accesors.get()[i] = (_data.get() + (i*size));
             }
         }
@@ -41,7 +41,7 @@ struct Buffer {
     const T* raw() const { return _data.get(); }
 
     T** rawAccesor() { return _accesors.get(); }
-    const T** rawAccesor() const { return _accesors.get(); }
+    const T* const* rawAccesor() const { return _accesors.get(); }
     
     size_t size() const { return _size; }
     size_t channels() const { return _channels; }

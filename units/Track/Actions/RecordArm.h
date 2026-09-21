@@ -27,7 +27,7 @@ struct RecordArmAction : public ActionExecutable {
         void execRT();
 
         Track * track;
-        float recordState;
+        bool recordState;
         RecordSource recordSource;
         std::atomic<bool> completed;
     };

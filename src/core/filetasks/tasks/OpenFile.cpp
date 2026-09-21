@@ -1,7 +1,5 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-#pragma once
 #include "core/filetasks/tasks/OpenFile.h"
 #include "common/defines.h"
 
@@ -25,11 +23,12 @@ namespace Tasks {
 void OpenFile::exec(FileWorkerContext &ctx) {
     if(Common::FileIO::pathHasExtention(Common::FileIO::Extention::Audio, path)) {
         if(!Common::FileIO::pathOrFileExists(path)) {
-            LOG_ERROR("Path or file %s don't exists", path.c_str());
+            LOG_FAIL("Path or file %s don't exists", path.c_str());
             finished(nullptr, false);
             return;
         }
         if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::Audio, path)) {
+            LOG_FAIL("Unsupported file extention for %s", path.c_str());
             finished(nullptr, false);
             return;
         }
@@ -41,6 +40,7 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         AudioFile * afile = ufile.get();
 
         if(!afile->open(path)) {
+            LOG_FAIL("Unable to open file %s", path.c_str());
             finished(nullptr, false);
             return;
         }
@@ -52,7 +52,7 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         std::string path = afile->path();
         if(!Common::FileIO::changeExtentionTo(path, ".slrpk")) {
             //something went off
-            LOG_ERROR("Unable to change extention of %s to %s",
+            LOG_FAIL("Unable to change extention of %s to %s",
                 afile->path().c_str(), ".slrpk");
             finished(nullptr, false);
             return;
@@ -61,14 +61,14 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         if(!Common::FileIO::pathOrFileExists(path)) {
             //such file don't exists, let's build
             if(!AudioPeakFile::createAndBuild(path, afile)) {
-                LOG_ERROR("Building peaks for %s went wrong", afile->path());
+                LOG_FAIL("Building peaks for %s went wrong", afile->path().c_str());
                 finished(nullptr, false);
                 return;
             }
         }
 
         if(!apkfile->open(path)) {
-            LOG_ERROR("Failed to open peak file for %s", afile->path());
+            LOG_FAIL("Failed to open peak file for %s", afile->path().c_str());
             finished(nullptr, false);
             return;
         }
@@ -76,11 +76,12 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         afile->setPeaks(apkfile->peaks());
 
         //if total success
-        ctx.worker->appendFile(std::move(ufile));
-        ctx.worker->appendFile(std::move(apkfile));
+        ctx.worker->appendFile(std::move(ufile), false);
+        ctx.worker->appendFile(std::move(apkfile), false);
         finished(afile, true);
     } else if(Common::FileIO::pathHasExtention(Common::FileIO::Extention::Midi, path)) {
-
+        LOG_ERROR("Loading MIDI files not supported yet");
+        finished(nullptr, false);
     }
 }
 

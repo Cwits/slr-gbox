@@ -7,14 +7,18 @@
 #include "core/actions/ActionBase.h"
 #include "core/utility/ControlContext.h"
 
+#include "core/primitives/File.h"
+#include "core/primitives/AudioFile.h"
 #include "core/drivers/AudioDriver.h"
 #include "core/SettingsManager.h"
 #include "core/RtEngine.h"
 #include "core/Project.h"
+#include "core/FileWorker.h"
 #include "core/utility/helper.h"
 
 #include "snapshots/ProjectView.h"
 
+#include "common/FileIO.h"
 #include "common/logger.h"
 
 #include <cassert>
@@ -39,19 +43,18 @@ void RecordArmAction::exec(ControlContext &ctx) {
     	case(1): {
             Track *track = dynamic_cast<Track*>(ctx.project->getUnitById(_action.targetId));
             if(!track) {
-                LOG_ERROR("failed to convert to Track ptr %u", _action.targetId);
+                LOG_FAIL("failed to convert to Track ptr %u", _action.targetId);
                 abortAction();
                 return;
             }
 
-            bool state = floatToBool(_action.recordState);
             LOG_INFO("Track id: %u record arm toggled, new state %s, source %s", 
                 _action.targetId, 
-                (state ? "On" : "Off"), 
+                (_action.recordState ? "On" : "Off"), 
                 (_action.recordSource == RecordSource::Audio ? "Audio" : "Midi")
             );
             
-            if(state) {
+            if(_action.recordState) {
                 LOG_INFO("Preparing to record on track id: %u", _action.targetId);
         
                 AudioDriver * driver = ctx.engine->driver();
@@ -67,20 +70,41 @@ void RecordArmAction::exec(ControlContext &ctx) {
                     outputLatency = std::max(outputLatency, driver->outputLatency(i));
                 }
 
+                //but isn't it should be only input latency?
                 slr::frame_t latencyToCompensate = inputLatency+outputLatency+SettingsManager::getManualLatencyCompensation();
                 LOG_INFO("Total latency compensation for recording is %lu", latencyToCompensate);
+
+                
                 if(_action.recordSource == RecordSource::Audio) {
-                    if(!track->prepareAudioRecord(ctx.engine, ctx.fileWorker, latencyToCompensate)) {
-                        LOG_ERROR("Failed to prepare for audio record");
-                        return;
-                    }
+                    LOG_INFO("Preparing for audio record");
+                    std::unique_ptr<AudioFile> recFile = std::make_unique<AudioFile>();
+                    
+                    std::string path = SettingsManager::getTmpRecordPath();
+                    //should check that folder exists?
+                    path.append(Common::FileIO::getDateTime());
+                    path.append(Common::FileIO::generateRandomName(4));
+                    path.append(".wav");
+
+                    recFile->prepareAsTemporary(path, DEFAULT_BUFFER_CHANNELS, SettingsManager::getSampleRate());
+
+                    AudioFile * recordFile = recFile.get();
+                    ctx.fileWorker->appendFile(std::move(recFile), true);
+
+                    std::unique_ptr<AudioRecord> tgt = std::make_unique<AudioRecord>();
+                    tgt->clear();
+                    tgt->_parent = track;
+                    tgt->_engine = ctx.engine;
+                    tgt->_fileWorker = ctx.fileWorker;
+
+                    tgt->_latencyToCompensate = latencyToCompensate;
+                    tgt->_recordFile = recordFile;
+
+                    track->prepareRecord(std::move(tgt));
                 } else {
-                    if(!track->prepareMidiRecord(ctx.engine, ctx.fileWorker)) {
-                        LOG_ERROR("Failed to prepare for midi record");
-                        return;
-                    }
+                    LOG_INFO("Preparing for midi record");
+                    LOG_WARN("MIDI recording not available yet");
                 }
-            }
+            } //disabling handled in step 2
 
             _flat.track = track;
             _flat.recordState = _action.recordState;
@@ -97,7 +121,7 @@ void RecordArmAction::exec(ControlContext &ctx) {
 
             if(!state) { //if disabling - release
                 LOG_INFO("Releasing record target for track id: %u", _flat.track->id());
-                _flat.track->releaseRecordTarget(ctx.fileWorker);
+                _flat.track->releaseRecordTarget();
             }
 
             AudioUnitView *uview = ctx.projectView->getUnitById(_flat.track->id());
@@ -133,9 +157,8 @@ void RecordArmAction::checkWaitingCondition(ControlContext &ctx) {
 
 
 void RecordArmAction::RecordArmFlat::execRT() {
-    bool record = floatToBool(recordState);
-    track->setRecord(record);
     track->setRecordSource(recordSource);
+    track->setRecord(recordState);
     completed.store(true, std::memory_order_release);
 }
 

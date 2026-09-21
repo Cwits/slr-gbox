@@ -22,7 +22,7 @@ namespace Tasks {
 void closeFile::exec(FileWorkerContext &ctx) {
     if(!file->close()) LOG_WARN("Failed to close file");
     
-    if(!ctx.worker->removeFile(file)) LOG_WARN("Failed to remove file");
+    if(!ctx.worker->removeFile(file, temporary)) LOG_WARN("Failed to remove file");
 }
 
 void saveFile::exec(FileWorkerContext &ctx) {

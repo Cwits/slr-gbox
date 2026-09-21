@@ -109,7 +109,7 @@ bool Serializer::serialize(ControlContext &ctx) {
     }
 
     FileWorker *fw = ctx.fileWorker;
-    const std::vector<File*> &files = fw->listFiles();
+    const std::vector<File*> files = fw->listFiles(FileType::All, false);
     json["Files Count"] = files.size();
 
     for(const File *f : files) {

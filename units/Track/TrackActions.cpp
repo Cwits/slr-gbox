@@ -3,6 +3,7 @@
 #include "units/Track/TrackActions.h"
 
 // #include "core/primitives/AudioBuffer.h"
+#include "units/Track/Track.h"
 #include "core/actions/Actions.h"
 
 #include <memory>  
@@ -27,8 +28,14 @@ void DumpAudioFlat::execRT() {
 void ReinitTrackFlat::execRT() {
     // Common::Status status;
     // Track * track;
-    auto act = std::make_unique<slr::Actions::ReinitTrackRecord>();
-    act->track = track;
+    // auto act = std::make_unique<slr::Actions::ReinitTrackRecord>();
+    // act->track = track;
+    // slr::EmitAction(std::move(act));
+    
+    auto act = std::make_unique<slr::Actions::RecordArm>();
+    act->targetId = track->id();
+    act->recordState = true;
+    act->recordSource = track->recordSource();
     slr::EmitAction(std::move(act));
 }
 

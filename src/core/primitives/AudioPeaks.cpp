@@ -11,6 +11,21 @@
 
 namespace slr {
 
+int samplesInLevelByIdx(int idx) {
+    int ret = 1;
+    switch(idx) {
+        case(0): ret = static_cast<int>(LODLevels::LODLevel0); break;
+        case(1): ret = static_cast<int>(LODLevels::LODLevel1); break;
+        case(2): ret = static_cast<int>(LODLevels::LODLevel2); break;
+        case(3): ret = static_cast<int>(LODLevels::LODLevel3); break;
+        case(4): ret = static_cast<int>(LODLevels::LODLevel4); break;
+        case(5): ret = static_cast<int>(LODLevels::LODLevel5); break;
+        case(6): ret = static_cast<int>(LODLevels::LODLevel6); break;
+    }
+
+    return ret;
+}
+
 uint8_t mapSample(sample_t in) {
     return (in + 1.f) * (255) / 2.f;
 }
@@ -25,17 +40,11 @@ AudioPeaks::~AudioPeaks() {
 void AudioPeaks::build(const AudioFile * file) {
     frame_t size = file->frames();
     int channels = file->channels();
-    // size /= static_cast<int>(level);
-    // _dataSize = size;
     for(int i=0; i<TOTAL_LOD_LEVELS; ++i) {
         if(i == 0) {
             _peaks0 = std::make_unique<PeakData0>(size, channels);
-            uint8_t *ptrs[channels];
-            for(int i=0; i<channels; ++i) { ptrs[i] = (*_peaks0)[i]; }
-            uint8_t ** data = ptrs;
-            const sample_t *ptrssamples[channels];
-            for(int i=0; i<channels; ++i) { ptrssamples[i] = (*file->data())[i]; }
-            const sample_t ** datain = &ptrssamples[0]; //file->getData()->_data;
+            uint8_t **data = _peaks0->rawAccesor();
+            const sample_t * const* datain = file->data()->rawAccesor();
 
             for(frame_t f=0; f<size; ++f) {
                 for(int ch=0; ch<channels; ++ch) {
@@ -44,24 +53,17 @@ void AudioPeaks::build(const AudioFile * file) {
             }
         } else {
             int idx = i-1;
-            int samplesPerFrame = static_cast<int>(idx);
+            int samplesPerFrame = samplesInLevelByIdx(i);
             frame_t newSize = size / samplesPerFrame;
             //TODO: need somehow handle tail
-            frame_t diff = size - (newSize*samplesPerFrame);
+            // frame_t diff = size - (newSize*samplesPerFrame);
 
             _peaks[idx] = std::make_unique<PeakData>(newSize, channels);
             PeakData * peakData = _peaks[idx].get();
 
-            PeakDataBase * ptrs[channels];
-            for(int i=0; i<channels; ++i) { ptrs[i] = (*peakData)[i]; }
+            PeakDataBase ** data = peakData->rawAccesor();
+            const sample_t * const* datain = file->data()->rawAccesor();
 
-            PeakDataBase ** data = &ptrs[0]; //_peaksData->_data;
-
-            const sample_t * ptrssamples[channels];
-            for(int i=0; i<channels; ++i) { ptrssamples[i] = (*file->data())[i]; }
-
-            const sample_t ** datain = &ptrssamples[0]; //file->getData()->_data;
-            
             for(int ch=0; ch<channels; ++ch) {
                 for(frame_t f=0; f<newSize; ++f) {
                     int offset = samplesPerFrame * f;

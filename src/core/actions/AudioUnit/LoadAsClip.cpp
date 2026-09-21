@@ -71,7 +71,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
         case(2): {
             //file loaded, make it to clip
             if(!_file) {
-                LOG_ERROR("Failed action");
+                LOG_FAIL("Failed to prepare a file");
                 abortAction();
                 return;
             }
@@ -92,7 +92,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
         } break;
         case(3): {
             if(!_clip) {
-                LOG_ERROR("Clip is empty");
+                LOG_FAIL("Clip is empty");
                 abortAction();
                 return;
             }
