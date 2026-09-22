@@ -71,6 +71,8 @@ struct UIContext {
 
     void registerFrequentUpdate(std::function<void()> clb);
 
+    bool recalcGridFiles() const { return _recalculateGridFilePositions; }
+    void filesRecalculated();
     private:
     DragContext * _dragContext;
     
@@ -86,6 +88,8 @@ struct UIContext {
     UnitUIBase * _lastSelectedModule = nullptr;
 
     MainWindow * _mainWindow;
+
+    bool _recalculateGridFilePositions = false;
     friend class MainWindow;
 };
 

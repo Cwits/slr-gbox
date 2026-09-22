@@ -15,6 +15,7 @@
 #include  "core/actions/Actions.h"
 #include "snapshots/FileContainerView.h"
 
+#include "common/uiutility.h"
 #include "common/logger.h"
 
 #include <cmath>
@@ -323,6 +324,18 @@ void GridControl::pollUIUpdate() {
 
 void GridGrid::pollUIUpdate() {
     BaseWidget::pollChildsUIUpdate();
+    if(_uictx->recalcGridFiles()) {
+        _uictx->filesRecalculated();
+        slr::frame_t nudge = _grid->_timeline->nudge();
+
+        const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+        for(auto &base : list) {
+            for(auto *f : base->gridUI()->fileList()) {   
+                float xposition = UIUtility::frameToPixel(f->_clipItem->startPosition(), _uictx->gridHorizontalZoom());
+                f->setPos(xposition, f->getY());
+            }
+        }
+    }
 }
 
 }

@@ -26,11 +26,10 @@ Timeline::Timeline(Project & prj) :
     _loopEndFrame(0),
     _loopOnGoing(false),
     _prj(prj),
-    _framesPerQuater(0),
+    // _framesPerQuater(0),
     _lastElapsed(0)
 {
-    calcFramesPerQuater();
-    _loopEndFrame = _framesPerQuater*16;
+    _loopEndFrame = calcFramesPerQuater() * 16;
 }
 
 Timeline::~Timeline() {
@@ -185,14 +184,14 @@ const double Timeline::framesInStepDiv(StepDuration &dur) const {
     return div;
 }
 
-void Timeline::calcFramesPerQuater() {
-    _framesPerQuater = _sampleRate / (_bpm/60.f);
+uint32_t Timeline::calcFramesPerQuater() const {
+    return _sampleRate / (_bpm/60.f);
     //TODO: update loop markers as well
 }
 
 uint32_t Timeline::calcFramesPerBeat() const {
     float coef = 4.0f/getBarSize()._denominator;
-    int framesPerQuaterNote = _framesPerQuater;
+    int framesPerQuaterNote = framesPerQuater();
     return framesPerQuaterNote * coef;
 }
 

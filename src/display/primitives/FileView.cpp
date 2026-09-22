@@ -8,6 +8,7 @@
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/AudioPeaks.h"
 #include "core/primitives/ClipItem.h"
+#include "core/primitives/MidiFile.h"
 #include "core/ControlEngine.h"
 
 #include  "core/actions/Actions.h"
@@ -23,7 +24,7 @@
 #include "display/elements/GridView.h"
 #include "display/utility/layoutSizes.h"
 #include "display/utility/UIContext.h"
-#include "display/utility/AudioFileToCanvas.h"
+#include "display/utility/FileToCanvas.h"
 #include "common/uiutility.h"
 
 #include "common/logger.h"
@@ -80,10 +81,10 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     _canvasHeight = Layout::TRACK_HEIGHT;
 
     //allocate buffer
-    _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE)];
-    
+    // _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE)];
+    _drawBuffer = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE));
     //set buffer
-    lv_canvas_set_buffer(_canvas, _drawBuffer, _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
+    lv_canvas_set_buffer(_canvas, _drawBuffer.get(), _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
 
     //draw
     draw();
@@ -92,7 +93,7 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
 
 FileView::~FileView() {
     lv_obj_delete(_canvas);
-    delete [] _drawBuffer;
+    // delete [] _drawBuffer;
 }
 
 void FileView::update() {
@@ -115,53 +116,19 @@ void FileView::draw() {
             _peakColor,
             _fillColor
         );
-        /*const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->item()->_file);
-        const slr::AudioPeakFile * peakFile = afile->peaks();
-
-        int xsize = _canvasWidth;
-        float ratio = (float)_clipItem->length() / (float)xsize; 
-        slr::AudioPeaks::LODLevels nearestLvl = slr::AudioPeaks::pickLevel(ratio);
-
-        {//draw
-            const slr::AudioPeaks::PeakData0 * buffer = peakFile->data0();
-
-            int channels = buffer->channels();
-            float ratio = (float)buffer->bufferSize()/(float)xsize;
-
-            int heightPerChannel = (Layout::TRACK_HEIGHT/channels);
-            int midpoint = 0 + (heightPerChannel/channels);
-            // int center = midpoint;//+(heightPerChannel/2);
-
-            if(ratio < 1.0f) {
-                //less than sample per pixel
-            } else {
-                for(int ch=0; ch<channels; ++ch) {
-                    for(int x=0; x<xsize; ++x) {
-                        int offset = ratio*x;
-
-                        uint8_t min = 255;
-                        uint8_t max = 0;
-                        for(int off=offset; off<offset+ratio; ++off) {
-                            min = std::min(min, (*buffer)[ch][off]);
-                            max = std::max(max, (*buffer)[ch][off]);
-                        }
-
-                        //TODO: this + after map is odd... need to fix it
-                        uint8_t dmin = map(min, 0, 255, 0, heightPerChannel) + (ch == 0 ? 0 : heightPerChannel);
-                        uint8_t dmax = map(max, 0, 255, 0, heightPerChannel) + (ch == 0 ? 0 : heightPerChannel);
-                        // if(dmax > TRACK_HEIGHT) dmax = TRACK_HEIGHT;
-                        for(int y=dmin; y<dmax; ++y) {
-                            lv_color_t & color = (y == dmin) ? _peakColor : ( (y == dmax) ? _peakColor : _fillColor );
-                            lv_canvas_set_px(_canvas, x, y, color, LV_OPA_COVER);
-                        }
-                    }
-                    
-                    // midpoint += heightPerChannel;
-                }
-            }
-        }*/
     } else if(_clipItem->item()->_file->isMidi()) {
         //draw midi file
+        const slr::MidiFile * const mfile = static_cast<const slr::MidiFile *const>(_clipItem->item()->_file);
+        UIHelpers::midiFileToCanvas(
+            mfile, 
+            _clipItem->fileOffset(), 
+            _clipItem->length(),
+            _canvas,
+            Layout::TRACK_HEIGHT,
+            _canvasWidth,
+            _peakColor,
+            _fillColor
+        );
     }
 }
 
@@ -174,6 +141,7 @@ void FileView::pollUIUpdate() {
 
     float xposition = UIUtility::frameToPixel(fview->startPosition(), _uictx->gridHorizontalZoom());
     setPos(xposition, _parentUI->gridUI()->getY());
+    //as well length
 }
 
 bool FileView::handleTap(GestLib::TapGesture &tap) {

@@ -36,7 +36,7 @@ void ModifySequenceEventAction::exec(ControlContext &ctx) {
     	case(1): {
             Sequence * editable = ctx.project->stepSequencer()->findSequenceById(_action.sequenceId);
             if(!editable) {
-                LOG_ERROR("Failed to find sequence %lu", _action.sequenceId);
+                LOG_ERROR("Failed to find sequence %u", _action.sequenceId);
                 abortAction();
                 return;
             }

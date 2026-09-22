@@ -36,7 +36,7 @@ void ModifySequenceLayerAction::exec(ControlContext &ctx) {
     	case(1): {
             Sequence * editable = ctx.project->stepSequencer()->findSequenceById(_action.sequenceId);
             if(!editable) {
-                LOG_ERROR("Failed to find sequence %lu", _action.sequenceId);
+                LOG_ERROR("Failed to find sequence %u", _action.sequenceId);
                 abortAction();
                 return;
             }
@@ -85,7 +85,7 @@ void ModifySequenceLayerAction::exec(ControlContext &ctx) {
             if(_action.targetId) {
                 target = ctx.project->getUnitById(_action.targetId.value());
                 if(!target) {
-                    LOG_ERROR("Failed to find unit with id %lu", _action.targetId.value());
+                    LOG_ERROR("Failed to find unit with id %u", _action.targetId.value());
                     abortAction();
                     return;
                 }

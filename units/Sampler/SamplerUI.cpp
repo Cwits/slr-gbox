@@ -8,7 +8,7 @@
 #include "display/utility/UIContext.h"
 #include "display/utility/DragContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/AudioFileToCanvas.h"
+#include "display/utility/FileToCanvas.h"
 
 #include "snapshots/AudioUnitView.h"
 

@@ -12,9 +12,10 @@
 #include <unordered_map>
 
 namespace slr {
+class Timeline;
 
 struct ClipItem {
-    ClipItem(const File * const file, frame_t startPos, long forcedId = -1);
+    ClipItem(const Timeline *tl, const File * const file, frame_t startPos, long forcedId = -1);
     ~ClipItem();
 
     frame_t startPosition() const { return _startPosition; }
@@ -25,6 +26,29 @@ struct ClipItem {
     ID id() const { return _uniqueId; }
 
     const File * const _file;
+
+    void recalculate(const double &coef) {
+        /*recalculate 
+            for midi items - start and length 
+            for audio... start (and length when there will be playback rate introduced)
+            meaning that all the files must be recalculated already?
+        */
+
+        /*
+            в общем просто так не получится, тогда надо как то сопостовлять?
+            то есть 
+            new position = old position * (new frames per quater note / old frames per quater note);
+
+
+        */
+
+       if(_file->isMidi()) {
+            _startPosition = _startPosition * coef;
+            _length = _length * coef;
+       } else {
+            _startPosition = _startPosition * coef;
+       }
+    }
     
     void update(frame_t startPosition, frame_t length, frame_t fileOffset, bool muted) {
         _startPosition = startPosition;
@@ -43,39 +67,19 @@ struct ClipItem {
 
 struct ClipStorage {
     ~ClipStorage();
-    ClipItem * newClip(const File *const file, frame_t startPosition, long forcedId = -1);
+    ClipItem * newClip(const Timeline *tl, const File *const file, frame_t startPosition, long forcedId = -1);
     // ClipItem * duplicateFrom(const ClipItem *item);
 
     ClipItem * findClipById(ID id);
     void deleteClipById(ID id);
-    const std::vector<ClipItem*> items();
+    const std::vector<ClipItem*> items() const;
+    std::vector<ClipItem*> items();
 
     ClipItem * makeUniqueFrom(const ClipItem *other);
     
     private:
     std::vector<std::unique_ptr<ClipItem>> _clipList;
 };
-
-
-//for use in Audio Unit
-
-// struct ClipContainerBuffer {
-//     ClipContainerBuffer();
-
-//     ClipContainer * modifiableContainer();
-//     const ClipContainer * inUseContainer();
-//     void clear();
-
-//     void containerSwapped();
-    
-//     private:
-//     bool _inUse;
-
-//     std::unique_ptr<ClipContainer> _container1; //passing this to RTEngine
-//     std::unique_ptr<ClipContainer> _container2; //passing this to RTEngine
-//     DoubleBuffer<std::unique_ptr<ClipContainer>> _containers;
-// };
-
 
 using ContainerBuffer = DoubleBuffer<std::unique_ptr<ClipContainer>>;
 using ClipContainerMap = std::unordered_map<ID, ContainerBuffer>;

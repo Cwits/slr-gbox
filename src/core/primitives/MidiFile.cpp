@@ -5,9 +5,12 @@
 
 #include "common/FileIO.h"
 #include "common/logger.h"
+#include "common/Math.h"
+#include "core/SettingsManager.h"
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 struct __attribute__((packed)) midiHeaderChunk {
     char chunkType[4];
@@ -57,12 +60,12 @@ bool MidiFile::open(std::string &path) {
     }
 
     if(path.empty()) {
-        LOG_ERROR("Path to file is empty");
+        LOG_FAIL("Path to file is empty");
         return false;
     }
 
     if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::Midi, path)) {
-        LOG_ERROR("Extention of %s is not .mid", path.c_str());
+        LOG_FAIL("Extention of %s is not .mid", path.c_str());
         return false;
     }
     
@@ -70,7 +73,7 @@ bool MidiFile::open(std::string &path) {
 
     _handle.open(path.c_str(), std::ios::binary | std::ios::in);
     if(!_handle.is_open()) {
-        LOG_ERROR("Failed to open midi file");
+        LOG_FAIL("Failed to open midi file");
         return false;
     }
 
@@ -86,13 +89,30 @@ bool MidiFile::open(std::string &path) {
         header.chunkType[2] != 'h' && 
         header.chunkType[3] != 'd') 
     {
-        LOG_ERROR("Midi File header wrong magic");
+        LOG_FAIL("Midi File header wrong magic");
+        _handle.close();
+        return false;
+    }
+
+    if(header.ntrks > 1) {
+        LOG_FAIL("Multitrack Midi files unsupported yet");
         _handle.close();
         return false;
     }
 
     _format = static_cast<MidiFileFormat>(header.format);
     _ppqn = header.division;
+    bool adjustPpqn = false;
+    float ppqnAdj = 1.0f;
+
+    if(_ppqn != SettingsManager::getPpqn()) {
+        LOG_WARN("PPQN of %u not matching with system %d in file %s",
+            _ppqn, SettingsManager::getPpqn(), path.c_str());
+        LOG_WARN("Will be rough adjust");
+    
+        adjustPpqn = true;
+        ppqnAdj = SettingsManager::getPpqn() / _ppqn;
+    }
 
     //TODO: should i store raw chunks?
     for(int i=0; i<header.ntrks; ++i) {
@@ -106,12 +126,14 @@ bool MidiFile::open(std::string &path) {
             trkchunk.chunkType[2] != 'r' &&
             trkchunk.chunkType[3] != 'k') 
         {
-            LOG_ERROR("Midi File Track header wrong magic");
+            LOG_FAIL("Midi File Track header wrong magic");
             _handle.close();
             return false;
         }
 
-        uint8_t * rawdata = new uint8_t[trkchunk.length];
+        // std::unique_ptr<uint8_t[]> readed = std::unique_ptr<uint8_t[]>(new uint8_t[trkchunk.length]); 
+        std::unique_ptr<uint8_t[]> readed = std::make_unique<uint8_t[]>(trkchunk.length);
+        uint8_t * rawdata = readed.get();
         _handle.read((char*)rawdata, trkchunk.length);
         
         MidiTrack track;
@@ -139,11 +161,13 @@ bool MidiFile::open(std::string &path) {
                     ev.note = rawdata[bytesReaded++];
                     ev.velocity = 0;
                 } else {
-                    LOG_ERROR("Wrong length");
+                    LOG_FAIL("Wrong length");
                     break;
                 }
 
-                ev.offset = position+trackGlobalPosition;
+                if(!adjustPpqn) ev.offset = position+trackGlobalPosition;
+                else ev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
+
                 track.midiEvents.push_back(ev);
             } else if(evType >= MidiEventType::SysEx && evType <= MidiEventType::SystemReset) {
                 //sysex or meta
@@ -156,7 +180,9 @@ bool MidiFile::open(std::string &path) {
                         byte = rawdata[bytesReaded++];
                     }
 
-                    sev.offset = position+trackGlobalPosition;
+                    if(!adjustPpqn) sev.offset = position+trackGlobalPosition;
+                    else sev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
+
                     track.sysexEvents.push_back(std::move(sev));
                 } else if(byte == 0xFF) {
                     //meta
@@ -168,12 +194,14 @@ bool MidiFile::open(std::string &path) {
                         mev.data.push_back(rawdata[bytesReaded++]);
                     }
 
-                    mev.offset = position+trackGlobalPosition;
+                    if(!adjustPpqn) mev.offset = position+trackGlobalPosition;
+                    else mev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
+                    
                     track.metaEvents.push_back(std::move(mev));
                 }
             } else {
                 //invalid
-                LOG_ERROR("Invalid byte in midi file");
+                LOG_FAIL("Invalid byte in midi file");
                 break;
             }
 
@@ -181,16 +209,15 @@ bool MidiFile::open(std::string &path) {
         }
         
         if(bytesReaded > trkchunk.length) {
-            LOG_ERROR("Readed more than needed! readed %d, length %d", bytesReaded, trkchunk.length);
+            LOG_FAIL("Readed more than needed! readed %d, length %u", bytesReaded, trkchunk.length);
         }
 
-        delete [] rawdata;
+        // track.length = (trackGlobalPosition / _ppqn) * 22050;
         _tracks.push_back(std::move(track));
-        // ntrks.push_back(trkchunk);
     }
 
     if(_tracks.size() != header.ntrks) { 
-        LOG_ERROR("tracks size uneven, failed to parse midi file");
+        LOG_FAIL("tracks count uneven, failed to parse midi file, readed: %lu, expected: %u", _tracks.size(), header.ntrks);
         _handle.close();
         return false;
     }
@@ -215,7 +242,7 @@ void MidiFile::finishAfterRecord() {
 }
 
 frame_t MidiFile::frames() const {
-    return 0;
+    return _tracks[0].midiEvents.at(_tracks[0].midiEvents.size()-1).offset;
 }
 
 bool MidiFile::openInternal(std::string &path, bool tmp) {

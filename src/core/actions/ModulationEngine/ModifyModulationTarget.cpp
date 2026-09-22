@@ -52,7 +52,7 @@ void ModifyModulationTargetAction::exec(ControlContext &ctx) {
                     //add target
                     if(!arr.canAddTarget()) {
                         abortAction();
-                        LOG_WARN("No more targets can be added to mod %lu", _action.modulationID);
+                        LOG_WARN("No more targets can be added to mod %u", _action.modulationID);
                         return;
                     }
                     arr.addTarget(_action.type, _action.targetID, _action.parameterID);
@@ -71,7 +71,7 @@ void ModifyModulationTargetAction::exec(ControlContext &ctx) {
 
                             if(!u->hasParameterWithId(_action.parameterID)) {
                                 abortAction();
-                                LOG_ERROR("Unit %lu don't have parameter %lu", _action.targetID, _action.parameterID);
+                                LOG_FAIL("Unit %u don't have parameter %u", _action.targetID, _action.parameterID);
                                 return;
                             }
 
@@ -103,7 +103,7 @@ void ModifyModulationTargetAction::exec(ControlContext &ctx) {
 
                             if(!u->hasParameterWithId(_action.parameterID)) {
                                 abortAction();
-                                LOG_ERROR("Unit %lu don't have parameter %lu", _action.targetID, _action.parameterID);
+                                LOG_ERROR("Unit %u don't have parameter %u", _action.targetID, _action.parameterID);
                                 return;
                             }
 

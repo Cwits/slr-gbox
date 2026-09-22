@@ -15,12 +15,14 @@ Control Engine:
 [ ] - make a loopback latency test function that will be called from settings.
         (call a function -> warning("make a loopback from output to input" OK/Cancle) -> test completing -> 
         popup with result -> "Result measured X samples latency" Apply/Cancle)
-        
+[ ] - some tasks require separation from each other.
+        some of tasks can pause and wait till user action(e.g. when opening multitrack midi file than might ask user what to do with that)
+        while other tasks such as recorded data dumping to file can't wait till other tasks stuck, so(at least) file worker need some additional threading?
+
 Parameters: 
 [\] - lil bit of rework. use std::vector instead of array, (use bool, int instead of using float everywhere... eeee...hz), (check in google drive)
         as soon as all the parameters are prepared in NRT and doesn't change dynamically - should be no problems
         Now list is a vector, not array
-
 
 AudioUnit:
 [ ] - make ::outputs() to give back not the AudioBuffer * but list of 

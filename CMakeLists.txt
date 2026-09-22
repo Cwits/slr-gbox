@@ -240,7 +240,7 @@ file(GLOB SOURCES
   src/display/primitives/UnitUIBase.cpp
   src/display/primitives/View.cpp
 
-  src/display/utility/AudioFileToCanvas.cpp
+  src/display/utility/FileToCanvas.cpp
   src/display/utility/defaultColors.cpp
   src/display/utility/defaultStyles.cpp
   src/display/utility/DragContext.cpp

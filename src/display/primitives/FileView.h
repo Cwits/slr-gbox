@@ -41,7 +41,9 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     private:
     UIContext * const _uictx;
     UnitUIBase * _parentUI;
-    uint8_t * _drawBuffer;
+    
+    std::unique_ptr<uint8_t[]> _drawBuffer;
+    
     const slr::ID _uniqueId;
 
     int _originalX;

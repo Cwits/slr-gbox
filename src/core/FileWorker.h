@@ -38,7 +38,8 @@ class FileWorker {
 
     void appendFile(std::unique_ptr<File> file, bool asTemporary = false);
     std::unique_ptr<File> removeFile(File * file, bool asTemporary = false);
-    const std::vector<File*> listFiles(FileType type, bool temporary = false);
+    const std::vector<File*> listFiles(FileType type, bool temporary = false) const;
+    std::vector<File*> listFiles(FileType type, bool temporary = false);
 
     private:
     static void run(FileWorker * f, std::atomic<bool> &shutdown);

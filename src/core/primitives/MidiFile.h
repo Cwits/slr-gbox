@@ -9,13 +9,26 @@
 
 namespace slr {
 
+class Timeline; 
 enum class MidiFileFormat {
     SingleTrack,
     MultipleTrack,
     MultipleSong
 };
 
-// class MidiFileView;
+/*
+    need to make several, ugh..., views? 
+    one - raw, as it is in file(basically it is now)
+    one for real time thread, where events will be prepared for be processed( sorted and offsets+length calculated in samples, not in ppqn)
+    one for gui - where there is notes, CC and etc.
+
+    for now merge everything to the single midi track?
+    what should be in RT? -> everything except Sysex?
+    or midiEvents + some of meta events?...
+
+
+*/
+
 struct MidiFile : public File {
     struct MidiTrack {
         //from https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
@@ -23,6 +36,7 @@ struct MidiFile : public File {
         std::vector<MidiEvent> midiEvents;
         std::vector<MetaEvent> metaEvents;
         std::vector<SysexEvent> sysexEvents; 
+        // frame_t length;
     };
 
     MidiFile(long forcedId = -1);
@@ -38,15 +52,15 @@ struct MidiFile : public File {
     
     frame_t frames() const override; 
 
-    const bool temporary() const { return _temporary; }
-    const bool finalize() const { return _finalize; }
-    const bool opened() const { return _opened; }
+    bool temporary() const { return _temporary; }
+    bool finalize() const { return _finalize; }
+    bool opened() const { return _opened; }
 
     void finalizeFile() { _finalize = true; }
 
-    const MidiFileFormat format() const { return _format; }
-    const uint32_t ppqn() const { return _ppqn; }
-    const std::size_t trackCount() const { return _tracks.size(); }
+    MidiFileFormat format() const { return _format; }
+    uint32_t ppqn() const { return _ppqn; }
+    std::size_t trackCount() const { return _tracks.size(); }
 
     const MidiTrack & track(std::size_t id) const { return _tracks.at(id); }
 

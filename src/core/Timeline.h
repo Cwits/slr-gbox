@@ -40,7 +40,7 @@ class Timeline {
     
     const int sampleRate() const { return _sampleRate; }
     const int blockSize() const { return _blockSize; }
-    const uint32_t framesPerQuater() const { return _framesPerQuater; }
+    const uint32_t framesPerQuater() const { return calcFramesPerQuater(); }
 
     [[deprecated]] //use stepToFrames in future
     const uint32_t framesPerBeat() const { return calcFramesPerBeat(); }
@@ -78,8 +78,8 @@ class Timeline {
 
     Project & _prj;
 
-    uint32_t _framesPerQuater;
-    void calcFramesPerQuater();
+    // uint32_t _framesPerQuater;
+    uint32_t calcFramesPerQuater() const;
     uint32_t calcFramesPerBeat() const;
     uint32_t calcFramesPerBar() const;
 

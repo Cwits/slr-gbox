@@ -69,7 +69,7 @@ void ModifyClipItemAction::exec(ControlContext &ctx) {
         case(2): {
             ClipItemView *item = ctx.projectView->findClipViewById(_action.clipId);
             if(!item) {
-                LOG_ERROR("Failed to find ClipItemView with id %lu", _action.clipId);
+                LOG_ERROR("Failed to find ClipItemView with id %u", _action.clipId);
                 abortAction();
                 return;
             }

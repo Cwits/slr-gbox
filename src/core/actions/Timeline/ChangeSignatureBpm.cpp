@@ -4,9 +4,12 @@
 #include "core/actions/ActionBase.h"
 
 #include "core/primitives/AudioUnit.h"
+#include "core/primitives/AudioFile.h"
+#include "core/primitives/MidiFile.h"
 #include "core/utility/ControlContext.h"
 #include "core/Project.h"
 #include "core/Timeline.h"
+#include "core/FileWorker.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/TimelineView.h"
@@ -43,6 +46,23 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
                 _flat.bpm = _oldValues.bpm;
                 _flat.sig = _oldValues.sig;
             }
+
+            std::vector<File*> tmp = ctx.fileWorker->listFiles(FileType::Audio);
+            std::vector<AudioFile*> tmp2;
+            tmp2.reserve(tmp.size());
+            for(auto *f : tmp) tmp2.push_back(static_cast<AudioFile*>(f));
+            
+            _flat.audiofiles = tmp2;
+
+            tmp.clear();
+            tmp = ctx.fileWorker->listFiles(FileType::Midi);
+            std::vector<MidiFile*> tmp3;
+            tmp3.reserve(tmp.size());
+            for(auto *f : tmp) tmp3.push_back(static_cast<MidiFile*>(f));
+
+            _flat.midifiles = tmp3;
+
+            _flat.clips = ctx.project->clipStorage().items();
             _flat.completed.store(false);
 
             _task = makeRtTask(&_flat);
@@ -51,11 +71,9 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
         } break;
         case(2): {
             if(_direction == ActionDirection::Forward) {
-                ctx.projectView->timeline().setBpm(_action.bpm);
-                ctx.projectView->timeline().setBarSize(_action.sig);
+                ctx.projectView->timeline().update();
             } else {
-                ctx.projectView->timeline().setBpm(_oldValues.bpm);
-                ctx.projectView->timeline().setBarSize(_oldValues.sig);
+                ctx.projectView->timeline().update();
             }
             UIControls::updateTimeline(true);
 
@@ -81,8 +99,24 @@ void ChangeSignatureBpmAction::checkWaitingCondition(ControlContext &ctx) {
 }
 
 void ChangeSignatureBpmAction::ChangeSigBpm::execRT() {
+    double ofpqn = tl->framesPerQuater();
     tl->setBpm(bpm);
     tl->setBarSize(sig);
+    double nfpqn = tl->framesPerQuater();
+    double coef = nfpqn / ofpqn;
+
+    //need to recalculate all clip item positions?
+    /// yes...
+    // double coef = oldBpm / bpm;
+
+    // for(auto *f : audiofiles) f->recalculate(ofpqn, nfpqn);
+    // for(auto *f : midifiles) f->recalculate(ofpqn, nfpqn);
+
+    for(auto *c : clips) 
+        c->recalculate(coef);
+
+    //as well need to recalculate all midi items, for audio items it would be only playback rate change
+    
     completed.store(true, std::memory_order_release);
 }
 

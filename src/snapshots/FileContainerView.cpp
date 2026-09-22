@@ -66,7 +66,7 @@ void ClipContainerView::deleteClipViewItem(ID id) {
     if(init > _items.size())
         incrementVersion();
     else 
-        LOG_ERROR("Failed to delete Clip View Item with id %lu", id);
+        LOG_ERROR("Failed to delete Clip View Item with id %u", id);
 }
 
 ClipViewStorage::~ClipViewStorage() { }

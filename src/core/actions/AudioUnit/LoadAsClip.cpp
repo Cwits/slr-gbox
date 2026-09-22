@@ -35,6 +35,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
 
     switch(_step) {
         case(1): {
+            //prohibiting allocation must be done once and only here, counting total amount of data to be loaded
             if(std::holds_alternative<std::string>(_action.data)) {
                 auto task = std::make_unique<Tasks::OpenFile>();
                 task->path = std::get<std::string>(_action.data);
@@ -78,12 +79,14 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
 
             if(_action.clipForcedId)
                 _clip = ctx.project->clipStorage().newClip(
+                    &ctx.project->timeline(),
                     _file, 
                     _action.startOffset, 
                     _action.clipForcedId.value()
                 );
             else 
                 _clip = ctx.project->clipStorage().newClip(
+                    &ctx.project->timeline(),
                     _file, 
                     _action.startOffset
                 );

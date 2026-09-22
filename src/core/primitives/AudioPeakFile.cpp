@@ -101,6 +101,7 @@ bool AudioPeakFile::open(std::string &path) {
             int idx = i-1;
 
             _handle.read((char*)&chunk, sizeof(AudioPeakChunk));
+            std::size_t g = _handle.gcount();
             if(chunk.magic[0] != 'd' ||
                 chunk.magic[1] != 'a' ||
                 chunk.magic[2] != 't' ||
@@ -122,7 +123,7 @@ bool AudioPeakFile::open(std::string &path) {
             if(chunk.chunkSize == 0) continue;
 
             if(_header.channels == 1) {
-                _handle.read((char*)buffer->rawAccesor()[0], chunk.chunkSize);
+                _handle.read((char*)buffer->rawAccesor()[0], chunk.chunkSize*sizeof(PeakDataBase));
             } else {
                 frame_t total = chunk.chunkSize*_header.channels;
                 auto uninterleaved = std::make_unique<PeakDataBase[]>(total);
@@ -131,6 +132,7 @@ bool AudioPeakFile::open(std::string &path) {
 
                 unpackMulti(uninterleaved.get(), buffer->rawAccesor(), _header.channels, chunk.chunkSize);
             }
+            std::size_t g2 = _handle.gcount();
         }
     }
 

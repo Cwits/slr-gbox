@@ -315,10 +315,10 @@ void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
     std::size_t size = _fileUIs.size();
     for(std::size_t i=0; i<size; ++i) {
         std::unique_ptr<FileView>& item = _fileUIs.at(i);
-        int cx = item->getY();
+        int cx = item->getX();
         int cy = item->getY();
         int newx = -std::round((pixMoved+startBar)*pixPerBar);
-        item->setPos(newx, cy);
+        item->setPos(newx+cx, cy);
     }
 }
 

@@ -65,6 +65,8 @@ void UIContext::registerFrequentUpdate(std::function<void()> clb) {
     _mainWindow->registerFrequentUpdate(std::move(clb));
 }
 
+void UIContext::filesRecalculated() { _recalculateGridFilePositions = false; }
+
 BaseWidget * UIContext::topPanel() { return _topPanel; }
 BaseWidget * UIContext::bottomPanel() { return _bottomPanel; }
 BaseWidget * UIContext::grid() { return _gridView; }

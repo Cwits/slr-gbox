@@ -5,6 +5,7 @@
 
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
+#include "core/primitives/MidiFile.h"
 #include "core/utility/FileWorkerContext.h"
 #include "core/FileWorker.h"
 
@@ -27,11 +28,6 @@ void OpenFile::exec(FileWorkerContext &ctx) {
             finished(nullptr, false);
             return;
         }
-        if(!Common::FileIO::pathHasExtention(Common::FileIO::Extention::Audio, path)) {
-            LOG_FAIL("Unsupported file extention for %s", path.c_str());
-            finished(nullptr, false);
-            return;
-        }
 
         std::unique_ptr<AudioFile> ufile;
         if(forcedId) ufile = std::make_unique<AudioFile>(forcedId.value());
@@ -49,25 +45,25 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         if(viewForcedId) apkfile = std::make_unique<AudioPeakFile>(viewForcedId.value());
         else apkfile = std::make_unique<AudioPeakFile>();
         
-        std::string path = afile->path();
-        if(!Common::FileIO::changeExtentionTo(path, ".slrpk")) {
+        std::string subpath = afile->path();
+        if(!Common::FileIO::changeExtentionTo(subpath, ".slrpk")) {
             //something went off
             LOG_FAIL("Unable to change extention of %s to %s",
-                afile->path().c_str(), ".slrpk");
+                subpath.c_str(), ".slrpk");
             finished(nullptr, false);
             return;
         }
 
-        if(!Common::FileIO::pathOrFileExists(path)) {
+        if(!Common::FileIO::pathOrFileExists(subpath)) {
             //such file don't exists, let's build
-            if(!AudioPeakFile::createAndBuild(path, afile)) {
+            if(!AudioPeakFile::createAndBuild(subpath, afile)) {
                 LOG_FAIL("Building peaks for %s went wrong", afile->path().c_str());
                 finished(nullptr, false);
                 return;
             }
         }
 
-        if(!apkfile->open(path)) {
+        if(!apkfile->open(subpath)) {
             LOG_FAIL("Failed to open peak file for %s", afile->path().c_str());
             finished(nullptr, false);
             return;
@@ -80,8 +76,28 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         ctx.worker->appendFile(std::move(apkfile), false);
         finished(afile, true);
     } else if(Common::FileIO::pathHasExtention(Common::FileIO::Extention::Midi, path)) {
-        LOG_ERROR("Loading MIDI files not supported yet");
-        finished(nullptr, false);
+        if(!Common::FileIO::pathOrFileExists(path)) {
+            LOG_FAIL("Path or file %s don't exists", path.c_str());
+            finished(nullptr, false);
+            return;
+        }
+
+        std::unique_ptr<MidiFile> ufile;
+        if(forcedId) ufile = std::make_unique<MidiFile>(forcedId.value());
+        else ufile = std::make_unique<MidiFile>();
+
+        MidiFile *mfile = ufile.get();
+
+        if(!mfile->open(path)) {
+            LOG_FAIL("Unable to open midi file %s", path.c_str());
+            finished(nullptr, false);
+            return;
+        }
+
+        //some kind of midi peak file?
+
+        ctx.worker->appendFile(std::move(ufile), false);
+        finished(mfile, true);
     }
 }
 

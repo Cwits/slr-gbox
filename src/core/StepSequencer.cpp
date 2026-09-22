@@ -55,7 +55,7 @@ std::unique_ptr<Sequence> StepSequencerEngine::deleteById(ID id) {
     );
 
     if(it == _sequences.end()) {
-        LOG_ERROR("Failed to find sequence with id %lu", id);
+        LOG_ERROR("Failed to find sequence with id %u", id);
         return std::unique_ptr<Sequence>();
     }
 
@@ -75,7 +75,7 @@ const Sequence* StepSequencerEngine::findSequenceById(ID id) const {
     );
 
     if(it == _sequences.end()) {
-        LOG_ERROR("Failed to find sequence with id %lu", id);
+        LOG_ERROR("Failed to find sequence with id %u", id);
         return nullptr;
     }
 
@@ -92,7 +92,7 @@ Sequence * StepSequencerEngine::findSequenceById(ID id) {
     );
 
     if(it == _sequences.end()) {
-        LOG_ERROR("Failed to find sequence with id %lu", id);
+        LOG_ERROR("Failed to find sequence with id %u", id);
         return nullptr;
     }
 

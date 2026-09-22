@@ -119,7 +119,25 @@ std::unique_ptr<File> FileWorker::removeFile(File * file, bool asTemporary) {
     return ret;
 }
 
-const std::vector<File*> FileWorker::listFiles(FileType type, bool temporary) {
+const std::vector<File*> FileWorker::listFiles(FileType type, bool temporary) const {
+    const std::vector<std::unique_ptr<File>> &list = (!temporary) ? _fileList : _tmpFileList;
+    std::vector<File*> ret;
+    ret.reserve(list.size());
+
+    if(type == FileType::All) {
+        for(auto &f : list) ret.push_back(f.get());
+    } else {
+        for(auto &f : list) {
+            if(f->type() != type) continue;
+            
+            ret.push_back(f.get());
+        }
+    }
+
+    return ret;
+}
+
+std::vector<File*> FileWorker::listFiles(FileType type, bool temporary) {
     std::vector<std::unique_ptr<File>> &list = (!temporary) ? _fileList : _tmpFileList;
     std::vector<File*> ret;
     ret.reserve(list.size());

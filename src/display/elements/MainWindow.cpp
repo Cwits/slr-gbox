@@ -424,6 +424,8 @@ void MainWindow::updateTimeline(const bool timeSigOrBpm) {
         // LOG_WARN("Recalculate timeline grid");
         //recalculate grid
         _gridView->_timeline->update();
+        //need to recalculate file views as well
+        _uiContext._recalculateGridFilePositions = true;
     }
     
     _gridView->_timeline->updateLoopMarkers();

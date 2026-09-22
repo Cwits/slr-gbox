@@ -9,12 +9,16 @@
 
 #include <memory>
 #include <atomic>
+#include <vector>
 
 namespace slr {
 
 struct ActionBase;
 struct AudioUnit;
 struct Timeline;
+struct ClipItem;
+struct AudioFile;
+struct MidiFile;
 
 struct ChangeSignatureBpmAction : public ActionExecutable, public Undoable {
     ChangeSignatureBpmAction(const ActionBase *base);
@@ -34,6 +38,9 @@ struct ChangeSignatureBpmAction : public ActionExecutable, public Undoable {
         Timeline * tl;
         float bpm;
         BarSize sig;
+        std::vector<AudioFile*> audiofiles;
+        std::vector<MidiFile*> midifiles;
+        std::vector<ClipItem*> clips;
         std::atomic<bool> completed;
     };
 

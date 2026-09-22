@@ -5,6 +5,7 @@
 #include "common/defines.h"
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/File.h"
+#include "core/Timeline.h"
 #include "common/logger.h"
 
 #include <vector>
@@ -16,7 +17,7 @@ namespace slr {
 
 static ID _clipItemUniqueId = 0;
 
-ClipItem::ClipItem(const File * const file, frame_t startPos, long forcedId) : 
+ClipItem::ClipItem(const Timeline *tl, const File * const file, frame_t startPos, long forcedId) : 
     _startPosition(startPos), 
     _length(file->frames()), 
     _fileOffset(0), 
@@ -28,53 +29,24 @@ ClipItem::ClipItem(const File * const file, frame_t startPos, long forcedId) :
     if(testres == _clipItemUniqueId) _clipItemUniqueId = testres+1;
     else _clipItemUniqueId = testres;
 
-
+    if(file->isMidi()) {
+        _length = (file->frames() / tl->ppqn()) * tl->framesPerQuater();
+    }
 }
 
 ClipItem::~ClipItem() {}
 
-// ClipContainerBuffer::ClipContainerBuffer() {
-//     _container1 = std::make_unique<ClipContainer>();
-//     _container2 = std::make_unique<ClipContainer>();
-//     _container1->reserve(2);
-//     _container2->reserve(2);
-
-//     // std::unique_ptr<ClipContainer> b1 = std::make_unique<ClipContainer>();
-//     // std::unique_ptr<ClipContainer> b2 = std::make_unique<ClipContainer>();
-//     // b1->reserve(2); b2->reserve(2);
-//     // _containers.init(std::move(b1), std::move(b2));
-
-//     _inUse = false;
-// }
-
-// ClipContainer * ClipContainerBuffer::modifiableContainer() {
-//     if(!_inUse) return _container1.get();
-//     else return _container2.get();
-// }
-
-// const ClipContainer * ClipContainerBuffer::inUseContainer() {
-//     if(!_inUse) return _container2.get();
-//     else return _container1.get();
-// }
-
-// void ClipContainerBuffer::clear() {
-//     LOG_WARN("Not implemented");
-// }
-
-// void ClipContainerBuffer::containerSwapped() {
-//     _inUse = !_inUse;
-// }
 
 ClipStorage::~ClipStorage() {
 
 }
 
-ClipItem * ClipStorage::newClip(const File * const file, frame_t startPosition, long forcedId) {
+ClipItem * ClipStorage::newClip(const Timeline *tl, const File * const file, frame_t startPosition, long forcedId) {
     ClipItem * clip = nullptr;
     std::unique_ptr<ClipItem> itemUniq;
 
-    if(forcedId >= 0) itemUniq = std::make_unique<ClipItem>(file, startPosition, forcedId); 
-    else itemUniq = std::make_unique<ClipItem>(file, startPosition);
+    if(forcedId >= 0) itemUniq = std::make_unique<ClipItem>(tl, file, startPosition, forcedId); 
+    else itemUniq = std::make_unique<ClipItem>(tl, file, startPosition);
     
     clip = itemUniq.get();
 
@@ -102,7 +74,7 @@ void ClipStorage::deleteClipById(ID id) {
     LOG_WARN("Not implemented");
 }
     
-const std::vector<ClipItem*> ClipStorage::items() {
+const std::vector<ClipItem*> ClipStorage::items() const {
     std::vector<ClipItem*> ret;
     ret.reserve(_clipList.size());
 
@@ -110,6 +82,13 @@ const std::vector<ClipItem*> ClipStorage::items() {
         ret.push_back(c.get());
     }
 
+    return ret;
+}
+
+std::vector<ClipItem*> ClipStorage::items() {
+    std::vector<ClipItem*> ret;
+    ret.reserve(_clipList.size());
+    for(auto &c : _clipList) ret.push_back(c.get());
     return ret;
 }
 

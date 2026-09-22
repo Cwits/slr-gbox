@@ -1,12 +1,14 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "display/utility/AudioFileToCanvas.h"
+#include "display/utility/FileToCanvas.h"
 
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/AudioPeaks.h"
+#include "core/primitives/MidiFile.h"
+#include "core/SettingsManager.h"
 
-#include "lvgl.h"
+#include "snapshots/TimelineView.h"
 
 namespace UIHelpers {
 
@@ -66,6 +68,26 @@ bool audioFileToCanvas(
             // midpoint += heightPerChannel;
         }
     }
+
+    return true;
+}
+
+
+bool midiFileToCanvas( 
+    const slr::MidiFile * const file,
+    slr::frame_t fileStart,
+    slr::frame_t length,
+    lv_obj_t * canvas,
+    int canvasHeight,
+    int canvasWidth,
+    lv_color_t peakColor,
+    lv_color_t fillColor) 
+{
+    // slr::TimelineView & tlsnap = slr::TimelineView::getTimelineView();
+    //convert from ppqn to frames?
+    // length = (length / slr::SettingsManager::getPpqn()) * tlsnap.framesPerQuater();
+
+
 
     return true;
 }

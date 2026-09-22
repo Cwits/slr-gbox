@@ -770,7 +770,7 @@ void TargetSelectPopup::update() {
 
         slr::AudioUnitView *v = slr::ProjectView::getProjectView().getUnitById(targets[i]);
         if(!v) {
-            LOG_ERROR("Failed to find unit %lu", targets[i]);
+            LOG_ERROR("Failed to find unit %u", targets[i]);
             continue;
         }
 
