@@ -1,0 +1,29 @@
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#pragma once
+
+#include "display2/primitives/BaseWidget.h"
+
+#include <functional>
+
+namespace Display {
+
+struct Label : public BaseWidget {
+    Label(BaseWidget * parent, std::string text = "");
+    ~Label();
+
+    void setText(std::string text);
+    std::string text() const;
+    void setTextColor(const lv_color_t color);
+
+    void setFont(const lv_font_t * font);
+    void setTextPos(int x, int y);
+
+    lv_obj_t * label() { return _label; }
+
+    private:
+    lv_obj_t * _label;
+};
+
+}

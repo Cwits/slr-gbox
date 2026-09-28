@@ -114,7 +114,7 @@ void ModEngineTargetManager::update() {
         LABEL(t._lblParameter, x+350, y+20, 300, 40, text);
         LABEL(t._lblAmmount, x+700, y+20, 200, 40, "100%");
         BUTTON(t._btnDeleteTarget, x+920, y, Layout::Button, Layout::Button, LV_SYMBOL_TRASH);
-        t._btnDeleteTarget->setCallback([name = t._lblName.get(), par = t._lblParameter.get(), this]() {
+        t._btnDeleteTarget->tapCallback([name = t._lblName.get(), par = t._lblParameter.get(), this](const GestLib::TapGesture &tap) -> bool {
             slr::ID targetID = 0;
             slr::ID parID = 0;
             slr::ModulationTargetType type = slr::ModulationTargetType::ERROR;
@@ -130,7 +130,7 @@ void ModEngineTargetManager::update() {
                 type = slr::ModulationTargetType::unit;
                 //unit
                 slr::AudioUnitView *v = slr::ProjectView::getProjectView().findUnitByName(tmpname);
-                if(!v) { LOG_WARN("Unit %s not found"); return; }
+                if(!v) { LOG_WARN("Unit %s not found"); return false; }
 
                 targetID = v->id();
 
@@ -146,7 +146,7 @@ void ModEngineTargetManager::update() {
 
             if(type == slr::ModulationTargetType::ERROR || targetID == 0) {
                 LOG_ERROR("Something went wrong");
-                return;
+                return false;
             }
 
             auto act = std::make_unique<slr::Actions::ModifyModulationTarget>();
@@ -156,7 +156,7 @@ void ModEngineTargetManager::update() {
             act->targetID = targetID;
             act->parameterID = parID;
             slr::EmitAction(std::move(act));
-
+            return true;
         }); //end of Delete Target Button Callback
 
         _targets.push_back(std::move(t));
@@ -193,7 +193,7 @@ void ModEngineTargetManager::update() {
     });
 
     _ddParameterSelector->setSelected("Select target");
-    _btnAddTarget->setCallback([this]() {
+    _btnAddTarget->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         slr::ModulationTargetType type = slr::ModulationTargetType::ERROR;
         slr::ID targetID = 0;
         slr::ID parID = 0;
@@ -210,7 +210,7 @@ void ModEngineTargetManager::update() {
             type = slr::ModulationTargetType::unit;
 
             slr::AudioUnitView *v = slr::ProjectView::getProjectView().findUnitByName(tmp);
-            if(!v) { LOG_WARN("Unit %s not found"); return; }
+            if(!v) { LOG_WARN("Unit %s not found"); return false; }
 
             targetID = v->id();
 
@@ -226,7 +226,7 @@ void ModEngineTargetManager::update() {
 
         if(type == slr::ModulationTargetType::ERROR || targetID == 0) {
             LOG_ERROR("Something went wrong");
-            return;
+            return false;
         }
 
         auto act = std::make_unique<slr::Actions::ModifyModulationTarget>();
@@ -236,6 +236,7 @@ void ModEngineTargetManager::update() {
         act->targetID = targetID;
         act->parameterID = parID;
         slr::EmitAction(std::move(act));
+        return true;
     });
     
     _ddTargetSelector->setPos(x, y+20);

@@ -27,7 +27,7 @@ struct Slider : public BaseWidget {
     lv_obj_t * _sliderCap;
     std::function<void(const float)> _onChange;
 
-    bool handleDrag(GestLib::DragGesture &drag) override;
+    // bool handleDrag(GestLib::DragGesture &drag) override;
 };
 
 }

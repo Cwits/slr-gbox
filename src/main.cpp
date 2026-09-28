@@ -10,7 +10,7 @@
 
 #include "display/guiThread.h"
 #include "core/ControlEngine.h"
-#include "common/logger.h"
+#include "common/logger.h"  
 
 std::atomic<bool> _shutdown;
 
@@ -20,7 +20,7 @@ void handle_sigint(int i) {
     // shutdown();
     _shutdown = true;
 }
-
+   
 int main(int argc, char *argv[]) {
     srand(time(NULL));
     loguru::init(argc, argv);

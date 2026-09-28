@@ -34,7 +34,7 @@ struct DragViewSelector : public Popup {
     std::unique_ptr<Label> _lblUnit;
 
     static void timerClb(lv_timer_t * timer);
-    bool handleDrag(GestLib::DragGesture & drag) override;
+    bool handleDrag(const GestLib::DragGesture & drag);
 };
 
 }

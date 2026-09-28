@@ -12,7 +12,6 @@
 #include "core/ControlEngine.h"
 
 #include  "core/actions/Actions.h"
-// #include "core/Events.h"
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/TimelineView.h"
@@ -28,11 +27,6 @@
 #include "common/uiutility.h"
 
 #include "common/logger.h"
-
-
-static int map(int x, int in_min, int in_max, int out_min, int out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
 
 namespace UI {
 
@@ -85,6 +79,10 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     _drawBuffer = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE));
     //set buffer
     lv_canvas_set_buffer(_canvas, _drawBuffer.get(), _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
+
+    tapCallback(std::bind(&FileView::handleTap, this, std::placeholders::_1));
+    doubleTapCallback(std::bind(&FileView::handleDoubleTap, this, std::placeholders::_1));
+    holdCallback(std::bind(&FileView::handleHold, this, std::placeholders::_1));
 
     //draw
     draw();
@@ -144,7 +142,7 @@ void FileView::pollUIUpdate() {
     //as well length
 }
 
-bool FileView::handleTap(GestLib::TapGesture &tap) {
+bool FileView::handleTap(const GestLib::TapGesture &tap) {
     // LOG_INFO("Tap from item: id: %d, name: %s, track: %d, name: %s", 
     //             _item->_uniqueId, 
     //             _item->_file->name().c_str(), 
@@ -153,13 +151,13 @@ bool FileView::handleTap(GestLib::TapGesture &tap) {
     return true;
 }
 
-bool FileView::handleDoubleTap(GestLib::DoubleTapGesture & dtap) {
+bool FileView::handleDoubleTap(const GestLib::DoubleTapGesture & dtap) {
     _uictx->_popManager->enableFilePopup(this);
     _uictx->_popManager->setFilePopupPosition(dtap.x, dtap.y);
     return true;
 }
 
-bool FileView::handleHold(GestLib::HoldGesture &hold) {
+bool FileView::handleHold(const GestLib::HoldGesture &hold) {
     //for dragging file across timeline
     int cx = hold.x-Layout::TRACK_CONTROL_PANEL_WIDTH;
     int cy = hold.y-Layout::TOP_PANEL_HEIGHT;
@@ -203,13 +201,14 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     _deleteBtn->setPos(Layout::FILE_POP_DELETE_BTN_X, Layout::FILE_POP_DELETE_BTN_Y);
     _deleteBtn->setSize(Layout::Button, Layout::Button);
     _deleteBtn->setFont(&DEFAULT_FONT);
-    _deleteBtn->setCallback([this]() {
+    _deleteBtn->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Remove item event");
         auto act = std::make_unique<slr::Actions::RemoveClip>();
         act->targetId = this->_item->parentUI()->id();
         act->clipId = this->_item->_clipItem->id();
         slr::EmitAction(std::move(act));
         this->_uictx->_popManager->disableFilePopup();
+        return true;
     });
 }
 

@@ -33,12 +33,13 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _btnPlay->setSize(Layout::Button, Layout::Button);
     _btnPlay->setPos(posx, posy);
     _btnPlay->setFont(&DEFAULT_FONT);
-    _btnPlay->setCallback([this]() { 
+    _btnPlay->tapCallback([this](const GestLib::TapGesture &tap) -> bool { 
         // LOG_INFO("Play");
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
         auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
         act->state = (tl.playing() ? slr::TimelineState::Pause : slr::TimelineState::Play);
         slr::EmitAction(std::move(act));
+        return true;
     });
     
     posx += (Layout::Button + Layout::Margin);
@@ -46,13 +47,15 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _btnStop->setSize(Layout::Button, Layout::Button);
     _btnStop->setPos(posx, posy);
     _btnStop->setFont(&DEFAULT_FONT);
-    _btnStop->setCallback([this]() { 
+    _btnStop->tapCallback([this](const GestLib::TapGesture &tap) -> bool { 
         // LOG_INFO("Stop");
         
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
         auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
         act->state = slr::TimelineState::Stop;
         slr::EmitAction(std::move(act));
+
+        return true;
     });
 
     posx += (Layout::Button + Layout::Margin);
@@ -60,12 +63,13 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _btnRec->setSize(Layout::Button, Layout::Button);
     _btnRec->setPos(posx, posy);
     _btnRec->setFont(&DEFAULT_FONT);
-    _btnRec->setCallback([this]() { 
+    _btnRec->tapCallback([this](const GestLib::TapGesture &tap) -> bool{ 
         // LOG_INFO("Record");
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
         auto act = std::make_unique<slr::Actions::ChangeTimelineState>();
         act->state = (tl.recording() ? slr::TimelineState::StopRecord : slr::TimelineState::StartRecord);
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     posx += (Layout::Button + Layout::Margin);
@@ -73,12 +77,13 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _btnLoop->setSize(Layout::Button, Layout::Button);
     _btnLoop->setPos(posx, posy);
     _btnLoop->setFont(&DEFAULT_FONT);
-    _btnLoop->setCallback([this]() { 
+    _btnLoop->tapCallback([this](const GestLib::TapGesture &tap) -> bool { 
         // LOG_INFO("Toggle loop");
         slr::TimelineView &tl = slr::TimelineView::getTimelineView();
         auto act = std::make_unique<slr::Actions::ToggleLoop>();
         act->newState = (tl.looping() ? false : true);
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
@@ -87,7 +92,7 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _lblBpmText->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
     _lblBpmText->setFont(&DEFAULT_FONT);
     _lblBpmText->setPos(450, 5);
-    _lblBpmText->setTapCallback([this]() {
+    _lblBpmText->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblBpmText->text(),
             [uictx = this->_uictx](const std::string &text) {
@@ -125,6 +130,8 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
                 slr::EmitAction(std::move(act));
             }
         );
+
+        return true;
     });
 
     _lblBarSizeText = std::make_unique<Label>(this);
@@ -132,7 +139,7 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _lblBarSizeText->setFont(&DEFAULT_FONT);
     _lblBarSizeText->setPos(450, 55);
     _lblBarSizeText->setText(UIUtility::signatureToString(tl.getBarSize()));
-    _lblBarSizeText->setTapCallback([this]() {
+    _lblBarSizeText->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblBarSizeText->text(),
             [uictx = this->_uictx](const std::string &text) {
@@ -168,6 +175,8 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
                 slr::EmitAction(std::move(act));
             }
         );
+
+        return true;
     });
 
     //loop
@@ -185,7 +194,7 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _lblLoopStart->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
     _lblLoopStart->setPos(800, 5);
     _lblLoopStart->setFont(&DEFAULT_FONT);
-    _lblLoopStart->setTapCallback([this]() {
+    _lblLoopStart->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblLoopStart->text(),
             [uictx = this->_uictx](const std::string &text) {          
@@ -215,13 +224,14 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
                 slr::EmitAction(std::move(act));
             }
         );
+        return true;
     });
 
     _lblLoopEnd = std::make_unique<Label>(this, std::to_string(tl.loopEndFrame()));
     _lblLoopEnd->setSize(200, lv_font_get_line_height(&DEFAULT_FONT));
     _lblLoopEnd->setPos(800, 55);
     _lblLoopEnd->setFont(&DEFAULT_FONT);
-    _lblLoopEnd->setTapCallback([this]() {
+    _lblLoopEnd->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblLoopEnd->text(),
             [uictx = this->_uictx](const std::string &text) {          
@@ -251,6 +261,7 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
                 slr::EmitAction(std::move(act));
             }
         );
+        return true;
     });
 
     //frames
@@ -268,8 +279,9 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     _btnNewUnit->setPos(Layout::BOTTOM_PANEL_WIDTH-Layout::Button-Layout::Margin, posy);
     _btnNewUnit->setSize(Layout::Button, Layout::Button);
     _btnNewUnit->setFont(&DEFAULT_FONT);
-    _btnNewUnit->setCallback([uictx = _uictx]() {
+    _btnNewUnit->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->_popManager->enableNewUnitPopup();
+        return true;
     });
 
     show();

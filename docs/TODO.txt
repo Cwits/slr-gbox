@@ -143,6 +143,7 @@ other:
 
         
 /* UI: */
+[ ] - hit test not supporting window size change in runtime
 [ ] - make a function that can be called from anywhere. It should halt the system and pop up the window with "message" and await use action
         (e.g. when user trying to edit audio driver settings during playback pop the window "Playback will be stopped" and "Proceed" or "Cancle" buttons
                 on "Proceed" pressed -> halt system, on "Cancle" -> go back as nothing happened

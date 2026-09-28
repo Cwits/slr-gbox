@@ -36,76 +36,72 @@ SettingsPopup::SettingsPopup(BaseWidget * parent, UIContext * const uictx) :
     setColor(lv_color_hex(0x858585));
 
     int posy = 0;
-    _btnGeneral = new Button(this, "General");
+    _btnGeneral = std::make_unique<Button>(this, "General");
     _btnGeneral->setFont(&DEFAULT_FONT);
     _btnGeneral->setPos(0, posy);
     _btnGeneral->setSize(TAB_BUTTON_W, TAB_BUTTON_H);
-    _btnGeneral->setCallback([this]() {
+    _btnGeneral->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->switchTab(Tab::General);
+        return true;
     });
 
     posy += TAB_BUTTON_H;
-    _btnProject = new Button(this, "Project");
+    _btnProject = std::make_unique<Button>(this, "Project");
     _btnProject->setFont(&DEFAULT_FONT);
     _btnProject->setPos(0, posy);
     _btnProject->setSize(TAB_BUTTON_W, TAB_BUTTON_H);
-    _btnProject->setCallback([this]() {
+    _btnProject->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->switchTab(Tab::Project);
+        return true;
     });
 
     posy += TAB_BUTTON_H;
-    _btnAudio = new Button(this, "Audio");
+    _btnAudio = std::make_unique<Button>(this, "Audio");
     _btnAudio->setFont(&DEFAULT_FONT);
     _btnAudio->setPos(0, posy);
     _btnAudio->setSize(TAB_BUTTON_W, TAB_BUTTON_H);
-    _btnAudio->setCallback([this]() {
+    _btnAudio->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->switchTab(Tab::Audio);
+        return true;
     });
 
     posy += TAB_BUTTON_H;
-    _btnMidi = new Button(this, "Midi");
+    _btnMidi = std::make_unique<Button>(this, "Midi");
     _btnMidi->setFont(&DEFAULT_FONT);
     _btnMidi->setPos(0, posy);
     _btnMidi->setSize(TAB_BUTTON_W, TAB_BUTTON_H);
-    _btnMidi->setCallback([this]() {
+    _btnMidi->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->switchTab(Tab::Midi);
+        return true;
     });
 
     posy += TAB_BUTTON_H;
-    _btnUI = new Button(this, "UI");
+    _btnUI = std::make_unique<Button>(this, "UI");
     _btnUI->setFont(&DEFAULT_FONT);
     _btnUI->setPos(0, posy);
     _btnUI->setSize(TAB_BUTTON_W, TAB_BUTTON_H);
-    _btnUI->setCallback([this]() {
+    _btnUI->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->switchTab(Tab::UI);
+        return true;
     });
 
-    _btnSave = new Button(this, LV_SYMBOL_SAVE);
+    _btnSave = std::make_unique<Button>(this, LV_SYMBOL_SAVE);
     _btnSave->setFont(&DEFAULT_FONT);
     _btnSave->setPos(0, Layout::SETTINGS_POP_HEIGHT-TAB_BUTTON_H);
     _btnSave->setSize(TAB_BUTTON_W, TAB_BUTTON_H);
-    _btnSave->setCallback([this]() {
+    _btnSave->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // this->switchTab(Tab::Midi);
+        return true;
     });
 
-    _generalTab = new GeneralTab(this, uictx);
-    _projectTab = new ProjectTab(this, uictx);
-    _audioTab = new AudioTab(this, uictx);
-    _midiTab = new MidiTab(this, uictx);
-    _uiTab = new UITab(this, uictx);
+    _generalTab = std::make_unique<GeneralTab>(this, uictx);
+    _projectTab = std::make_unique<ProjectTab>(this, uictx);
+    _audioTab = std::make_unique<AudioTab>(this, uictx);
+    _midiTab = std::make_unique<MidiTab>(this, uictx);
+    _uiTab = std::make_unique<UITab>(this, uictx);
 }
 
 SettingsPopup::~SettingsPopup() {
-    delete _generalTab;
-    delete _audioTab;
-    delete _midiTab;
-    delete _uiTab;
-
-    delete _btnGeneral;
-    delete _btnProject;
-    delete _btnAudio;
-    delete _btnMidi;
-    delete _btnUI;
 }
 
 void SettingsPopup::update() {
@@ -190,7 +186,7 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
     std::vector<std::string> items;
     items.push_back("Dummy Driver"); items.push_back("Jack Driver");
 
-    _ddAudioDriver = new DropDown(this);
+    _ddAudioDriver = std::make_unique<DropDown>(this);
     _ddAudioDriver->setPos(fieldX, posy+lineHeight);
     _ddAudioDriver->setSize(600, lineHeight);
     _ddAudioDriver->button()->setPos(fieldX, posy);
@@ -214,7 +210,7 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
     items.clear();
     items.push_back("44100");
     selected = std::to_string(slr::SettingsManager::getSampleRate());
-    _ddSamplerate = new DropDown(this);
+    _ddSamplerate = std::make_unique<DropDown>(this);
     _ddSamplerate->setPos(fieldX, posy+lineHeight);
     _ddSamplerate->setSize(600, lineHeight);
     _ddSamplerate->button()->setPos(fieldX, posy);
@@ -239,7 +235,7 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
     items.push_back("64"); items.push_back("128"); items.push_back("256");
     items.push_back("512"); items.push_back("1024");
 
-    _ddBlockSize = new DropDown(this);
+    _ddBlockSize = std::make_unique<DropDown>(this);
     _ddBlockSize->setPos(fieldX, posy+lineHeight);
     _ddBlockSize->setSize(600, lineHeight);
     _ddBlockSize->button()->setPos(fieldX, posy);
@@ -259,11 +255,11 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
     lv_obj_set_pos(_lblLatencyText, textX, posy);
     lv_obj_set_style_text_font(_lblLatencyText, &DEFAULT_FONT, 0);
 
-    _lblLatency = new Label(this, std::to_string(slr::SettingsManager::getManualLatencyCompensation()));
+    _lblLatency = std::make_unique<Label>(this, std::to_string(slr::SettingsManager::getManualLatencyCompensation()));
     _lblLatency->setPos(fieldX, posy);
     _lblLatency->setSize(600, lineHeight);
     _lblLatency->setFont(&DEFAULT_FONT);
-    _lblLatency->setTapCallback([this]() {
+    _lblLatency->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblLatency->text(),
             [this](const std::string &text) {
@@ -282,18 +278,15 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
                 this->_lblLatency->setText(text);
             }
         );
+        return true;
     });
 }
 
 SettingsPopup::AudioTab::~AudioTab() {
     lv_obj_delete(_lblAudioDriverText);
-    delete _ddAudioDriver;
     lv_obj_delete(_lblSamplerateText);
-    delete _ddSamplerate;
     lv_obj_delete(_lblBlockSizeText);
-    delete _ddBlockSize;
     lv_obj_delete(_lblLatencyText);
-    delete _lblLatency;
 }
 
 SettingsPopup::MidiTab::MidiTab(BaseWidget * parent, UIContext * const uictx) :
@@ -304,17 +297,17 @@ SettingsPopup::MidiTab::MidiTab(BaseWidget * parent, UIContext * const uictx) :
     setPos(TAB_BUTTON_W, 0);
     setColor(GRAY_COLOR);
     
-    _btnRefresh = new Button(this, LV_SYMBOL_REFRESH);
+    _btnRefresh = std::make_unique<Button>(this, LV_SYMBOL_REFRESH);
     _btnRefresh->setPos(Layout::Margin, Layout::Margin);
     _btnRefresh->setSize(Layout::Button, Layout::Button);
     _btnRefresh->setFont(&DEFAULT_FONT);
-    _btnRefresh->setCallback([this]() {
+    _btnRefresh->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->refreshDevices();
+        return true;
     });
 }
 
 SettingsPopup::MidiTab::~MidiTab() {
-    delete _btnRefresh;
     clearMidiLabels();
 }
 
@@ -332,42 +325,42 @@ void SettingsPopup::MidiTab::refreshDevices() {
     for(slr::MidiDevice &dev : list) {
         text = dev._name;
         MidiLabels device;
-        Label * devName = new Label(this, dev._name);
+        std::unique_ptr<Label> devName = std::make_unique<Label>(this, dev._name);
         devName->setPos(Layout::Margin, posy);
         devName->setSize(width/2, lineHeight);
         devName->setFont(&DEFAULT_FONT);
-        device._deviceName = devName;
+        device._deviceName = std::move(devName);
 
-        Label * presented = new Label(this, (dev._online ? "presented" : "not presented"));
+        std::unique_ptr<Label> presented = std::make_unique<Label>(this, (dev._online ? "presented" : "not presented"));
         presented->setPos(width/2, posy);
         presented->setSize(width/2, lineHeight);
         presented->setFont(&DEFAULT_FONT);
-        device._presented = presented;
+        device._presented = std::move(presented);
 
         posy += (lineHeight+Layout::Margin);
         for(slr::MidiSubdevice &sub : dev._ports) {
             const int subdevHeight = Layout::CHECKBOX;
             MidiSubdevLabel subdev;
 
-            Label * path = new Label(this, sub._path);
+            std::unique_ptr<Label> path = std::make_unique<Label>(this, sub._path);
             path->setPos(Layout::Margin + 30, posy);
             path->setSize(150, lineHeight);
             path->setFont(&DEFAULT_FONT);
-            subdev._path = path;
+            subdev._path = std::move(path);
 
             if(sub._hasInput) {
                 text.clear();
                 text.append("In ");
                 text.append(sub._inputName);
-                Label * subInName = new Label(this, text);
+                std::unique_ptr<Label> subInName = std::make_unique<Label>(this, text);
                 subInName->setPos(Layout::Margin + 200, posy);
                 subInName->setSize(width/2, lineHeight);
                 subInName->setFont(&DEFAULT_FONT);
-                subdev._subInName = subInName;
+                subdev._subInName = std::move(subInName);
 
-                Checkbox * subInCheck = new Checkbox(this);
+                std::unique_ptr<Checkbox> subInCheck = std::make_unique<Checkbox>(this);
                 subInCheck->setPos(width/2 + Layout::Margin, posy);
-                subInCheck->setCallback([sub, dev](bool isChecked) mutable {
+                subInCheck->checkCallback([sub, dev](bool isChecked) mutable {
                     LOG_INFO("%s %s device is %s",
                         (&sub)->_path.c_str(), 
                         (&sub)->_inputName.c_str(),
@@ -387,7 +380,7 @@ void SettingsPopup::MidiTab::refreshDevices() {
                     slr::EmitAction(std::move(act));
 
                 });
-                subdev._inputEnabled = subInCheck;
+                subdev._inputEnabled = std::move(subInCheck);
                 posy += (subdevHeight+Layout::Margin);
             } else {
                 subdev._subInName = nullptr;
@@ -398,15 +391,15 @@ void SettingsPopup::MidiTab::refreshDevices() {
                 text.clear();
                 text.append("Out ");
                 text.append(sub._outputName);
-                Label * subOutName = new Label(this, text);
+                std::unique_ptr<Label> subOutName = std::make_unique<Label>(this, text);
                 subOutName->setPos(Layout::Margin + 200, posy);
                 subOutName->setSize(width/2, lineHeight);
                 subOutName->setFont(&DEFAULT_FONT);
-                subdev._subOutName = subOutName;
+                subdev._subOutName = std::move(subOutName);
 
-                Checkbox * subOutCheck = new Checkbox(this);
+                std::unique_ptr<Checkbox> subOutCheck = std::make_unique<Checkbox>(this);
                 subOutCheck->setPos(width/2 + Layout::Margin, posy);
-                subOutCheck->setCallback([sub, dev](bool isChecked) mutable {
+                subOutCheck->checkCallback([sub, dev](bool isChecked) mutable {
                     LOG_INFO("%s %s device is %s",
                         sub._path.c_str(),
                         sub._outputName.c_str(),
@@ -425,43 +418,43 @@ void SettingsPopup::MidiTab::refreshDevices() {
                     };
                     slr::EmitAction(std::move(act));
                 });
-                subdev._outputEnabled = subOutCheck;
+                subdev._outputEnabled = std::move(subOutCheck);
                 posy += (subdevHeight+Layout::Margin);
             } else {
                 subdev._subOutName = nullptr;
                 subdev._outputEnabled = nullptr;
             }
 
-            device._subdevs.push_back(subdev);
+            device._subdevs.push_back(std::move(subdev));
         }
 
-        _labelList.push_back(device);
+        _labelList.push_back(std::move(device));
     }
 }
 
 void SettingsPopup::MidiTab::clearMidiLabels() {
-    for(auto l : _labelList) {
-        for(auto lb : l._subdevs) {
-            delete lb._path;
+    // for(auto l : _labelList) {
+    //     for(auto lb : l._subdevs) {
+    //         delete lb._path;
 
-            if(lb._subInName) delete lb._subInName;
-            if(lb._inputEnabled) delete lb._inputEnabled;
-            if(lb._subOutName) delete lb._subOutName;
-            if(lb._outputEnabled) delete lb._outputEnabled;
+    //         if(lb._subInName) delete lb._subInName;
+    //         if(lb._inputEnabled) delete lb._inputEnabled;
+    //         if(lb._subOutName) delete lb._subOutName;
+    //         if(lb._outputEnabled) delete lb._outputEnabled;
 
-            lb._subInName = nullptr;
-            lb._inputEnabled = nullptr;
-            lb._subOutName = nullptr;
-            lb._outputEnabled = nullptr;
-            // delete lb;
-        }
-        delete l._deviceName;
-        delete l._presented;
+    //         lb._subInName = nullptr;
+    //         lb._inputEnabled = nullptr;
+    //         lb._subOutName = nullptr;
+    //         lb._outputEnabled = nullptr;
+    //         // delete lb;
+    //     }
+    //     delete l._deviceName;
+    //     delete l._presented;
 
-        l._deviceName = nullptr;
-        l._presented = nullptr;
-        // delete l;
-    }
+    //     l._deviceName = nullptr;
+    //     l._presented = nullptr;
+    //     // delete l;
+    // }
     _labelList.clear();
 }
 

@@ -19,12 +19,43 @@ DropDown::DropDown(BaseWidget * parent) :
     lv_obj_set_style_clip_corner(lvhost(), false, 0);
     // lv_obj_set_style_bg_opa(lvhost(), LV_OPA_0, 0); // OPA_0 - 100% transparent, OPA_100 - 0% transparent
 
-    _btn = new Button(parent);
+    _btn = std::make_unique<Button>(parent);
     _btn->setText("No selection");
     _btn->setFont(_textFont);
-    _btn->setCallback([this]() {
+    _btn->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         if(this->_isClosed) this->open();
         else this->close();
+        return true;
+    });
+
+    tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        int height = lv_font_get_line_height(this->_textFont);
+        std::size_t size = this->_items.size();
+
+        lv_obj_t *lvparent = this->lvhost();
+        int ya = 0;
+        while(lvparent != nullptr) {
+            ya += lv_obj_get_y(lvparent);
+            lvparent = lv_obj_get_parent(lvparent);
+        }
+        //find item    
+        // int y = getY();
+        int h = this->height();
+        int idx = ((tap.y-ya) / height);
+        // int index = ((tap.y-y) / height) - 1;
+        if(idx >= this->_items.size()) {
+            LOG_ERROR("Wrong index");
+            return false;
+        }
+        
+        std::string text = std::string(lv_label_get_text(this->_items.at(idx)));
+            
+        this->_btn->setText(text);
+        if(this->_callback) this->_callback(text);
+
+        this->close();
+        
+        return true;
     });
 
     _isClosed = true;
@@ -32,7 +63,7 @@ DropDown::DropDown(BaseWidget * parent) :
 
 DropDown::~DropDown() {
     // if(_lastSelected) lv_obj_delete(_lastSelected);
-    delete _btn;
+    // delete _btn;
     for(lv_obj_t *i : _items) {
         lv_obj_delete(i);
     }
@@ -137,34 +168,34 @@ void DropDown::close() {
     lv_obj_add_flag(lvhost(), LV_OBJ_FLAG_HIDDEN);
 }
 
-bool DropDown::handleTap(GestLib::TapGesture & tap) {
-    int height = lv_font_get_line_height(_textFont);
-    std::size_t size = _items.size();
+// bool DropDown::handleTap(GestLib::TapGesture & tap) {
+//     int height = lv_font_get_line_height(_textFont);
+//     std::size_t size = _items.size();
 
-    lv_obj_t *lvparent = lvhost();
-    int ya = 0;
-    while(lvparent != nullptr) {
-        ya += lv_obj_get_y(lvparent);
-        lvparent = lv_obj_get_parent(lvparent);
-    }
-    //find item    
-    // int y = getY();
-    int h = this->height();
-    int idx = ((tap.y-ya) / height);
-    // int index = ((tap.y-y) / height) - 1;
-    if(idx >= _items.size()) {
-        LOG_ERROR("Wrong index");
-        return false;
-    }
+//     lv_obj_t *lvparent = lvhost();
+//     int ya = 0;
+//     while(lvparent != nullptr) {
+//         ya += lv_obj_get_y(lvparent);
+//         lvparent = lv_obj_get_parent(lvparent);
+//     }
+//     //find item    
+//     // int y = getY();
+//     int h = this->height();
+//     int idx = ((tap.y-ya) / height);
+//     // int index = ((tap.y-y) / height) - 1;
+//     if(idx >= _items.size()) {
+//         LOG_ERROR("Wrong index");
+//         return false;
+//     }
     
-    std::string text = std::string(lv_label_get_text(_items.at(idx)));
+//     std::string text = std::string(lv_label_get_text(_items.at(idx)));
         
-    _btn->setText(text);
-    if(_callback) _callback(text);
+//     _btn->setText(text);
+//     if(_callback) _callback(text);
 
-    close();
+//     close();
     
-    return true;
-}
+//     return true;
+// }
 
 }

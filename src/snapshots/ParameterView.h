@@ -15,24 +15,20 @@ class ParameterBool;
 
 class ParameterBaseView {
     public:
-    ParameterBaseView(ParameterBase * base);
+    ParameterBaseView(const ParameterBase * base);
     virtual ~ParameterBaseView() = default;
 
     virtual const float value() const = 0;
     virtual void setValue(float newValue) = 0;
 
-    const ID & id() const { return _uniqueId; }
-    const std::string & name() const { return _name; }
-    const float & defaultValue() const { return _default; }
-    const float & minimalValue() const { return _min; }
-    const float & maximalValue() const { return _max; }
+    ID id() const;
+    const std::string & name() const;
+    float defaultValue() const;
+    float minimalValue() const;
+    float maximalValue() const;
 
     private:
-    const std::string & _name;
-    const ID & _uniqueId;
-    const float & _default;
-    const float & _min;
-    const float & _max;
+    const ParameterBase * const _base;
 };
 
 struct ParameterFloatView : public ParameterBaseView {

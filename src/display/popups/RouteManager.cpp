@@ -67,7 +67,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         this->liveUpdate();
     });
 
-    _ddCurrentUnit->button()->setTouchDownCallback([this, drop = _ddCurrentUnit]() {
+    _ddCurrentUnit->button()->touchDownCallback([this, drop = _ddCurrentUnit](const GestLib::TouchDownEvent &td) -> bool {
         drop->button()->setColor(BUTTON_DEFAULT_PRESSED);
         std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
         std::vector<std::string> names;
@@ -76,6 +76,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         }
 
         drop->setItems(names);
+        return true;
     });
 
     /* First item right side */
@@ -96,18 +97,20 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     _btnAudioTab->setSize(200, Layout::Button);
     _btnAudioTab->setPos(10, 40);
     _btnAudioTab->setFont(&DEFAULT_FONT);
-    _btnAudioTab->setCallback([this]() {
+    _btnAudioTab->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_midiTab->hide();
         this->_audioTab->show();
+        return true;
     });
 
-    _btnAudioTab = new Button(this, "Midi Routes");
-    _btnAudioTab->setSize(200, Layout::Button);
-    _btnAudioTab->setPos(200+Layout::Margin, 40);
-    _btnAudioTab->setFont(&DEFAULT_FONT);
-    _btnAudioTab->setCallback([this]() {
+    _btnMidiTab = new Button(this, "Midi Routes");
+    _btnMidiTab->setSize(200, Layout::Button);
+    _btnMidiTab->setPos(200+Layout::Margin, 40);
+    _btnMidiTab->setFont(&DEFAULT_FONT);
+    _btnMidiTab->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_audioTab->hide();
         this->_midiTab->show();
+        return true;
     });
 
     _audioTab = new AudioTab(this, _currentUnitId);
@@ -115,7 +118,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
 
     _midiThru = new Checkbox(this);
     _midiThru->setPos(1300, 40);
-    _midiThru->setCallback([this](bool isChecked) {
+    _midiThru->checkCallback([this](bool isChecked) {
         // slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
 
         // slr::Events::ToggleMidiThru e = {
@@ -132,7 +135,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     
     _omniHwInput = new Checkbox(this);
     _omniHwInput->setPos(1500, 40);
-    _omniHwInput->setCallback([this](bool isChecked) {
+    _omniHwInput->checkCallback([this](bool isChecked) {
         // slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(this->_currentUnitId);
         // if(!view) {
         //     LOG_ERROR("Failed to find unit view for id %u", this->_currentUnitId);
@@ -339,7 +342,7 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
     extint->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, Layout::ROUTE_CTL_LEFT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
-        extint->setCallback([this]() {
+        extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             std::string text = this->_nextInput._extint->text();
             if(text.compare("EXT") == 0) {
                 this->_nextInput._extint->setText("INT");
@@ -368,6 +371,7 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
                 this->_nextInput._dropdown->setSelected(
                     items.size() != 0 ? items.at(0) : NONE_STRING);
             }
+            return true;
         });
     }
     r._extint = extint;
@@ -409,9 +413,10 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
     addremove->setSize(Layout::ROUTE_CTL_LEFT_ADD_W, Layout::ROUTE_CTL_LEFT_ADD_H);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
-        addremove->setCallback([this]() {
+        addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             this->newRoute(true);
             //update here? or... where?
+            return true;
         });
     }
     // addremove->setCallback([this, isNew]() {
@@ -440,7 +445,7 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
     extint->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, Layout::ROUTE_CTL_RIGHT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
-        extint->setCallback([this]() {
+        extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             std::string text = this->_nextOutput._extint->text();
             if(text.compare("EXT") == 0) {
                 this->_nextOutput._extint->setText("INT");
@@ -467,6 +472,7 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
                 this->_nextOutput._dropdown->setItems(items);
                 this->_nextOutput._dropdown->setSelected(items.at(0));
             }
+            return true;
         }); 
     }
     r._extint = extint;
@@ -508,9 +514,10 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
     addremove->setPos(Layout::ROUTE_CTL_RIGHT_ADD_X, Layout::ROUTE_CTL_RIGHT_ADD_Y+posY);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
-        addremove->setCallback([this]() {
+        addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             this->newRoute(false);
             //update here? or... where?
+            return true;
         });
     }
     // addremove->setCallback([this, isNew]() {
@@ -742,7 +749,7 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
     extint->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, Layout::ROUTE_CTL_LEFT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
-        extint->setCallback([this]() {
+        extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool{
             std::string text = this->_nextInput._extint->text();
             if(text.compare("EXT") == 0) {
                 this->_nextInput._extint->setText("INT");
@@ -774,6 +781,7 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
                 this->_nextInput._dropdown->setSelected(
                     items.size() != 0 ? items.at(0) : NONE_STRING);
             }
+            return true;
         });
     }
     r._extint = extint;
@@ -827,12 +835,14 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
     addremove->setPos(Layout::ROUTE_CTL_LEFT_ADD_X, Layout::ROUTE_CTL_LEFT_ADD_Y+posY);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
-        addremove->setCallback([this]() {
+        addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             this->newRoute(true);
+            return true;
         });
     } else {
-        addremove->setCallback([this]() {
+        addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             LOG_INFO("add Remove Midi Route event");
+            return true;
         });
     }
     r._addRemoveButton = addremove;
@@ -853,7 +863,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
     extint->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, Layout::ROUTE_CTL_RIGHT_EXT_Y+posY);
     extint->setFont(&DEFAULT_FONT);
     if(isNew) {
-        extint->setCallback([this]() {
+        extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             std::string text = this->_nextOutput._extint->text();
             if(text.compare("EXT") == 0) {
                 this->_nextOutput._extint->setText("INT");
@@ -883,6 +893,7 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
                 this->_nextOutput._dropdown->setSelected(
                     items.size() != 0 ? items.at(0) : NONE_STRING);
             }
+            return true;
         });
     }
     r._extint = extint;
@@ -937,13 +948,15 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
     addremove->setPos(Layout::ROUTE_CTL_RIGHT_ADD_X, Layout::ROUTE_CTL_RIGHT_ADD_Y+posY);
     addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
-        addremove->setCallback([this]() {
+        addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             this->newRoute(false);
+            return true;
             //update here? or... where?
         });
     } else {
-        addremove->setCallback([this]() {
+        addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             LOG_INFO("add Remove Midi Route event");
+            return true;
         });
     }
     r._addRemoveButton = addremove;

@@ -38,12 +38,6 @@ Track::Track(const ClipContainer * initContainer, const ID forcedId) : AudioUnit
 }
 
 Track::~Track() {
-    // if(_recordTarget) {
-    //     FileWorker * fw = ControlEngine::fileWorker();
-    //     _recordTarget->release(fw);
-    //     // delete _recordTarget; 
-    //     _recordTarget = nullptr;
-    // }
 }
 
 bool Track::create(BufferManager *man) {

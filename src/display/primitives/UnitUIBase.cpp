@@ -70,7 +70,7 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
     _btnDelete->setPos(10, 10);
     _btnDelete->setSize(Layout::Button, Layout::Button);
     _btnDelete->setFont(&DEFAULT_FONT);
-    _btnDelete->setCallback([this]() {
+    _btnDelete->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // std::cout << "Delete track: " << (int)_track->id() << std::endl;
         LOG_INFO("Delete track: %i", _currentUnit->id());
         auto del = std::make_unique<slr::Actions::DeleteUnit>();
@@ -79,16 +79,18 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
 
         this->_uictx->setLastSelected(nullptr);
         this->_uictx->_popManager->disableUnitControl();
+        return true;
     });
 
     _btnRouteManager = std::make_unique<Button>(this, "Routes");
     _btnRouteManager->setPos(Layout::Button+20, 10);
     _btnRouteManager->setFont(&DEFAULT_FONT);
     _btnRouteManager->setSize(Layout::Button, Layout::Button);
-    _btnRouteManager->setCallback([this]() {
+    _btnRouteManager->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Call the manager!!! track %i", _currentTrack->id());
         this->_uictx->_popManager->disableUnitControl();
         this->_uictx->_popManager->enableRouteManager(this->_currentUnit->id());
+        return true;
     });
 }
 
@@ -117,7 +119,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     _lblName->setPos(Layout::TRACK_NAME_LABEL_X, Layout::TRACK_NAME_LABEL_Y);
     _lblName->setFont(&DEFAULT_FONT);
     _lblName->setTextColor(lv_color_hex(0xffffff));
-    _lblName->setHoldCallback([this]() {
+    _lblName->holdCallback([this](const GestLib::HoldGesture &hold) -> bool {
         this->_uibase->uictx()->_popManager->enableKeyboard(
             this->_uibase->view()->name(), 
             [this](const std::string & text) {
@@ -128,13 +130,14 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
                 slr::EmitAction(std::move(act));
             }
         );
+        return true;
     });
 
     _lblVolume = std::make_unique<Label>(this, std::to_string(_uibase->view()->volume()));
     _lblVolume->setSize(80, lv_font_get_line_height(&DEFAULT_FONT));
     _lblVolume->setPos(280, Layout::TRACK_NAME_LABEL_Y);
     _lblVolume->setFont(&DEFAULT_FONT);
-    _lblVolume->setTapCallback([this]() {
+    _lblVolume->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uibase->uictx()->_popManager->enableKeyboard(
             std::to_string(this->_uibase->view()->volume()),
             [this](const std::string & text) {
@@ -150,6 +153,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
                 // this->_lblVolume->setText(text);
             }
         );
+        return true;
     });
 
     int posx = 10;
@@ -158,12 +162,13 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     _btnMute->setPos(posx, posy);
     _btnMute->setSize(Layout::Button, Layout::Button);
     _btnMute->setFont(&lv_font_montserrat_40);
-    _btnMute->setCallback([this]() {
+    _btnMute->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::SetParameter>();
         act->targetId = this->_uibase->view()->id();
         act->parameterId = this->_uibase->view()->muteId();
         act->value = (_uibase->view()->mute() ? slr::boolToFloat(false) : slr::boolToFloat(true));
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     posx += (Layout::Margin + Layout::Button);
@@ -171,11 +176,14 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     _btnSolo->setPos(posx, posy);
     _btnSolo->setSize(Layout::Button, Layout::Button);
     _btnSolo->setFont(&lv_font_montserrat_40);
-    _btnSolo->setCallback([this]() {
+    _btnSolo->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // std::cout << "Solo track: " << (int)_track->id() << " parid: " << "1" << std::endl;
+        return true;
     });
     
     _fileContainerVersion = 0;
+
+    doubleTapCallback(std::bind(&DefaultGridUI::handleDoubleTap, this, std::placeholders::_1));
     show();
 }
 
@@ -342,7 +350,7 @@ std::vector<FileView*> DefaultGridUI::fileList() {
     return ret; 
 }
 
-bool DefaultGridUI::handleDoubleTap(GestLib::DoubleTapGesture & dt) {
+bool DefaultGridUI::handleDoubleTap(const GestLib::DoubleTapGesture & dt) {
     LOG_INFO("Double Tap on track controls %i", _uibase->view()->id());
     _uibase->uictx()->_popManager->enableUnitControl(_uibase, this);
     return true;

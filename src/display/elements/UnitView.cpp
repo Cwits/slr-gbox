@@ -25,7 +25,7 @@ UnitView::UnitView(BaseWidget* parent, UIContext * const uictx) : View(parent, u
     lv_obj_center(_lb);
     _lastShownModule = nullptr;
 
-    _flags.isDrag = true;
+    dragCallback(std::bind(&UnitView::handleDrag, this, std::placeholders::_1));
 }
 
 UnitView::~UnitView() {
@@ -53,7 +53,7 @@ void UnitView::pollUIUpdate() {
         _lastShownModule->unitUI()->pollUIUpdate();
 }
 
-bool UnitView::handleDrag(GestLib::DragGesture & drag) {
+bool UnitView::handleDrag(const GestLib::DragGesture & drag) {
     if(_lastShownModule) {
         if(_lastShownModule->unitUI()->canHandleGesture(GestLib::Gestures::Drag)) {
             GestLib::Gesture g;

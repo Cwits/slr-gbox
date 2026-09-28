@@ -73,7 +73,7 @@ struct SamplerUI : public UnitUIBase {
         lv_color_t _fillColor;
         uint8_t * _drawBuffer;
 
-        bool handleDrag(GestLib::DragGesture & drag) override;
+        bool handleDrag(const GestLib::DragGesture & drag);
         
         friend class SamplerUI;
     };

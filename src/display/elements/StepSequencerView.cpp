@@ -51,33 +51,36 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
 
     BUTTON(_btnPrevSequence, "<");
     _btnPrevSequence->setPos(300, 10);
-    _btnPrevSequence->setCallback([this]() {
+    _btnPrevSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         if(this->_currentVisibleSeq > 0) {
             this->_currentVisibleSeq--;
             this->showByPos(this->_currentVisibleSeq);
         }
+        return true;
     });
 
     BUTTON(_btnNextSequence, ">");
     _btnNextSequence->setPos(390, 10);
-    _btnNextSequence->setCallback([this]() {
+    _btnNextSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         if(this->_currentVisibleSeq < this->_sequences.size()-1) {
             this->_currentVisibleSeq++;
             this->showByPos(this->_currentVisibleSeq);
         }
+        return true;
     });
 
     BUTTON(_btnNewSequence, "+");
     _btnNewSequence->setPos(1400, 10);
-    _btnNewSequence->setCallback([this]() {
+    _btnNewSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::CreateNewSequence>();
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     BUTTON(_btnDeleteSequence, LV_SYMBOL_TRASH);
     _btnDeleteSequence->setPos(1490, 10);
-    _btnDeleteSequence->setCallback([this]() {
-
+    _btnDeleteSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        return true;
     });
 
     _lblModeText = std::make_unique<Label>(this, "Sequencing");
@@ -86,8 +89,8 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
 
     BUTTON(_btnModeToggle, "Mode");
     _btnModeToggle->setPos(1600, 10);
-    _btnModeToggle->setCallback([this]() {
-
+    _btnModeToggle->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        return true;
     });
 
     /* Second Line */
@@ -119,9 +122,10 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
     BUTTON(_btnTargetManager, "Targets");
     _btnTargetManager->setPos(1600, 100);
     _btnTargetManager->setSize(Layout::Button*2, Layout::Button);
-    _btnTargetManager->setCallback([this]() {
+    _btnTargetManager->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_tpop->clear();
         this->_uictx->_popManager->enableTargetSelectPopup();
+        return true;
     });
 
     //page buttons
@@ -131,9 +135,10 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
         std::unique_ptr<Button> btn = std::make_unique<Button>(this, "");
         btn->setSize(Layout::Button, Layout::Button);
         btn->setPos(tmpx, 190);
-        btn->setCallback([idx = i, this]() {
+        btn->tapCallback([idx = i, this](const GestLib::TapGesture &tap) -> bool {
             this->_currentPage = idx;
             this->switchPage(this->_currentPage);
+            return true;
         });
         btn->hide();
         _pageButtons.push_back(std::move(btn));
@@ -142,28 +147,30 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
 
     BUTTON(_btnNewPage, "+");
     _btnNewPage->setPos(1600, 190);
-    _btnNewPage->setCallback([this]() {
+    _btnNewPage->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         const SequenceUI *sui = this->currentSequence();
-        if(!sui) return;
+        if(!sui) return false;
 
         auto act = std::make_unique<slr::Actions::ModifySequence>();
         act->sequenceId = sui->view()->id();
         act->duration = sui->view()->stepDuration();
         act->stepCount = sui->view()->stepCount() + slr::STEPS_PER_PAGE;
         slr::EmitAction(std::move(act));
+        return true;
     });
     
     BUTTON(_btnDeletePage, LV_SYMBOL_TRASH);
     _btnDeletePage->setPos(1690, 190);
-    _btnDeletePage->setCallback([this]() {
+    _btnDeletePage->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         const SequenceUI *sui = this->currentSequence();
-        if(!sui) return;
+        if(!sui) return false;
 
         auto act = std::make_unique<slr::Actions::ModifySequence>();
         act->sequenceId = sui->view()->id();
         act->duration = sui->view()->stepDuration();
         act->stepCount = sui->view()->stepCount() - slr::STEPS_PER_PAGE;
         slr::EmitAction(std::move(act));
+        return true;
     });
 }
 
@@ -472,9 +479,9 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
             std::unique_ptr<Button> btn = std::make_unique<Button>(this, "");
             btn->setSize(size, size);
             btn->setPos(xpos, ypos);
-            btn->setCallback([this, buttonIdx = z, layerIdx = i]() {
+            btn->tapCallback([this, buttonIdx = z, layerIdx = i](const GestLib::TapGesture &tap) -> bool {
                 const SequenceUI *sui = this->_view->currentSequence();
-                if(sui == nullptr) return; //just in case, but there should be no buttons visible
+                if(sui == nullptr) return false; //just in case, but there should be no buttons visible
 
                 const slr::LayerView &lv = sui->view()->layer(layerIdx);
                 const int eventIdx = (this->_view->_currentPage*slr::STEPS_PER_PAGE) + buttonIdx;
@@ -488,6 +495,7 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
                 // act->note = mev.note;
                 // act->velocity = mev.velocity;
                 slr::EmitAction(std::move(act));
+                return true;
             });
             // l._steps.push_back(std::move(btn));
             btn->hide();
@@ -503,7 +511,7 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
         l._lblNote = std::make_unique<Label>(this, std::to_string(36+i));
         l._lblNote->setSize(300, 40);
         l._lblNote->setPos(xpos+300+size+10, ypos+20);
-        l._lblNote->setTapCallback([self = this, layer = i, ssview = _view, ptr = l._lblNote.get()]() {
+        l._lblNote->tapCallback([self = this, layer = i, ssview = _view, ptr = l._lblNote.get()](const GestLib::TapGesture &tap) -> bool {
             //small popup for edit note, velocity, and smth else
             ssview->_uictx->_popManager->enableKeyboard(
                 ptr->text(),
@@ -524,6 +532,7 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
                     }
                 }
             );
+            return true;
         });
         l._lblNote->hide();
 
@@ -536,9 +545,9 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
     _btnAddLayer = std::make_unique<Button>(this, LV_SYMBOL_PLUS);
     _btnAddLayer->setSize(Layout::Button, Layout::Button);
     _btnAddLayer->setPos(Layout::STEP_SEQ_WIDTH/2, Layout::STEP_SEQ_HEIGHT-290-Layout::Button-10);
-    _btnAddLayer->setCallback([this]() {
+    _btnAddLayer->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         const SequenceUI *sui = this->_view->currentSequence();
-        if(!sui) return;
+        if(!sui) return false;
 
         int activeLayers = 0; //sui->view()->activeLayerCount();
         for(int i=0; i<16; ++i) {
@@ -546,7 +555,7 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
             if(lv._active) activeLayers++;
         }
 
-        if(activeLayers == 16) return; 
+        if(activeLayers == 16) return false; 
 
         auto act = std::make_unique<slr::Actions::ModifySequenceLayer>();
         act->sequenceId = sui->view()->id();
@@ -554,15 +563,16 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
         act->active = true;
         act->mute = false;
         slr::EmitAction(std::move(act));
+        return true;
     });
     _btnAddLayer->hide();
 
     _btnRemoveLayer = std::make_unique<Button>(this, LV_SYMBOL_MINUS);
     _btnRemoveLayer->setSize(Layout::Button, Layout::Button);
     _btnRemoveLayer->setPos(Layout::STEP_SEQ_WIDTH/2+Layout::Button+10, Layout::STEP_SEQ_HEIGHT-290-Layout::Button-10);
-    _btnRemoveLayer->setCallback([this]() {
+    _btnRemoveLayer->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         const SequenceUI *sui = this->_view->currentSequence();
-        if(!sui) return;
+        if(!sui) return false;
 
         int lastActiveIdx = 0;
         bool noActive = true;
@@ -574,17 +584,19 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
             }
         }
 
-        if(noActive) return;
+        if(noActive) return false;
 
         auto act = std::make_unique<slr::Actions::ModifySequenceLayer>();
         act->sequenceId = sui->view()->id();
         act->layer = lastActiveIdx;
         act->active = false;
         slr::EmitAction(std::move(act));
+        return true;
     });
     _btnRemoveLayer->hide();
 
-    _flags.isSwipe = true;
+    // _flags.isSwipe = true;
+    swipeCallback(std::bind(&StepSequencerView::LayersContainer::handleSwipe, this, std::placeholders::_1));
 
     show();
 }
@@ -597,7 +609,7 @@ int StepSequencerView::LayersContainer::activeLayers() const {
     return ret;
 }
 
-bool StepSequencerView::LayersContainer::handleSwipe(GestLib::SwipeGesture & swipe) {
+bool StepSequencerView::LayersContainer::handleSwipe(const GestLib::SwipeGesture & swipe) {
     if(swipe.state == GestLib::GestureState::Start) {
 
     } else if(swipe.state == GestLib::GestureState::Move) {
@@ -677,7 +689,7 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
     _ddSelector->selectedCallback([this](std::string selected) {
         //nothing to do here?
     });
-    _ddSelector->button()->setTouchDownCallback([this, drop = _ddSelector.get()]() {
+    _ddSelector->button()->touchDownCallback([this, drop = _ddSelector.get()](const GestLib::TouchDownEvent &td) -> bool {
         drop->button()->setColor(BUTTON_DEFAULT_PRESSED);
         
         //gather all available units
@@ -715,18 +727,19 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
         }
 
         drop->setItems(items);
+        return true;
     });
 
     _btnAddTarget = std::make_unique<Button>(this, LV_SYMBOL_PLUS);
     _btnAddTarget->setPos(1400, 100);
     _btnAddTarget->setSize(Layout::Button, Layout::Button);
-    _btnAddTarget->setCallback([this]() {
+    _btnAddTarget->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         SequenceUI *sc = this->_view->currentSequence();
-        if(!sc) return;
+        if(!sc) return false;
         const std::string &name = this->_ddSelector->selectedItem();
 
         slr::AudioUnitView *view = slr::ProjectView::getProjectView().findUnitByName(name);
-        if(!view) return;
+        if(!view) return false;
 
         auto act = std::make_unique<slr::Actions::ModifySequenceTarget>();
         act->sequenceId = sc->view()->id();
@@ -735,6 +748,7 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
         slr::EmitAction(std::move(act));
 
         this->_ddSelector->button()->setText("Select Target");
+        return true;
     });
 
     _lastTargetCount = 0;
@@ -782,12 +796,13 @@ void TargetSelectPopup::update() {
         tg._btnRemoveTarget = std::make_unique<Button>(this, LV_SYMBOL_MINUS);
         tg._btnRemoveTarget->setSize(Layout::Button, Layout::Button);
         tg._btnRemoveTarget->setPos(1400, ypos);
-        tg._btnRemoveTarget->setCallback([sqid = curr->view()->id(), tgid = targets[i]]() {
+        tg._btnRemoveTarget->tapCallback([sqid = curr->view()->id(), tgid = targets[i]](const GestLib::TapGesture &tap) -> bool {
             auto act = std::make_unique<slr::Actions::ModifySequenceTarget>();
             act->sequenceId = sqid;
             act->addTarget = false;
             act->targetId = tgid;
             slr::EmitAction(std::move(act));
+            return true;
         });
         
         _targets.push_back(std::move(tg));

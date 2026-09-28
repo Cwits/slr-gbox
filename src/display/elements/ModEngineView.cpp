@@ -64,19 +64,22 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
     LABEL(_lblModNum,     210,                       Layout::Margin+10, 100, 40, "x / x");
     
     BUTTON(_btnNextMod, 1600, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_RIGHT);
-    _btnNextMod->setCallback([this]() { 
+    _btnNextMod->tapCallback([this](const GestLib::TapGesture &tap) -> bool { 
         if(this->_currentSelectedMod+1 < _modUIs.size())
             this->showByPos(this->_currentSelectedMod+1);
+        return true;
     });
     BUTTON(_btnPrevMod, 1500, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_LEFT);
-    _btnPrevMod->setCallback([this]() { 
+    _btnPrevMod->tapCallback([this](const GestLib::TapGesture &tap) -> bool { 
         if(this->_currentSelectedMod > 0)
             this->showByPos(this->_currentSelectedMod-1);
+        return true;
     });
     BUTTON(_btnNewMod,  1700, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_PLUS);
-    _btnNewMod->setCallback([this]() {
+    _btnNewMod->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::CreateNewModulation>();
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     BUTTON(_btnDelMod,  1800, Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_TRASH);
@@ -105,7 +108,7 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
 
     LABEL(_lblRateText, 300+50, y, 100, 40, "Rate: ");
     LABEL(_lblRate,     380+50, y, 100, 40, "x Hz");
-    _lblRate->setTapCallback([this]() {
+    _lblRate->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         std::string initText = this->_lblRate->text().substr(0, this->_lblRate->text().size()-2);
         this->_uictx->_popManager->enableKeyboard(
             initText,
@@ -121,13 +124,14 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
                 slr::EmitAction(std::move(act));
             }
         );
+        return true;
     });
 
     BUTTON(_btnRate,    300+50, y+40, Layout::Button+80, 40, "Hz/Beat");
     
     LABEL(_lblPhaseText, 600+50, y, 100, 40, "Phase: ");
     LABEL(_lblPhase,   710+50, y, 100, 40, "x");
-    _lblPhase->setTapCallback([this]() {
+    _lblPhase->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblPhase->text(),
             [this](const std::string & text) {
@@ -142,6 +146,7 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
                 slr::EmitAction(std::move(act));
             }
         );
+        return true;
     });
 
     // LABEL(_lblRandSeedText, 900+50, y, 100, 40, "Seed: ");
@@ -152,15 +157,16 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
     // BUTTON(_btnLength,  1200+50, y+40, Layout::Button+80, 40, "Sec/Beat");
 
     BUTTON(_btnTargetManager, 1700, y, Layout::Button*2, Layout::Button, "Targets");
-    _btnTargetManager->setCallback([this]() {
+    _btnTargetManager->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // this->_tpop->clear();
         this->_tpop->update();
         this->_uictx->_popManager->enableModEngineTargetManager();
+        return true;
     });
 
     LABEL(_lblMinimalText, 20, 500, 300, 40, "Minimal value:");
     LABEL(_lblMinimal, 150, 560, 300, 40, "x");
-    _lblMinimal->setTapCallback([this]() {
+    _lblMinimal->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblMinimal->text(),
             [this](const std::string & text) {
@@ -176,11 +182,12 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
 
             }
         );
+        return true;
     });
 
     LABEL(_lblMaximalText, 20, 640, 300, 40, "Maximal value:");
     LABEL(_lblMaximal, 150, 700, 300, 40, "x");
-    _lblMaximal->setTapCallback([this]() {
+    _lblMaximal->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblMaximal->text(),
             [this](const std::string & text) {
@@ -195,6 +202,7 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
                 slr::EmitAction(std::move(act));
             }
         );
+        return true;
     });
 
 

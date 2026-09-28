@@ -37,7 +37,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _lblProjectName->setSize(400, lv_font_get_line_height(&lv_font_montserrat_40));
     _lblProjectName->setTextColor(lv_color_hex(0xffffff));
     _lblProjectName->setFont(&lv_font_montserrat_40);
-    _lblProjectName->setTapCallback([this]() {
+    _lblProjectName->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableKeyboard(
             this->_lblProjectName->text(),
             [this](const std::string &text) {          
@@ -45,25 +45,28 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
                 LOG_WARN("No event to update Project Name");
             }
         );
+        return true;
     });
 
     _btnSave = std::make_unique<Button>(this, "Save");
     _btnSave->setPos(450, 0);
     _btnSave->setSize(Layout::Button, Layout::Button);
     _btnSave->setFont(&DEFAULT_FONT);
-    _btnSave->setCallback([]() {
+    _btnSave->tapCallback([](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::SaveProject>();
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     _btnLoad = std::make_unique<Button>(this, "Load");
     _btnLoad->setPos(450+Layout::Button+20, 0);
     _btnLoad->setSize(Layout::Button, Layout::Button);
     _btnLoad->setFont(&DEFAULT_FONT);
-    _btnLoad->setCallback([]() {
+    _btnLoad->tapCallback([](const GestLib::TapGesture &tap) -> bool {
         // auto act = std::make_unique<slr::Actions::SaveProject>();
         // slr::EmitAction(std::move(act));
         LOG_WARN("Not ready");
+        return true;
     });
     
 
@@ -72,8 +75,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnGrid->setPos(posx, 0);
     _btnGrid->setSize(Layout::Button, Layout::Button);
     _btnGrid->setFont(&DEFAULT_FONT);
-    _btnGrid->setCallback([uictx = _uictx]() {
+    _btnGrid->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::Grid);
+        return true;
     });
 
     posx += (Layout::Margin + Layout::Button);
@@ -81,8 +85,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnTrack->setPos(posx, 0);
     _btnTrack->setSize(Layout::Button, Layout::Button);
     _btnTrack->setFont(&DEFAULT_FONT);
-    _btnTrack->setCallback([uictx = _uictx]() {
+    _btnTrack->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::Unit);
+        return true;
     });
     
     posx += (Layout::Margin + Layout::Button);
@@ -90,8 +95,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnBrowser->setPos(posx, 0);
     _btnBrowser->setSize(Layout::Button, Layout::Button);
     _btnBrowser->setFont(&DEFAULT_FONT);
-    _btnBrowser->setCallback([uictx = _uictx]() {
+    _btnBrowser->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::Browser);
+        return true;
     });
 
     posx += (Layout::Margin + Layout::Button);
@@ -99,8 +105,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnStepSequencer->setPos(posx, 0);
     _btnStepSequencer->setSize(Layout::Button, Layout::Button);
     _btnStepSequencer->setFont(&DEFAULT_FONT);
-    _btnStepSequencer->setCallback([uictx = _uictx]() {
+    _btnStepSequencer->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::StepSequencer);
+        return true;
     });
 
     posx += (Layout::Margin + Layout::Button);
@@ -108,9 +115,10 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnModEngine->setPos(posx, 0);
     _btnModEngine->setSize(Layout::Button, Layout::Button);
     _btnModEngine->setFont(&DEFAULT_FONT);
-    _btnModEngine->setCallback([uictx = _uictx]() {
+    _btnModEngine->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Modulation Engine will be added in future versions");
         uictx->switchToView(MainView::ModEngine);
+        return true;
     });
       
     posx = parent->width()-Layout::Button-Layout::Margin;
@@ -118,8 +126,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnSettings->setPos(posx, 0);
     _btnSettings->setSize(Layout::Button, Layout::Button);
     _btnSettings->setFont(&DEFAULT_FONT);
-    _btnSettings->setCallback([this]() {
+    _btnSettings->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableSettingsPopup();
+        return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
@@ -127,9 +136,10 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnToggleMetronome->setPos(posx, 0);
     _btnToggleMetronome->setSize(Layout::Button, Layout::Button);
     _btnToggleMetronome->setFont(&DEFAULT_FONT);
-    _btnToggleMetronome->setCallback([]() {
+    _btnToggleMetronome->tapCallback([](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::ToggleMetronome>();
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
@@ -137,8 +147,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnMidiKbd->setPos(posx, 0);
     _btnMidiKbd->setSize(Layout::Button, Layout::Button);
     _btnMidiKbd->setFont(&DEFAULT_FONT);
-    _btnMidiKbd->setCallback([this]() {
+    _btnMidiKbd->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableMidiKeyboard();
+        return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
@@ -146,10 +157,11 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnRedo->setPos(posx, 0);
     _btnRedo->setSize(Layout::Button, Layout::Button);
     _btnRedo->setFont(&DEFAULT_FONT);
-    _btnRedo->setCallback([this]() {
+    _btnRedo->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Redo action");
         auto act = std::make_unique<slr::Actions::Redo>();
         slr::EmitAction(std::move(act));
+        return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
@@ -157,10 +169,11 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     _btnUndo->setPos(posx, 0);
     _btnUndo->setSize(Layout::Button, Layout::Button);
     _btnUndo->setFont(&DEFAULT_FONT);
-    _btnUndo->setCallback([this]() {
+    _btnUndo->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Undo action");
         auto act = std::make_unique<slr::Actions::Undo>();
         slr::EmitAction(std::move(act));
+        return true;
     });
     
     show();

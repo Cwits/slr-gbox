@@ -9,7 +9,6 @@ namespace UI {
 Checkbox::Checkbox(BaseWidget * parent) :
     BaseWidget(parent, true)
 {
-    _flags.isTap = true;
     _state = false;
 
     setSize(Layout::CHECKBOX, Layout::CHECKBOX);
@@ -17,6 +16,22 @@ Checkbox::Checkbox(BaseWidget * parent) :
     _checked = lv_label_create(lvhost());
     lv_obj_center(_checked);
     lv_obj_set_style_text_font(_checked, &DEFAULT_FONT, 0);
+
+    tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        if(this->_state) {
+            this->_state = false;
+        } else {
+            this->_state = true;
+        }
+
+        this->updateCheck();
+
+        if(this->_callback) 
+            this->_callback(_state);
+
+        return true;
+    });
+
     updateCheck();
     
     show();
@@ -26,7 +41,7 @@ Checkbox::~Checkbox() {
     lv_obj_delete(_checked);
 }
 
-void Checkbox::setCallback(std::function<void(bool)> fn) {
+void Checkbox::checkCallback(std::function<void(bool)> fn) {
     _callback = std::move(fn);
 }
 
@@ -42,21 +57,5 @@ void Checkbox::updateCheck() {
         lv_label_set_text(_checked, LV_SYMBOL_OK);
     }
 }
-
-bool Checkbox::handleTap(GestLib::TapGesture &tap) {
-    if(_state) {
-        _state = false;
-    } else {
-        _state = true;
-    }
-
-    updateCheck();
-
-    if(_callback) 
-        _callback(_state);
-
-    return true;
-}
-
 
 }

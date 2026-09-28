@@ -211,31 +211,73 @@ bool BaseWidget::handleGesture(GestLib::Gesture & gesture) {
     return ret;
 }
 
-bool BaseWidget::handleTouchDown(GestLib::TouchDownEvent & touchDown) {
+void BaseWidget::tapCallback(std::function<bool(const GestLib::TapGesture &)> onTap) {
+    _onTap = std::move(onTap);
+    _flags.isTap = true;
+}
+
+void BaseWidget::touchDownCallback(std::function<bool(const GestLib::TouchDownEvent &)> onTouchDown) {
+    _onTouchDown = std::move(onTouchDown);
+    _flags.isTouchDown = true;
+}
+
+void BaseWidget::touchUpCallback(std::function<bool(const GestLib::TouchUpEvent &)> onTouchUp) {
+    _onTouchUp = std::move(onTouchUp);
+    _flags.isTouchUp = true;
+}
+
+void BaseWidget::holdCallback(std::function<bool(const GestLib::HoldGesture &)> onHold) {
+    _onHold = std::move(onHold);
+    _flags.isHold = true;
+}
+
+void BaseWidget::dragCallback(std::function<bool(const GestLib::DragGesture &)> onDrag) {
+    _onDrag = std::move(onDrag);
+    _flags.isDrag = true;
+}
+
+void BaseWidget::swipeCallback(std::function<bool(const GestLib::SwipeGesture &)> onSwipe) {
+    _onSwipe = std::move(onSwipe);
+    _flags.isSwipe = true;
+}
+void BaseWidget::doubleTapCallback(std::function<bool(const GestLib::DoubleTapGesture &)> onDT) {
+    _onDoubleTap = std::move(onDT);
+    _flags.isDoubleTap = true;
+}
+    
+bool BaseWidget::handleTap(const GestLib::TapGesture & tap) {
+    if(_onTap) { return _onTap(tap); }
     return false;
 }
-bool BaseWidget::handleTouchUp(GestLib::TouchUpEvent & touchUp) {
+
+bool BaseWidget::handleTouchDown(const GestLib::TouchDownEvent &down) {
+    if(_onTouchDown) { return _onTouchDown(down); }
     return false;
 }
-bool BaseWidget::handleTap(GestLib::TapGesture & tap) {
+bool BaseWidget::handleTouchUp(const GestLib::TouchUpEvent &up) {
+    if(_onTouchUp) { return _onTouchUp(up); }
     return false;
 }
-bool BaseWidget::handleHold(GestLib::HoldGesture & hold) {
+bool BaseWidget::handleHold(const GestLib::HoldGesture & hold) {
+    if(_onHold) { return _onHold(hold); }
     return false;
 }
-bool BaseWidget::handleDoubleTap(GestLib::DoubleTapGesture & dtap) {
+bool BaseWidget::handleDoubleTap(const GestLib::DoubleTapGesture & dtap) {
+    if(_onDoubleTap) { return _onDoubleTap(dtap); }
     return false;
 }
-bool BaseWidget::handleDrag(GestLib::DragGesture & drag) {
+bool BaseWidget::handleDrag(const GestLib::DragGesture & drag) {
+    if(_onDrag) { return _onDrag(drag); }
     return false;
 }
-bool BaseWidget::handleSwipe(GestLib::SwipeGesture & swipe) {
+bool BaseWidget::handleSwipe(const GestLib::SwipeGesture & swipe) {
+    if(_onSwipe) { return _onSwipe(swipe); }
     return false;
 }
-bool BaseWidget::handleDTSwipe(GestLib::DTSwipeGesture & swipe) {
+bool BaseWidget::handleDTSwipe(const GestLib::DTSwipeGesture & swipe) {
     return false;
 }
-bool BaseWidget::handleDTCircular(GestLib::DTCircularGesture & swipe) {
+bool BaseWidget::handleDTCircular(const GestLib::DTCircularGesture & swipe) {
     return false;
 }
 

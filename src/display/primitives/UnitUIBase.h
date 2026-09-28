@@ -92,7 +92,7 @@ struct DefaultGridUI : public BaseWidget {
     std::vector<std::unique_ptr<FileView>> _fileUIs;
     uint64_t _fileContainerVersion;
     
-    bool handleDoubleTap(GestLib::DoubleTapGesture &dt);
+    bool handleDoubleTap(const GestLib::DoubleTapGesture &dt);
 };
 
 struct DefaultUnitUI : public BaseWidget {

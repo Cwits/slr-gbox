@@ -80,6 +80,7 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
     _lblUnit->setPos(unitZone.x + (unitZone.w/2) - 40, unitZone.y + (unitZone.h/2) - 10);
     _lblUnit->setFont(&DEFAULT_FONT);
 
+    dragCallback(std::bind(&DragViewSelector::handleDrag, this, std::placeholders::_1));
 }
 
 DragViewSelector::~DragViewSelector() {
@@ -100,7 +101,7 @@ void DragViewSelector::reset() {
 
 }
 
-bool DragViewSelector::handleDrag(GestLib::DragGesture & drag) {
+bool DragViewSelector::handleDrag(const GestLib::DragGesture & drag) {
     DragContext & ctx = *_uictx->dragContext();
     if(drag.state == GestLib::GestureState::Start) {
 

@@ -53,11 +53,11 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
 
     void draw();
 
-    bool handleTap(GestLib::TapGesture & tap) override;
+    bool handleTap(const GestLib::TapGesture & tap);
     //use Hold for dragging item across grid
-    bool handleDoubleTap(GestLib::DoubleTapGesture & dtap) override;
+    bool handleDoubleTap(const GestLib::DoubleTapGesture & dtap);
     // bool handleDrag(GestLib::DragGesture & drag);
-    bool handleHold(GestLib::HoldGesture &hold) override;
+    bool handleHold(const GestLib::HoldGesture &hold);
 };
 
 struct FilePopup : public Popup {

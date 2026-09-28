@@ -22,11 +22,13 @@ Button::Button(BaseWidget * parent, std::string text) : BaseWidget(parent, false
     lv_obj_center(_label);
     lv_obj_add_style(_btn, &buttonDefaultStyle, 0);
     
-    setTouchDownCallback([this]() {
+    touchDownCallback([this](const GestLib::TouchDownEvent &td) -> bool {
         this->setColor(BUTTON_DEFAULT_PRESSED);
+        return true;
     });
-    setTouchUpCallback([this]() {
+    touchUpCallback([this](const GestLib::TouchUpEvent &tu) -> bool {
         this->setColor(this->_defaultColor);
+        return true;
     });
 
     _defaultColor = BUTTON_DEFAULT_COLOR;
@@ -65,58 +67,6 @@ void Button::setTextColorHex(const uint32_t value) {
 
 void Button::setTextPos(lv_coord_t x, lv_coord_t y) {
     lv_obj_set_pos(_label, x, y);
-}
-    
-void Button::setCallback(std::function<void()> onClick) {
-    _onClick = onClick;
-}
-
-void Button::setTouchDownCallback(std::function<void()> onTouchDown) {
-    _onTouchDown = onTouchDown;
-    _flags.isTouchDown = true;
-}
-
-void Button::setTouchUpCallback(std::function<void()> onTouchUp) {
-    _onTouchUp = onTouchUp;
-    _flags.isTouchUp = true;
-}
-
-    
-// void Button::event_trampoline(lv_event_t* e) {
-//     Button* self = static_cast<Button*>(lv_event_get_user_data(e));
-
-//     if (self && self->_onClick) {
-//         self->_onClick();
-//     }
-// }
-
-bool Button::handleTap(GestLib::TapGesture & tap) {
-    if(_disabled) return true;
-    if(_onClick) {
-        _onClick();
-        return true;
-    }
-    return false;
-}
-
-bool Button::handleTouchDown(GestLib::TouchDownEvent &down) {
-    if(_disabled) return true;
-    if(_onTouchDown) {
-        _onTouchDown();
-        return true;
-    }
-
-    return false;
-}
-
-bool Button::handleTouchUp(GestLib::TouchUpEvent &up) {
-    if(_disabled) return true;
-    if(_onTouchUp) {
-        _onTouchUp();
-        return true;
-    }
-
-    return false;
 }
 
 const std::string Button::text() const {

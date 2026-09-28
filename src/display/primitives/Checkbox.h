@@ -12,7 +12,7 @@ struct Checkbox : public BaseWidget {
     Checkbox(BaseWidget * parent);
     ~Checkbox();
 
-    void setCallback(std::function<void(bool)> fn);
+    void checkCallback(std::function<void(bool)> fn);
     void setValue(bool checked);
 
     private:
@@ -22,8 +22,6 @@ struct Checkbox : public BaseWidget {
     void updateCheck();
 
     std::function<void(bool)> _callback;
-
-    bool handleTap(GestLib::TapGesture &tap) override;
 };
 
 }

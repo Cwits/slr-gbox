@@ -51,8 +51,6 @@ MainWindow * _inst = nullptr;
 
 std::vector<std::unique_ptr<UnitUIBase>> _removedUnits;
 
-std::string gestureToText(GestLib::Gestures &g);
-
 MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _inst = this;
     initDefaultStyles();
@@ -274,7 +272,7 @@ bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
     }
 
     if(!globtarget) {
-        LOG_WARN("Hittest target is nullptr in %s gesture", gestureToText(gesture.type).c_str());
+        LOG_WARN("Hittest target is nullptr in %s gesture", GestLib::gestureToText(gesture.type).c_str());
         return false;
     }
 
@@ -339,7 +337,7 @@ BaseWidget * MainWindow::hitTest(BaseWidget * node, int x, int y) {
 //transfers ongoing gesture to different view(e.g. from browser to grid)
 void MainWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture) {
     if(!target->canHandleGesture(gesture)) {
-        LOG_WARN("Target can't handle gesture %s", gestureToText(gesture).c_str());
+        LOG_WARN("Target can't handle gesture %s", GestLib::gestureToText(gesture).c_str());
         return;
     }
 
@@ -452,27 +450,6 @@ void MainWindow::createSequenceUI(const std::shared_ptr<slr::SequenceView> view)
 
 void MainWindow::createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view) {
     _modEngineView->createModUI(view);
-}
-
-std::string gestureToText(GestLib::Gestures &g) {
-    std::string text;
-    switch(g) {
-        case(GestLib::Gestures::TouchDown): text = "Touch Down"; break;
-        case(GestLib::Gestures::TouchUp): text = "Touch Up"; break;
-        case(GestLib::Gestures::Tap): text = "Tap"; break;
-        case(GestLib::Gestures::Hold): text = "Hold"; break;
-        case(GestLib::Gestures::Drag): text = "Drag"; break;
-        case(GestLib::Gestures::Swipe): text = "Swipe"; break;
-        case(GestLib::Gestures::DoubleTap): text = "Double Tap"; break;
-        case(GestLib::Gestures::DoubleTapSwipe): text = "Double Tap Swipe"; break;
-        case(GestLib::Gestures::DoubleTapCircular): text = "Double Tap Circular"; break;
-        case(GestLib::Gestures::Zoom): text = "Zoom"; break;
-        case(GestLib::Gestures::TwoFingerTap): text = "Two Finger Tap"; break;
-        case(GestLib::Gestures::TwoFingerSwipe): text = "Two Finger Swipe"; break;
-        case(GestLib::Gestures::ThreeFingerTap): text = "Three Finger Tap"; break;
-        case(GestLib::Gestures::ThreeFingerSwipe): text = "Three Finger Swipe"; break;
-    }
-    return text;
 }
 
 void MainWindow::createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view) {

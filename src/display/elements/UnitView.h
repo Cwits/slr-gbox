@@ -22,7 +22,7 @@ class UnitView : public View {
 
     UnitUIBase * _lastShownModule;
     
-    bool handleDrag(GestLib::DragGesture & drag) override;
+    bool handleDrag(const GestLib::DragGesture & drag);
 };
 
 }

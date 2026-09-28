@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 namespace UI {
 
@@ -79,6 +80,13 @@ struct BaseWidget {
         return false;
     }
     
+    void touchDownCallback(std::function<bool(const GestLib::TouchDownEvent &)> onTouchDown);
+    void touchUpCallback(std::function<bool(const GestLib::TouchUpEvent &)> onTouchUp);
+    void tapCallback(std::function<bool(const GestLib::TapGesture &)> onTap);
+    void holdCallback(std::function<bool(const GestLib::HoldGesture &)> onHold);
+    void dragCallback(std::function<bool(const GestLib::DragGesture &)> onDrag);
+    void swipeCallback(std::function<bool(const GestLib::SwipeGesture &)> onSwipe);
+    void doubleTapCallback(std::function<bool(const GestLib::DoubleTapGesture &)> onDT);
 
     protected:
     BaseWidget * _parent;
@@ -90,15 +98,23 @@ struct BaseWidget {
 
     GestureFlags _flags;
 
-    virtual bool handleTouchDown(GestLib::TouchDownEvent & touchDown);
-    virtual bool handleTouchUp(GestLib::TouchUpEvent & touchUp);
-    virtual bool handleTap(GestLib::TapGesture & tap);
-    virtual bool handleHold(GestLib::HoldGesture & hold);
-    virtual bool handleDoubleTap(GestLib::DoubleTapGesture & dtap);
-    virtual bool handleDrag(GestLib::DragGesture & drag);
-    virtual bool handleSwipe(GestLib::SwipeGesture & swipe);
-    virtual bool handleDTSwipe(GestLib::DTSwipeGesture & swipe);
-    virtual bool handleDTCircular(GestLib::DTCircularGesture & swipe);
+    std::function<bool(const GestLib::TouchDownEvent &)> _onTouchDown;
+    std::function<bool(const GestLib::TouchUpEvent &)> _onTouchUp;
+    std::function<bool(const GestLib::TapGesture &)> _onTap;
+    std::function<bool(const GestLib::HoldGesture &)> _onHold;
+    std::function<bool(const GestLib::DragGesture &)> _onDrag;
+    std::function<bool(const GestLib::SwipeGesture &)> _onSwipe;
+    std::function<bool(const GestLib::DoubleTapGesture &)> _onDoubleTap;
+
+    bool handleTouchDown(const GestLib::TouchDownEvent & touchDown);
+    bool handleTouchUp(const GestLib::TouchUpEvent & touchUp);
+    bool handleTap(const GestLib::TapGesture & tap);
+    bool handleHold(const GestLib::HoldGesture & hold);
+    bool handleDoubleTap(const GestLib::DoubleTapGesture & dtap);
+    bool handleDrag(const GestLib::DragGesture & drag);
+    bool handleSwipe(const GestLib::SwipeGesture & swipe);
+    bool handleDTSwipe(const GestLib::DTSwipeGesture & swipe);
+    bool handleDTCircular(const GestLib::DTCircularGesture & swipe);
 
     uint64_t _lastPolledUIVersion;
     private:

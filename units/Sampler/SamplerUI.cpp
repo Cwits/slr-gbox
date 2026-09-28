@@ -77,8 +77,6 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
 {
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     setPos(0, 0);
-
-    _flags.isDrag = true;
     
     _testRect = lv_obj_create(lvhost());
     lv_obj_set_size(_testRect, 200, 200);
@@ -108,6 +106,8 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
     //set buffer
     lv_canvas_set_buffer(_canvas, _drawBuffer, _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
     lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
+
+    dragCallback(std::bind(&SamplerUI::SamplerUnitUI::handleDrag, this, std::placeholders::_1));
 }
 
 SamplerUI::SamplerUnitUI::~SamplerUnitUI() {
@@ -144,7 +144,7 @@ void SamplerUI::SamplerUnitUI::pollUIUpdate() {
 }
 
 
-bool SamplerUI::SamplerUnitUI::handleDrag(GestLib::DragGesture & drag) {
+bool SamplerUI::SamplerUnitUI::handleDrag(const GestLib::DragGesture & drag) {
     DragContext & ctx = *_parentUI->_uictx->dragContext();
     if(drag.state == GestLib::GestureState::Start) {
 

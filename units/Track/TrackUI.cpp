@@ -63,7 +63,7 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
     _btnRecord->setPos(posx, posy);
     _btnRecord->setSize(Layout::Button, Layout::Button);
     _btnRecord->setFont(&lv_font_montserrat_40);
-    _btnRecord->setCallback([this]() {
+    _btnRecord->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::RecordArm>();
         const std::shared_ptr<const slr::TrackView> track = _parentUI->_track.lock();
         act->targetId = track->id();
@@ -72,6 +72,7 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
                                 slr::RecordSource::Audio : 
                                 slr::RecordSource::Midi;
         slr::EmitAction(std::move(act));
+        return true;
     });
     
     posx += (Layout::Margin + Layout::Button);
@@ -80,7 +81,7 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
     _btnSource->setPos(posx, posy);
     _btnSource->setSize(Layout::Button, Layout::Button);
     _btnSource->setFont(&lv_font_montserrat_20);
-    _btnSource->setCallback([this]() {
+    _btnSource->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         slr::TimelineView & tl = slr::TimelineView::getTimelineView();
         
         //prohibit source change during recording
@@ -95,6 +96,7 @@ TrackUI::TrackGridControlUI::TrackGridControlUI(BaseWidget *parent, TrackUI * pa
                                     slr::RecordSource::Audio; 
             slr::EmitAction(std::move(act));
         }
+        return true;
     });
     _btnSource->hide();
 

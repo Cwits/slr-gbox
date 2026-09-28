@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <string>
+#include <memory>
 
 namespace UI {
 
@@ -27,14 +28,14 @@ struct DropDown : public BaseWidget {
     void enableButton();
     void disableButton();
     bool isButtonDisabled() const;
-    Button * button() const { return _btn; }
+    Button * button() const { return _btn.get(); }
     
     void setSize(lv_coord_t w, lv_coord_t h) override;
     void setPos(lv_coord_t x, lv_coord_t y) override;
 
     void close();
     private:
-    Button * _btn;
+    std::unique_ptr<Button> _btn;
     std::vector<lv_obj_t*> _items;
     
     std::function<void(const std::string)> _callback;
@@ -45,7 +46,7 @@ struct DropDown : public BaseWidget {
 
     void open();
 
-    bool handleTap(GestLib::TapGesture & tap) override;
+    // bool handleTap(GestLib::TapGesture & tap) override;
     
 };
 

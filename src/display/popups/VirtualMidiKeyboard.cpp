@@ -64,7 +64,7 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
         posx += WHITE_WIDTH;
 
         k->note = _defaultWhiteNotes[i];
-        k->setTouchDownCallback([k, this]() {
+        k->touchDownCallback([k, this](const GestLib::TouchDownEvent &td) -> bool {
             k->setColor(BUTTON_DEFAULT_PRESSED);
             LOG_INFO("Key pressed: %d", (k->note + this->octaveModifier()));
             auto act = std::make_unique<slr::Actions::VMKTrigger>();
@@ -73,8 +73,9 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
             act->channel = 0;
             act->isPressed = true;
             slr::EmitAction(std::move(act));
+            return true;
         }); 
-        k->setTouchUpCallback([k, this]() {
+        k->touchUpCallback([k, this](const GestLib::TouchUpEvent &tu) -> bool {
             k->setColor(WHITE_COLOR);
             auto act = std::make_unique<slr::Actions::VMKTrigger>();
             act->note = k->note + this->octaveModifier();
@@ -82,6 +83,7 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
             act->channel = 0;
             act->isPressed = false;
             slr::EmitAction(std::move(act));
+            return true;
         });
 
         _keys.push_back(k);
@@ -103,11 +105,25 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
         }
 
         k->note = _defaultBlackNotes[i];
-        k->setCallback([k, this]() {
+        k->touchDownCallback([k, this](const GestLib::TouchDownEvent &tap) -> bool {
             LOG_INFO("Key pressed: %d", (k->note + this->octaveModifier()));
+            auto act = std::make_unique<slr::Actions::VMKTrigger>();
+            act->note = k->note + this->octaveModifier();
+            act->velocity = 127;
+            act->channel = 0;
+            act->isPressed = true;
+            slr::EmitAction(std::move(act));
+            return true;
         });
-        k->setTouchUpCallback([k]() {
+        k->touchUpCallback([k, this](const GestLib::TouchUpEvent &tu) -> bool {
             k->setColor(BLACK_COLOR);
+            auto act = std::make_unique<slr::Actions::VMKTrigger>();
+            act->note = k->note + this->octaveModifier();
+            act->velocity = 127;
+            act->channel = 0;
+            act->isPressed = false;
+            slr::EmitAction(std::move(act));
+            return true;
         });
         
         _keys.push_back(k);

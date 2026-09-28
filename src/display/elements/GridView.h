@@ -30,7 +30,7 @@ struct GridControl : public BaseWidget {
     GridView * _grid;
     UIContext * const _uictx;
 
-    bool handleTap(GestLib::TapGesture &tap) override;
+    bool handleTap(const GestLib::TapGesture &tap);
 };
 
 struct GridGrid : public BaseWidget { 
@@ -43,7 +43,7 @@ struct GridGrid : public BaseWidget {
     GridView * _grid;
     UIContext * const _uictx;
 
-    bool handleDrag(GestLib::DragGesture & drag) override;
+    bool handleDrag(const GestLib::DragGesture & drag);
 
 };
 
@@ -61,8 +61,8 @@ struct GridView : public View {
     private:
     float _horizontalZoom = 1.0f;
 
-    bool handleSwipe(GestLib::SwipeGesture & swipe) override;
-    bool handleDrag(GestLib::DragGesture &drag) override;
+    bool handleSwipe(const GestLib::SwipeGesture & swipe);
+    bool handleDrag(const GestLib::DragGesture &drag);
 };
 
 }

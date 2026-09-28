@@ -7,15 +7,17 @@
 namespace slr {
 
 
-ParameterBaseView::ParameterBaseView(ParameterBase * base) 
-    : _name(base->name()), 
-    _uniqueId(base->id()), 
-    _default(base->defaultValue()), 
-    _min(base->minimalValue()), 
-    _max(base->maximalValue())
+ParameterBaseView::ParameterBaseView(const ParameterBase * base) 
+    : _base(base)
 {
-
 }
+
+ID ParameterBaseView::id() const { return _base->id(); }
+const std::string & ParameterBaseView::name() const { return _base->name(); }
+float ParameterBaseView::defaultValue() const { return _base->defaultValue(); }
+float ParameterBaseView::minimalValue() const { return _base->minimalValue(); }
+float ParameterBaseView::maximalValue() const { return _base->maximalValue(); }
+
 
 ParameterFloatView::ParameterFloatView(ParameterFloat * par) : ParameterBaseView(par), _value(*par) {
  

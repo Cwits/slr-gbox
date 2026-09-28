@@ -20,37 +20,41 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
     _btnTrack = std::make_unique<Button>(this, "Track");
     _btnTrack->setSize(Layout::Button, Layout::Button);
     _btnTrack->setPos(100, 100);
-    _btnTrack->setCallback([this]() {
+    _btnTrack->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "Track";
         slr::EmitAction(std::move(action));
+        return true;
     });
 
     _btnMixer = std::make_unique<Button>(this, "Mixer");
     _btnMixer->setSize(Layout::Button, Layout::Button);
     _btnMixer->setPos(300, 100);
-    _btnMixer->setCallback([this]() {
+    _btnMixer->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "Mixer";
         slr::EmitAction(std::move(action));
+        return true;
     });
 
     _btnOsc = std::make_unique<Button>(this, "SimpleOSC");
     _btnOsc->setSize(Layout::Button, Layout::Button);
     _btnOsc->setPos(500, 100);
-    _btnOsc->setCallback([this]() {
+    _btnOsc->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "SimpleOSC";
         slr::EmitAction(std::move(action));
+        return true;
     });
 
     _btnSampler = std::make_unique<Button>(this, "Sampler");
     _btnSampler->setSize(Layout::Button, Layout::Button);
     _btnSampler->setPos(100, 200);
-    _btnSampler->setCallback([this]() {
+    _btnSampler->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "Sampler";
         slr::EmitAction(std::move(action));
+        return true;
     });
 }
 

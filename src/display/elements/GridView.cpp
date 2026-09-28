@@ -31,7 +31,7 @@ GridControl::GridControl(GridView * parent, UIContext * const uictx)
     setPos(Layout::TRACK_CONTROL_PANEL_X, Layout::TRACK_CONTROL_PANEL_Y);
     setSize(Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_CONTROL_PANEL_HEIGHT);
     
-    _flags.isTap = true;
+    // _flags.isTap = true;
 
     lv_obj_add_style(_lvhost, &workspace, 0);
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
@@ -41,6 +41,8 @@ GridControl::GridControl(GridView * parent, UIContext * const uictx)
     lv_obj_set_size(_lastSelectedRect, Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_HEIGHT);
     lv_obj_set_style_bg_opa(_lastSelectedRect, LV_OPA_0, 0);
     
+    tapCallback(std::bind(&GridControl::handleTap, this, std::placeholders::_1));
+
     show();
 }
 
@@ -48,7 +50,7 @@ GridControl::~GridControl() {
     lv_obj_delete(_lastSelectedRect);
 }
 
-bool GridControl::handleTap(GestLib::TapGesture &tap) {
+bool GridControl::handleTap(const GestLib::TapGesture &tap) {
     int notAbsY = tap.y - Layout::TOP_PANEL_HEIGHT;
     UnitUIBase * u = nullptr;
     const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
@@ -90,6 +92,8 @@ GridGrid::GridGrid(GridView * parent, UIContext * const uictx)
     // lv_obj_set_style_bg_color(lvhost(), )
     // lv_obj_set_style_bg_opa(lvhost(), LV_OPA_100, 0);
 
+    dragCallback(std::bind(&GridGrid::handleDrag, this, std::placeholders::_1));
+
     show();
 }
 
@@ -97,7 +101,7 @@ GridGrid::~GridGrid() {
 
 }
 
-bool GridGrid::handleDrag(GestLib::DragGesture & drag) {
+bool GridGrid::handleDrag(const GestLib::DragGesture & drag) {
     // DragContext & ctx = *_uictx->dragContext();
     // if(drag.state == GestLib::GestureState::Start) {
 
@@ -160,6 +164,10 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx)
     
     _flags.isSwipe = true;
     _flags.isDrag = true;
+
+    dragCallback(std::bind(&GridView::handleDrag, this, std::placeholders::_1));
+    swipeCallback(std::bind(&GridView::handleSwipe, this, std::placeholders::_1));
+
     show();
 }
 
@@ -167,7 +175,7 @@ GridView::~GridView() {
     //have to call explicitly before deleting _control and _grid
 }
 
-bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
+bool GridView::handleSwipe(const GestLib::SwipeGesture & swipe) {
     if(swipe.state == GestLib::GestureState::Start) {
         // LOG_INFO("Swipe start from grid view x: %d, y: %d, dx: %d, dy: %d", 
             // swipe.x, swipe.y, swipe.dx, swipe.dy);
@@ -260,7 +268,7 @@ bool GridView::handleSwipe(GestLib::SwipeGesture & swipe) {
     return true;
 }
 
-bool GridView::handleDrag(GestLib::DragGesture &drag) {
+bool GridView::handleDrag(const GestLib::DragGesture &drag) {
     DragContext & ctx = *_uictx->dragContext();
     if(drag.state == GestLib::GestureState::Start) {
 

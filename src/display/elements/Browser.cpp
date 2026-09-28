@@ -41,8 +41,8 @@ Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uic
     _refresh->setSize(Layout::Button, Layout::Button);
     _refresh->setPos(posx, Layout::Margin);
     _refresh->setFont(&DEFAULT_FONT);
-    _refresh->setCallback([this]() {
-        this->parse();
+    _refresh->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        this->parse(); return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
@@ -50,8 +50,8 @@ Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uic
     _dirUp->setSize(Layout::Button, Layout::Button);
     _dirUp->setPos(posx, Layout::Margin);
     _dirUp->setFont(&DEFAULT_FONT);
-    _dirUp->setCallback([this]() {
-        this->goUp();
+    _dirUp->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        this->goUp(); return true;
     });
 
     _lastPath = new Label(this, "");
@@ -60,6 +60,12 @@ Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uic
     _lastPath->setFont(&DEFAULT_FONT);
 
     _lastTouched = nullptr;
+
+    touchDownCallback(std::bind(&Browser::handleTouchDown, this, std::placeholders::_1));
+    touchUpCallback(std::bind(&Browser::handleTouchUp, this, std::placeholders::_1));
+    tapCallback(std::bind(&Browser::handleTap, this, std::placeholders::_1));
+    dragCallback(std::bind(&Browser::handleDrag, this, std::placeholders::_1));
+    swipeCallback(std::bind(&Browser::handleSwipe, this, std::placeholders::_1));
 
     parse();
 }
@@ -153,7 +159,7 @@ void Browser::goUp() {
     parse();
 }
 
-bool Browser::handleTouchDown(GestLib::TouchDownEvent &down) {
+bool Browser::handleTouchDown(const GestLib::TouchDownEvent &down) {
     int notAbsX = down.x - getX();
     int notAbsY = down.y - getY();
     Label * lb = findLabel(notAbsX, notAbsY);
@@ -167,7 +173,7 @@ bool Browser::handleTouchDown(GestLib::TouchDownEvent &down) {
     return true;
 }
 
-bool Browser::handleTouchUp(GestLib::TouchUpEvent &up) {
+bool Browser::handleTouchUp(const GestLib::TouchUpEvent &up) {
     if(_lastTouched) {
         _lastTouched->setTextColor(BLACK_COLOR);
         _lastTouched = nullptr;
@@ -176,7 +182,7 @@ bool Browser::handleTouchUp(GestLib::TouchUpEvent &up) {
     return true;
 }
 
-bool Browser::handleTap(GestLib::TapGesture &tap) { 
+bool Browser::handleTap(const GestLib::TapGesture &tap) { 
     int notAbsX = tap.x - getX();
     int notAbsY = tap.y - getY();
 
@@ -204,7 +210,7 @@ bool Browser::handleTap(GestLib::TapGesture &tap) {
     return true;
 }
 
-bool Browser::handleDrag(GestLib::DragGesture & drag) {
+bool Browser::handleDrag(const GestLib::DragGesture & drag) {
     if(drag.state == GestLib::GestureState::Start) {
         LOG_INFO("Drag Start x: %d, y: %d", drag.x, drag.y);
         int notAbsX = drag.x - getX();
@@ -252,7 +258,7 @@ bool Browser::handleDrag(GestLib::DragGesture & drag) {
     return true;
 }
 
-bool Browser::handleSwipe(GestLib::SwipeGesture &swipe) {
+bool Browser::handleSwipe(const GestLib::SwipeGesture &swipe) {
     if(swipe.state == GestLib::GestureState::Start) {
 
     } else if(swipe.state == GestLib::GestureState::Move) {

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "display/primitives/Popup.h"
+#include <memory>
 
 namespace UI {
 
@@ -17,10 +18,10 @@ struct TimelinePopup : public Popup {
 
     void update();
     private:
-    Label * _bpm;
-    Label * _timeSignature;
+    std::unique_ptr<Label> _bpm;
+    std::unique_ptr<Label> _timeSignature;
 
-    Button * _applyBtn;
+    std::unique_ptr<Button> _applyBtn;
 };
 
 }

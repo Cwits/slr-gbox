@@ -101,7 +101,7 @@ struct StepSequencerView : public View {
 
         private:
         StepSequencerView *_view;
-        bool handleSwipe(GestLib::SwipeGesture & swipe) override;
+        bool handleSwipe(const GestLib::SwipeGesture & swipe);
     };
 
     LayersContainer _container;

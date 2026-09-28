@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <vector>
+#include <memory>
 
 namespace UI {
 
@@ -25,21 +26,21 @@ struct ScreenKeyboard : public Popup {
     lv_obj_t * _keyboard;
     lv_obj_t * _textArea;
 
-    std::vector<Button*> _numMatrix;
-    std::vector<Button*> _buttonMatrix;
+    std::vector<std::unique_ptr<Button>> _numMatrix;
+    std::vector<std::unique_ptr<Button>> _buttonMatrix;
     // std::vector<Button*> _alternativeMatrix;
     
-    Button * _backspaceBtn;
-    Button * _enterBtn;
+    std::unique_ptr<Button> _btnBackspace;
+    std::unique_ptr<Button> _btnEnter;
     
-    Button * _dotBtn;
-    Button * _slashBtn;
-    Button * _clearBtn;
+    std::unique_ptr<Button> _btnDot;
+    std::unique_ptr<Button> _btnSlash;
+    std::unique_ptr<Button> _btnClear;
     
-    Button * _mulButton;
-    Button * _plusButton;
-    Button * _spaceButton;
-    Button * _shiftButton;
+    std::unique_ptr<Button> _btnMul;
+    std::unique_ptr<Button> _btnPlus;
+    std::unique_ptr<Button> _btnSpace;
+    std::unique_ptr<Button> _btnShift;
     // Button * _shiftBtn;
     enum class ShiftState { Disabled, Enabled };
     ShiftState _shiftState;
@@ -48,7 +49,7 @@ struct ScreenKeyboard : public Popup {
 
     void toCase(bool upper);
 
-    bool handleTap(GestLib::TapGesture &tap) override;
+    // bool handleTap(GestLib::TapGesture &tap);
     void initButton(Button * btn, int x, int y);
 };
 

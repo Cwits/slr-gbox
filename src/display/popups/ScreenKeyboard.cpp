@@ -49,19 +49,20 @@ ScreenKeyboard::ScreenKeyboard(BaseWidget * parent, UIContext * const uictx) :
     int rowx = KEY_ROW_START_X;
     int rowy = Layout::KB_TEXT_AREA_H + Layout::Margin;
     for(int i=0; i<Layout::KEYS_ROW_NUM; ++i) {
-        Button * btn = new Button(this, num_map[i]);
-        initButton(btn, rowx, rowy);
+        std::unique_ptr<Button> btn = std::make_unique<Button>(this, num_map[i]);
+        initButton(btn.get(), rowx, rowy);
         rowx += (Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN);
-        _numMatrix.push_back(btn);
+        _numMatrix.push_back(std::move(btn));
     }
 
-    _backspaceBtn = new Button(this, LV_SYMBOL_BACKSPACE);
-    _backspaceBtn->setSize(Layout::KB_BACKSPACE_W, Layout::KB_BACKSPACE_H);
-    _backspaceBtn->setPos(Layout::KB_BACKSPACE_X, Layout::KB_BACKSPACE_Y);
-    _backspaceBtn->setFont(&DEFAULT_FONT);
-    _backspaceBtn->setCallback([this]() {
+    _btnBackspace = std::make_unique<Button>(this, LV_SYMBOL_BACKSPACE);
+    _btnBackspace->setSize(Layout::KB_BACKSPACE_W, Layout::KB_BACKSPACE_H);
+    _btnBackspace->setPos(Layout::KB_BACKSPACE_X, Layout::KB_BACKSPACE_Y);
+    _btnBackspace->setFont(&DEFAULT_FONT);
+    _btnBackspace->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed Backspace");
         lv_textarea_delete_char(this->_textArea);
+        return true;
     });
 
     // ---------------- Second Row -------------
@@ -70,20 +71,21 @@ ScreenKeyboard::ScreenKeyboard(BaseWidget * parent, UIContext * const uictx) :
     rowx = KEY_ROW_START_X;
     rowy += Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN;
     for(int i=0; i<Layout::KEYS_ROW_1; ++i) {
-        Button * btn = new Button(this, kb_map_upper[i]);
-        initButton(btn, rowx, rowy);
+        std::unique_ptr<Button> btn = std::make_unique<Button>(this, kb_map_upper[i]);
+        initButton(btn.get(), rowx, rowy);
         rowx += (Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN);
-        _buttonMatrix.push_back(btn);
+        _buttonMatrix.push_back(std::move(btn));
     }
 
     rowx = width() - (Layout::KB_CLEAR_W + Layout::KB_BUTTON_MARGIN);
-    _clearBtn = new Button(this, "Clear");
-    _clearBtn->setSize(Layout::KB_CLEAR_W, Layout::KB_CLEAR_H);
-    _clearBtn->setPos(rowx, rowy);
-    _clearBtn->setFont(&DEFAULT_FONT);
-    _clearBtn->setCallback([this]() {
+    _btnClear = std::make_unique<Button>(this, "Clear");
+    _btnClear->setSize(Layout::KB_CLEAR_W, Layout::KB_CLEAR_H);
+    _btnClear->setPos(rowx, rowy);
+    _btnClear->setFont(&DEFAULT_FONT);
+    _btnClear->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed Clear");
         lv_textarea_set_text(this->_textArea, "");
+        return true;
     });
 
     // ---------------- Third Row ---------------
@@ -92,30 +94,32 @@ ScreenKeyboard::ScreenKeyboard(BaseWidget * parent, UIContext * const uictx) :
     rowx = (KEY_ROW_START_X+Layout::KB_BUTTON_SIZE/2);
     rowy += Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN;
     for(int i=0; i<Layout::KEYS_ROW_2; ++i) {
-        Button * btn = new Button(this, kb_map_upper[i+Layout::KEYS_ROW_1]);
-        initButton(btn, rowx, rowy);
+        std::unique_ptr<Button> btn = std::make_unique<Button>(this, kb_map_upper[i+Layout::KEYS_ROW_1]);
+        initButton(btn.get(), rowx, rowy);
         rowx += (Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN);
-        _buttonMatrix.push_back(btn);
+        _buttonMatrix.push_back(std::move(btn));
     }
 
     rowx += (Layout::KB_BUTTON_SIZE*2);
-    _plusButton = new Button(this, "Plus");
-    _plusButton->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
-    _plusButton->setPos(rowx, rowy);
-    _plusButton->setFont(&DEFAULT_FONT);
-    _plusButton->setCallback([this]() {
+    _btnPlus = std::make_unique<Button>(this, "Plus");
+    _btnPlus->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
+    _btnPlus->setPos(rowx, rowy);
+    _btnPlus->setFont(&DEFAULT_FONT);
+    _btnPlus->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed +");
         lv_textarea_add_char(this->_textArea, '+');
+        return true;
     });
 
     rowx += (Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN);
-    _mulButton = new Button(this, "Mul");
-    _mulButton->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
-    _mulButton->setPos(rowx, rowy);
-    _mulButton->setFont(&DEFAULT_FONT);
-    _mulButton->setCallback([this]() {
+    _btnMul = std::make_unique<Button>(this, "Mul");
+    _btnMul->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
+    _btnMul->setPos(rowx, rowy);
+    _btnMul->setFont(&DEFAULT_FONT);
+    _btnMul->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed *");
         lv_textarea_add_char(this->_textArea, '*');
+        return true;
     });
 
     // ---------------- Forth Row --------------
@@ -123,11 +127,11 @@ ScreenKeyboard::ScreenKeyboard(BaseWidget * parent, UIContext * const uictx) :
 
     rowy += Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN;
     rowx = (Layout::KB_BUTTON_MARGIN);
-    _shiftButton = new Button(this, "Shift");
-    _shiftButton->setSize(Layout::KB_SHIFT_W, Layout::KB_SHIFT_H);
-    _shiftButton->setPos(rowx, rowy);
-    _shiftButton->setFont(&DEFAULT_FONT);
-    _shiftButton->setCallback([this]() {
+    _btnShift = std::make_unique<Button>(this, "Shift");
+    _btnShift->setSize(Layout::KB_SHIFT_W, Layout::KB_SHIFT_H);
+    _btnShift->setPos(rowx, rowy);
+    _btnShift->setFont(&DEFAULT_FONT);
+    _btnShift->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Pressed Space");
         // lv_textarea_add_char(this->_textArea, ' ');
         if(this->_shiftState == ScreenKeyboard::ShiftState::Enabled) {
@@ -137,52 +141,56 @@ ScreenKeyboard::ScreenKeyboard(BaseWidget * parent, UIContext * const uictx) :
             this->toCase(true);
             this->_shiftState = ScreenKeyboard::ShiftState::Enabled;
         }
+        return true;
     });
     _shiftState = ScreenKeyboard::ShiftState::Enabled;
     
     rowx = (Layout::KB_SPACE_W + (Layout::KB_BUTTON_MARGIN*2));
-    _spaceButton = new Button(this, "Space");
-    _spaceButton->setSize(Layout::KB_SPACE_W, Layout::KB_SPACE_H);
-    _spaceButton->setPos(rowx, rowy);
-    _spaceButton->setFont(&DEFAULT_FONT);
-    _spaceButton->setCallback([this]() {
+    _btnSpace = std::make_unique<Button>(this, "Space");
+    _btnSpace->setSize(Layout::KB_SPACE_W, Layout::KB_SPACE_H);
+    _btnSpace->setPos(rowx, rowy);
+    _btnSpace->setFont(&DEFAULT_FONT);
+    _btnSpace->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed Space");
         lv_textarea_add_char(this->_textArea, ' ');
+        return true;
     });
 
     rowx = KEY_ROW_START_X+Layout::KB_BUTTON_SIZE+Layout::KB_BUTTON_MARGIN+(Layout::KB_BUTTON_SIZE/2);
     for(int i=0; i<Layout::KEYS_ROW_3; ++i) {
-        Button * btn = new Button(this, kb_map_upper[i+Layout::KEYS_ROW_1+Layout::KEYS_ROW_2]);
-        initButton(btn, rowx, rowy);
+        std::unique_ptr<Button> btn = std::make_unique<Button>(this, kb_map_upper[i+Layout::KEYS_ROW_1+Layout::KEYS_ROW_2]);
+        initButton(btn.get(), rowx, rowy);
         rowx += (Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN);
-        _buttonMatrix.push_back(btn);
+        _buttonMatrix.push_back(std::move(btn));
     }
 
     rowx += (Layout::KB_BUTTON_SIZE*3 + Layout::KB_BUTTON_MARGIN);
-    _dotBtn = new Button(this, ".");
-    _dotBtn->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
-    _dotBtn->setPos(rowx, rowy);
-    _dotBtn->setFont(&DEFAULT_FONT);  
-    _dotBtn->setCallback([this]() {
+    _btnDot = std::make_unique<Button>(this, ".");
+    _btnDot->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
+    _btnDot->setPos(rowx, rowy);
+    _btnDot->setFont(&DEFAULT_FONT);  
+    _btnDot->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed Dot");
         lv_textarea_add_char(this->_textArea, '.');
+        return true;
     });
 
     rowx += (Layout::KB_BUTTON_SIZE + Layout::KB_BUTTON_MARGIN);
-    _slashBtn = new Button(this, "/");    
-    _slashBtn->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
-    _slashBtn->setPos(rowx, rowy);
-    _slashBtn->setFont(&DEFAULT_FONT);
-    _slashBtn->setCallback([this]() {
+    _btnSlash = std::make_unique<Button>(this, "/");    
+    _btnSlash->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
+    _btnSlash->setPos(rowx, rowy);
+    _btnSlash->setFont(&DEFAULT_FONT);
+    _btnSlash->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed Slash");
         lv_textarea_add_char(this->_textArea, '/');
+        return true;
     });
 
-    _enterBtn = new Button(this, LV_SYMBOL_OK);
-    _enterBtn->setSize(Layout::KB_ENTER_W, Layout::KB_ENTER_H);
-    _enterBtn->setPos(Layout::KB_ENTER_X, Layout::KB_ENTER_Y);
-    _enterBtn->setFont(&DEFAULT_FONT);
-    _enterBtn->setCallback([this]() {
+    _btnEnter = std::make_unique<Button>(this, LV_SYMBOL_OK);
+    _btnEnter->setSize(Layout::KB_ENTER_W, Layout::KB_ENTER_H);
+    _btnEnter->setPos(Layout::KB_ENTER_X, Layout::KB_ENTER_Y);
+    _btnEnter->setFont(&DEFAULT_FONT);
+    _btnEnter->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed Enter");
         const std::string text = std::string(lv_textarea_get_text(this->_textArea));
         // LOG_INFO("Text from keyboard: %s", text.c_str());
@@ -191,28 +199,31 @@ ScreenKeyboard::ScreenKeyboard(BaseWidget * parent, UIContext * const uictx) :
         }
 
         this->_uictx->_popManager->disableKeyboard();
+        return true;
     });
 }
 
 ScreenKeyboard::~ScreenKeyboard() {
     // lv_obj_delete(_keyboard);
     lv_obj_delete(_textArea);
-    for(Button *b : _numMatrix) {
-        delete b;
-    }
-    for(Button *b : _buttonMatrix) {
-        delete b;
-    }
-    delete _backspaceBtn;
-    delete _enterBtn;
-    delete _dotBtn;
-    delete _slashBtn;
-    delete _clearBtn;
+    _numMatrix.clear();
+    _buttonMatrix.clear();
+    // for(Button *b : _numMatrix) {
+    //     delete b;
+    // }
+    // for(Button *b : _buttonMatrix) {
+    //     delete b;
+    // }
+    // delete _backspaceBtn;
+    // delete _enterBtn;
+    // delete _dotBtn;
+    // delete _slashBtn;
+    // delete _clearBtn;
     
-    delete _mulButton;
-    delete _plusButton;
-    delete _spaceButton;
-    delete _shiftButton;
+    // delete _mulButton;
+    // delete _plusButton;
+    // delete _spaceButton;
+    // delete _shiftButton;
 }
 
 void ScreenKeyboard::setText(std::string & text) {
@@ -234,33 +245,34 @@ void ScreenKeyboard::toCase(bool upper) {
     }
 
     for(std::size_t i=0; i<_buttonMatrix.size(); ++i) {
-        Button * btn = _buttonMatrix.at(i);
+        Button * btn = _buttonMatrix.at(i).get();
         btn->setText(ptr[i]);
     }
 }
 
-bool ScreenKeyboard::handleTap(GestLib::TapGesture &tap) {
-    int notAbsX = tap.x - getX();
-    int notAbsY = tap.y - getY();
+// bool ScreenKeyboard::handleTap(GestLib::TapGesture &tap) {
+//     int notAbsX = tap.x - getX();
+//     int notAbsY = tap.y - getY();
 
-    // lv_obj_add_event_cb(_keyboard, increment_on_click, LV_EVENT_CLICKED, &num1);
-    // lv_keyboard_def_event_cb(LV_EVENT_CLICKED);
-    // lv_obj_send_event(_keyboard, LV_EVENT_CLICKED, 0);
-    return true;
-}
+//     // lv_obj_add_event_cb(_keyboard, increment_on_click, LV_EVENT_CLICKED, &num1);
+//     // lv_keyboard_def_event_cb(LV_EVENT_CLICKED);
+//     // lv_obj_send_event(_keyboard, LV_EVENT_CLICKED, 0);
+//     return true;
+// }
 
 
 void ScreenKeyboard::initButton(Button * btn, int x, int y) {
     btn->setSize(Layout::KB_BUTTON_SIZE, Layout::KB_BUTTON_SIZE);
     btn->setPos(x, y);
     btn->setFont(&DEFAULT_FONT);
-    btn->setCallback([this, btn]() {
+    btn->tapCallback([this, btn](const GestLib::TapGesture &tap) -> bool {
         LOG_INFO("Pressed %s", btn->text().c_str());
         lv_textarea_add_char(this->_textArea, btn->text()[0]);
         if(this->_shiftState == ScreenKeyboard::ShiftState::Enabled) {
             this->toCase(false);
             this->_shiftState = ScreenKeyboard::ShiftState::Disabled;
         }
+        return true;
     });
 }
 

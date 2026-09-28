@@ -22,22 +22,8 @@ struct Label : public BaseWidget {
 
     lv_obj_t * label() { return _label; }
 
-    void setTapCallback(std::function<void()> onTap);
-    void setHoldCallback(std::function<void()> onHold);
-    void setDragCallback(std::function<void(GestLib::DragGesture &drag)> onDrag);
-
     private:
     lv_obj_t * _label;
-
-    std::function<void()> _onTap;
-    std::function<void()> _onHold;
-    std::function<void(GestLib::DragGesture &drag)> _onDrag;
-
-    // bool handleTouchDown(GestLib::TouchDownEvent & touchDown) override;
-    // bool handleTouchUp(GestLib::TouchUpEvent & touchUp) override;
-    bool handleTap(GestLib::TapGesture &tap) override;
-    bool handleHold(GestLib::HoldGesture &hold) override;
-    bool handleDrag(GestLib::DragGesture &drag) override;
 };
 
 }

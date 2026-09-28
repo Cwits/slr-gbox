@@ -6,12 +6,14 @@
 #include "display/utility/layoutSizes.h"
 #include "common/logger.h"
 
+#include "common/Math.h"
+
 namespace UI {
 
 
-inline float map(float x, float in_min, float in_max, float out_min, float out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
+// inline float map(float x, float in_min, float in_max, float out_min, float out_max) {
+//   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+// }
 
 const int minY = 20;
 const int maxY = 600-70-20;
@@ -44,13 +46,37 @@ Slider::Slider(BaseWidget * parent) :
     lv_label_set_text(_lblMax, "1.5");
     lv_obj_set_style_text_font(_lblMax, &DEFAULT_FONT, 0);
 
-    int correctY = map(1.0f, 0.0f, 1.5f, maxY, minY);
+    int correctY = sMath::lerp<float>(1.0f, 0.0f, 1.5f, maxY, minY);
 
     _lblZero = lv_label_create(lvhost());
     lv_obj_set_size(_lblZero, 50, lv_font_get_line_height(&DEFAULT_FONT));
     lv_obj_set_pos(_lblZero, posx-50, correctY);
     lv_label_set_text(_lblZero, "1.0");
     lv_obj_set_style_text_font(_lblZero, &DEFAULT_FONT, 0);
+
+    dragCallback([this](const GestLib::DragGesture &drag) -> bool {
+        int notAbsY = drag.y - this->getY();
+        if(drag.state == GestLib::GestureState::Start) {
+
+        } else if(drag.state == GestLib::GestureState::Move) {
+            int posy = notAbsY-(70+20+(70/2));
+
+            if(posy < minY) posy = minY;
+            else if(posy > maxY) posy = maxY;
+            
+            lv_obj_set_pos(this->_sliderCap, 200-50-20, posy);
+
+            float res = sMath::lerp<float>(posy, maxY, minY, 0.0f, 1.5f);
+            // LOG_INFO("res: %f", res);
+            if(this->_onChange) {
+                this->_onChange(res);
+            }
+        } else if(drag.state == GestLib::GestureState::End) {
+
+        }
+
+        return true;
+    });
 
     show();
 }
@@ -68,38 +94,14 @@ void Slider::onChangeCallback(std::function<void(const float)> onChange) {
 }
 
 void Slider::setCap(const float value) {
-    int posy = map(value, 0.0f, 1.5f, maxY, minY);
+    int posy = sMath::lerp<float>(value, 0.0f, 1.5f, maxY, minY);
     lv_obj_set_pos(_sliderCap, 200-50-20, posy);
 }
 
 const float Slider::getCap() {
     int posy = lv_obj_get_y(_sliderCap);
-    float val = map(posy, maxY, minY, 0.0f, 1.5f);
+    float val = sMath::lerp<float>(posy, maxY, minY, 0.0f, 1.5f);
     return val;
-}
-
-bool Slider::handleDrag(GestLib::DragGesture &drag) {
-    int notAbsY = drag.y - getY();
-    if(drag.state == GestLib::GestureState::Start) {
-
-    } else if(drag.state == GestLib::GestureState::Move) {
-        int posy = notAbsY-(70+20+(70/2));
-
-        if(posy < minY) posy = minY;
-        else if(posy > maxY) posy = maxY;
-        
-        lv_obj_set_pos(_sliderCap, 200-50-20, posy);
-
-        float res = map(posy, maxY, minY, 0.0f, 1.5f);
-        // LOG_INFO("res: %f", res);
-        if(_onChange) {
-            _onChange(res);
-        }
-    } else if(drag.state == GestLib::GestureState::End) {
-
-    }
-
-    return true;
 }
 
 

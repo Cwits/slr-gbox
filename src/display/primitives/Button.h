@@ -4,7 +4,6 @@
 #pragma once
 #include "display/primitives/BaseWidget.h"
 
-#include <functional>
 #include <string>
 
 namespace UI {
@@ -24,10 +23,6 @@ class Button : public BaseWidget {
     const std::string text() const;
 
     void setDefaultColor(lv_color_t color);
-    
-    void setCallback(std::function<void()> onClick);
-    void setTouchDownCallback(std::function<void()> onTouchDown);
-    void setTouchUpCallback(std::function<void()> onTouchUp);
 
     void disable() { _disabled = true; }
     void enable() { _disabled = false; }
@@ -41,15 +36,6 @@ class Button : public BaseWidget {
     lv_obj_t * _label;
 
     lv_color_t _defaultColor;
-
-    std::function<void()> _onClick;
-    std::function<void()> _onTouchDown;
-    std::function<void()> _onTouchUp;
-
-    // static void event_trampoline(lv_event_t* e);
-    bool handleTouchDown(GestLib::TouchDownEvent &down) override;
-    bool handleTouchUp(GestLib::TouchUpEvent &up) override;
-    bool handleTap(GestLib::TapGesture & tap) override;
 };
 
 }

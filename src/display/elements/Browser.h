@@ -45,11 +45,11 @@ class Browser : public View {
 
     Label * _lastTouched;
 
-    bool handleTouchDown(GestLib::TouchDownEvent &down) override;
-    bool handleTouchUp(GestLib::TouchUpEvent &up) override;
-    bool handleTap(GestLib::TapGesture &tap) override;
-    bool handleDrag(GestLib::DragGesture & drag) override;
-    bool handleSwipe(GestLib::SwipeGesture &swipe) override;
+    bool handleTouchDown(const GestLib::TouchDownEvent &down);
+    bool handleTouchUp(const GestLib::TouchUpEvent &up);
+    bool handleTap(const GestLib::TapGesture &tap);
+    bool handleDrag(const GestLib::DragGesture & drag);
+    bool handleSwipe(const GestLib::SwipeGesture &swipe);
 
     Label * findLabel(int x, int y);
 };

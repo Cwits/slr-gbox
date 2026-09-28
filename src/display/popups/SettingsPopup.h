@@ -4,6 +4,7 @@
 #pragma once
 
 #include "display/primitives/Popup.h"
+#include <memory>
 
 namespace UI {
 
@@ -20,12 +21,12 @@ struct SettingsPopup : public Popup {
     void update();
 
     private:
-    Button * _btnGeneral;
-    Button * _btnProject;
-    Button * _btnAudio;
-    Button * _btnMidi;
-    Button * _btnUI;
-    Button * _btnSave;
+    std::unique_ptr<Button> _btnGeneral;
+    std::unique_ptr<Button> _btnProject;
+    std::unique_ptr<Button> _btnAudio;
+    std::unique_ptr<Button> _btnMidi;
+    std::unique_ptr<Button> _btnUI;
+    std::unique_ptr<Button> _btnSave;
 
     enum class Tab { 
         General,
@@ -59,16 +60,16 @@ struct SettingsPopup : public Popup {
         ~AudioTab();
         
         lv_obj_t * _lblAudioDriverText;
-        DropDown * _ddAudioDriver;
+        std::unique_ptr<DropDown> _ddAudioDriver;
 
         lv_obj_t * _lblSamplerateText;
-        DropDown * _ddSamplerate;
+        std::unique_ptr<DropDown> _ddSamplerate;
 
         lv_obj_t * _lblBlockSizeText;
-        DropDown * _ddBlockSize;
+        std::unique_ptr<DropDown> _ddBlockSize;
 
         lv_obj_t * _lblLatencyText;
-        Label * _lblLatency;
+        std::unique_ptr<Label> _lblLatency;
         
         private:
         UIContext * const _uictx;
@@ -82,24 +83,26 @@ struct SettingsPopup : public Popup {
         
         private:
         UIContext * const _uictx;
-        Button * _btnRefresh;
+        std::unique_ptr<Button> _btnRefresh;
         void clearMidiLabels();
         
         struct MidiSubdevLabel {
+            MidiSubdevLabel() = default;;
             //input
-            Label * _path;
+            std::unique_ptr<Label> _path;
             
-            Label * _subInName;
-            Checkbox * _inputEnabled;
+            std::unique_ptr<Label> _subInName;
+            std::unique_ptr<Checkbox> _inputEnabled;
             
             //output
-            Label * _subOutName;
-            Checkbox * _outputEnabled;
+            std::unique_ptr<Label> _subOutName;
+            std::unique_ptr<Checkbox> _outputEnabled;
         };
 
         struct MidiLabels {
-            Label * _deviceName;
-            Label * _presented;
+            MidiLabels() = default;
+            std::unique_ptr<Label> _deviceName;
+            std::unique_ptr<Label> _presented;
             std::vector<MidiSubdevLabel> _subdevs;
         };
 
@@ -114,11 +117,11 @@ struct SettingsPopup : public Popup {
         UIContext * const _uictx;
     };
 
-    GeneralTab * _generalTab;
-    ProjectTab * _projectTab;
-    AudioTab * _audioTab;
-    MidiTab * _midiTab;
-    UITab * _uiTab;
+    std::unique_ptr<GeneralTab> _generalTab;
+    std::unique_ptr<ProjectTab> _projectTab;
+    std::unique_ptr<AudioTab> _audioTab;
+    std::unique_ptr<MidiTab> _midiTab;
+    std::unique_ptr<UITab> _uiTab;
 };
 
 }
