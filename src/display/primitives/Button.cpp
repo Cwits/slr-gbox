@@ -15,8 +15,6 @@ Button::Button(BaseWidget * parent, std::string text) : BaseWidget(parent, false
     _isRoot = true;
     _disabled = false;
     
-    _flags.isTap = true;
-    
     _label = lv_label_create(_btn);
     lv_label_set_text(_label, text.c_str());
     lv_obj_center(_label);

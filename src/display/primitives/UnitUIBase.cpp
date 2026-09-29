@@ -102,8 +102,6 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     : BaseWidget(parent, true, true), 
     _uibase(base)
 {
-    _flags.isDoubleTap = true;
-
     setSize(Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_HEIGHT);
     int y = Layout::calcTrackY(_uibase->uictx()->_unitsUI.size());
     // LOG_INFO("Setting grid y position of %u to %i", _uibase->id(), y);
@@ -317,16 +315,15 @@ void DefaultGridUI::pollUIUpdate() {
 void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
     int pixPerBar = UIUtility::pixelPerBar(horizontalZoom);
-    float pixMoved = ( (float)nudge / tl.framesPerBar() ) - ( (int)nudge/tl.framesPerBar() );
-    int startBar = (nudge/tl.framesPerBar());
+    float pixMoved = ( (float)nudge / tl.framesPerBar() ) * pixPerBar;
 
     std::size_t size = _fileUIs.size();
     for(std::size_t i=0; i<size; ++i) {
         std::unique_ptr<FileView>& item = _fileUIs.at(i);
-        int cx = item->getX();
+        float bar = ((float)item->_clipItem->startPosition() / tl.framesPerBar());
+        int newx = (pixPerBar*std::round(bar)) - pixMoved;
         int cy = item->getY();
-        int newx = -std::round((pixMoved+startBar)*pixPerBar);
-        item->setPos(newx+cx, cy);
+        item->setPos(newx, cy);
     }
 }
 

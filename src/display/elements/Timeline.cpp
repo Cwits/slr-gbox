@@ -36,11 +36,7 @@ Timeline::Timeline(BaseWidget * parent, UIContext * uictx) : BaseWidget(parent, 
     update();
     _firstTime = false;
 
-    _flags.isDrag = true;
-
-    // _uictx->registerFrequentUpdate([this]() {
-    //     this->updatePlayhead(0);
-    // });
+    // _flags.isDrag = true;
 
     show();
 }
@@ -314,25 +310,19 @@ Timeline::loop::loopHandle::loopHandle(BaseWidget * parent, const bool isStartHa
     _isStartHandle(isStartHandle), 
     _timeline(timeline)
 {
-    _flags.isDrag = true;
+    // _flags.isDrag = true;
     _handle = lv_obj_create(parent->lvhost());
     _lvhost = _handle;
     lv_obj_set_size(_handle, Layout::TIMELINE_LOOP_HANDLE_W, Layout::TIMELINE_LOOP_HANDLE_H);
     lv_obj_add_style(_handle, &loopHandleStyle, 0);
+    dragCallback(std::bind(&Timeline::loop::loopHandle::handleDrag, this, std::placeholders::_1));
 }
 
 Timeline::loop::loopHandle::~loopHandle() {
     lv_obj_delete(_handle);
 }
 
-bool Timeline::loop::loopHandle::handleDrag(GestLib::DragGesture & drag) {
-    // LOG_WARN("Here");
-    // static uint8_t inc = 0;
-    // inc++;
-    // //reduce ammount of actions
-    // if(inc < 5) return false;
-    // inc = 0;
-
+bool Timeline::loop::loopHandle::handleDrag(const GestLib::DragGesture & drag) {
     switch(drag.state) {
         case(GestLib::GestureState::Start): {
 

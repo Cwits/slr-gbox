@@ -249,23 +249,6 @@ file(GLOB SOURCES
   src/display/FakeGestures.cpp
   src/display/guiThread.cpp
 
-  №ui2
-  #src/display2/elements/BottomPanel.cpp
-  #src/display2/elements/Grid.cpp
-  #src/display2/elements/RootWindow.cpp
-  #src/display2/elements/TopPanel.cpp
-
-  #src/display2/primitives/BaseWidget.cpp
-  #src/display2/primitives/Button.cpp
-  #src/display2/primitives/Context.cpp
-  #src/display2/primitives/Label.cpp
-
-  #src/display2/utility/DefaultStyle.cpp
-  #src/display2/utility/DefaultColors.cpp
-
-  #src/display2/FakeGestures.cpp
-  #src/display2/guiThread.cpp
-
   #push core
   src/push/core/PushContext.cpp
   src/push/core/PushCore.cpp

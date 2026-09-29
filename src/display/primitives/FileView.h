@@ -26,6 +26,7 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     void update();
     UnitUIBase * parentUI() const { return _parentUI; }
     slr::ID id() const { return _uniqueId; }
+    void recalculateWidthAndRedraw();
 
     int _canvasWidth;
     int _canvasHeight;

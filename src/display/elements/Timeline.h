@@ -12,10 +12,6 @@ namespace UI {
 
 class UIContext;
 
-// struct TimeGrid : public BaseWidget {...
-
-// struct TimelineTexts { // - e.g. at bottom panel 
-
 struct Timeline : public BaseWidget {
     Timeline(BaseWidget * parent, UIContext * uictx);
     ~Timeline();
@@ -75,7 +71,7 @@ struct Timeline : public BaseWidget {
             const bool _isStartHandle;
             float _lastPosition;
 
-            bool handleDrag(GestLib::DragGesture & drag);
+            bool handleDrag(const GestLib::DragGesture & drag);
         };
         loopHandle * _loopStartHandle;
         loopHandle * _loopEndHandle;

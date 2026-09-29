@@ -45,8 +45,6 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     setColor(lv_color_hex(0x858585));
 
-    _flags.isDrag = true;
-
     _lastDragX = -1;
     _lastDragY = -1;
 

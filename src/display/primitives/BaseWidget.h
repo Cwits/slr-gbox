@@ -96,8 +96,6 @@ struct BaseWidget {
     bool _hasHost;
     lv_obj_t * _lvhost;
 
-    GestureFlags _flags;
-
     std::function<bool(const GestLib::TouchDownEvent &)> _onTouchDown;
     std::function<bool(const GestLib::TouchUpEvent &)> _onTouchUp;
     std::function<bool(const GestLib::TapGesture &)> _onTap;
@@ -117,14 +115,9 @@ struct BaseWidget {
     bool handleDTCircular(const GestLib::DTCircularGesture & swipe);
 
     uint64_t _lastPolledUIVersion;
+    
     private:
-    // BaseWidget * _parent;
-    // std::vector<BaseWidget*> _childs;
-
-    // bool _isRoot;
-    // bool _hasHost;
-    // lv_obj_t * _lvhost;
-
+    GestureFlags _flags;
 };
 
 

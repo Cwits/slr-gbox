@@ -54,6 +54,7 @@ class ProjectView {
     ClipItemView * createClipView(const ClipItem *item);
     ClipItemView * findClipViewById(ID id);
     bool deleteClipViewById(ID id);
+    void updateClips() { _clipStorage.updateClips(); }
 
 
     const std::string name() const { return _name; }
@@ -63,6 +64,7 @@ class ProjectView {
     
     SequencerEngineView * stepSequencer() const { return _stepSequencer.get(); }
     ModulationEngineView * modulationEngine() const { return _modulationEngine.get(); }
+
     private:
     std::string _path;
     std::string _name;

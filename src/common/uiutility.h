@@ -46,9 +46,9 @@ inline float stringToBpm(const std::string &text) {
         return true;
     };
 
-    if(!check(text)) {
-        return -1.0f;
-    }
+    // if(!check(text)) {
+    //     return -1.0f;
+    // }
     
     return std::round(std::stod(text) * 100.0f) / 100.0f;
 }
@@ -198,15 +198,20 @@ inline int pixelPerBar(float horizontalZoom) {
     //
 
 }*/
+
+inline float samplesPerPixel(float horizontalZoom) {
+    return (slr::SettingsManager::getSampleRate() / 37.5f) * horizontalZoom;
+}
+
 inline float pixelPerBar(float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-    return (tl.framesPerBar() / slr::SettingsManager::getFramesPerPixel()) * horizontalZoom;
+    return (float)tl.framesPerBar() / samplesPerPixel(horizontalZoom);
 }
 
 inline float framesPerPixel(float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-    int pixPerBar = UIUtility::pixelPerBar(horizontalZoom);
-    float framesPerPixel = (float)pixPerBar / tl.framesPerBar();
+    float pixPerBar = UIUtility::pixelPerBar(horizontalZoom);
+    float framesPerPixel = pixPerBar / (float)tl.framesPerBar();
     return framesPerPixel;
 }
 

@@ -70,6 +70,12 @@ struct ClipViewStorage {
     ClipItemView * newClipView(const ClipItem * item);
     ClipItemView * findClipById(ID id);
     bool deleteClipById(ID id);
+
+    void updateClips() {
+        for(auto & c : _clipList) {
+            c->update();
+        }
+    }
     
     private:
     std::vector<std::unique_ptr<ClipItemView>> _clipList;

@@ -21,7 +21,6 @@ const int maxY = 600-70-20;
 Slider::Slider(BaseWidget * parent) : 
     BaseWidget(parent, true)
 {
-    _flags.isDrag = true;
     setSize(200, 600);
 
     int posx = 200-50-20;

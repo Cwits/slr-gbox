@@ -30,12 +30,6 @@ Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uic
     lv_obj_add_style(_lvhost, &workspace, 0);
     lv_obj_set_style_bg_color(_lvhost, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN);
 
-    _flags.isTouchDown = true;
-    _flags.isTouchUp = true;
-    _flags.isTap = true;
-    _flags.isDrag = true;
-    _flags.isSwipe = true;
-
     int posx = parent->width()-Layout::Button-Layout::Margin;
     _refresh = new Button(this, LV_SYMBOL_REFRESH);
     _refresh->setSize(Layout::Button, Layout::Button);

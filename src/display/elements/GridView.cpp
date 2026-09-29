@@ -161,9 +161,6 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx)
     _control = std::make_unique<GridControl>(this, uictx);
     _grid = std::make_unique<GridGrid>(this, uictx);
     _timeline = std::make_unique<Timeline>(_grid.get(), uictx);
-    
-    _flags.isSwipe = true;
-    _flags.isDrag = true;
 
     dragCallback(std::bind(&GridView::handleDrag, this, std::placeholders::_1));
     swipeCallback(std::bind(&GridView::handleSwipe, this, std::placeholders::_1));
@@ -337,10 +334,16 @@ void GridGrid::pollUIUpdate() {
         slr::frame_t nudge = _grid->_timeline->nudge();
 
         const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
+        
+        int pixPerBar = UIUtility::pixelPerBar(_uictx->gridHorizontalZoom());
+        slr::frame_t framesPerBar = slr::TimelineView::getTimelineView().framesPerBar();
+        float ratio = (float)pixPerBar / (float)framesPerBar;
         for(auto &base : list) {
-            for(auto *f : base->gridUI()->fileList()) {   
-                float xposition = UIUtility::frameToPixel(f->_clipItem->startPosition(), _uictx->gridHorizontalZoom());
-                f->setPos(xposition, f->getY());
+            for(auto *f : base->gridUI()->fileList()) { 
+                float xpos = f->_clipItem->startPosition() * ratio;
+                f->setPos(xpos, f->getY());
+                //need to recalculate length as well(plus to redraw???)
+                f->recalculateWidthAndRedraw();
             }
         }
     }

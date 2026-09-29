@@ -10,6 +10,7 @@
 #include "core/primitives/ClipItem.h"
 #include "core/primitives/MidiFile.h"
 #include "core/ControlEngine.h"
+#include "core/SettingsManager.h"
 
 #include  "core/actions/Actions.h"
 
@@ -40,22 +41,15 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
 // _lvhost = parent->lvhost();
     _canvas = lv_canvas_create(lvhost());
 
-    _flags.isTap = true;
-    _flags.isDoubleTap = true;
-    _flags.isHold = true;
-
     _originalX = 0;
     _originalY = 0;
 
     //calculate width
-    slr::TimelineView & tlsnap = slr::TimelineView::getTimelineView();
+    slr::frame_t frames = clipItem->length();
+    float framesPerPixel = UIUtility::framesPerPixel(_uictx->gridHorizontalZoom());
+    int pixels = frames * framesPerPixel;
 
-    slr::frame_t frames = clipItem->length();// testme.frames();
-    int framesPerBar = tlsnap.framesPerBar();
-    int pixPerBar = UIUtility::pixelPerBar(_uictx->gridHorizontalZoom());
-    float pixelPerFrame = (float)pixPerBar/framesPerBar;
-    int pixels = frames * pixelPerFrame;
-    
+
     setSize(pixels, UI::Layout::TRACK_HEIGHT);
     
     float xposition = UIUtility::frameToPixel(_clipItem->startPosition(), _uictx->gridHorizontalZoom());
@@ -96,6 +90,19 @@ FileView::~FileView() {
 
 void FileView::update() {
     //redraw canvas
+}
+
+void FileView::recalculateWidthAndRedraw() {
+    slr::frame_t frames = _clipItem->length();
+    float framesPerPixel = UIUtility::framesPerPixel(_uictx->gridHorizontalZoom());
+    int pixels = frames * framesPerPixel;
+    LOG_INFO("Old width: %d, new width: %d", _canvasWidth, pixels);
+    _canvasWidth = pixels;
+    
+    std::unique_ptr<uint8_t[]> swappable = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE));
+    _drawBuffer.swap(swappable);
+    draw();
+    setSize(pixels, UI::Layout::TRACK_HEIGHT);
 }
 
 void FileView::draw() {

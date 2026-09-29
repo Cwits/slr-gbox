@@ -13,7 +13,6 @@ namespace UI {
 DropDown::DropDown(BaseWidget * parent) :
     BaseWidget(parent, true)
 {
-    _flags.isTap = true;
     _textColor = lv_color_hex(0x000000);
     _textFont = &lv_font_montserrat_40;
     lv_obj_set_style_clip_corner(lvhost(), false, 0);

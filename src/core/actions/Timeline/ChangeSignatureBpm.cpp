@@ -75,6 +75,7 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
             } else {
                 ctx.projectView->timeline().update();
             }
+            ctx.projectView->updateClips();
             UIControls::updateTimeline(true);
 
                 

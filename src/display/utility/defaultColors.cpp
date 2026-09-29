@@ -6,6 +6,19 @@
 
 namespace UI {
 
+/*
+    to use:
+    0x051923 - background
+    0x2a9d8f - buttons, elements,
+    0x397367
+    0x42858C
+    0x7C898B
+    0xB4ADEA
+
+    0xE94F37 - button touch down
+    0x96ACB7 or 0xD4E4BC - labels and texts
+*/
+
 const lv_color_t RED_COLOR = lv_color_hex(0x00ff0000);
 const lv_color_t GREEN_COLOR = lv_color_hex(0x0000ff00);
 const lv_color_t BLUE_COLOR = lv_color_hex(0x000000ff);

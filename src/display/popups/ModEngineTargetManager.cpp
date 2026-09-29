@@ -130,7 +130,7 @@ void ModEngineTargetManager::update() {
                 type = slr::ModulationTargetType::unit;
                 //unit
                 slr::AudioUnitView *v = slr::ProjectView::getProjectView().findUnitByName(tmpname);
-                if(!v) { LOG_WARN("Unit %s not found"); return false; }
+                if(!v) { LOG_WARN("Unit %s not found", tmpname.c_str()); return false; }
 
                 targetID = v->id();
 
@@ -179,7 +179,7 @@ void ModEngineTargetManager::update() {
         } else {
             //unit
             slr::AudioUnitView *v = slr::ProjectView::getProjectView().findUnitByName(res);
-            if(!v) { LOG_WARN("Unit %s not found"); return; }
+            if(!v) { LOG_WARN("Unit %s not found", res.c_str()); return; }
 
             slr::ParameterArrayView &pav = v->allParameters();
             
