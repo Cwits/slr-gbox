@@ -23,6 +23,7 @@
 #include "display/primitives/Button.h"
 #include "display/elements/GridView.h"
 #include "display/utility/layoutSizes.h"
+#include "display/utility/DefaultStyles.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/FileToCanvas.h"
 #include "common/uiutility.h"
@@ -39,6 +40,7 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     _uniqueId(clipItem->id())
 {
 // _lvhost = parent->lvhost();
+    addStyle(&Style::GridFile);
     _canvas = lv_canvas_create(lvhost());
 
     _originalX = 0;
@@ -100,6 +102,7 @@ void FileView::recalculateWidthAndRedraw() {
     _canvasWidth = pixels;
     
     std::unique_ptr<uint8_t[]> swappable = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE));
+    lv_canvas_set_buffer(_canvas, swappable.get(), _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
     _drawBuffer.swap(swappable);
     draw();
     setSize(pixels, UI::Layout::TRACK_HEIGHT);

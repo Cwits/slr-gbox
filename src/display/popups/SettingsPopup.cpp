@@ -4,7 +4,8 @@
 #include "display/popups/SettingsPopup.h"
 
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultColors.h"
+#include "display/utility/DefaultStyles.h"
 #include "display/utility/UIContext.h"
 
 #include "display/primitives/Label.h"
@@ -33,7 +34,7 @@ SettingsPopup::SettingsPopup(BaseWidget * parent, UIContext * const uictx) :
 {
     setSize(Layout::SETTINGS_POP_WIDTH, Layout::SETTINGS_POP_HEIGHT);
     setPos(Layout::SETTINGS_POP_X, Layout::SETTINGS_POP_Y);
-    setColor(lv_color_hex(0x858585));
+    addStyle(&Style::PopupDefault);
 
     int posy = 0;
     _btnGeneral = std::make_unique<Button>(this, "General");
@@ -140,7 +141,7 @@ SettingsPopup::GeneralTab::GeneralTab(BaseWidget * parent, UIContext * const uic
 {
     setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
-    setColor(GRAY_COLOR);
+    addStyle(&Style::PopupDefault);
 
     show();
 }
@@ -155,7 +156,7 @@ SettingsPopup::ProjectTab::ProjectTab(BaseWidget * parent, UIContext * const uic
 {
     setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
-    setColor(GRAY_COLOR);
+    addStyle(&Style::PopupDefault);
 }
 
 SettingsPopup::ProjectTab::~ProjectTab() {
@@ -168,7 +169,7 @@ SettingsPopup::AudioTab::AudioTab(BaseWidget * parent, UIContext * const uictx) 
 {
     setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
-    setColor(GRAY_COLOR);
+    addStyle(&Style::PopupDefault);
     
 
     const int lineHeight = lv_font_get_line_height(&DEFAULT_FONT);
@@ -295,7 +296,7 @@ SettingsPopup::MidiTab::MidiTab(BaseWidget * parent, UIContext * const uictx) :
 {
     setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
-    setColor(GRAY_COLOR);
+    addStyle(&Style::PopupDefault);
     
     _btnRefresh = std::make_unique<Button>(this, LV_SYMBOL_REFRESH);
     _btnRefresh->setPos(Layout::Margin, Layout::Margin);
@@ -464,7 +465,7 @@ SettingsPopup::UITab::UITab(BaseWidget * parent, UIContext * const uictx) :
 {
     setSize(Layout::SETTINGS_POP_WIDTH-TAB_BUTTON_W, Layout::SETTINGS_POP_HEIGHT);
     setPos(TAB_BUTTON_W, 0);
-    setColor(GRAY_COLOR);
+    addStyle(&Style::PopupDefault);
 
 }
 

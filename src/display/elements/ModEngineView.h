@@ -21,7 +21,7 @@ namespace UI {
 struct Label;
 struct Button;
 struct DropDown;
-struct MainWindow;
+struct RootWindow;
 struct ModEngineTargetManager;
 
 struct ModulationUI {
@@ -107,8 +107,10 @@ struct ModEngineView : public View {
     float _tmpOffset = 0;
     int _tmpRandSeed = 0;
 
+    uint64_t _playheadVersion;
+
     ModEngineTargetManager *_tpop;
-    friend class MainWindow;
+    friend class RootWindow; //TODO: ugh... that's not good design
     friend class ModEngineTargetManager;
 };
 

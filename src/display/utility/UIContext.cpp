@@ -6,40 +6,41 @@
 
 #include "display/primitives/Popup.h"
 #include "display/popups/DragViewSelector.h"
-#include "display/elements/MainWindow.h"
+#include "display/elements/RootWindow.h"
 #include "display/elements/TopPanel.h"
 #include "display/elements/BottomPanel.h"
 #include "display/elements/GridView.h"
 #include "display/elements/UnitView.h"
 #include "display/elements/Browser.h"
 #include "display/elements/StepSequencerView.h"
+#include "display/elements/Timeline.h"
 
 namespace UI {
 
 void UIContext::switchToView(MainView view) {
-    _mainWindow->switchToView(view);
+    _rootWindow->switchToView(view);
 }
 
 MainView UIContext::previousView() {
-    return _mainWindow->previousView();
+    return _rootWindow->previousView();
 }
 
 void UIContext::transferGesture(BaseWidget * target, GestLib::Gestures gesture) {
-    _mainWindow->transferGesture(target, gesture);
+    _rootWindow->transferGesture(target, gesture);
 }
 
 void UIContext::clearHitTestTarget() {
-    _mainWindow->clearHittestTarget();
+    _rootWindow->clearHittestTarget();
 }
 
 bool UIContext::cancleGesture(BaseWidget * widget) {
-    return _mainWindow->cancleGesture(widget);
+    return _rootWindow->cancleGesture(widget);
 }
 
 void UIContext::floatingText(bool warn, std::string text) {
-    // if(warn) _mainWindow->floatingTextWarning(text);
-    // else _mainWindow->floatingTextRegular(text);
-    _mainWindow->floatingText(warn, text);
+    // if(warn) _rootWindow->floatingTextWarning(text);
+    // else _rootWindow->floatingTextRegular(text);
+    _rootWindow->floatingText(warn, text);
 }
 
 void UIContext::setLastSelected(UnitUIBase * mod) {
@@ -60,9 +61,12 @@ float UIContext::gridHorizontalZoom() {
     return _gridView->hZoom();
 }
 
+void UIContext::gridToFront() {
+    _gridView->_timeline->moveToFront();
+}
 
 void UIContext::registerFrequentUpdate(std::function<void()> clb) {
-    _mainWindow->registerFrequentUpdate(std::move(clb));
+    _rootWindow->registerFrequentUpdate(std::move(clb));
 }
 
 void UIContext::filesRecalculated() { _recalculateGridFilePositions = false; }
@@ -71,7 +75,7 @@ BaseWidget * UIContext::topPanel() { return _topPanel; }
 BaseWidget * UIContext::bottomPanel() { return _bottomPanel; }
 BaseWidget * UIContext::grid() { return _gridView; }
 BaseWidget * UIContext::gridControl() { return _gridView->_control.get(); }
-BaseWidget * UIContext::gridGrid() { return _gridView->_grid.get(); }
+BaseWidget * UIContext::gridGrid() { return _gridView->_grid.get(); } 
 BaseWidget * UIContext::unitView() { return _unitView; }
 BaseWidget * UIContext::browser() { return _browser; }
 BaseWidget * UIContext::stepSequencer() { return _stepSequencerView; }

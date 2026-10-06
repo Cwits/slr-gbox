@@ -4,6 +4,8 @@
 
 #include "display/utility/layoutSizes.h"
 #include "display/primitives/Button.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/Macros.h"
 
 #include  "core/actions/Actions.h"
 #include "common/logger.h" 
@@ -15,11 +17,9 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
 {
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
-    setColor(lv_color_hex(0x858585));
-
-    _btnTrack = std::make_unique<Button>(this, "Track");
-    _btnTrack->setSize(Layout::Button, Layout::Button);
-    _btnTrack->setPos(100, 100);
+    addStyle(&Style::PopupDefault);
+    
+    BUTTONDEF(_btnTrack, 100, 100, "Track");
     _btnTrack->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "Track";
@@ -27,9 +27,7 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
         return true;
     });
 
-    _btnMixer = std::make_unique<Button>(this, "Mixer");
-    _btnMixer->setSize(Layout::Button, Layout::Button);
-    _btnMixer->setPos(300, 100);
+    BUTTONDEF(_btnMixer, 300, 100, "Mixer");
     _btnMixer->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "Mixer";
@@ -37,9 +35,7 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
         return true;
     });
 
-    _btnOsc = std::make_unique<Button>(this, "SimpleOSC");
-    _btnOsc->setSize(Layout::Button, Layout::Button);
-    _btnOsc->setPos(500, 100);
+    BUTTONDEF(_btnOsc, 500, 100, "OSC");
     _btnOsc->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "SimpleOSC";
@@ -47,9 +43,7 @@ NewUnitPopup::NewUnitPopup(BaseWidget *parent, UIContext * const uictx) :
         return true;
     });
 
-    _btnSampler = std::make_unique<Button>(this, "Sampler");
-    _btnSampler->setSize(Layout::Button, Layout::Button);
-    _btnSampler->setPos(100, 200);
+    BUTTONDEF(_btnSampler, 100, 200, "Sampler");
     _btnSampler->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto action = std::make_unique<slr::Actions::CreateNewUnit>();
         action->name = "Sampler";

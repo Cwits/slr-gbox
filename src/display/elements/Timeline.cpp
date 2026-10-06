@@ -3,370 +3,328 @@
 
 #include "display/elements/Timeline.h"
 
-#include "display/utility/UIContext.h"
+#include "core/actions/Actions.h"
+
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
-#include "common/uiutility.h"
 
 #include "snapshots/TimelineView.h"
 
-#include  "core/actions/Actions.h"
+#include "common/uiutility.h"
+#include "common/Math.h"
 #include "common/logger.h"
-
-#include <cmath>
 
 namespace UI {
 
-Timeline::Timeline(BaseWidget * parent, UIContext * uictx) : BaseWidget(parent, true), _uictx(uictx) {
-    setPos(Layout::TIMELINE_X, Layout::TIMELINE_Y);
-    setSize(Layout::TIMELINE_WIDTH, Layout::TIMELINE_HEIGHT);
-    lv_obj_add_style(_lvhost, &workspace, 0);
-    setColor(lv_palette_main(LV_PALETTE_PINK));
-    lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
 
-    _currentNudge = 0;
-    _horizontalZoom = 1.0f;
+Timeline::Timeline(BaseWidget * parent, lv_obj_t *host, float * const zoomPtr, UIContext * uictx) :
+    BaseWidget(parent, false),
+    _uictx(uictx),
+    _host(host),
+    _zoomPtr(zoomPtr)
+{
+    _numberBackground = lv_obj_create(_host);
+    lv_obj_add_style(_numberBackground, &Style::borderless, 0);
+    lv_obj_set_style_bg_color(_numberBackground, Colors::Gray, 0);
+    lv_obj_set_pos(_numberBackground, 0, 0);
+    lv_obj_set_scrollbar_mode(_numberBackground, LV_SCROLLBAR_MODE_OFF);
     
-    lv_style_init(&_font);
-    lv_style_set_text_font(&_font, &lv_font_montserrat_16);
-    lv_style_set_text_color(&_font, lv_color_hex(0xffffff));
 
-    _firstTime = true;
-    _loop._timeline = this;
-    update();
-    _firstTime = false;
+    lv_style_init(&_numberFont);
+    lv_style_set_text_font(&_numberFont, &lv_font_montserrat_28);
+    lv_style_set_text_color(&_numberFont, Colors::White);
 
-    // _flags.isDrag = true;
+    _loop.filler = lv_obj_create(_host);
+    _loop.lineStart = lv_line_create(_host);
+    _loop.lineEnd = lv_line_create(_host);
+    _loop.handleStart = std::make_unique<Timeline::LoopHandle>(parent, this, &_loop);
+    _loop.handleEnd = std::make_unique<Timeline::LoopHandle>(parent, this, &_loop);
+
+    lv_obj_add_style(_loop.filler, &Style::loopFillStyle, 0);
+    lv_obj_add_style(_loop.lineStart, &Style::loopMarkersStyle, 0);
+    lv_obj_add_style(_loop.lineEnd, &Style::loopMarkersStyle, 0);
+    
+    lv_obj_add_style(_loop.handleStart->lvhost(), &Style::loopHandleStyle, 0);
+    lv_obj_add_style(_loop.handleEnd->lvhost(), &Style::loopHandleStyle, 0);
+    lv_obj_set_size(_loop.handleStart->lvhost(), Layout::TIMELINE_LOOP_HANDLE_W, Layout::TIMELINE_LOOP_HANDLE_H);
+    lv_obj_set_size(_loop.handleEnd->lvhost(), Layout::TIMELINE_LOOP_HANDLE_W, Layout::TIMELINE_LOOP_HANDLE_H);
+
+    _playhead.line = lv_line_create(_host);
+    lv_obj_add_style(_playhead.line, &Style::playheadStyle, 0);
+
+    _loop.hide();
+
+    _nudge = 0;
 
     show();
+    _playheadVersion = 0;
 }
 
 Timeline::~Timeline() {
-    for(line & l : _lines) {
-        lv_obj_delete(l._line);
+    lv_obj_delete(_numberBackground);
+    for(std::size_t i=0; i<_lines.size(); ++i) {
+        lv_obj_delete(_lines[i].number);
+        lv_obj_delete(_lines[i].line);
     }
-    for(lv_obj_t* o : _labels) {
-        lv_obj_delete(o);
-    }
-
-    lv_obj_delete(_playhead._line);
-    _loop.clear();
 }
 
-void Timeline::update() {
-    //recalc zoom, lines and etc.
-    int pixPerBar = UIUtility::pixelPerBar(_horizontalZoom);
-    int barsOnDisplay = (Layout::TIMELINE_WIDTH / pixPerBar) + 2;
+void Timeline::setSize(lv_coord_t w, lv_coord_t h) {
+    // BaseWidget::setSize(w, h);
+    lv_obj_set_size(_numberBackground, w, 30);
+    _width = static_cast<int>(w);
+    _height = static_cast<int>(h);
+    updatePlayhead(0);
+}
 
-    if(!_firstTime) {
-        for(line &l : _lines) {
-            lv_obj_delete(l._line);
+void Timeline::setPos(lv_coord_t x, lv_coord_t y) {
+    // BaseWidget::setPos(x, y);
+    lv_obj_set_pos(_numberBackground, x, y);
+    _x = static_cast<int>(x);
+    _y = static_cast<int>(y);
+    updatePlayhead(0);
+}
+
+void Timeline::pollUIUpdate() {
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    uint64_t ver = tl.playheadVersion();
+    if(ver != _playheadVersion) {
+        updatePlayhead(tl.elapsed());
+        _playheadVersion = ver;
+    }
+}
+
+void Timeline::nudge(slr::frame_t nudge) {
+    _nudge = nudge;
+}
+
+// void Timeline::rebuildTimeline(float horZoom) {
+void Timeline::rebuildTimeline() {
+    // float pixelPerBar = UIUtility::pixelPerBar(horZoom);
+    float pixelPerBar = UIUtility::pixelPerBar(*_zoomPtr);
+    int barsOnDisplay = (_width / pixelPerBar) + 2; 
+
+    if(_lines.size() != barsOnDisplay) {
+        //not the first time, need to recalculate capacity, 
+        // int diff = sMath::abs<int>(_lines.size() - barsOnDisplay);
+        std::size_t old = _lines.size();
+        _lines.reserve(barsOnDisplay);
+
+        for(std::size_t l=old; l<_lines.capacity(); ++l) {
+            GridLine gl;
+            //create label
+            gl.number = lv_label_create(_numberBackground);
+            lv_obj_set_size(gl.number, 40, lv_font_get_line_height(&lv_font_montserrat_28));
+            lv_obj_add_style(gl.number, &_numberFont, 0);
+
+            //create line
+            // gl.line = lv_line_create(parent()->lvhost());
+            gl.line = lv_line_create(_host);
+            lv_obj_add_style(gl.line, &Style::gridLine, 0);
+            _lines.push_back(std::move(gl));
         }
-        _lines.clear();
-        for(lv_obj_t *o : _labels) {
-            lv_obj_delete(o);
-        }
-        _labels.clear();
     }
 
-    //number labels
-    _labels.reserve(barsOnDisplay);
-    for(int i=0; i<barsOnDisplay; ++i) {
-        lv_obj_t * lbl = lv_label_create(_lvhost);
-        lv_obj_set_size(lbl, Layout::TIMELINE_LABEL_SIZE, Layout::TIMELINE_LABEL_SIZE);
-        lv_obj_set_pos(lbl, pixPerBar*i, 0);
-        // lv_label_set_text(lbl, std::to_string(i+1).c_str());
-        lv_label_set_text_fmt(lbl, "%d", (i+1));
-        lv_obj_add_style(lbl, &_font, 0);
-        _labels.push_back(lbl);
-    }
-    
-    //lines
-    _lines.reserve(barsOnDisplay);
-    for(int i=0; i<barsOnDisplay; ++i) {
-        _lines.emplace_back();
-        line &lin = _lines.back();
-        lin._line = lv_line_create(parent()->lvhost());
-        lin._points[0] = {pixPerBar*i, Layout::TIMELINE_LINE_Y};
-        lin._points[1] = {pixPerBar*i, Layout::TIMELINE_LINE_HEIGHT};
-        lv_line_set_points(lin._line, &lin._points[0], 2);
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    float pixMoved = ( (float)_nudge / tl.framesPerBar() ) - ( (int)_nudge/tl.framesPerBar() );
+
+    int startBar = (_nudge/tl.framesPerBar()) + 1;
+    float wtf = pixMoved * pixelPerBar;
+    int wtf2 = sMath::round(wtf);
+    int y = _y+30; //+30 - for number background
+
+    for(std::size_t i=0; i<_lines.size(); ++i, ++startBar) {
+        GridLine &l = _lines[i];
         
-        lv_obj_add_style(lin._line, &gridLine, 0);
+        if(i < barsOnDisplay) {
+            //calc positions
+            int xpos = (pixelPerBar*i) - wtf2;
+            
+            lv_obj_set_pos(l.number, xpos, 1);
+            lv_label_set_text_fmt(l.number, "%d", startBar);
+
+            l.points[0] = {_x+xpos, y};
+            l.points[1] = {_x+xpos, y+_height-30};
+            lv_line_set_points(l.line, &l.points[0], 2);
+            l.show();
+        } else {
+            l.hide();
+        }
     }
 
-    _playhead._line = lv_line_create(parent()->lvhost());
-    _playhead._points[0] = {0, Layout::TIMELINE_LINE_Y};
-    _playhead._points[1] = {0, Layout::TIMELINE_LINE_HEIGHT};
-    lv_line_set_points(_playhead._line, &_playhead._points[0], 2);
-    lv_obj_add_style(_playhead._line, &playheadStyle, 0);
-
-    _loop.update(_horizontalZoom, _firstTime);
-
-    slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-    showLoopMarkers(tl.looping());
-
-    updatePlayheadZ();
-    setNudge(_currentNudge);
+    if(_loop.visible) {
+        updateLoopMarkers(*_zoomPtr);
+    }
 }
+
 
 void Timeline::updatePlayhead(slr::frame_t position) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
     // position = tl.elapsed();
-    // int framesPerBar = tl.framesPerBar();
-    int pixPerBar = UIUtility::pixelPerBar(_horizontalZoom);
+    int framesPerBar = tl.framesPerBar();
+    int pixPerBar = UIUtility::pixelPerBar(*_zoomPtr);
     float framesPerPixel = (float)pixPerBar / tl.framesPerBar();
-    float res = std::round(framesPerPixel*(position-_currentNudge));
+    float res = std::round(framesPerPixel*(position-_nudge));
 
-    _playhead._points[0] = {res, Layout::TIMELINE_LINE_Y}; 
-    _playhead._points[1] = {res, Layout::TIMELINE_LINE_HEIGHT};
-    lv_line_set_points(_playhead._line, &_playhead._points[0], 2);
-
-    lv_obj_invalidate(_playhead._line);
+    _playhead.points[0] = {res, _y+30}; 
+    _playhead.points[1] = {res, _height};
+    lv_line_set_points(_playhead.line, &_playhead.points[0], 2);
+    lv_obj_invalidate(_playhead.line);
 }
 
-void Timeline::updatePlayheadZ() {
-    lv_obj_move_to_index(_playhead._line, -1);
-    lv_obj_move_to_index(lvhost(), -1);
-    _loop.updateZ();
+void Timeline::GridLine::show() {
+    lv_obj_clear_flag(number, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(line, LV_OBJ_FLAG_HIDDEN);
+}
+void Timeline::GridLine::hide() {
+    lv_obj_add_flag(number, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(line, LV_OBJ_FLAG_HIDDEN);
 }
 
-void Timeline::setNudge(slr::frame_t nudge) {
-    slr::frame_t oldNudge = _currentNudge;
-    _currentNudge = nudge;
+void Timeline::showLoopMarkers() {
+    _loop.show();
+}
+
+void Timeline::hideLoopMarkers() {
+    _loop.hide();
+}
+
+void Timeline::moveToFront() {
+    lv_obj_move_to_index(_loop.filler, -1);
+    lv_obj_move_to_index(_loop.lineStart, -1);
+    lv_obj_move_to_index(_loop.lineEnd, -1);
+    lv_obj_move_to_index(_loop.handleStart->lvhost(), -1);
+    lv_obj_move_to_index(_loop.handleEnd->lvhost(), -1);
+    for(auto &l : _lines) {
+        lv_obj_move_to_index(l.line, -1);
+    }
+}
+
+void Timeline::updateLoopMarkers(float hzoom) {
+    //filler, linestart, lineend, handlestart, handleend
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+
+    long long int stf = static_cast<long long int>(tl.loopStartFrame()) - _nudge;
+    long long int etf = static_cast<long long int>(tl.loopEndFrame()) - _nudge; 
+
     
-    //let's leave creating or deleting points to zoom update
-    slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-    int pixPerBar = UIUtility::pixelPerBar(_horizontalZoom);
-    float pixMoved = ( (float)nudge / tl.framesPerBar() ) - ( (int)nudge/tl.framesPerBar() );
+    float start = UIUtility::frameToPixel(stf, hzoom);
+    float end = UIUtility::frameToPixel(etf, hzoom);
 
-    int startBar = (nudge/tl.framesPerBar()) + 1;
-    float wtf = pixMoved * pixPerBar;
-    int wtf2 = std::round(wtf);
+    bool startVisible = stf >= 0 && start < _width;
+    bool endVisible = etf >= 0 && end < _width;
 
-    std::size_t size = _labels.size();
-    for(std::size_t i=0; i<size; ++i, ++startBar) {
-        int x = (pixPerBar*i) - wtf2;
+    int y = _y+30;
 
-        lv_obj_t * label = _labels.at(i);
-        lv_obj_set_pos(label, x, 0);
-        lv_label_set_text_fmt(label, "%d", startBar);
-
-        line & l = _lines.at(i);
-        l._points[0] = {x, Layout::TIMELINE_LINE_Y};
-        l._points[1] = {x, Layout::TIMELINE_LINE_HEIGHT};
-        lv_line_set_points(l._line, &l._points[0], 2);
+    if(!startVisible && endVisible) {
+        lv_obj_add_flag(_loop.lineStart, LV_OBJ_FLAG_HIDDEN);
+        _loop.handleStart->hide();
         
-        lv_obj_invalidate(label);
-        lv_obj_invalidate(l._line);
-    }
+        _loop.pointsEnd[0] = {end, y};
+        _loop.pointsEnd[1] = {end, y+_height};
+        lv_line_set_points(_loop.lineEnd, &_loop.pointsEnd[0], 2);
 
-    //update loop markers?
-    _loop.nudge(oldNudge, nudge, _horizontalZoom);
-}
+        lv_obj_set_pos(_loop.handleEnd->lvhost(), end-Layout::TIMELINE_LOOP_HANDLE_W, _height-Layout::TIMELINE_LOOP_HANDLE_H);
 
-void Timeline::showLoopMarkers(bool onoff) {
-    _loop.show(onoff);
-}
+        lv_obj_set_size(_loop.filler, end-_x, y+_height-30);
+        lv_obj_set_pos(_loop.filler, _x, y);
+    } else if(startVisible && endVisible) {
+        _loop.show();
 
-void Timeline::updateLoopMarkers() {
-    _loop.update(_horizontalZoom, false);
-}
-
-
-void Timeline::pollUIUpdate() {
+        _loop.pointsStart[0] = {_x+start, y};
+        _loop.pointsStart[1] = {_x+start, y+_height};
+        lv_line_set_points(_loop.lineStart, &_loop.pointsStart[0], 2);
     
-}
-
-void Timeline::loop::update(float hZoom, bool firstTime) {
-
-
-    if(!firstTime) {
-        clear();
-    }
-    slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-    //loop markers
-    slr::frame_t loopStart = tl.loopStartFrame();
-    slr::frame_t loopEnd = tl.loopEndFrame();
-
-    float resStart = UIUtility::frameToPixel(loopStart, _timeline->_horizontalZoom);
-    float resEnd = UIUtility::frameToPixel(loopEnd, _timeline->_horizontalZoom);
-
-    _loopMarkers[0]._line = lv_line_create(_timeline->parent()->lvhost());
-    _loopMarkers[1]._line = lv_line_create(_timeline->parent()->lvhost());
-
-    _loopMarkers[0]._points[0] = {resStart, Layout::TIMELINE_LINE_Y};
-    _loopMarkers[0]._points[1] = {resStart, Layout::TIMELINE_LINE_HEIGHT};
-    
-    _loopMarkers[1]._points[0] = {resEnd, Layout::TIMELINE_LINE_Y};
-    _loopMarkers[1]._points[1] = {resEnd, Layout::TIMELINE_LINE_HEIGHT};
-    
-    lv_line_set_points(_loopMarkers[0]._line, &_loopMarkers[0]._points[0], 2);
-    lv_line_set_points(_loopMarkers[1]._line, &_loopMarkers[1]._points[0], 2);
-    
-    lv_obj_add_style(_loopMarkers[0]._line, &loopMarkersStyle, 0);
-    lv_obj_add_style(_loopMarkers[1]._line, &loopMarkersStyle, 0);
-
-    //fill rect
-    _fillRect = lv_obj_create(_timeline->parent()->lvhost());
-    lv_obj_set_size(_fillRect, resEnd-resStart, Layout::TIMELINE_LINE_HEIGHT);
-    lv_obj_set_pos(_fillRect, resStart, Layout::TIMELINE_LINE_Y);
-    lv_obj_add_style(_fillRect, &loopFillStyle, 0);
-
-    lv_obj_invalidate(_loopMarkers[0]._line);
-    lv_obj_invalidate(_loopMarkers[1]._line);
-    lv_obj_invalidate(_fillRect);
-
-    //loop handles
-    _loopStartHandle = new loopHandle(_timeline->parent(), true, _timeline);
-    _loopStartHandle->nudge(resStart);
-    _loopStartHandle->setY(Layout::TIMELINE_LINE_Y);
-    _loopEndHandle = new loopHandle(_timeline->parent(), false, _timeline);
-    _loopEndHandle->nudge(resEnd-Layout::TIMELINE_LOOP_HANDLE_W);
-    _loopEndHandle->setY(Layout::TIMELINE_LINE_HEIGHT-Layout::TIMELINE_LOOP_HANDLE_H);
-}
-
-void Timeline::loop::clear() {
-    lv_obj_delete(_loopMarkers[0]._line);
-    lv_obj_delete(_loopMarkers[1]._line);
-    lv_obj_delete(_fillRect);
-    delete _loopStartHandle;
-    delete _loopEndHandle;
-}
-
-void Timeline::loop::show(bool onoff) {
-    if(onoff) {
-        lv_obj_clear_flag(_loopMarkers[0]._line, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(_loopMarkers[1]._line, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(_fillRect, LV_OBJ_FLAG_HIDDEN);
+        _loop.pointsEnd[0] = {end, y};
+        _loop.pointsEnd[1] = {end, y+_height};
+        lv_line_set_points(_loop.lineEnd, &_loop.pointsEnd[0], 2);
         
-    } else {
-        lv_obj_add_flag(_loopMarkers[0]._line, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(_loopMarkers[1]._line, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(_fillRect, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_size(_loop.filler, end-(_x+start), y+_height-30);
+        lv_obj_set_pos(_loop.filler, _x+start, y);
+        lv_obj_set_pos(_loop.handleStart->lvhost(), _x+start, y);
+        lv_obj_set_pos(_loop.handleEnd->lvhost(), end-Layout::TIMELINE_LOOP_HANDLE_W, _height-Layout::TIMELINE_LOOP_HANDLE_H);
+        
+    } else if(startVisible && !endVisible) {
+        lv_obj_add_flag(_loop.lineEnd, LV_OBJ_FLAG_HIDDEN);
+        _loop.handleEnd->hide();
+
+        _loop.pointsStart[0] = {_x+start, y};
+        _loop.pointsStart[1] = {_x+start, y+_height};
+        lv_line_set_points(_loop.lineStart, &_loop.pointsStart[0], 2);
+    
+        lv_obj_set_pos(_loop.handleStart->lvhost(), _x+start, y+30);
+
+        lv_obj_set_size(_loop.filler, _width-(_x+start), y+_height-30);
+        lv_obj_set_pos(_loop.filler, _x+start, y);
     }
-    
-    // LOG_WARN("points start %f, end %f", _loopMarkers[0]._points[0].x, _loopMarkers[1]._points[0].x);
-    _loopStartHandle->show(onoff);
-    _loopEndHandle->show(onoff);
-    
-    //somehow lvgl doesn't update position when objects not visible
-    if(onoff)
-        nudge(0, _timeline->_currentNudge, _timeline->_horizontalZoom); 
 }
 
-void Timeline::loop::updateZ() { 
-    lv_obj_move_to_index(_loopMarkers[0]._line, -1);
-    lv_obj_move_to_index(_loopMarkers[1]._line, -1);
-    lv_obj_move_to_index(_fillRect, -1);
-    _loopStartHandle->updateZ();
-    _loopEndHandle->updateZ();
-}
-
-void Timeline::loop::nudge(slr::frame_t oldnudge, slr::frame_t nudge, float hzoom) {
-    slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-
-    slr::frame_t loopStart = tl.loopStartFrame();
-    slr::frame_t loopEnd = tl.loopEndFrame();
-
-    int pixPerBar = UIUtility::pixelPerBar(hzoom);
-    float framesPerPixel = (float)pixPerBar / tl.framesPerBar();
-    float resStart = std::round(framesPerPixel*loopStart);
-    float resEnd = std::round(framesPerPixel*loopEnd);
-
-    slr::frame_t test = UIUtility::pixelToFrame(resEnd, hzoom);
-    // LOG_WARN("test: loopEnd %lu, pix: %f, res: %lu", loopEnd, resEnd, test);
-
-    float pixMoved = ( (float)nudge / tl.framesPerBar() );
-
-    float wtf = pixMoved * pixPerBar;
-    int wtf2 = std::round(wtf);
-
-    resStart -= wtf2;
-    resEnd -= wtf2;
-
-    _loopMarkers[0]._points[0] = {resStart, Layout::TIMELINE_LINE_Y};
-    _loopMarkers[0]._points[1] = {resStart, Layout::TIMELINE_LINE_HEIGHT};
-    
-    _loopMarkers[1]._points[0] = {resEnd, Layout::TIMELINE_LINE_Y};
-    _loopMarkers[1]._points[1] = {resEnd, Layout::TIMELINE_LINE_HEIGHT};
-    
-    // LOG_WARN("points start %f, end %f", _loopMarkers[0]._points[0].x, _loopMarkers[1]._points[0].x);
-    lv_line_set_points(_loopMarkers[0]._line, &_loopMarkers[0]._points[0], 2);
-    lv_line_set_points(_loopMarkers[1]._line, &_loopMarkers[1]._points[0], 2);
-
-    lv_obj_set_pos(_fillRect, resStart, Layout::TIMELINE_LINE_Y);
-    lv_obj_set_size(_fillRect, resEnd-resStart, Layout::TIMELINE_LINE_HEIGHT);
-
-    lv_obj_invalidate(_loopMarkers[0]._line);
-    lv_obj_invalidate(_loopMarkers[1]._line);
-    lv_obj_invalidate(_fillRect);
-
-    _loopStartHandle->nudge(resStart);
-    _loopEndHandle->nudge(resEnd-Layout::TIMELINE_LOOP_HANDLE_W);
-}
-
-Timeline::loop::loopHandle::loopHandle(BaseWidget * parent, const bool isStartHandle, Timeline * timeline) :
-    BaseWidget(parent),
-    _isStartHandle(isStartHandle), 
-    _timeline(timeline)
+Timeline::LoopHandle::LoopHandle(BaseWidget * parent, Timeline * tl, LoopThings *lparent) :
+    BaseWidget(parent, false),
+    _lparent(lparent),
+    _tl(tl)
 {
-    // _flags.isDrag = true;
-    _handle = lv_obj_create(parent->lvhost());
-    _lvhost = _handle;
-    lv_obj_set_size(_handle, Layout::TIMELINE_LOOP_HANDLE_W, Layout::TIMELINE_LOOP_HANDLE_H);
-    lv_obj_add_style(_handle, &loopHandleStyle, 0);
-    dragCallback(std::bind(&Timeline::loop::loopHandle::handleDrag, this, std::placeholders::_1));
+    _lvhost = lv_obj_create(tl->_host);
+
+    dragCallback(std::bind(&Timeline::LoopHandle::handleDrag, this, std::placeholders::_1));
+    touchDownCallback([](const GestLib::TouchDownEvent &td) -> bool {
+        return true;
+    });
+    touchUpCallback([](const GestLib::TouchUpEvent &tu) -> bool {
+        return true;
+    }) ;
 }
 
-Timeline::loop::loopHandle::~loopHandle() {
-    lv_obj_delete(_handle);
+Timeline::LoopHandle::~LoopHandle() {
+    lv_obj_delete(_lvhost);
 }
 
-bool Timeline::loop::loopHandle::handleDrag(const GestLib::DragGesture & drag) {
+bool Timeline::LoopHandle::handleDrag(const GestLib::DragGesture &drag) {
     switch(drag.state) {
         case(GestLib::GestureState::Start): {
 
         } break;
-        case(GestLib::GestureState::Move): {
-            //TODO: need to snap to grid...
-            int cx = drag.x - Layout::GRID_X;
-            lv_obj_set_x(_handle, cx);
-            if(_isStartHandle) {
-                _timeline->_loop._loopMarkers[0]._points[0].x = cx;
-                _timeline->_loop._loopMarkers[0]._points[1].x = cx;
-                lv_line_set_points(_timeline->_loop._loopMarkers[0]._line, 
-                                    &_timeline->_loop._loopMarkers[0]._points[0], 2);
-                
-                int origwidth = lv_obj_get_width(_timeline->_loop._fillRect);
-                int origx = lv_obj_get_x(_timeline->_loop._fillRect);
-                int diff = origx - cx;
-                lv_obj_set_x(_timeline->_loop._fillRect, cx);
-                lv_obj_set_width(_timeline->_loop._fillRect, origwidth + diff);
+        case(GestLib::GestureState::Move): { 
+            int cx = drag.x - lv_obj_get_x(_tl->_host);
+
+            bool isEndHandle = (this == _lparent->handleEnd.get());
+            
+            lv_obj_set_x(lvhost(), 
+                isEndHandle ? 
+                cx - Layout::TIMELINE_LOOP_HANDLE_W : 
+                cx
+            );
+
+            if(isEndHandle) {
+                _lparent->pointsEnd[0] = {cx, _tl->_y+30};
+                _lparent->pointsEnd[1] = {cx, _tl->_height};
+                lv_line_set_points(_lparent->lineEnd, &_lparent->pointsEnd[0], 2);
+
+                //change only width of filler
+                int origx = lv_obj_get_x(_lparent->filler);
+                lv_obj_set_width(_lparent->filler, cx-origx);
             } else {
-                _timeline->_loop._loopMarkers[1]._points[0].x = cx+Layout::TIMELINE_LOOP_HANDLE_W;
-                _timeline->_loop._loopMarkers[1]._points[1].x = cx+Layout::TIMELINE_LOOP_HANDLE_W;
-                lv_line_set_points(_timeline->_loop._loopMarkers[1]._line, 
-                                    &_timeline->_loop._loopMarkers[1]._points[0], 2);
+                _lparent->pointsStart[0] = {cx, _tl->_y+30};
+                _lparent->pointsStart[1] = {cx, _tl->_height};
+                lv_line_set_points(_lparent->lineStart, &_lparent->pointsStart[0], 2);
                 
-                int origx = lv_obj_get_x(_timeline->_loop._fillRect);
-                lv_obj_set_width(_timeline->_loop._fillRect, cx+Layout::TIMELINE_LOOP_HANDLE_W-origx);
+                //change
+                int origwidth = lv_obj_get_width(_lparent->filler);
+                int origx = lv_obj_get_x(_lparent->filler);
+                int diff = origx - cx;
+                lv_obj_set_x(_lparent->filler, cx);
+                lv_obj_set_width(_lparent->filler, origwidth + diff);
             }
         } break;
         case(GestLib::GestureState::End): {
-            int cx = lv_obj_get_x(_handle);
+            int cx = drag.x - lv_obj_get_x(_tl->_host);
 
-            if(_isStartHandle) {
-                //loop start event
-            } else {
-                //loop end event
-                cx += Layout::TIMELINE_LOOP_HANDLE_W;
-            }
-
-            slr::frame_t res = UIUtility::pixelToFrame(cx, _timeline->_horizontalZoom);
-            LOG_WARN("result: %lu", res);
+            slr::frame_t res = UIUtility::pixelToFrame(cx, *(_tl->_zoomPtr));
+            LOG_WARN("New loop point: %lu", res);
             //TODO: Snap to grid
             slr::TimelineView & tl = slr::TimelineView::getTimelineView();
-            if(_isStartHandle) {
+            bool isStartHandle = (this != _lparent->handleEnd.get());
+            if(isStartHandle) {
                 auto act = std::make_unique<slr::Actions::LoopPosition>();
                 act->start = res;
                 act->end = tl.loopEndFrame();
@@ -382,28 +340,28 @@ bool Timeline::loop::loopHandle::handleDrag(const GestLib::DragGesture & drag) {
     return true;
 }
 
-void Timeline::loop::loopHandle::setY(int y) {
-    lv_obj_set_y(_handle, y);
+Timeline::LoopThings::~LoopThings() {
+    lv_obj_delete(filler);
+    lv_obj_delete(lineStart);
+    lv_obj_delete(lineEnd);
 }
 
-void Timeline::loop::loopHandle::show(bool onoff) {
-    if(onoff) {
-        lv_obj_clear_flag(_handle, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_add_flag(_handle, LV_OBJ_FLAG_HIDDEN);
-    }
+void Timeline::LoopThings::show() {
+    lv_obj_clear_flag(filler, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(lineStart, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(lineEnd, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(handleStart->lvhost(), LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(handleEnd->lvhost(), LV_OBJ_FLAG_HIDDEN);
+    visible = true;
 }
 
-void Timeline::loop::loopHandle::nudge(float x) {
-    lv_obj_set_x(_handle, static_cast<int>(x));
-    _lastPosition = x;
-    lv_obj_invalidate(_handle);
+void Timeline::LoopThings::hide() {
+    lv_obj_add_flag(filler, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(lineStart, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(lineEnd, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(handleStart->lvhost(), LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(handleEnd->lvhost(), LV_OBJ_FLAG_HIDDEN);
+    visible = false;
 }
-
-void Timeline::loop::loopHandle::updateZ() {
-    lv_obj_move_to_index(_handle, -1);
-    lv_obj_invalidate(_handle);
-}
-
 
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include "display/utility/layoutSizes.h"
+
 
 #define LABEL(ptr, x, y, w, h, text) \
     ptr = std::make_unique<Label>(this, text); \
@@ -9,6 +11,9 @@
     ptr = std::make_unique<Button>(this, text); \
     ptr->setSize(w, h); \
     ptr->setPos(x, y);
+
+#define BUTTONDEF(ptr, x, y, text) \
+    BUTTON(ptr, x, y, Layout::Button, Layout::Button, text)
     
 #define LVGL_OBJ_FWD \
     struct _lv_obj_t; \

@@ -6,6 +6,7 @@
 #include "display/primitives/Button.h"
 #include "display/primitives/Label.h"
 #include "display/utility/layoutSizes.h"
+#include "display/utility/DefaultStyles.h"
 #include "common/uiutility.h"
 
 #include "snapshots/TimelineView.h"
@@ -21,7 +22,7 @@ TimelinePopup::TimelinePopup(BaseWidget * parent, UIContext * const uictx) :
 {
     setSize(Layout::TIMELINE_POPUP_W, Layout::TIMELINE_POPUP_H);
     setPos(Layout::TIMELINE_POPUP_X, Layout::TIMELINE_POPUP_Y);
-    setColor(lv_color_hex(0x4a5cf1));
+    addStyle(&Style::PopupDefault);
 
     _bpm = std::make_unique<Label>(this, "bpm");
     _bpm->setPos(50, 30);

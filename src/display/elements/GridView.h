@@ -42,9 +42,6 @@ struct GridGrid : public BaseWidget {
     private:    
     GridView * _grid;
     UIContext * const _uictx;
-
-    bool handleDrag(const GestLib::DragGesture & drag);
-
 };
 
 struct GridView : public View {
@@ -52,17 +49,21 @@ struct GridView : public View {
     ~GridView();
 
     const float hZoom() const { return _horizontalZoom; }
+    void updateTimeline();
     void pollUIUpdate() override;
 
     std::unique_ptr<GridControl> _control;
-    std::unique_ptr<GridGrid> _grid;
     std::unique_ptr<Timeline> _timeline;
+    std::unique_ptr<GridGrid> _grid;
+    // std::unique_ptr<Timeline> _timeline;
     
     private:
     float _horizontalZoom = 1.0f;
+    lv_obj_t * _timelineContainer;
 
     bool handleSwipe(const GestLib::SwipeGesture & swipe);
     bool handleDrag(const GestLib::DragGesture &drag);
+    bool handleZoom(const GestLib::ZoomGesture &zoom);
 };
 
 }

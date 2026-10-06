@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "display/primitives/BaseWidget.h"
-#include "display/utility/defaultStyles.h"
+#include "display/utility/DefaultStyles.h"
 
 #include "common/logger.h"
 #include <algorithm>
@@ -21,7 +21,6 @@ BaseWidget::BaseWidget(BaseWidget * parent, bool hasHost, bool addAsChild) :
     if(_hasHost) {
         if(parent == nullptr) _lvhost = lv_obj_create(nullptr);
         else _lvhost = lv_obj_create(parent->lvhost());
-        lv_obj_add_style(_lvhost, &workspace, 0);
         hide();
     }
 
@@ -33,7 +32,7 @@ BaseWidget::BaseWidget(BaseWidget * parent, bool hasHost, bool addAsChild) :
                 false, false, false, 
                 false, false, false,
                 false, false, false,
-                false, false, false };
+                false, false, false};
 
     _lastPolledUIVersion = 0;
 }
@@ -45,7 +44,6 @@ BaseWidget::BaseWidget(lv_obj_t * parent) :
     _lvhost(nullptr)
 {
     _lvhost = parent;
-    lv_obj_add_style(_lvhost, &workspace, 0);
 }
 
 BaseWidget::~BaseWidget() {
@@ -77,6 +75,16 @@ void BaseWidget::setPos(lv_coord_t x, lv_coord_t y) {
 void BaseWidget::setColor(lv_color_t color) {
     if(!_lvhost) return;
     lv_obj_set_style_bg_color(_lvhost, color, LV_PART_MAIN);
+}
+
+void BaseWidget::addStyle(const lv_style_t *style) {
+    if(!_lvhost) return;
+    lv_obj_add_style(_lvhost, style, 0);
+}
+
+void BaseWidget::noScroll() {
+    if(!_lvhost) return;
+    lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
 }
 
 int BaseWidget::getX() {
@@ -191,7 +199,7 @@ bool BaseWidget::canHandleGesture(GestLib::Gestures gesture) {
     if(gesture == GestLib::Gestures::TwoFingerSwipe && _flags.isTwoFingerSwipe) ret = true;
     if(gesture == GestLib::Gestures::ThreeFingerTap && _flags.isThreeFingerTap) ret = true;
     if(gesture == GestLib::Gestures::ThreeFingerSwipe && _flags.isThreeFingerSwipe) ret = true;
-    
+    if(gesture == GestLib::Gestures::Zoom && _flags.isZoom) ret = true;
     return ret;
 }
 
@@ -207,6 +215,7 @@ bool BaseWidget::handleGesture(GestLib::Gesture & gesture) {
         case(GestLib::Gestures::Swipe): ret = handleSwipe(gesture.swipe); break;
         case(GestLib::Gestures::DoubleTapSwipe): ret = handleDTSwipe(gesture.dtSwipe); break;
         case(GestLib::Gestures::DoubleTapCircular): ret = handleDTCircular(gesture.dtCircular); break;
+        case(GestLib::Gestures::Zoom): ret = handleZoom(gesture.zoom); break;
     }
     return ret;
 }
@@ -244,6 +253,10 @@ void BaseWidget::doubleTapCallback(std::function<bool(const GestLib::DoubleTapGe
     _onDoubleTap = std::move(onDT);
     _flags.isDoubleTap = true;
 }
+void BaseWidget::zoomCallback(std::function<bool(const GestLib::ZoomGesture &)> onZoom) {
+    _onZoom = std::move(onZoom);
+    _flags.isZoom = true;
+}
     
 bool BaseWidget::handleTap(const GestLib::TapGesture & tap) {
     if(_onTap) { return _onTap(tap); }
@@ -278,6 +291,10 @@ bool BaseWidget::handleDTSwipe(const GestLib::DTSwipeGesture & swipe) {
     return false;
 }
 bool BaseWidget::handleDTCircular(const GestLib::DTCircularGesture & swipe) {
+    return false;
+}
+bool BaseWidget::handleZoom(const GestLib::ZoomGesture &zoom) {
+    if(_onZoom) { return _onZoom(zoom); }
     return false;
 }
 

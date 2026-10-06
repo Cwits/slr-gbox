@@ -9,6 +9,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type")
 set(CMAKE_CXX_FLAGS "-g -O0 -Wall -Werror=return-type")
 
 
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer -g -O0 -Wall -Werror=return-type")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer -g -O0 -Wall -Werror=return-type")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
+
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
@@ -210,7 +214,7 @@ file(GLOB SOURCES
   src/display/elements/BottomPanel.cpp
   src/display/elements/Browser.cpp
   src/display/elements/GridView.cpp
-  src/display/elements/MainWindow.cpp
+  src/display/elements/RootWindow.cpp
   src/display/elements/ModEngineView.cpp
   src/display/elements/SplashScreen.cpp
   src/display/elements/StepSequencerView.cpp
@@ -241,8 +245,8 @@ file(GLOB SOURCES
   src/display/primitives/View.cpp
 
   src/display/utility/FileToCanvas.cpp
-  src/display/utility/defaultColors.cpp
-  src/display/utility/defaultStyles.cpp
+  src/display/utility/DefaultColors.cpp
+  src/display/utility/DefaultStyles.cpp
   src/display/utility/DragContext.cpp
   src/display/utility/UIContext.cpp
 

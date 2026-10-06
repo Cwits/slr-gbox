@@ -4,7 +4,7 @@
 #include "display/guiThread.h"
 
 #include "lvgl.h"
-#include "display/elements/MainWindow.h"
+#include "display/elements/RootWindow.h"
 #include "display/elements/SplashScreen.h"
 #include "display/utility/layoutSizes.h"
 #include "display/FakeGestures.h"
@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <functional>
+#include <memory>
 
 #if defined(__aarch64__)
     #define SDL_HOR_RES 1920
@@ -28,7 +29,7 @@
 #endif
 
 lv_display_t *lvDisplay;
-UI::SplashScreen * _splash;
+std::unique_ptr<UI::SplashScreen> _splash;
 lv_obj_t * _main_screen;
 
 #if defined(__aarch64__)
@@ -75,7 +76,7 @@ void initGui() {
     // SDL_GL_SetSwapInterval(0);
     
     _main_screen = lv_screen_active();
-    _splash = new UI::SplashScreen(nullptr);
+    _splash = std::make_unique<UI::SplashScreen>(nullptr);
     lv_screen_load(_splash->_host);
     lv_timer_handler();
 
@@ -98,7 +99,7 @@ void initGui() {
 }
 
 void runGui(std::atomic<bool> &shutdown) {    
-    UI::MainWindow * main = new UI::MainWindow(_main_screen);
+    std::unique_ptr<UI::RootWindow> root = std::make_unique<UI::RootWindow>(_main_screen);
     lv_screen_load(_main_screen);
 
     const uint32_t delayTicksUs = LV_DEF_REFR_PERIOD * 1000; //to micros
@@ -174,7 +175,7 @@ void runGui(std::atomic<bool> &shutdown) {
         lv_tick_inc(mills); // Update the tick timer. Tick is new for LVGL 9
         uint32_t ret = lv_timer_handler(); // Update the UI-
 
-        main->pollUIUpdate();
+        root->pollUIUpdate();
 
         elapsed = std::chrono::steady_clock::now();
         mills = std::chrono::duration_cast<std::chrono::microseconds>(elapsed - now).count();
@@ -191,8 +192,8 @@ void runGui(std::atomic<bool> &shutdown) {
     _recognizer.shutdown();
 #endif
 
-    delete main;
-    delete _splash;
+    root.reset();
+    _splash.reset();
 
     lv_display_delete(lvDisplay);
 

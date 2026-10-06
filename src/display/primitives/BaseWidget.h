@@ -40,7 +40,11 @@ struct BaseWidget {
 
     virtual void setSize(lv_coord_t w, lv_coord_t h);
     virtual void setPos(lv_coord_t x, lv_coord_t y);
+    
     void setColor(lv_color_t color);
+    void addStyle(const lv_style_t * style);
+    void noScroll();
+
     int getX();
     int getY();
     int width();
@@ -87,7 +91,8 @@ struct BaseWidget {
     void dragCallback(std::function<bool(const GestLib::DragGesture &)> onDrag);
     void swipeCallback(std::function<bool(const GestLib::SwipeGesture &)> onSwipe);
     void doubleTapCallback(std::function<bool(const GestLib::DoubleTapGesture &)> onDT);
-
+    void zoomCallback(std::function<bool(const GestLib::ZoomGesture &)> onZoom);
+    
     protected:
     BaseWidget * _parent;
     std::vector<BaseWidget*> _childs;
@@ -103,6 +108,7 @@ struct BaseWidget {
     std::function<bool(const GestLib::DragGesture &)> _onDrag;
     std::function<bool(const GestLib::SwipeGesture &)> _onSwipe;
     std::function<bool(const GestLib::DoubleTapGesture &)> _onDoubleTap;
+    std::function<bool(const GestLib::ZoomGesture &)> _onZoom;
 
     bool handleTouchDown(const GestLib::TouchDownEvent & touchDown);
     bool handleTouchUp(const GestLib::TouchUpEvent & touchUp);
@@ -113,6 +119,7 @@ struct BaseWidget {
     bool handleSwipe(const GestLib::SwipeGesture & swipe);
     bool handleDTSwipe(const GestLib::DTSwipeGesture & swipe);
     bool handleDTCircular(const GestLib::DTCircularGesture & swipe);
+    bool handleZoom(const GestLib::ZoomGesture & zoom);
 
     uint64_t _lastPolledUIVersion;
     

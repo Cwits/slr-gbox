@@ -6,7 +6,7 @@
 #include "display/elements/Timeline.h"
 
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
+#include "display/utility/DefaultStyles.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/DragContext.h"
 #include "display/primitives/FileView.h"
@@ -27,13 +27,10 @@ GridControl::GridControl(GridView * parent, UIContext * const uictx)
     _grid(parent),
     _uictx(uictx)
 {
-    setColor(lv_palette_main(LV_PALETTE_CYAN));
     setPos(Layout::TRACK_CONTROL_PANEL_X, Layout::TRACK_CONTROL_PANEL_Y);
     setSize(Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_CONTROL_PANEL_HEIGHT);
-    
-    // _flags.isTap = true;
-
-    lv_obj_add_style(_lvhost, &workspace, 0);
+    // lv_obj_add_style(_lvhost, &workspace, 0);
+    addStyle(&Style::workspace);
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
 
     _lastSelectedRect = lv_obj_create(_lvhost);
@@ -80,20 +77,10 @@ GridGrid::GridGrid(GridView * parent, UIContext * const uictx)
     _grid(parent),
     _uictx(uictx)
 {
-    setColor(lv_palette_main(LV_PALETTE_AMBER));
     setPos(Layout::GRID_X, Layout::GRID_Y);
     setSize(Layout::GRID_WIDTH, Layout::GRID_HEIGHT);
+    addStyle(&Style::workspace);
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
-    
-    lv_obj_add_style(_lvhost, &workspace, 0);
-    lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
-    // _flags.isDrag = true;
-
-    // lv_obj_set_style_bg_color(lvhost(), )
-    // lv_obj_set_style_bg_opa(lvhost(), LV_OPA_100, 0);
-
-    dragCallback(std::bind(&GridGrid::handleDrag, this, std::placeholders::_1));
-
     show();
 }
 
@@ -101,75 +88,32 @@ GridGrid::~GridGrid() {
 
 }
 
-bool GridGrid::handleDrag(const GestLib::DragGesture & drag) {
-    // DragContext & ctx = *_uictx->dragContext();
-    // if(drag.state == GestLib::GestureState::Start) {
-
-    // } else if(drag.state == GestLib::GestureState::Move) {
-    //     // LOG_INFO("Here");
-    //     if(ctx.dragOnGoing) {
-    //         ctx.updateIconPos(drag.x, drag.y);
-    //     }    
-    // } else if(drag.state == GestLib::GestureState::End) {
-    //     LOG_INFO("Drag End x: %d, y: %d", drag.x, drag.y);
-        
-    //     if(ctx.dragOnGoing && ctx.origin != nullptr) {
-    //         if(ctx.payload.type != DragPayload::DataType::FilePath) {
-    //             return true;
-    //         }
-            
-    //         std::string * target = ctx.payload.filePath.path;
-    //         if(target->substr(target->size()-5) == ".json") {
-    //             //assuume it is Project File to load
-    //             auto act = std::make_unique<slr::Actions::LoadProject>();
-    //             act->path = *target;
-    //             slr::EmitAction(std::move(act));
-    //         } else {
-    //             //try find appropriate track
-    //             const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
-    //             int notAbsY = drag.y - (Layout::TOP_PANEL_HEIGHT + Layout::TIMELINE_HEIGHT);
-    //             for(const std::unique_ptr<UnitUIBase> &u : list) {
-    //                 UnitUIBase *unit = u.get();
-    //                 if(notAbsY >= unit->gridUI()->gridY() && 
-    //                     notAbsY <= (unit->gridUI()->gridY()+Layout::TRACK_HEIGHT) && 
-    //                     unit->canLoadFiles()) {
-    //                     LOG_INFO("Loading file %s to unitId: %d", ctx.payload.filePath.path->c_str(), unit->id());
-                        
-    //                     auto action = std::make_unique<slr::Actions::LoadAsClip>();
-    //                     action->targetId = unit->id();
-    //                     action->data = *ctx.payload.filePath.path;
-    //                     action->startOffset = 0;
-    //                     action->makeUnique = false;
-    //                     slr::EmitAction(std::move(action));
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     ctx.reset();
-    // }
-
-    return true;
-}
 
 
 GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx) {
     setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT); 
-    lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
+    noScroll();
+    addStyle(&Style::workspace);
     
     _control = std::make_unique<GridControl>(this, uictx);
     _grid = std::make_unique<GridGrid>(this, uictx);
-    _timeline = std::make_unique<Timeline>(_grid.get(), uictx);
 
+    _timeline = std::make_unique<Timeline>(_grid.get(), _grid->lvhost(), &_horizontalZoom, uictx);
+    _timeline->setPos(0, 0);
+    _timeline->setSize(Layout::TIMELINE_WIDTH, Layout::WORKSPACE_HEIGHT);   
+    _timeline->rebuildTimeline();
+    
     dragCallback(std::bind(&GridView::handleDrag, this, std::placeholders::_1));
     swipeCallback(std::bind(&GridView::handleSwipe, this, std::placeholders::_1));
+    zoomCallback(std::bind(&GridView::handleZoom, this, std::placeholders::_1));
 
     show();
 }
 
 GridView::~GridView() {
     //have to call explicitly before deleting _control and _grid
+    _timeline.reset();
 }
 
 bool GridView::handleSwipe(const GestLib::SwipeGesture & swipe) {
@@ -198,7 +142,8 @@ bool GridView::handleSwipe(const GestLib::SwipeGesture & swipe) {
                         newNudge = 0;
                     }
 
-                    _timeline->setNudge(newNudge);
+                    _timeline->nudge(newNudge);
+                    _timeline->rebuildTimeline();
 
                     const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
                     for(auto &base : list) {
@@ -208,7 +153,9 @@ bool GridView::handleSwipe(const GestLib::SwipeGesture & swipe) {
             } else if(swipe.dx < 0) {
                 //move from right to left - increase start position
                 slr::frame_t newNudge = oldNudge + std::abs(mul);
-                _timeline->setNudge(newNudge);
+                
+                _timeline->nudge(newNudge);
+                _timeline->rebuildTimeline();
                 
                 const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
                 for(auto &base : list) {
@@ -320,18 +267,23 @@ bool GridView::handleDrag(const GestLib::DragGesture &drag) {
 void GridView::pollUIUpdate() {
     _control->pollUIUpdate();
     _grid->pollUIUpdate();
-    _timeline->pollUIUpdate();
+    // _timeline->pollUIUpdate();
+}
+
+void GridView::updateTimeline() {
+    _timeline->rebuildTimeline();
 }
 
 void GridControl::pollUIUpdate() {
     BaseWidget::pollChildsUIUpdate();
 }
 
+
 void GridGrid::pollUIUpdate() {
     BaseWidget::pollChildsUIUpdate();
     if(_uictx->recalcGridFiles()) {
         _uictx->filesRecalculated();
-        slr::frame_t nudge = _grid->_timeline->nudge();
+        slr::frame_t nudge = 0;//_grid->_timeline->nudge();
 
         const std::vector<std::unique_ptr<UnitUIBase>> &list = _uictx->_unitsUI;
         
@@ -347,6 +299,22 @@ void GridGrid::pollUIUpdate() {
             }
         }
     }
+}
+
+bool GridView::handleZoom(const GestLib::ZoomGesture &zoom) {
+    // LOG_WARN("Zooom, Zoooom, Zooom! Need more coffee! %f", zoom.diff);
+
+    if(zoom.diff > 0) {
+        _horizontalZoom *= 0.99f;
+        _timeline->rebuildTimeline();
+        _uictx->recalculateGrid();
+    } else if(zoom.diff < 0) {
+        _horizontalZoom *= 1.01f;
+        _timeline->rebuildTimeline();
+        _uictx->recalculateGrid();
+    }
+
+    return true;
 }
 
 }

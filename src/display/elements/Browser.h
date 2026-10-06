@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace UI {
 
@@ -30,9 +31,9 @@ class Browser : public View {
     
     std::string _dragndrop;
 
-    Button * _refresh;
-    Button * _dirUp;
-    Label * _lastPath;
+    std::unique_ptr<Button> _refresh;
+    std::unique_ptr<Button> _dirUp;
+    std::unique_ptr<Label> _lastPath;
 
     struct element {
         element(){}

@@ -40,7 +40,6 @@ void UpdatePlayheadAction::exec(ControlContext &ctx) {
 		} break;
 		case(2): {
 			ctx.projectView->timeline().setPlayhead(_flat.position);
-			UIControls::updatePlayheadPosition(_flat.position);
         	 
         	setState(ActionState::Finished);
 		} break;

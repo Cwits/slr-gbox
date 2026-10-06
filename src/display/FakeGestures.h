@@ -20,6 +20,7 @@ struct FakeGestures {
     int _startX;
     int _startY;
     GestLib::Gestures _gesture;
+    bool _zoomIn;
 
     void changeGesture(GestLib::Gestures gest);
     void makeTouchUp(int x, int y);
@@ -38,4 +39,6 @@ struct FakeGestures {
     void makeDTSwipeStart(int x, int y);
     void makeDTSwipeMove(int x, int y);
     void makeDTSwipeEnd(int x, int y);
+    void makeZoomIn(int x, int y);
+    void makeZoomOut(int x, int y);
 };

@@ -8,7 +8,7 @@
 #include "display/primitives/Label.h"
 #include "display/primitives/Slider.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/UIContext.h"
 
 #include "snapshots/ProjectView.h"

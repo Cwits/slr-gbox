@@ -9,7 +9,8 @@
 #include "display/primitives/DropDown.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultColors.h"
+#include "display/utility/DefaultStyles.h"
 #include "common/logger.h"
 
 #include "core/primitives/AudioRoute.h"
@@ -35,7 +36,8 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     _currentUnitId = 0;
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
-    setColor(lv_color_hex(0x858585));
+    addStyle(&Style::PopupDefault);
+    noScroll();
 
     _text = new Label(this, "Routes for");
     _text->setSize(300, 40);
@@ -68,7 +70,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     });
 
     _ddCurrentUnit->button()->touchDownCallback([this, drop = _ddCurrentUnit](const GestLib::TouchDownEvent &td) -> bool {
-        drop->button()->setColor(BUTTON_DEFAULT_PRESSED);
+        drop->button()->setColor(Colors::ButtonPressed);
         std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
         std::vector<std::string> names;
         for(const slr::AudioUnitView *av : list) {
@@ -84,14 +86,14 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     _inputsText->setSize(250, 33);
     _inputsText->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, 150-35);
     _inputsText->setFont(&DEFAULT_FONT);
-    _inputsText->setTextColor(BLACK_COLOR);
+    _inputsText->setTextColor(Colors::Black);
 
     /* left side */
     _outputsText = new Label(this, "Sending to:");
     _outputsText->setSize(250, 33);
     _outputsText->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, 150-35);
     _outputsText->setFont(&DEFAULT_FONT);
-    _outputsText->setTextColor(BLACK_COLOR);
+    _outputsText->setTextColor(Colors::Black);
 
     _btnAudioTab = new Button(this, "Audio Routes");
     _btnAudioTab->setSize(200, Layout::Button);
@@ -205,7 +207,8 @@ RouteManager::AudioTab::AudioTab(BaseWidget *parent, const slr::ID &id)
 {
     setPos(0, 150);
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT-150);
-    setColor(lv_color_hex(0xac0000));
+    // setColor(lv_color_hex(0xac0000));
+    addStyle(&Style::PopupDefault);
 
     _inputs.reserve(5);
     _outputs.reserve(5);
@@ -642,7 +645,8 @@ RouteManager::MidiTab::MidiTab(BaseWidget *parent, const slr::ID &id)
 {
     setPos(0, 150);
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT-150);
-    setColor(lv_color_hex(0x00ac00));
+    // setColor(lv_color_hex(0x00ac00));
+    addStyle(&Style::PopupDefault);
 
     _inputs.reserve(5);
     _outputs.reserve(5);

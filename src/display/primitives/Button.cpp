@@ -3,8 +3,8 @@
 
 #include "display/primitives/Button.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 
 namespace UI {
 
@@ -18,10 +18,11 @@ Button::Button(BaseWidget * parent, std::string text) : BaseWidget(parent, false
     _label = lv_label_create(_btn);
     lv_label_set_text(_label, text.c_str());
     lv_obj_center(_label);
-    lv_obj_add_style(_btn, &buttonDefaultStyle, 0);
+    lv_obj_add_style(_btn, &Style::buttonDefaultStyle, 0);
+    lv_obj_add_style(_label, &Style::Text, 0);
     
     touchDownCallback([this](const GestLib::TouchDownEvent &td) -> bool {
-        this->setColor(BUTTON_DEFAULT_PRESSED);
+        this->setColor(Colors::ButtonPressed);
         return true;
     });
     touchUpCallback([this](const GestLib::TouchUpEvent &tu) -> bool {
@@ -29,7 +30,7 @@ Button::Button(BaseWidget * parent, std::string text) : BaseWidget(parent, false
         return true;
     });
 
-    _defaultColor = BUTTON_DEFAULT_COLOR;
+    _defaultColor = Colors::ButtonReleased;
     setFont(&DEFAULT_FONT);
     // lv_obj_add_event_cb(_btn, &Button::event_trampoline, LV_EVENT_CLICKED, this);
 }

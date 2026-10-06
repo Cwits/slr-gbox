@@ -8,8 +8,8 @@
 
 #include "display/elements/Timeline.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/UIContext.h"
 
 #include "display/primitives/Button.h"

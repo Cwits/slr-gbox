@@ -22,7 +22,7 @@ struct Label;
 struct Button;
 struct DropDown;
 struct TargetSelectPopup;
-struct MainWindow;
+struct RootWindow;
 
 struct SequenceUI {
     SequenceUI(const std::shared_ptr<slr::SequenceView> view);
@@ -117,7 +117,7 @@ struct StepSequencerView : public View {
     void updateUI();
 
     TargetSelectPopup * _tpop;
-    friend class MainWindow; //ugh...
+    friend class RootWindow; //TODO: ugh... that's not good
     // bool handleSwipe(GestLib::SwipeGesture & swipe) override;
     // bool handleDrag(GestLib::DragGesture &drag) override;
 };

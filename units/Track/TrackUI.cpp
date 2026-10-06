@@ -9,8 +9,8 @@
 
 #include "display/elements/Timeline.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/UIContext.h"
 #include "display/primitives/Button.h"
 #include "display/primitives/Label.h"
@@ -118,10 +118,10 @@ void TrackUI::TrackGridControlUI::pollUIUpdate() {
     DefaultGridUI::pollUIUpdate();
 
     if(view->record()) {
-        _btnRecord->setColor(RED_COLOR);
+        _btnRecord->setColor(Colors::RecordOn);
         _btnSource->show();
     } else {
-        _btnRecord->setColor(BUTTON_DEFAULT_COLOR);
+        _btnRecord->setColor(Colors::ButtonReleased);
         _btnSource->hide();
     }
 
@@ -138,6 +138,7 @@ TrackUI::TrackUnitUI::TrackUnitUI(BaseWidget *parent, TrackUI * parentUI)
 {
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     setPos(0, 0);
+    addStyle(&Style::workspace);
 
 
     _testRect = lv_obj_create(lvhost());

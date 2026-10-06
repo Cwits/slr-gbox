@@ -3,9 +3,10 @@
 
 #pragma once
 
+#include "common/defines.h"
+
 #include <functional>
 #include <string>
-#include "common/defines.h"
 
 namespace UI {
 
@@ -74,7 +75,7 @@ struct PopupManager {
     TargetSelectPopup * _targetSelectPopup;
     ModEngineTargetManager * _modEngineTargetManagerPopup;
 
-    friend class MainWindow;
+    friend class RootWindow;
 };
 
 }

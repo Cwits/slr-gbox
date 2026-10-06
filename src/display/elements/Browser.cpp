@@ -3,12 +3,13 @@
 
 #include "display/elements/Browser.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/DragContext.h"
 #include "display/primitives/Button.h"
 #include "display/primitives/Label.h"
+#include "display/utility/Macros.h"
 
 #include "core/SettingsManager.h"
 
@@ -27,28 +28,23 @@ const int _lineHeight = lv_font_get_line_height(&BROWSER_ELEMENT_FONT)+3;
 Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uictx) {
     setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
-    lv_obj_add_style(_lvhost, &workspace, 0);
-    lv_obj_set_style_bg_color(_lvhost, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN);
+    lv_obj_add_style(_lvhost, &Style::workspace, 0);
+    lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
 
     int posx = parent->width()-Layout::Button-Layout::Margin;
-    _refresh = new Button(this, LV_SYMBOL_REFRESH);
-    _refresh->setSize(Layout::Button, Layout::Button);
-    _refresh->setPos(posx, Layout::Margin);
-    _refresh->setFont(&DEFAULT_FONT);
+
+    BUTTONDEF(_refresh, posx, Layout::Margin, LV_SYMBOL_REFRESH);
     _refresh->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->parse(); return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
-    _dirUp = new Button(this, LV_SYMBOL_UP);
-    _dirUp->setSize(Layout::Button, Layout::Button);
-    _dirUp->setPos(posx, Layout::Margin);
-    _dirUp->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_dirUp, posx, Layout::Margin, LV_SYMBOL_UP);
     _dirUp->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->goUp(); return true;
     });
 
-    _lastPath = new Label(this, "");
+    _lastPath = std::make_unique<Label>(this, "");
     _lastPath->setSize(Layout::PARSED_PATH_W, lv_font_get_line_height(&DEFAULT_FONT));
     _lastPath->setPos(Layout::PARSED_PATH_X, Layout::PARSED_PATH_Y);
     _lastPath->setFont(&DEFAULT_FONT);
@@ -68,9 +64,6 @@ Browser::~Browser() {
     for(auto * el : _elements) {
         delete el;
     }
-
-    delete _refresh;
-    delete _dirUp;
 }
 
 void Browser::parse() {
@@ -159,7 +152,7 @@ bool Browser::handleTouchDown(const GestLib::TouchDownEvent &down) {
     Label * lb = findLabel(notAbsX, notAbsY);
 
     if(lb) {
-        lb->setTextColor(WHITE_COLOR);
+        lb->setTextColor(Colors::White);
 
         _lastTouched = lb;
     }
@@ -169,7 +162,7 @@ bool Browser::handleTouchDown(const GestLib::TouchDownEvent &down) {
 
 bool Browser::handleTouchUp(const GestLib::TouchUpEvent &up) {
     if(_lastTouched) {
-        _lastTouched->setTextColor(BLACK_COLOR);
+        _lastTouched->setTextColor(Colors::Black);
         _lastTouched = nullptr;
     } 
 
@@ -345,7 +338,7 @@ void Browser::element::init(Browser *parent, std::string &iconText, std::string 
     // lv_obj_set_size(lb->label(), BROWSER_ELEMENT_TEXT_W, _lineHeight);
     // lv_label_set_long_mode(lb->label(), LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
     // lv_obj_set_style_anim(lb->label(), &_browserElementAnimation, 0);
-    lv_obj_add_style(lb->lvhost(), &browserElementStyle, 0);
+    lv_obj_add_style(lb->lvhost(), &Style::browserElementStyle, 0);
         
 
     _icon = icon;

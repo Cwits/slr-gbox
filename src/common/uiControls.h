@@ -45,7 +45,6 @@ void deleteUI(slr::ID id);
 
 /* Timeline */
 void updateTimeline(const bool timeSigOrBpm);
-void updatePlayheadPosition(slr::frame_t position);
 
 /* Route Manager */
 void updateRouteManager();

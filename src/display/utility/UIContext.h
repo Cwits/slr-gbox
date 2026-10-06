@@ -13,7 +13,7 @@ namespace UI {
 
 class UnitUIBase;
 class Timeline;
-class MainWindow;
+class RootWindow;
 
 class TopPanel;
 class BottomPanel;
@@ -42,7 +42,7 @@ struct UIContext {
     std::vector<std::unique_ptr<UnitUIBase>> _unitsUI;
     
     PopupManager * _popManager;
-    Timeline * _gridTimeline;
+    // Timeline * _gridTimeline;
     
     BaseWidget * topPanel();
     BaseWidget * bottomPanel();
@@ -68,11 +68,14 @@ struct UIContext {
     UnitUIBase * getLastSelected();
 
     float gridHorizontalZoom();
+    void gridToFront();
 
     void registerFrequentUpdate(std::function<void()> clb);
 
+    void recalculateGrid() { _recalculateGridFilePositions = true; }
     bool recalcGridFiles() const { return _recalculateGridFilePositions; }
     void filesRecalculated();
+
     private:
     DragContext * _dragContext;
     
@@ -87,10 +90,10 @@ struct UIContext {
 
     UnitUIBase * _lastSelectedModule = nullptr;
 
-    MainWindow * _mainWindow;
+    RootWindow * _rootWindow;
 
     bool _recalculateGridFilePositions = false;
-    friend class MainWindow;
+    friend class RootWindow;
 };
 
 /*

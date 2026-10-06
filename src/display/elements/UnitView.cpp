@@ -4,7 +4,7 @@
 #include "display/elements/UnitView.h"
 
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
+#include "display/utility/DefaultStyles.h"
 #include "display/utility/UIContext.h"
 
 #include "display/primitives/UnitUIBase.h"
@@ -17,8 +17,7 @@ namespace UI {
 UnitView::UnitView(BaseWidget* parent, UIContext * const uictx) : View(parent, uictx) {
     setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
-    lv_obj_add_style(_lvhost, &workspace, 0);
-    lv_obj_set_style_bg_color(_lvhost, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN);
+    addStyle(&Style::workspace);
 
     _lb = lv_label_create(_lvhost);
     lv_label_set_text(_lb, "Module");

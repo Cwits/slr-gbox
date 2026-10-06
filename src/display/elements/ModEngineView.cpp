@@ -12,8 +12,8 @@
 
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
-#include "display/utility/defaultStyles.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/Macros.h"
 
 #include "snapshots/TimelineView.h"
@@ -58,7 +58,8 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
 {
     setPos(Layout::STEP_SEQ_X, Layout::STEP_SEQ_Y);
     setSize(Layout::STEP_SEQ_WIDTH, Layout::STEP_SEQ_HEIGHT);
-    setColor(lv_color_hex(0x06e17e));
+    addStyle(&Style::workspace);
+    lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
 
     LABEL(_lblModNumText, Layout::Margin, Layout::Margin+10, 200, 40, "Modulation: ");
     LABEL(_lblModNum,     210,                       Layout::Margin+10, 100, 40, "x / x");
@@ -219,7 +220,7 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
     _points[1] = {360, 840};
     lv_line_set_points(_line, &_points[0], 2);
         
-    lv_obj_add_style(_line, &gridLine, 0);
+    lv_obj_add_style(_line, &Style::gridLine, 0);
 
     _cnvModView = lv_canvas_create(lvhost());
     lv_obj_set_pos(_cnvModView, 360, 240);
@@ -231,6 +232,7 @@ ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
     redrawCanvas(_ddType->selectedItem(), _tmpRate, _tmpOffset);
     
     _currentSelectedMod = 0;
+    _playheadVersion = 0;
 }
 
 ModEngineView::~ModEngineView() {
@@ -295,13 +297,13 @@ void ModEngineView::showByPos(std::size_t pos) {
 }
 
 void ModEngineView::redrawCanvas(const std::string type, float rate, float offset) {
-    fillCanvas(_cnvModView, 1200, 600, lv_color_hex(0x000000));
+    fillCanvas(_cnvModView, 1200, 600, Colors::Black);
     if(type.compare("Sin") == 0) {
         for(int x=0; x<1200; ++x) {
             // float sample = sMath::sin(2*M_PI * (x/1200.f) * rate + offset);
             float sample = sMath::sineWave(1.0f, static_cast<float>(x), 1200.f, rate, offset);
             int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
-            lv_canvas_set_px(_cnvModView, x, y, RED_COLOR, LV_OPA_COVER);
+            lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
         }
 
     } else if(type.compare("Saw") == 0) {
@@ -309,11 +311,11 @@ void ModEngineView::redrawCanvas(const std::string type, float rate, float offse
         for(int x=0; x<1200; ++x) {
             float sample = sMath::sawtoothWave(0.5f, static_cast<float>(x), 1200.f, rate, offset);
             int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
-            lv_canvas_set_px(_cnvModView, x, y, RED_COLOR, LV_OPA_COVER);
+            lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
             
             if(sMath::abs(prev - y) > 10) {
                 for(int py = 10; py<590; ++py) {
-                    lv_canvas_set_px(_cnvModView, x, py, RED_COLOR, LV_OPA_COVER);
+                    lv_canvas_set_px(_cnvModView, x, py, Colors::Red, LV_OPA_COVER);
                 }
             }
             prev = y;
@@ -323,10 +325,10 @@ void ModEngineView::redrawCanvas(const std::string type, float rate, float offse
         for(int x=0; x<1200; ++x) {
             float sample = sMath::squareWave(1.0f, static_cast<float>(x), 1200.f, rate, offset);
             int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
-            lv_canvas_set_px(_cnvModView, x, y, RED_COLOR, LV_OPA_COVER);
+            lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
             if(prev != y) {
                 for(int py = 10; py<590; ++py) {
-                    lv_canvas_set_px(_cnvModView, x, py, RED_COLOR, LV_OPA_COVER);
+                    lv_canvas_set_px(_cnvModView, x, py, Colors::Red, LV_OPA_COVER);
                 }
                 prev = y;
             }
@@ -335,7 +337,7 @@ void ModEngineView::redrawCanvas(const std::string type, float rate, float offse
         for(int x=0; x<1200; ++x) {
             float sample = sMath::triangleWave(1.0f, static_cast<float>(x), 1200.0f, rate, offset);
             int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
-            lv_canvas_set_px(_cnvModView, x, y, RED_COLOR, LV_OPA_COVER);
+            lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
         }
     } else if(type.compare("Rand") == 0) {
         //TODO: TBD
@@ -343,6 +345,14 @@ void ModEngineView::redrawCanvas(const std::string type, float rate, float offse
 }
 
 void ModEngineView::pollUIUpdate() {
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+
+    uint64_t verPh = tl.playheadVersion();
+    if(verPh != _playheadVersion) {
+        updateLine(tl.elapsed());
+        _playheadVersion = verPh;
+    }
+
     ModulationUI * ui = currentMod();
     if(!ui) return;
 

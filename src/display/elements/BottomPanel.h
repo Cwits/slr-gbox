@@ -18,6 +18,7 @@ struct BottomPanel : public View {
 
     void updateTimelineRelated(const bool timeSigOrBpm);
     void update() override {}
+    void pollUIUpdate() override;
     // private:
     std::unique_ptr<Button> _btnNewUnit;
     std::unique_ptr<Button> _btnPlay;
@@ -35,6 +36,8 @@ struct BottomPanel : public View {
     std::unique_ptr<Label> _lblLoopStart;
     std::unique_ptr<Label> _lblLoopEndText;
     std::unique_ptr<Label> _lblLoopEnd;
+
+    uint64_t _playheadVersion;
 };
 
 }

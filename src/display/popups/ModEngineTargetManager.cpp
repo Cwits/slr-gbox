@@ -11,8 +11,8 @@
 
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
-#include "display/utility/defaultStyles.h"
+#include "display/utility/DefaultColors.h"
+#include "display/utility/DefaultStyles.h"
 #include "display/elements/ModEngineView.h"
 
 #include "display/utility/Macros.h"
@@ -42,8 +42,8 @@ ModEngineTargetManager::ModEngineTargetManager(BaseWidget *parent, ModEngineView
 {
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
-    setColor(lv_color_hex(0xa415f7));
-    
+    addStyle(&Style::PopupDefault);
+
     LABEL(_lblCurrentMod, Layout::ROUTE_MANAGER_WIDTH/2 - 150, 40, 300, 40, "Modulation: x/x");
 
     BUTTON(_btnNextMod, Layout::ROUTE_MANAGER_WIDTH - (Layout::Button + Layout::Margin), Layout::Margin, Layout::Button, Layout::Button, LV_SYMBOL_NEXT);
@@ -210,7 +210,7 @@ void ModEngineTargetManager::update() {
             type = slr::ModulationTargetType::unit;
 
             slr::AudioUnitView *v = slr::ProjectView::getProjectView().findUnitByName(tmp);
-            if(!v) { LOG_WARN("Unit %s not found"); return false; }
+            if(!v) { LOG_WARN("Unit %s not found", tmp.c_str()); return false; }
 
             targetID = v->id();
 

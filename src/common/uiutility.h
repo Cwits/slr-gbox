@@ -31,7 +31,7 @@ inline std::string signatureToString(const slr::BarSize &sig) {
 }
 
 inline float stringToBpm(const std::string &text) {
-    auto check = [](const std::string &t) -> bool {
+    /*auto check = [](const std::string &t) -> bool {
         if(t.empty()) return false;
 
         std::size_t dotPos = t.find_first_of('.');
@@ -44,7 +44,7 @@ inline float stringToBpm(const std::string &text) {
         if(!std::all_of(fraction.begin(), fraction.end(), ::isdigit)) return false;
 
         return true;
-    };
+    }; */
 
     // if(!check(text)) {
     //     return -1.0f;

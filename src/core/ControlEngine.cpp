@@ -11,6 +11,7 @@
 #include "core/actions/ActionsMap.h"
 #include "core/actions/ActionBase.h"
 #include "core/actions/ActionExecutable.h"
+#include "core/actions/Actions.h"
 #include "core/BufferManager.h"
 #include "core/RtEngine.h"
 #include "core/Project.h"
@@ -271,6 +272,9 @@ bool init(std::atomic<bool> &shutdown) {
         LOG_ERROR("Failed to start RT Engine");
         return false;
     }
+
+    auto act = std::make_unique<slr::Actions::UpdateRenderPlan>();
+    slr::ControlEngine::EmitAction(std::move(act));
 
     return true;
 }

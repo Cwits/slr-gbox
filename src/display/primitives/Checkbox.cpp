@@ -3,6 +3,7 @@
 
 #include "display/primitives/Checkbox.h"
 #include "display/utility/layoutSizes.h"
+#include "display/utility/DefaultStyles.h"
 
 namespace UI {
 
@@ -16,6 +17,7 @@ Checkbox::Checkbox(BaseWidget * parent) :
     _checked = lv_label_create(lvhost());
     lv_obj_center(_checked);
     lv_obj_set_style_text_font(_checked, &DEFAULT_FONT, 0);
+    addStyle(&Style::borderless);
 
     tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         if(this->_state) {

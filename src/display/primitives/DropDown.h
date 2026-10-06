@@ -20,8 +20,8 @@ struct DropDown : public BaseWidget {
     void setItems(std::vector<std::string> &items);
     void setSelected(const std::string_view item);
     void setSelected(std::string & item);
-    void setTextColor(lv_color_t &color);
-    void setTextFont(const lv_font_t *font);
+    // void setTextColor(lv_color_t &color);
+    // void setTextFont(const lv_font_t *font);
     void selectedCallback(std::function<void(const std::string)> clb);
     const std::string selectedItem() const;
 
@@ -41,12 +41,11 @@ struct DropDown : public BaseWidget {
     std::function<void(const std::string)> _callback;
     
     bool _isClosed;
-    lv_color_t _textColor;
-    const lv_font_t * _textFont;
+    // const lv_font_t * _textFont;
 
     void open();
 
-    // bool handleTap(GestLib::TapGesture & tap) override;
+    bool handleTap(const GestLib::TapGesture & tap);
     
 };
 

@@ -3,6 +3,7 @@
 
 #include "display/primitives/Label.h"
 #include "display/utility/layoutSizes.h"
+#include "display/utility/DefaultStyles.h"
 #include "common/logger.h"
 
 namespace UI {
@@ -12,9 +13,11 @@ Label::Label(BaseWidget * parent, std::string text) :
 {
     _label = lv_label_create(_lvhost);
     lv_label_set_text(_label, text.c_str());
-    lv_obj_set_style_bg_opa(_lvhost, LV_OPA_TRANSP, 0);
+    addStyle(&Style::Label);
+    lv_obj_add_style(_label, &Style::Text, 0);
+    // lv_obj_set_style_bg_opa(_lvhost, LV_OPA_TRANSP, 0);
     lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
-    setFont(&DEFAULT_FONT);
+    // setFont(&DEFAULT_FONT);
     show();
 }
 

@@ -6,7 +6,8 @@
 #include "display/primitives/Button.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultColors.h"
+#include "display/utility/DefaultStyles.h"
 
 #include "common/logger.h"
 
@@ -32,17 +33,13 @@ ScreenKeyboard::ScreenKeyboard(BaseWidget * parent, UIContext * const uictx) :
 {
     setSize(Layout::KEYBOARD_W, Layout::KEYBOARD_H);
     setPos(Layout::KEYBOARD_X, Layout::KEYBOARD_Y);
-    lv_obj_set_style_bg_color(lvhost(), KEYBOARD_BACKGROUND_COLOR, 0);
-    // _keyboard = lv_keyboard_create(lvhost());
-    // lv_obj_set_height(_keyboard, LVGL_KEYBOARD_H);
+    addStyle(&Style::PopupDefault);
 
     _textArea = lv_textarea_create(lvhost());
     lv_obj_align(_textArea, LV_ALIGN_TOP_LEFT, 5, 5);
     lv_obj_set_size(_textArea, Layout::KB_TEXT_AREA_W, Layout::KB_TEXT_AREA_H);
     lv_textarea_set_one_line(_textArea, true);
     lv_obj_set_style_text_font(_textArea, &DEFAULT_FONT, 0);
-    // lv_obj_add_event_cb(_textArea, ta_event_cb, LV_EVENT_ALL, _keyboard);
-    // // lv_obj_set_style_bg_color(_textArea, lv_color_hex(0xffffff), 0);
 
     // ------------- First Row ---------------- //
     // nums and backspace

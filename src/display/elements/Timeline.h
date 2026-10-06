@@ -3,86 +3,94 @@
 
 #pragma once
 
-#include "common/defines.h"
 #include "display/primitives/BaseWidget.h"
+#include "common/defines.h"
 
 #include <vector>
 
 namespace UI {
 
-class UIContext;
+struct UIContext;
 
 struct Timeline : public BaseWidget {
-    Timeline(BaseWidget * parent, UIContext * uictx);
+    Timeline(BaseWidget * parent, lv_obj_t *host, float * const zoomPtr, UIContext * uictx);
     ~Timeline();
 
-    void setNudge(slr::frame_t nudge);
-    slr::frame_t nudge() const { return _currentNudge; }
+    void setSize(lv_coord_t w, lv_coord_t h) override;
+    void setPos(lv_coord_t x, lv_coord_t y) override;
+    // void rebuildTimeline(float horZoom);
+    void rebuildTimeline();
+    
+    void nudge(slr::frame_t nudge);
+    inline slr::frame_t nudge() const { return _nudge; }
 
-    void update();
-    void updatePlayhead(slr::frame_t position);
-    void updatePlayheadZ();
+    void showLoopMarkers();
+    void hideLoopMarkers();
+    void updateLoopMarkers(float hzoom);
+    void moveToFront();
 
-    void showLoopMarkers(bool onoff);
-    void updateLoopMarkers();
+    void updatePlayhead(slr::frame_t playhead);
 
     void pollUIUpdate() override;
 
     private:
     UIContext * const _uictx;
+    lv_obj_t * _host;
+    float * const _zoomPtr;
 
-    lv_style_t _font;
-    
-    struct line {
-        lv_obj_t * _line;
-        lv_point_precise_t _points[2];
+    slr::frame_t _nudge;
+
+    int _width;
+    int _height;
+    int _x;
+    int _y;
+
+    lv_obj_t * _numberBackground;
+    lv_style_t _numberFont;
+
+    struct GridLine {
+        lv_obj_t * number;
+        lv_obj_t * line;
+        lv_point_precise_t points[2];
+
+        void show();
+        void hide();
     };
 
-    bool _firstTime;
-    std::vector<lv_obj_t*> _labels;
-    std::vector<line> _lines;
+    std::vector<GridLine> _lines;
+    GridLine _playhead;
 
-    line _playhead;
+    struct LoopThings;
+    struct LoopHandle : BaseWidget {
+        LoopHandle(BaseWidget *parent, Timeline *tl, LoopThings *lparent);
+        ~LoopHandle();
 
-    struct loop {
-        void update(float hZoom, bool firstTime);
-        void updateZ();
-        void clear();
-        void show(bool onoff);
-        void nudge(slr::frame_t oldnudge, slr::frame_t nudge, float hzoom);
-
-        line _loopMarkers[2];
-        lv_obj_t * _fillRect;
-        Timeline * _timeline = nullptr;
-
-        private:
-        struct loopHandle : public BaseWidget {
-            loopHandle(BaseWidget * parent, const bool isStartHandle, Timeline * timeline);
-            ~loopHandle();
-
-            void show(bool onoff);
-            void nudge(float x);
-            void setY(int y);
-            void updateZ();
-
-            private:
-            Timeline * _timeline = nullptr;
-            lv_obj_t * _handle;
-            const bool _isStartHandle;
-            float _lastPosition;
-
-            bool handleDrag(const GestLib::DragGesture & drag);
-        };
-        loopHandle * _loopStartHandle;
-        loopHandle * _loopEndHandle;
-
+        LoopThings *_lparent;
+        Timeline * _tl;
+        bool handleDrag(const GestLib::DragGesture &drag);
     };
 
-    loop _loop;
+    struct LoopThings {
+        ~LoopThings();
+        void show();
+        void hide();
 
-    slr::frame_t _currentNudge;
-    float _horizontalZoom;
+        lv_obj_t * filler;
 
+        lv_obj_t *lineStart;
+        lv_point_precise_t pointsStart[2];
+
+        lv_obj_t *lineEnd;
+        lv_point_precise_t pointsEnd[2];
+
+        std::unique_ptr<LoopHandle> handleStart;
+        std::unique_ptr<LoopHandle> handleEnd;
+        bool visible;
+    };
+
+    LoopThings _loop;
+
+    uint64_t _playheadVersion;
 };
 
 

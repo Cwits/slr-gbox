@@ -5,6 +5,7 @@
 #include "display/utility/DragContext.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
+#include "display/utility/DefaultStyles.h"
 
 #include "display/primitives/Label.h"
 
@@ -43,7 +44,8 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
     
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
-    setColor(lv_color_hex(0x858585));
+    // setColor(lv_color_hex(0x858585));
+    lv_obj_add_style(lvhost(), &Style::PopupDefault, 0);
 
     _lastDragX = -1;
     _lastDragY = -1;

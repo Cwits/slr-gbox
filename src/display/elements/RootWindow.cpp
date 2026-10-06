@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "display/elements/MainWindow.h"
+#include "display/elements/RootWindow.h"
 
 #include "display/primitives/FileView.h"
 #include "display/primitives/UnitUIBase.h"
@@ -9,8 +9,8 @@
 
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/DragContext.h"
 
 #include "display/elements/GridView.h"
@@ -47,17 +47,16 @@ namespace UI {
 
 constexpr int FLOATING_TEXT_TIMEOUT = 5000;
 
-MainWindow * _inst = nullptr;
+RootWindow * _inst = nullptr;
 
 std::vector<std::unique_ptr<UnitUIBase>> _removedUnits;
 
-MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
+RootWindow::RootWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _inst = this;
-    initDefaultStyles();
-    lv_obj_set_style_bg_color(_lvhost, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN);
+    Style::initDefaultStyles();
+    addStyle(&Style::workspace);
     
-    // _uiContext = new UIContext();
-    _uiContext._mainWindow = this;
+    _uiContext._rootWindow = this;
 
     _topPanel = std::make_unique<TopPanel>(this, &_uiContext);
     _bottomPanel = std::make_unique<BottomPanel>(this, &_uiContext);
@@ -74,12 +73,12 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _uiContext._unitView = _unitView.get();
     _uiContext._browser = _browser.get();
     _uiContext._stepSequencerView = _stepSequencerView.get();
-    _uiContext._gridTimeline = _gridView->_timeline.get();
+    // _uiContext._gridTimeline = _gridView->_timeline.get();
     
     _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
     _uiContext._dragSelector = _dragViewSelector.get();
 
-    _playheadUpdateTimer = lv_timer_create(&MainWindow::playheadUpdateCb, LV_DEF_REFR_PERIOD, nullptr);
+    _playheadUpdateTimer = lv_timer_create(&RootWindow::playheadUpdateCb, LV_DEF_REFR_PERIOD, nullptr);
     lv_timer_pause(_playheadUpdateTimer);
     lv_timer_set_auto_delete(_playheadUpdateTimer, false);
 
@@ -135,7 +134,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _floatingText = lv_label_create(_lvhost);
     lv_obj_set_style_text_font(_floatingText, &lv_font_montserrat_40, 0);
     lv_obj_set_pos(_floatingText, 30, Layout::TOTAL_HEIGHT-200);
-    _floatingTimer = lv_timer_create(&MainWindow::floatingTimercb, FLOATING_TEXT_TIMEOUT, _floatingText);
+    _floatingTimer = lv_timer_create(&RootWindow::floatingTimercb, FLOATING_TEXT_TIMEOUT, _floatingText);
     lv_timer_set_auto_delete(_floatingTimer, false);
 
     // lv_timer_set_repeat_count(_floatingTimer, 1);
@@ -146,7 +145,7 @@ MainWindow::MainWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _uiContext._dragContext = _dragContext.get();
 }
 
-MainWindow::~MainWindow() {
+RootWindow::~RootWindow() {
     //but no clean of lvgl object - would be cleaned on main exit
     for(std::unique_ptr<UnitUIBase> &b : _uiContext._unitsUI) {
         b->destroy(&_uiContext);
@@ -157,7 +156,7 @@ MainWindow::~MainWindow() {
     }
 }
 
-void MainWindow::switchToView(MainView view) {
+void RootWindow::switchToView(MainView view) {
     _gridView->hide();
     _unitView->hide();
     _browser->hide();
@@ -172,13 +171,13 @@ void MainWindow::switchToView(MainView view) {
     _currentView = view;
 }
 
-void MainWindow::switchToPreviousView() {
+void RootWindow::switchToPreviousView() {
     if(_prevView != _currentView) {
         switchToView(_prevView);
     }
 }
 
-bool MainWindow::cancleGesture(BaseWidget * widget) {
+bool RootWindow::cancleGesture(BaseWidget * widget) {
     if(_gestureTarget == widget) {
         _gestureTarget = nullptr;
         _initialGestureTarget = nullptr;
@@ -189,7 +188,7 @@ bool MainWindow::cancleGesture(BaseWidget * widget) {
     return false;
 }
 
-bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
+bool RootWindow::handleGesture(GestLib::Gesture & gesture) {
     BaseWidget * globtarget = nullptr;
     if(gesture.type == GestLib::Gestures::TouchDown) {
         int x = gesture.touchDown.x;
@@ -296,7 +295,7 @@ bool MainWindow::handleGesture(GestLib::Gesture & gesture) {
 }
 
 
-BaseWidget * MainWindow::hitTest(BaseWidget * node, int x, int y) {
+BaseWidget * RootWindow::hitTest(BaseWidget * node, int x, int y) {
     static auto zsort = [](const BaseWidget *op1, const BaseWidget *op2) -> bool {
         return (op1->getZ() < op2->getZ());
     };
@@ -335,7 +334,7 @@ BaseWidget * MainWindow::hitTest(BaseWidget * node, int x, int y) {
 
 
 //transfers ongoing gesture to different view(e.g. from browser to grid)
-void MainWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture) {
+void RootWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture) {
     if(!target->canHandleGesture(gesture)) {
         LOG_WARN("Target can't handle gesture %s", GestLib::gestureToText(gesture).c_str());
         return;
@@ -356,13 +355,13 @@ void MainWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture)
     }
 }
 
-void MainWindow::floatingText(bool warning, const std::string &text) {
+void RootWindow::floatingText(bool warning, const std::string &text) {
     if(warning) {
         LOG_WARN("%s", text.c_str());
-        lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_WARNING_COLOR, 0);    
+        lv_obj_set_style_text_color(_floatingText, Colors::FloatingTextWarning, 0);    
     } else {
         LOG_INFO("%s", text.c_str());
-        lv_obj_set_style_text_color(_floatingText, FLOATING_TEXT_REGULAR_COLOR, 0);
+        lv_obj_set_style_text_color(_floatingText, Colors::FloatingTextRegular, 0);
     }
     lv_label_set_text(_floatingText, text.c_str());
     lv_obj_move_to_index(_floatingText, -1);
@@ -371,17 +370,17 @@ void MainWindow::floatingText(bool warning, const std::string &text) {
     lv_timer_resume(_floatingTimer);
 }
 
-void MainWindow::floatingTimercb(lv_timer_t * timer) {
+void RootWindow::floatingTimercb(lv_timer_t * timer) {
     lv_obj_t * label = static_cast<lv_obj_t*>(lv_timer_get_user_data(timer));
     lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
     lv_timer_pause(timer);
 }
 
-MainWindow * MainWindow::inst() {
+RootWindow * RootWindow::inst() {
     return _inst;
 }
 
-View * MainWindow::getSwitchViewTarget(MainView & view) {
+View * RootWindow::getSwitchViewTarget(MainView & view) {
     View * ret = nullptr;
     switch(view) {
         case(MainView::Grid): ret = _gridView.get(); break;
@@ -395,13 +394,13 @@ View * MainWindow::getSwitchViewTarget(MainView & view) {
     return ret;
 }
 
-void MainWindow::playheadUpdateCb(lv_timer_t * timer) {
+void RootWindow::playheadUpdateCb(lv_timer_t * timer) {
     auto act = std::make_unique<slr::Actions::UpdatePlayhead>();
     slr::EmitAction(std::move(act));
     lv_timer_reset(timer);
 }
 
-void MainWindow::updateTimeline(const bool timeSigOrBpm) {
+void RootWindow::updateTimeline(const bool timeSigOrBpm) {
     _bottomPanel->updateTimelineRelated(timeSigOrBpm);
 
     slr::TimelineView &tl = slr::TimelineView::getTimelineView();
@@ -415,50 +414,50 @@ void MainWindow::updateTimeline(const bool timeSigOrBpm) {
         case(slr::Timeline::RollState::Stop): {
             lv_timer_pause(_playheadUpdateTimer);
         }
-        case(slr::Timeline::RollState::Preparing): break;
+        case(slr::Timeline::RollState::Preparing): {
+            lv_timer_resume(_playheadUpdateTimer);
+        } break;
     }
 
     if(timeSigOrBpm) {
         // LOG_WARN("Recalculate timeline grid");
         //recalculate grid
-        _gridView->_timeline->update();
+        _gridView->updateTimeline();
         //need to recalculate file views as well
-        _uiContext._recalculateGridFilePositions = true;
+        _uiContext.recalculateGrid();
     }
     
-    _gridView->_timeline->updateLoopMarkers();
-    _gridView->_timeline->showLoopMarkers(tl.looping());
-}
-
-void MainWindow::updatePlayheadPosition(slr::frame_t position) {
-    _bottomPanel->_lblTestPlayhead->setText(std::to_string(position));
-    _gridView->_timeline->updatePlayhead(position);
-    _modEngineView->updateLine(position);
-}
-
-void MainWindow::updateMetronomeState(bool onoff) {
-    if(onoff) {
-        _topPanel->setMetroColor(METRONOME_ON_COLOR);
+    if(tl.looping()) {
+        _gridView->_timeline->updateLoopMarkers(_gridView->hZoom());
+        _gridView->_timeline->showLoopMarkers();
     } else {
-        _topPanel->setMetroColor(BUTTON_DEFAULT_COLOR);
+        _gridView->_timeline->hideLoopMarkers();
     }
 }
 
-void MainWindow::createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
+void RootWindow::updateMetronomeState(bool onoff) {
+    if(onoff) {
+        _topPanel->setMetroColor(Colors::MetronomeOn);
+    } else {
+        _topPanel->setMetroColor(Colors::ButtonReleased);
+    }
+}
+
+void RootWindow::createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
     _stepSequencerView->createSequenceUI(view);
 }
 
-void MainWindow::createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view) {
+void RootWindow::createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view) {
     _modEngineView->createModUI(view);
 }
 
-void MainWindow::createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view) {
+void RootWindow::createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view) {
     std::unique_ptr<UnitUIBase> base = desc->createUI(view, &_uiContext);
     base->create(&_uiContext);
     _uiContext._unitsUI.push_back(std::move(base));
 }
 
-void MainWindow::restoreUI(slr::ID id) {
+void RootWindow::restoreUI(slr::ID id) {
     // UnitUIBase * ptr = ui.get();
     auto it = std::find_if(
         _removedUnits.begin(),
@@ -489,7 +488,7 @@ void MainWindow::restoreUI(slr::ID id) {
     _uiContext.setLastSelected(nullptr);
 }
 
-void MainWindow::removeUI(slr::ID id) {
+void RootWindow::removeUI(slr::ID id) {
     auto it = std::find_if(
         _uiContext._unitsUI.begin(),
         _uiContext._unitsUI.end(),
@@ -520,7 +519,7 @@ void MainWindow::removeUI(slr::ID id) {
     _uiContext.setLastSelected(nullptr);
 }
 
-void MainWindow::deleteUI(slr::ID id) {
+void RootWindow::deleteUI(slr::ID id) {
     // base->destroy(&_uiContext);
     auto it = std::find_if(
         _removedUnits.begin(),
@@ -539,11 +538,11 @@ void MainWindow::deleteUI(slr::ID id) {
     _removedUnits.erase(it);
 }
 
-void MainWindow::clearUI() {
+void RootWindow::clearUI() {
     _uiContext._unitsUI.clear();
 }
 
-void MainWindow::pollUIUpdate() {
+void RootWindow::pollUIUpdate() {
     //depends on current view -> check updates?
     //check frequent updates e.g. animated, timeline or smth else
     
@@ -559,9 +558,11 @@ void MainWindow::pollUIUpdate() {
 
     MainView view = currentView();
     getSwitchViewTarget(view)->pollUIUpdate();
+    _topPanel->pollUIUpdate();
+    _bottomPanel->pollUIUpdate();
 }
 
-void MainWindow::registerFrequentUpdate(std::function<void()> clb) {
+void RootWindow::registerFrequentUpdate(std::function<void()> clb) {
     // _frequentUpdateCallbacks.push_back(std::move(clb));
 }
 

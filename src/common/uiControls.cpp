@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/uiControls.h"
-#include "display/elements/MainWindow.h"
+#include "display/elements/RootWindow.h"
 #include "display/popups/RouteManager.h"
 #include "display/popups/ModEngineTargetManager.h"
 
@@ -48,20 +48,20 @@ void postToLvgl(std::function<void()> fn) {
 
 void floatingInfo(std::string text) {
     postToLvgl([text]() {
-        UI::MainWindow::inst()->floatingText(false, text);
+        UI::RootWindow::inst()->floatingText(false, text);
     });
 }
 
 void floatingWarning(std::string text) {
     postToLvgl([text]() {
-        UI::MainWindow::inst()->floatingText(true, text);
+        UI::RootWindow::inst()->floatingText(true, text);
     });
 }
 
 /* Module Related */
 void addUnitUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> view) {
     postToLvgl([desc, view]() {
-        UI::MainWindow::inst()->createUI(desc, view);
+        UI::RootWindow::inst()->createUI(desc, view);
     });
 
     if(PushThread::isRunning()) {
@@ -73,7 +73,7 @@ void addUnitUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr
 
 void removeUI(slr::ID id) {
     postToLvgl([id]() {
-        UI::MainWindow::inst()->removeUI(id);
+        UI::RootWindow::inst()->removeUI(id);
     });
     
     if(PushThread::isRunning()) {
@@ -85,7 +85,7 @@ void removeUI(slr::ID id) {
 
 void restoreUI(slr::ID id) {
     postToLvgl([id]() {
-        UI::MainWindow::inst()->restoreUI(id);
+        UI::RootWindow::inst()->restoreUI(id);
     });
 
     if(PushThread::isRunning()) {
@@ -97,7 +97,7 @@ void restoreUI(slr::ID id) {
 
 void deleteUI(slr::ID id) {
     postToLvgl([id]() {
-        UI::MainWindow::inst()->deleteUI(id);
+        UI::RootWindow::inst()->deleteUI(id);
     });
 
     if(PushThread::isRunning()) {
@@ -112,33 +112,27 @@ void deleteUI(slr::ID id) {
 //if Time Signature or BPM updated pass true, otherwise false
 void updateTimeline(const bool timeSigOrBpm) {
     postToLvgl([timeSigOrBpm]() {
-        UI::MainWindow::inst()->updateTimeline(timeSigOrBpm);
-    });
-}
-
-void updatePlayheadPosition(slr::frame_t position) {
-    postToLvgl([position]() {
-        UI::MainWindow::inst()->updatePlayheadPosition(position);
+        UI::RootWindow::inst()->updateTimeline(timeSigOrBpm);
     });
 }
 
 /* Route Manager */
 void updateRouteManager() {
     postToLvgl([]() {
-        UI::MainWindow::inst()->_routeManager->liveUpdate();
+        UI::RootWindow::inst()->_routeManager->liveUpdate();
     });
 }
 
 /* Metronome */
 void updateMetronomeState(bool onoff) {
     postToLvgl([onoff]() {
-        UI::MainWindow::inst()->updateMetronomeState(onoff);
+        UI::RootWindow::inst()->updateMetronomeState(onoff);
     });
 }
 
 void createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
     postToLvgl([view]() {
-        UI::MainWindow::inst()->createSequenceUI(view);
+        UI::RootWindow::inst()->createSequenceUI(view);
     });
 
     if(PushThread::isRunning()) {
@@ -148,7 +142,7 @@ void createSequenceUI(const std::shared_ptr<slr::SequenceView> view) {
 
 void createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view) {
     postToLvgl([view]() {
-        UI::MainWindow::inst()->createModulationUI(view);
+        UI::RootWindow::inst()->createModulationUI(view);
     });
 
     if(PushThread::isRunning()) {
@@ -158,13 +152,13 @@ void createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view) 
 
 void updateModulationTargetManager() {
     postToLvgl([]() {
-        UI::MainWindow::inst()->_modEngineTargetManagerPopup->update();
+        UI::RootWindow::inst()->_modEngineTargetManagerPopup->update();
     });
 }
 
 void clearUI() {
     postToLvgl([]() {
-        UI::MainWindow::inst()->clearUI();
+        UI::RootWindow::inst()->clearUI();
     });
     
     if(PushThread::isRunning()) {

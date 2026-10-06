@@ -10,8 +10,8 @@
 #include "display/elements/Timeline.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "common/uiutility.h"
 
 #include "snapshots/AudioUnitView.h"
@@ -65,6 +65,7 @@ UnitControlPopup::UnitControlPopup(BaseWidget * parent, UIContext * const uictx)
     Popup(parent, uictx) {
     setSize(300, 300);
     setPos(Layout::TRACK_CONTROL_PANEL_WIDTH-100, 150);
+    addStyle(&Style::PopupDefault);
 
     _btnDelete = std::make_unique<Button>(this, LV_SYMBOL_TRASH);
     _btnDelete->setPos(10, 10);
@@ -103,6 +104,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     _uibase(base)
 {
     setSize(Layout::TRACK_CONTROL_PANEL_WIDTH, Layout::TRACK_HEIGHT);
+    addStyle(&Style::GridControl);
     int y = Layout::calcTrackY(_uibase->uictx()->_unitsUI.size());
     // LOG_INFO("Setting grid y position of %u to %i", _uibase->id(), y);
     setPos(0, y);
@@ -116,7 +118,7 @@ DefaultGridUI::DefaultGridUI(BaseWidget * parent, UnitUIBase *base)
     _lblName->setSize(Layout::TRACK_NAME_LABEL_W, lv_font_get_line_height(&DEFAULT_FONT));
     _lblName->setPos(Layout::TRACK_NAME_LABEL_X, Layout::TRACK_NAME_LABEL_Y);
     _lblName->setFont(&DEFAULT_FONT);
-    _lblName->setTextColor(lv_color_hex(0xffffff));
+    _lblName->setTextColor(Colors::White);
     _lblName->holdCallback([this](const GestLib::HoldGesture &hold) -> bool {
         this->_uibase->uictx()->_popManager->enableKeyboard(
             this->_uibase->view()->name(), 
@@ -252,11 +254,6 @@ void DefaultGridUI::pollFileUpdate() {
                 }
                 //need to erase from _viewItems container as well...
                 for(std::size_t i=0; i<toRemove.size(); ++i) {
-                    // slr::Events::ClipUIRemoved e = {
-                    //     .clipId = toRemove.at(i)->id(),
-                    //     .unitId = view->id()
-                    // };
-                    
                     for(std::size_t y=0; y<_fileUIs.size(); ++y) {
                         if(_fileUIs.at(y).get() == toRemove.at(i)) {
                             _fileUIs.erase(_fileUIs.begin()+y);
@@ -264,12 +261,10 @@ void DefaultGridUI::pollFileUpdate() {
                         }
                     }
                     delete toRemove.at(i);
-
-                    // slr::EmitEvent(e);
                 }
             }
 
-            uictx->_gridTimeline->updatePlayheadZ();
+            uictx->gridToFront();
         }
     }
 
@@ -292,9 +287,9 @@ void DefaultGridUI::pollUIUpdate() {
     if(isSameUIVersion(view->version())) return;
 
     if(view->mute()) {
-        _btnMute->setColor(MUTE_ON_COLOR);
+        _btnMute->setColor(Colors::MuteOn);
     } else {
-        _btnMute->setColor(MUTE_OFF_COLOR);
+        _btnMute->setColor(Colors::ButtonReleased);
     }
 
     // if(view->solo()) {
@@ -307,10 +302,6 @@ void DefaultGridUI::pollUIUpdate() {
     slr::Color clr = _uibase->view()->color();
     lv_obj_set_style_bg_color(lvhost(), lv_color_make(clr.r, clr.g, clr.b), 0);
 }
-
-// int DefaultGridUI::gridY() {
-//     return lv_obj_get_y(lvhost());
-// }
 
 void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
@@ -354,6 +345,11 @@ bool DefaultGridUI::handleDoubleTap(const GestLib::DoubleTapGesture & dt) {
 }
 
 DefaultUnitUI::DefaultUnitUI(BaseWidget * parent, UnitUIBase *base) 
-            : BaseWidget(parent, true, true) {}
+            : BaseWidget(parent, true, true) 
+{
+    setPos(0, 0);
+    setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
+    addStyle(&Style::workspace);
+}
 DefaultUnitUI::~DefaultUnitUI() {}
 }

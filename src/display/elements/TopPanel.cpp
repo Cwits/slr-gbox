@@ -4,15 +4,17 @@
 #include "display/elements/TopPanel.h"
 
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultStyles.h"
+#include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/UIContext.h"
+#include "display/utility/Macros.h"
 
 #include "display/primitives/Label.h"
 #include "display/primitives/Button.h"
 
 #include "display/popups/PopupManager.h"
 
-#include  "core/actions/Actions.h"
+#include "core/actions/Actions.h"
 
 #include "common/logger.h"
 
@@ -21,16 +23,7 @@ namespace UI {
 TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, uictx) {
     setPos(0, 0);
     setSize(Layout::TOP_PANEL_WIDTH, Layout::TOP_PANEL_HEIGHT);
-    //set style
-    // lv_obj_add_style(_lvhost, &workspace, 0);
-    // lv_obj_set_style_pad_all(_lvhost, DEFAULT_MARGIN, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(_lvhost, lv_palette_main(LV_PALETTE_INDIGO), LV_PART_MAIN);
-
-    // _lb = lv_label_create(_lvhost);
-    // lv_label_set_text(_lb, "Unnamed Project");
-    // lv_obj_set_pos(_lb, 0, 10);
-    // lv_obj_set_style_text_color(_lb, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-    // lv_obj_set_style_text_font(_lb, &lv_font_montserrat_40, 0);
+    addStyle(&Style::Panels);
 
     _lblProjectName = std::make_unique<Label>(this, "Untitled Project");
     _lblProjectName->setPos(10, 15);
@@ -48,20 +41,14 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
         return true;
     });
 
-    _btnSave = std::make_unique<Button>(this, "Save");
-    _btnSave->setPos(450, 0);
-    _btnSave->setSize(Layout::Button, Layout::Button);
-    _btnSave->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnSave, 450, 0, "Save");
     _btnSave->tapCallback([](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::SaveProject>();
         slr::EmitAction(std::move(act));
         return true;
     });
 
-    _btnLoad = std::make_unique<Button>(this, "Load");
-    _btnLoad->setPos(450+Layout::Button+20, 0);
-    _btnLoad->setSize(Layout::Button, Layout::Button);
-    _btnLoad->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnLoad, 450+Layout::Button+20, 0, "Load");
     _btnLoad->tapCallback([](const GestLib::TapGesture &tap) -> bool {
         // auto act = std::make_unique<slr::Actions::SaveProject>();
         // slr::EmitAction(std::move(act));
@@ -71,50 +58,35 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     
 
     int posx = 750;
-    _btnGrid = std::make_unique<Button>(this, "Grid");
-    _btnGrid->setPos(posx, 0);
-    _btnGrid->setSize(Layout::Button, Layout::Button);
-    _btnGrid->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnGrid, posx, 0, "Grid");
     _btnGrid->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::Grid);
         return true;
     });
 
     posx += (Layout::Margin + Layout::Button);
-    _btnTrack = std::make_unique<Button>(this, "Unit");
-    _btnTrack->setPos(posx, 0);
-    _btnTrack->setSize(Layout::Button, Layout::Button);
-    _btnTrack->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnTrack, posx, 0, "Unit");
     _btnTrack->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::Unit);
         return true;
     });
     
     posx += (Layout::Margin + Layout::Button);
-    _btnBrowser = std::make_unique<Button>(this, LV_SYMBOL_FILE);
-    _btnBrowser->setPos(posx, 0);
-    _btnBrowser->setSize(Layout::Button, Layout::Button);
-    _btnBrowser->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnBrowser, posx, 0, LV_SYMBOL_FILE);
     _btnBrowser->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::Browser);
         return true;
     });
 
     posx += (Layout::Margin + Layout::Button);
-    _btnStepSequencer = std::make_unique<Button>(this, "StepS");
-    _btnStepSequencer->setPos(posx, 0);
-    _btnStepSequencer->setSize(Layout::Button, Layout::Button);
-    _btnStepSequencer->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnStepSequencer, posx, 0, "StepS");
     _btnStepSequencer->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         uictx->switchToView(MainView::StepSequencer);
         return true;
     });
 
     posx += (Layout::Margin + Layout::Button);
-    _btnModEngine = std::make_unique<Button>(this, "ModE");
-    _btnModEngine->setPos(posx, 0);
-    _btnModEngine->setSize(Layout::Button, Layout::Button);
-    _btnModEngine->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnModEngine, posx, 0, "ModE");
     _btnModEngine->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Modulation Engine will be added in future versions");
         uictx->switchToView(MainView::ModEngine);
@@ -122,20 +94,14 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
       
     posx = parent->width()-Layout::Button-Layout::Margin;
-    _btnSettings = std::make_unique<Button>(this, LV_SYMBOL_LIST); //LV_SYMBOL_SETTINGS
-    _btnSettings->setPos(posx, 0);
-    _btnSettings->setSize(Layout::Button, Layout::Button);
-    _btnSettings->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnSettings, posx, 0, LV_SYMBOL_LIST);
     _btnSettings->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableSettingsPopup();
         return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
-    _btnToggleMetronome = std::make_unique<Button>(this, LV_SYMBOL_BELL);
-    _btnToggleMetronome->setPos(posx, 0);
-    _btnToggleMetronome->setSize(Layout::Button, Layout::Button);
-    _btnToggleMetronome->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnToggleMetronome, posx, 0, LV_SYMBOL_BELL);
     _btnToggleMetronome->tapCallback([](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::ToggleMetronome>();
         slr::EmitAction(std::move(act));
@@ -143,20 +109,14 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     posx -= (Layout::Button+Layout::Margin);
-    _btnMidiKbd = std::make_unique<Button>(this, "MIDI Kbd");
-    _btnMidiKbd->setPos(posx, 0);
-    _btnMidiKbd->setSize(Layout::Button, Layout::Button);
-    _btnMidiKbd->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnMidiKbd, posx, 0, "MIDI kbd");
     _btnMidiKbd->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_uictx->_popManager->enableMidiKeyboard();
         return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
-    _btnRedo = std::make_unique<Button>(this, LV_SYMBOL_RIGHT);
-    _btnRedo->setPos(posx, 0);
-    _btnRedo->setSize(Layout::Button, Layout::Button);
-    _btnRedo->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnRedo, posx, 0, LV_SYMBOL_RIGHT);
     _btnRedo->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Redo action");
         auto act = std::make_unique<slr::Actions::Redo>();
@@ -165,10 +125,7 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, 
     });
 
     posx -= (Layout::Button+Layout::Margin);
-    _btnUndo = std::make_unique<Button>(this, LV_SYMBOL_LEFT);
-    _btnUndo->setPos(posx, 0);
-    _btnUndo->setSize(Layout::Button, Layout::Button);
-    _btnUndo->setFont(&DEFAULT_FONT);
+    BUTTONDEF(_btnUndo, posx, 0, LV_SYMBOL_LEFT);
     _btnUndo->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Undo action");
         auto act = std::make_unique<slr::Actions::Undo>();

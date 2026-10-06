@@ -7,7 +7,8 @@
 #include "display/primitives/Label.h"
 
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultColors.h"
+#include "display/utility/DefaultStyles.h"
 #include "display/utility/UIContext.h"
 
 #include "common/uiutility.h"
@@ -24,7 +25,7 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
 {
     setPos(Layout::BOTTOM_PANEL_X, Layout::BOTTOM_PANEL_Y);
     setSize(Layout::BOTTOM_PANEL_WIDTH, Layout::BOTTOM_PANEL_HEIGHT);
-    setColor(lv_palette_main(LV_PALETTE_TEAL));  
+    addStyle(&Style::Panels);
 
     int posy = 10;
     int posx = 10;
@@ -285,6 +286,7 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx)
     });
 
     show();
+    _playheadVersion = 0;
 }
 
 BottomPanel::~BottomPanel() {
@@ -302,30 +304,30 @@ void BottomPanel::updateTimelineRelated(const bool timeSigOrBpm) {
 
     switch(tl.state()) {
         case(slr::Timeline::RollState::Play): {
-            _btnPlay->setColor(PLAY_ON_COLOR);
+            _btnPlay->setColor(Colors::Playing);
             _btnPlay->setText(LV_SYMBOL_PAUSE);
         } break;
         case(slr::Timeline::RollState::Pause): {
-            _btnPlay->setColor(PLAY_PAUSE_COLOR);
+            _btnPlay->setColor(Colors::Paused);
             _btnPlay->setText(LV_SYMBOL_PLAY);
         } break;
         case(slr::Timeline::RollState::Stop): {
-            _btnPlay->setColor(BUTTON_DEFAULT_COLOR);
+            _btnPlay->setColor(Colors::ButtonReleased);
             _btnPlay->setText(LV_SYMBOL_PLAY);
         }
         case(slr::Timeline::RollState::Preparing): break;
     }
 
     if(tl.recording()) {
-        _btnRec->setColor(REC_ON_COLOR);
+        _btnRec->setColor(Colors::RecordOn);
     } else {
-        _btnRec->setColor(BUTTON_DEFAULT_COLOR);
+        _btnRec->setColor(Colors::ButtonReleased);
     }
 
     if(tl.looping()) {
-        _btnLoop->setColor(LOOP_ON_COLOR);
+        _btnLoop->setColor(Colors::LoopOn);
     } else {
-        _btnLoop->setColor(BUTTON_DEFAULT_COLOR);
+        _btnLoop->setColor(Colors::ButtonReleased);
     }
 
     
@@ -333,6 +335,16 @@ void BottomPanel::updateTimelineRelated(const bool timeSigOrBpm) {
     _lblLoopEnd->setText(std::to_string(tl.loopEndFrame()));
 
     //...?
+}
+
+void BottomPanel::pollUIUpdate() {
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    uint64_t ver = tl.playheadVersion();
+    if(ver != _playheadVersion) {
+        slr::frame_t elapsed = tl.elapsed();
+        _lblTestPlayhead->setText(std::to_string(elapsed));
+        _playheadVersion = ver;
+    }
 }
 
 }

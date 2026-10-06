@@ -31,7 +31,7 @@ class TimelineView {
 
 
     frame_t elapsed() { return _playhead; }
-    void setPlayhead(frame_t pos) { _playhead = pos; }
+    void setPlayhead(frame_t pos) { _playhead = pos; _playheadVersion.fetch_add(1, std::memory_order_release); }
     const frame_t loopStartFrame() const { return _loopStartFrame; }
     const frame_t loopEndFrame() const { return _loopEndFrame; }
     void setLoopStart(frame_t start) { _loopStartFrame = start; }
@@ -51,6 +51,7 @@ class TimelineView {
     void clone(TimelineView & other);
 
     uint64_t version() const { return _version.load(std::memory_order_acquire); }
+    uint64_t playheadVersion() const { return _playheadVersion.load(std::memory_order_acquire); }
 
     static TimelineView & getTimelineView();
 
@@ -73,6 +74,7 @@ class TimelineView {
     const Timeline * _timeline;
 
     std::atomic<uint64_t> _version;
+    std::atomic<uint64_t> _playheadVersion;
     void incrementVersion() { _version.fetch_add(1, std::memory_order_release); }
 };
 

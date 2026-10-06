@@ -11,7 +11,8 @@
 
 #include "display/utility/UIContext.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultColors.h"
+#include "display/utility/DefaultStyles.h"
 
 #include "snapshots/SequenceView.h"
 #include "snapshots/ProjectView.h"
@@ -23,11 +24,6 @@
 
 #include <cmath>
 
-#define BUTTON(x, y) \
-    x = std::make_unique<Button>(this, y); \
-    x->setSize(Layout::Button, Layout::Button); \
-    x->setFont(&DEFAULT_FONT);
-
 namespace UI {
 
 const std::string_view notarget = "No Sequence Target";
@@ -38,7 +34,8 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
 {
     setPos(Layout::STEP_SEQ_X, Layout::STEP_SEQ_Y);
     setSize(Layout::STEP_SEQ_WIDTH, Layout::STEP_SEQ_HEIGHT);
-    setColor(lv_color_hex(0xac857e));
+    addStyle(&Style::workspace);
+    lv_obj_set_scrollbar_mode(_lvhost, LV_SCROLLBAR_MODE_OFF);
 
     /* First Line */
     _lblNumOfSequencesText = std::make_unique<Label>(this, "Sequence:");
@@ -49,8 +46,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
     _lblNumOfSequences->setPos(180, 30);
     _lblNumOfSequences->setSize(120, 40);
 
-    BUTTON(_btnPrevSequence, "<");
-    _btnPrevSequence->setPos(300, 10);
+    BUTTONDEF(_btnPrevSequence, 300, 10, "<");
     _btnPrevSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         if(this->_currentVisibleSeq > 0) {
             this->_currentVisibleSeq--;
@@ -59,8 +55,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
         return true;
     });
 
-    BUTTON(_btnNextSequence, ">");
-    _btnNextSequence->setPos(390, 10);
+    BUTTONDEF(_btnNextSequence, 390, 10, ">");
     _btnNextSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         if(this->_currentVisibleSeq < this->_sequences.size()-1) {
             this->_currentVisibleSeq++;
@@ -69,16 +64,14 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
         return true;
     });
 
-    BUTTON(_btnNewSequence, "+");
-    _btnNewSequence->setPos(1400, 10);
+    BUTTONDEF(_btnNewSequence, 1400, 10, "+");
     _btnNewSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         auto act = std::make_unique<slr::Actions::CreateNewSequence>();
         slr::EmitAction(std::move(act));
         return true;
     });
 
-    BUTTON(_btnDeleteSequence, LV_SYMBOL_TRASH);
-    _btnDeleteSequence->setPos(1490, 10);
+    BUTTONDEF(_btnDeleteSequence, 1490, 10, LV_SYMBOL_TRASH);
     _btnDeleteSequence->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         return true;
     });
@@ -87,8 +80,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
     _lblModeText->setSize(180, 40);
     _lblModeText->setPos(1690, 30);
 
-    BUTTON(_btnModeToggle, "Mode");
-    _btnModeToggle->setPos(1600, 10);
+    BUTTONDEF(_btnModeToggle, 1600, 10, "Mode");
     _btnModeToggle->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         return true;
     });
@@ -119,8 +111,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
     _lblPage->setSize(100, 40);
     _lblPage->setPos(890, y);
 
-    BUTTON(_btnTargetManager, "Targets");
-    _btnTargetManager->setPos(1600, 100);
+    BUTTONDEF(_btnTargetManager, 1600, 100, "Targets");
     _btnTargetManager->setSize(Layout::Button*2, Layout::Button);
     _btnTargetManager->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_tpop->clear();
@@ -145,8 +136,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
         tmpx += 90;
     }
 
-    BUTTON(_btnNewPage, "+");
-    _btnNewPage->setPos(1600, 190);
+    BUTTONDEF(_btnNewPage, 1600, 190, "+");
     _btnNewPage->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         const SequenceUI *sui = this->currentSequence();
         if(!sui) return false;
@@ -159,8 +149,7 @@ StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uict
         return true;
     });
     
-    BUTTON(_btnDeletePage, LV_SYMBOL_TRASH);
-    _btnDeletePage->setPos(1690, 190);
+    BUTTONDEF(_btnDeletePage, 1690, 190, LV_SYMBOL_TRASH);
     _btnDeletePage->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         const SequenceUI *sui = this->currentSequence();
         if(!sui) return false;
@@ -213,8 +202,8 @@ void StepSequencerView::pollUIUpdate() {
             _pageButtons[i]->show();
         }
 
-        for(int i=0; i<_pageButtons.size(); ++i) _pageButtons[i]->setColor(BUTTON_DEFAULT_COLOR);
-        _pageButtons[_currentPage]->setColor(GREEN_COLOR);
+        for(int i=0; i<_pageButtons.size(); ++i) _pageButtons[i]->setColor(Colors::ButtonReleased);
+        _pageButtons[_currentPage]->setColor(Colors::Green);
 
         //manage layers
         int layers = sv->activeLayerCount();
@@ -236,12 +225,12 @@ void StepSequencerView::pollUIUpdate() {
                         l._steps[i]->setColor(lv_color_make(unique.r, unique.g, unique.b));
                     } else {
                         //default color
-                        l._steps[i]->setColor(BUTTON_DEFAULT_COLOR);
+                        l._steps[i]->setColor(Colors::ButtonReleased);
                     }
                 }
 
                 if(lv._mute) l._btnMute->setColor(lv_color_make(0, 0, 255)); //color mute btn
-                else l._btnMute->setColor(BUTTON_DEFAULT_COLOR);
+                else l._btnMute->setColor(Colors::ButtonReleased);
                 
                 l._isActive = true;
             }
@@ -271,12 +260,12 @@ void StepSequencerView::pollUIUpdate() {
                         l._steps[i]->setColor(lv_color_make(unique.r, unique.g, unique.b));
                     } else {
                         //default color
-                        l._steps[i]->setColor(BUTTON_DEFAULT_COLOR);
+                        l._steps[i]->setColor(Colors::ButtonReleased);
                     }
                 }
 
                 if(lv._mute) l._btnMute->setColor(lv_color_make(0, 0, 255)); //color mute btn
-                else l._btnMute->setColor(BUTTON_DEFAULT_COLOR);
+                else l._btnMute->setColor(Colors::ButtonReleased);
                 
                 l._isActive = true;
             }
@@ -337,8 +326,8 @@ void StepSequencerView::showByPos(std::size_t pos) {
         _pageButtons[i]->show();
     }
 
-    for(int i=0; i<_pageButtons.size(); ++i) _pageButtons[i]->setColor(BUTTON_DEFAULT_COLOR);
-    _pageButtons[0]->setColor(GREEN_COLOR);
+    for(int i=0; i<_pageButtons.size(); ++i) _pageButtons[i]->setColor(Colors::ButtonReleased);
+    _pageButtons[0]->setColor(Colors::Green);
     //_pageButtons
 
     //manage layers
@@ -359,12 +348,12 @@ void StepSequencerView::showByPos(std::size_t pos) {
                     l._steps[i]->setColor(lv_color_make(unique.r, unique.g, unique.b));
                 } else {
                     //default color
-                    l._steps[i]->setColor(BUTTON_DEFAULT_COLOR);
+                    l._steps[i]->setColor(Colors::ButtonReleased);
                 }
             }
 
             if(lv._mute) l._btnMute->setColor(lv_color_make(0, 0, 255)); //color mute btn
-            else l._btnMute->setColor(BUTTON_DEFAULT_COLOR);
+            else l._btnMute->setColor(Colors::ButtonReleased);
             
             l._isActive = true;
         }
@@ -410,7 +399,7 @@ void StepSequencerView::switchPage(int idx) {
                 sl._steps[b]->setColor(lv_color_make(unique.r, unique.g, unique.b));
             } else {
                 //default color
-                sl._steps[b]->setColor(BUTTON_DEFAULT_COLOR);
+                sl._steps[b]->setColor(Colors::ButtonReleased);
             }
         }
 
@@ -425,10 +414,10 @@ void StepSequencerView::switchPage(int idx) {
 
     //ugh, this is weird thing with default color, feels more like some hack
     for(int i=0; i<_pageButtons.size(); ++i) { 
-        _pageButtons[i]->setDefaultColor(BUTTON_DEFAULT_COLOR); 
-        _pageButtons[i]->setColor(BUTTON_DEFAULT_COLOR);
+        _pageButtons[i]->setDefaultColor(Colors::ButtonReleased); 
+        _pageButtons[i]->setColor(Colors::ButtonReleased);
     }
-    _pageButtons[idx]->setDefaultColor(GREEN_COLOR); //this happens before touch up callback
+    _pageButtons[idx]->setDefaultColor(Colors::Green); //this happens before touch up callback
 }
 
 SequenceUI::SequenceUI(const std::shared_ptr<slr::SequenceView> view) :
@@ -673,7 +662,7 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
 {
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
-    setColor(lv_color_hex(0xa415f7));
+    addStyle(&Style::PopupDefault);
 
     _lblSequenceIdText = std::make_unique<Label>(this, "Current sequence:");
     _lblSequenceIdText->setSize(300, 40);
@@ -690,7 +679,7 @@ TargetSelectPopup::TargetSelectPopup(BaseWidget *parent, StepSequencerView *sPar
         //nothing to do here?
     });
     _ddSelector->button()->touchDownCallback([this, drop = _ddSelector.get()](const GestLib::TouchDownEvent &td) -> bool {
-        drop->button()->setColor(BUTTON_DEFAULT_PRESSED);
+        drop->button()->setColor(Colors::ButtonPressed);
         
         //gather all available units
         std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();

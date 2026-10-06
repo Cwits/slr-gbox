@@ -3,7 +3,8 @@
 
 #include "display/popups/VirtualMidiKeyboard.h"
 #include "display/utility/layoutSizes.h"
-#include "display/utility/defaultColors.h"
+#include "display/utility/DefaultColors.h"
+#include "display/utility/DefaultStyles.h"
 
 #include  "core/actions/Actions.h"
 
@@ -36,18 +37,18 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
     const int height = parent->height()/2;
     setSize(parent->width(), height);
     setPos(0, height);
-    setColor(lv_color_hex(0x03b112));
+    addStyle(&Style::PopupDefault);
 
     lv_style_init(&whiteStyle);
     lv_style_set_margin_all(&whiteStyle, 0);
     lv_style_set_radius(&whiteStyle, 0);
     lv_style_set_border_width(&whiteStyle, 1);
-    lv_style_set_border_color(&whiteStyle, GRAY_COLOR);
-    lv_style_set_bg_color(&whiteStyle, WHITE_COLOR);
+    lv_style_set_border_color(&whiteStyle, Colors::Gray);
+    lv_style_set_bg_color(&whiteStyle, Colors::White);
 
     lv_style_init(&blackStyle);
     lv_style_copy(&blackStyle, &whiteStyle);
-    lv_style_set_bg_color(&blackStyle, BLACK_COLOR);
+    lv_style_set_bg_color(&blackStyle, Colors::Black);
 
     _octave = 0;
 
@@ -65,7 +66,7 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
 
         k->note = _defaultWhiteNotes[i];
         k->touchDownCallback([k, this](const GestLib::TouchDownEvent &td) -> bool {
-            k->setColor(BUTTON_DEFAULT_PRESSED);
+            k->setColor(Colors::ButtonPressed);
             LOG_INFO("Key pressed: %d", (k->note + this->octaveModifier()));
             auto act = std::make_unique<slr::Actions::VMKTrigger>();
             act->note = k->note + this->octaveModifier();
@@ -76,7 +77,8 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
             return true;
         }); 
         k->touchUpCallback([k, this](const GestLib::TouchUpEvent &tu) -> bool {
-            k->setColor(WHITE_COLOR);
+            k->setColor(Colors::White);
+            LOG_INFO("Key released: %d", (k->note + this->octaveModifier()));
             auto act = std::make_unique<slr::Actions::VMKTrigger>();
             act->note = k->note + this->octaveModifier();
             act->velocity = 127;
@@ -106,6 +108,7 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
 
         k->note = _defaultBlackNotes[i];
         k->touchDownCallback([k, this](const GestLib::TouchDownEvent &tap) -> bool {
+            k->setColor(Colors::ButtonPressed);
             LOG_INFO("Key pressed: %d", (k->note + this->octaveModifier()));
             auto act = std::make_unique<slr::Actions::VMKTrigger>();
             act->note = k->note + this->octaveModifier();
@@ -116,7 +119,8 @@ VirtualMidiKeyboard::VirtualMidiKeyboard(BaseWidget * parent, UIContext * const 
             return true;
         });
         k->touchUpCallback([k, this](const GestLib::TouchUpEvent &tu) -> bool {
-            k->setColor(BLACK_COLOR);
+            k->setColor(Colors::Black);
+            LOG_INFO("Key released: %d", (k->note + this->octaveModifier()));
             auto act = std::make_unique<slr::Actions::VMKTrigger>();
             act->note = k->note + this->octaveModifier();
             act->velocity = 127;

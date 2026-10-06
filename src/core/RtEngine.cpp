@@ -15,7 +15,6 @@
 #include "core/ModulationEngine.h"
 #include "core/RenderPlan.h"
 
-// #include "core/Project.h"
 #include "core/Timeline.h"
 #include "core/Metronome.h"
 
@@ -38,7 +37,9 @@ RtEngine::RtEngine() {
     _midiInLocal = new std::vector<RtMidiBuffer>();
     _midiInputMap = new std::vector<RtMidiQueue>();
     _midiOutputMap = new std::vector<RtMidiOutput>();
+
     _isFirstCallback = true;
+    _plan = nullptr;
 #if RT_PROFILE == 1
     profQueue = Profiler::prepare(TEST);
 #endif
@@ -55,7 +56,7 @@ RtEngine::~RtEngine() {
 bool RtEngine::init() {
     // _snapshotCount = 0;
     _isFirstCallback = true;
-    
+    _plan = nullptr;
 #if defined(__aarch64__)
     _driver = AudioDriverFactory::create(SettingsManager::getAudioDriver());
 #else
@@ -128,7 +129,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     }
 
     
-    if(!_plan) return 0;
+    if(!_plan) return 0; //have to present some empty plan on init
 
     //midi work
     for(RtMidiBuffer &b : *_midiInLocal) {

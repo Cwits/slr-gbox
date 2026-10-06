@@ -45,9 +45,9 @@ struct ModEngineTargetManager;
 
 class DragContext;
 
-struct MainWindow : public BaseWidget {
-    MainWindow(lv_obj_t * screen);
-    ~MainWindow();
+struct RootWindow : public BaseWidget {
+    RootWindow(lv_obj_t * screen);
+    ~RootWindow();
     
     void switchToView(MainView view);
     MainView currentView() const { return _currentView; }
@@ -56,19 +56,17 @@ struct MainWindow : public BaseWidget {
 
     bool handleGesture(GestLib::Gesture & gesture);
     void transferGesture(BaseWidget * target, GestLib::Gestures gesture);
+    void clearHittestTarget() { _initialGestureTarget = nullptr; }
+    bool cancleGesture(BaseWidget * widget);
 
     void floatingText(bool warning, const std::string &text);
 
     void updateTimeline(const bool timeSigOrBpm);
-    void updatePlayheadPosition(slr::frame_t position);
 
     void updateMetronomeState(bool onoff);
 
     void createSequenceUI(const std::shared_ptr<slr::SequenceView> view);
     void createModulationUI(const std::shared_ptr<slr::ModulationPatternView> view);
-    
-    void clearHittestTarget() { _initialGestureTarget = nullptr; }
-    bool cancleGesture(BaseWidget * widget);
 
     void createUI(const slr::UnitDescriptor * desc, const std::shared_ptr<const slr::AudioUnitView> &view);
     void restoreUI(slr::ID id);
@@ -81,7 +79,7 @@ struct MainWindow : public BaseWidget {
     
     void registerFrequentUpdate(std::function<void()> clb);
 
-    static MainWindow * inst();
+    static RootWindow * inst();
     
     std::unique_ptr<TopPanel> _topPanel;
     std::unique_ptr<BottomPanel> _bottomPanel;
