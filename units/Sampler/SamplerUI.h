@@ -62,18 +62,18 @@ struct SamplerUI : public UnitUIBase {
         SamplerUI * _parentUI;
 
         lv_obj_t * _testRect;
-        // bool _lastAssetState;
-        // std::unique_ptr<Label> _lblAsset;
+        bool _lastAssetState;
+        std::unique_ptr<Label> _lblAsset;
         std::unique_ptr<Timeline> _timeline;
         float _horizontalZoom;
 
         int _canvasWidth;
         int _canvasHeight;
 
-        // lv_obj_t * _canvas;
-        // lv_color_t _peakColor;
-        // lv_color_t _fillColor;
-        // uint8_t * _drawBuffer;
+        lv_obj_t * _canvas;
+        lv_color_t _peakColor;
+        lv_color_t _fillColor;
+        uint8_t * _drawBuffer;
 
         bool handleDrag(const GestLib::DragGesture & drag);
         

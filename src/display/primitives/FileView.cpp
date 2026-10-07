@@ -47,18 +47,6 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
     _originalY = 0;
 
     //calculate width
-    slr::frame_t frames = clipItem->length();
-    float framesPerPixel = UIUtility::framesPerPixel(_uictx->gridHorizontalZoom());
-    int pixels = frames * framesPerPixel;
-
-
-    setSize(pixels, UI::Layout::TRACK_HEIGHT);
-    
-    float xposition = UIUtility::frameToPixel(_clipItem->startPosition(), _uictx->gridHorizontalZoom());
-    int ypos = parentUI->gridUI()->getY();
-    
-    LOG_INFO("Setting grid y position of file %u to %i", clipItem->id(), ypos);
-    setPos(xposition, parentUI->gridUI()->getY());
     lv_obj_set_pos(_canvas, 0, 0);
     
     _peakColor = lv_color_make(parentUI->color().r, 
@@ -66,23 +54,14 @@ FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipIt
                                     parentUI->color().b);
     _fillColor = lv_color_hex(0x000000);
 
-
-    _canvasWidth = pixels;
-    _canvasHeight = Layout::TRACK_HEIGHT;
-
-    //allocate buffer
-    // _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE)];
-    _drawBuffer = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE));
-    //set buffer
-    lv_canvas_set_buffer(_canvas, _drawBuffer.get(), _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
+    _canvasWidth = 0;
+    _canvasHeight = 0;
 
     tapCallback(std::bind(&FileView::handleTap, this, std::placeholders::_1));
     doubleTapCallback(std::bind(&FileView::handleDoubleTap, this, std::placeholders::_1));
     holdCallback(std::bind(&FileView::handleHold, this, std::placeholders::_1));
 
-    //draw
-    draw();
-    show();
+    // show();
 }
 
 FileView::~FileView() {
@@ -92,6 +71,19 @@ FileView::~FileView() {
 
 void FileView::update() {
     //redraw canvas
+}
+
+void FileView::setSize(lv_coord_t w, lv_coord_t h) {
+    BaseWidget::setSize(w, h);
+    _canvasWidth = w;
+    _canvasHeight = h;
+    
+    //allocate buffer
+    // _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE)];
+    _drawBuffer = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(_canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE));
+    //set buffer
+    lv_canvas_set_buffer(_canvas, _drawBuffer.get(), _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
+
 }
 
 void FileView::recalculateWidthAndRedraw() {
@@ -119,7 +111,7 @@ void FileView::draw() {
             _clipItem->fileOffset(),
             _clipItem->length(),
             _canvas,
-            Layout::TRACK_HEIGHT,
+            _canvasHeight,
             _canvasWidth,
             _peakColor,
             _fillColor

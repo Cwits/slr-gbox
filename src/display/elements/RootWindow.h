@@ -20,7 +20,6 @@ namespace slr {
 namespace UI {
 
 class UnitUIBase;
-class View;
 
 class TopPanel;
 class BottomPanel;
@@ -124,7 +123,7 @@ struct RootWindow : public BaseWidget {
     lv_timer_t * _floatingTimer;
     static void floatingTimercb(lv_timer_t * timer);
 
-    View * getSwitchViewTarget(MainView & view);
+    BaseWidget * getSwitchViewTarget(MainView & view);
 
     lv_timer_t * _playheadUpdateTimer;
     static void playheadUpdateCb(lv_timer_t * timer);

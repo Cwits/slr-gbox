@@ -28,6 +28,8 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     slr::ID id() const { return _uniqueId; }
     void recalculateWidthAndRedraw();
 
+    void setSize(lv_coord_t w, lv_coord_t h) override;
+
     int _canvasWidth;
     int _canvasHeight;
 
@@ -38,7 +40,8 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     const slr::ClipItemView * const _clipItem;
 
     void pollUIUpdate() override;
-    
+    void draw();
+
     private:
     UIContext * const _uictx;
     UnitUIBase * _parentUI;
@@ -51,8 +54,6 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     int _originalY;
 
     uint64_t _uiVersion;
-
-    void draw();
 
     bool handleTap(const GestLib::TapGesture & tap);
     //use Hold for dragging item across grid

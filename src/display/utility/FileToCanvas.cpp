@@ -6,6 +6,7 @@
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/AudioPeaks.h"
 #include "core/primitives/MidiFile.h"
+#include "core/primitives/MidiEvent.h"
 #include "core/SettingsManager.h"
 
 #include "snapshots/TimelineView.h"
@@ -83,11 +84,57 @@ bool midiFileToCanvas(
     lv_color_t peakColor,
     lv_color_t fillColor) 
 {
+    canvasHeight -= 1;
+    canvasWidth -= 1;
     // slr::TimelineView & tlsnap = slr::TimelineView::getTimelineView();
     //convert from ppqn to frames?
     // length = (length / slr::SettingsManager::getPpqn()) * tlsnap.framesPerQuater();
+    const std::vector<slr::MidiEvent> & events = file->track(0).midiEvents;
+    
+    //must spread this acros width and height?
+    struct Note {
+        uint64_t ppqnStart = 0;
+        uint64_t ppqnEnd = 0;
+        int velocity = 0;
+        int pitch = 0;
+    };
+    
+    std::vector<Note> notes;
+    notes.reserve(events.size());
+    int noteMin = 127;
+    int noteMax = 0;
+    for(const slr::MidiEvent &ev : events) {
+        if(ev.type == slr::MidiEventType::NoteOn) {
+            Note n;
+            n.ppqnStart = ev.offset;
+            n.velocity = ev.velocity;
+            n.pitch = ev.note;
+            notes.push_back(n);
+            noteMin = std::min(noteMin, n.pitch);
+            noteMax = std::max(noteMax, n.pitch);
+        } else if(ev.type == slr::MidiEventType::NoteOff) {
+            notes.back().ppqnEnd = ev.offset;
+        }
+    }
 
+    float heightPerEvent = canvasHeight/(noteMax-noteMin);
+    int lastHeight = 0;
+    float ratio = (float)canvasWidth / (float)notes.back().ppqnEnd;
 
+    for(auto &n : notes) {
+        int x = n.ppqnStart * ratio;
+        int y = canvasHeight - ((n.pitch-noteMin) * heightPerEvent);
+        int width = (n.ppqnEnd-n.ppqnStart) * ratio;
+        int height = heightPerEvent;
+
+        for(int xpos=x; xpos<width+x; ++xpos) {
+            for(int ypos=y; ypos>y-height; --ypos) {
+                lv_canvas_set_px(canvas, xpos, ypos, fillColor, LV_OPA_COVER);
+            }
+        }
+
+        lastHeight += heightPerEvent;
+    }
 
     return true;
 }

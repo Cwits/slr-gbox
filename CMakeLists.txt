@@ -242,7 +242,6 @@ file(GLOB SOURCES
   src/display/primitives/Popup.cpp
   src/display/primitives/Slider.cpp
   src/display/primitives/UnitUIBase.cpp
-  src/display/primitives/View.cpp
 
   src/display/utility/FileToCanvas.cpp
   src/display/utility/DefaultColors.cpp

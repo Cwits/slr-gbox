@@ -20,8 +20,9 @@
 
 namespace UI {
 
-BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx) 
-    : View(parent, uictx) 
+BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx) :
+    BaseWidget(parent, true),
+    _uictx(uictx) 
 {
     setPos(Layout::BOTTOM_PANEL_X, Layout::BOTTOM_PANEL_Y);
     setSize(Layout::BOTTOM_PANEL_WIDTH, Layout::BOTTOM_PANEL_HEIGHT);

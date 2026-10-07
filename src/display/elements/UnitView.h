@@ -3,23 +3,23 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 
 namespace UI {
 class UIContext;
 class UnitUIBase;
 
-class UnitView : public View {
+class UnitView : public BaseWidget {
     public:
     UnitView(BaseWidget * parent, UIContext * const uictx);
     ~UnitView();
 
-    void update() override;
+    void show() override;
     void pollUIUpdate() override;
 
     lv_obj_t * _lb;
     private:
-
+    UIContext * const _uictx;
     UnitUIBase * _lastShownModule;
     
     bool handleDrag(const GestLib::DragGesture & drag);

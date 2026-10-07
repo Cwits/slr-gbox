@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 
 #include <string>
 #include <vector>
@@ -15,14 +15,14 @@ class Button;
 class Label;
 class UIContext;
 
-class Browser : public View {
+class Browser : public BaseWidget {
     public:
     Browser(BaseWidget* parent, UIContext * const uictx);
     ~Browser();
 
-    void update() override {}
-
     private:
+    UIContext * const _uictx;
+
     void parse();
     void goUp();
     std::string _lastParsedPath;

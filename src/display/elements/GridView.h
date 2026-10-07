@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 
 #include <vector>
 #include <memory>
@@ -17,6 +17,7 @@ namespace UI {
 // class TrackGui;
 class GridView;
 struct Timeline;
+struct UIContext;
 
 struct GridControl : public BaseWidget {
     GridControl(GridView * parent, UIContext * const uictx);
@@ -44,7 +45,7 @@ struct GridGrid : public BaseWidget {
     UIContext * const _uictx;
 };
 
-struct GridView : public View {
+struct GridView : public BaseWidget {
     GridView(BaseWidget * parent, UIContext * const uictx);
     ~GridView();
 
@@ -58,6 +59,8 @@ struct GridView : public View {
     // std::unique_ptr<Timeline> _timeline;
     
     private:
+    UIContext * const _uictx;
+    
     float _horizontalZoom = 1.0f;
     lv_obj_t * _timelineContainer;
 

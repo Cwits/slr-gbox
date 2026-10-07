@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 #include <memory>
 
 namespace UI {
@@ -12,12 +12,11 @@ class Button;
 class Label;
 class UIContext;
 
-struct BottomPanel : public View {
+struct BottomPanel : public BaseWidget {
     BottomPanel(BaseWidget * parent, UIContext * const uictx);
     ~BottomPanel();
 
     void updateTimelineRelated(const bool timeSigOrBpm);
-    void update() override {}
     void pollUIUpdate() override;
     // private:
     std::unique_ptr<Button> _btnNewUnit;
@@ -38,6 +37,7 @@ struct BottomPanel : public View {
     std::unique_ptr<Label> _lblLoopEnd;
 
     uint64_t _playheadVersion;
+    UIContext * const _uictx;
 };
 
 }

@@ -54,7 +54,8 @@ slr::ID ModulationUI::id() const {
 
 
 ModEngineView::ModEngineView(BaseWidget * parent, UIContext * const uictx) :
-    View(parent, uictx)
+    BaseWidget(parent, true),
+    _uictx(uictx)
 {
     setPos(Layout::STEP_SEQ_X, Layout::STEP_SEQ_Y);
     setSize(Layout::STEP_SEQ_WIDTH, Layout::STEP_SEQ_HEIGHT);

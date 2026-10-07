@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 #include "display/primitives/Popup.h"
 
 #include "common/defines.h"
@@ -39,7 +39,7 @@ struct SequenceUI {
     // const std::shared_ptr<slr::SequenceView> _view;
 };
 
-struct StepSequencerView : public View {
+struct StepSequencerView : public BaseWidget {
     StepSequencerView(BaseWidget * parent, UIContext * const uictx);
     ~StepSequencerView();
     void pollUIUpdate() override;
@@ -50,6 +50,7 @@ struct StepSequencerView : public View {
     SequenceUI * currentSequence() const;
 
     private:
+    UIContext * const _uictx;
     /* First Line */
     std::unique_ptr<Label> _lblNumOfSequencesText;
     std::unique_ptr<Label> _lblNumOfSequences;

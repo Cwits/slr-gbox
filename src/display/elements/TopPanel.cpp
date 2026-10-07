@@ -20,7 +20,10 @@
 
 namespace UI {
 
-TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : View(parent, uictx) {
+TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) : 
+    BaseWidget(parent, true),
+    _uictx(uictx) 
+{
     setPos(0, 0);
     setSize(Layout::TOP_PANEL_WIDTH, Layout::TOP_PANEL_HEIGHT);
     addStyle(&Style::Panels);

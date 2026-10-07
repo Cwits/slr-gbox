@@ -14,7 +14,10 @@
 
 namespace UI { 
 
-UnitView::UnitView(BaseWidget* parent, UIContext * const uictx) : View(parent, uictx) {
+UnitView::UnitView(BaseWidget* parent, UIContext * const uictx) : 
+    BaseWidget(parent, true), 
+    _uictx(uictx)
+{
     setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     addStyle(&Style::workspace);
@@ -31,7 +34,7 @@ UnitView::~UnitView() {
     lv_obj_delete(_lb);
 }
 
-void UnitView::update() {
+void UnitView::show() {
     hideAllChilds();
     
     UnitUIBase * unit = _uictx->getLastSelected();
@@ -45,6 +48,8 @@ void UnitView::update() {
         unit->unitUI()->show();
         _lastShownModule = unit;
     }
+    
+    BaseWidget::show();
 }
 
 void UnitView::pollUIUpdate() {

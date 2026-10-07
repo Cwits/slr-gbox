@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 #include "display/primitives/Popup.h"
 
 #include "common/defines.h"

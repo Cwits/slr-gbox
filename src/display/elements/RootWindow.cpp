@@ -163,8 +163,8 @@ void RootWindow::switchToView(MainView view) {
     _stepSequencerView->hide();
     _modEngineView->hide();
 
-    View * target = getSwitchViewTarget(view);
-    target->update();
+    BaseWidget * target = getSwitchViewTarget(view);
+    target->pollUIUpdate();
     target->show();
 
     _prevView = _currentView;
@@ -380,8 +380,8 @@ RootWindow * RootWindow::inst() {
     return _inst;
 }
 
-View * RootWindow::getSwitchViewTarget(MainView & view) {
-    View * ret = nullptr;
+BaseWidget * RootWindow::getSwitchViewTarget(MainView & view) {
+    BaseWidget * ret = nullptr;
     switch(view) {
         case(MainView::Grid): ret = _gridView.get(); break;
         case(MainView::Unit): ret = _unitView.get(); break;

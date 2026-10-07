@@ -212,6 +212,8 @@ void DefaultGridUI::pollFileUpdate() {
         const std::vector<const slr::ClipItemView*> &items = view->_clipContainer.clips();
         std::size_t viewSize = items.size();
         std::size_t uiSize = _fileUIs.size(); 
+        //but there can be the case when we removed one file and added another inbetween this calls, 
+        //so viewSize and uiSize will be equal, but pointers will be obsolate ?
         //create or delete
         if(viewSize != uiSize) {
             if(viewSize > uiSize) {
@@ -231,12 +233,23 @@ void DefaultGridUI::pollFileUpdate() {
                 }
 
                 //add to grid
-                for(std::size_t i=0; i<toAdd.size(); ++i) {
-                    std::unique_ptr<FileView> fw = std::make_unique<FileView>(uictx->gridGrid(), _uibase, toAdd.at(i), uictx);
+                for(const auto * civ : toAdd) {
+                    std::unique_ptr<FileView> fw = std::make_unique<FileView>(uictx->gridGrid(), _uibase, civ, uictx);
+                
+                    float xposition = UIUtility::frameToPixel(civ->startPosition(), uictx->gridHorizontalZoom());
+                    int ypos = _uibase->gridUI()->getY();
+                    fw->setPos(xposition, ypos);
+    
+                    slr::frame_t frames = civ->length();
+                    float framesPerPixel = UIUtility::framesPerPixel(uictx->gridHorizontalZoom());
+                    int pixels = frames * framesPerPixel;
+                    fw->setSize(pixels, UI::Layout::TRACK_HEIGHT);
+
+                    fw->draw();
+                    fw->show();
+
                     _fileUIs.push_back(std::move(fw));
                 }
-
-                //add to moduleUI
             } else {
                 //items removed
                 std::vector<FileView*> toRemove;

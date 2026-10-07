@@ -8,6 +8,7 @@
 #include "display/utility/UIContext.h"
 #include "display/utility/DragContext.h"
 #include "display/utility/layoutSizes.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/FileToCanvas.h"
 #include "display/elements/Timeline.h"
 
@@ -85,8 +86,8 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
     lv_obj_set_pos(_testRect, 100, 10);
     const std::shared_ptr<const slr::SamplerView> tr = _parentUI->_sampler.lock();
     slr::Color clr = tr->color();
-    lv_obj_set_style_bg_color(_testRect, lv_color_make(255-clr.r, 255-clr.g, 255-clr.b), 0);
-    setColor(lv_color_make(clr.r, clr.g, clr.b));
+    lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
+    // setColor(lv_color_make(clr.r, clr.g, clr.b));
 
     _horizontalZoom = 1.0f;
     _timeline = std::make_unique<Timeline>(this, lvhost(), &_horizontalZoom, parentUI->_uictx);
@@ -95,58 +96,59 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
     _timeline->rebuildTimeline();
 
     
-    // _lblAsset = std::make_unique<Label>(this, "No asset");
-    // _lblAsset->setPos(500, 200);
-    // _lblAsset->setSize(300, 60);
-    // _lblAsset->setFont(&DEFAULT_FONT);
-    // _lblAsset->setTextColor(lv_color_hex(0xffffff));
-    // _lastAssetState = false;
+    _lblAsset = std::make_unique<Label>(this, "No asset");
+    _lblAsset->setPos(500, 200);
+    _lblAsset->setSize(300, 60);
+    _lblAsset->setFont(&DEFAULT_FONT);
+    _lblAsset->setTextColor(lv_color_hex(0xffffff));
+    _lastAssetState = false;
 
-    // //canvas
-    // _canvas = lv_canvas_create(lvhost());
-    // _peakColor = lv_color_make(parentUI->color().r, 
-    //                                 parentUI->color().g, 
-    //                                 parentUI->color().b);
-    // _fillColor = lv_color_hex(0x000000);
-    // _canvasWidth = Layout::WORKSPACE_WIDTH-40;
-    // _canvasHeight = 600;
-    // lv_obj_set_pos(_canvas, 20, 280);
-    // _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(_canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE)];    
-    // //set buffer
-    // lv_canvas_set_buffer(_canvas, _drawBuffer, _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
-    // lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
+    //canvas
+    _canvas = lv_canvas_create(lvhost());
+    _peakColor = lv_color_make(parentUI->color().r, 
+                                    parentUI->color().g, 
+                                    parentUI->color().b);
+    _fillColor = lv_color_hex(0x000000);
+    _canvasWidth = Layout::WORKSPACE_WIDTH-20;
+    _canvasHeight = 400;
+    lv_obj_set_pos(_canvas, 10, 430);
+    _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(_canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE)];    
+    //set buffer
+    lv_canvas_set_buffer(_canvas, _drawBuffer, _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
+    lv_canvas_fill_bg(_canvas, Colors::Red, LV_OPA_20);
 
     dragCallback(std::bind(&SamplerUI::SamplerUnitUI::handleDrag, this, std::placeholders::_1));
 }
 
 SamplerUI::SamplerUnitUI::~SamplerUnitUI() {
-    // lv_obj_delete(_testRect);
-    // lv_obj_delete(_canvas);
-    // delete [] _drawBuffer;
+    lv_obj_delete(_testRect);
+    lv_obj_delete(_canvas);
+    delete [] _drawBuffer;
 }
 
 void SamplerUI::SamplerUnitUI::pollUIUpdate() {
     const std::shared_ptr<const slr::SamplerView> sampler = _parentUI->_sampler.lock();
-    if(sampler->asset() /* && !_lastAssetState*/) {
-        // _lastAssetState = true;
-        // std::string text = sampler->asset()->name();
-        // _lblAsset->setText(text);
+    if(sampler->asset()  && !_lastAssetState) {
+        _lastAssetState = true;
+        std::string text = sampler->asset()->name();
+        _lblAsset->setText(text);
 
-        // const slr::AudioFile * const afile = sampler->asset();
-        // lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
-        // UIHelpers::audioFileToCanvas(
-        //     afile,
-        //     0,
-        //     afile->frames(),
-        //     _canvas,
-        //     _canvasHeight,
-        //     _canvasWidth,
-        //     _peakColor,
-        //     _fillColor
-        // );
-    } else if(!sampler->asset()/* && _lastAssetState*/) {
-        // _lastAssetState = false;
-        // _lblAsset->setText("No asset");
+        const slr::AudioFile * const afile = sampler->asset();
+        lv_canvas_fill_bg(_canvas, Colors::Blue, LV_OPA_20);
+
+        UIHelpers::audioFileToCanvas(
+            afile,
+            0,
+            afile->frames(),
+            _canvas,
+            _canvasHeight,
+            _canvasWidth,
+            _peakColor,
+            _fillColor
+        );
+    } else if(!sampler->asset() && _lastAssetState) {
+        _lastAssetState = false;
+        _lblAsset->setText("No asset");
         
         // lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
     }

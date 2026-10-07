@@ -90,7 +90,10 @@ GridGrid::~GridGrid() {
 
 
 
-GridView::GridView(BaseWidget * parent, UIContext * uictx) : View(parent, uictx) {
+GridView::GridView(BaseWidget * parent, UIContext * uictx) : 
+    BaseWidget(parent, true),
+    _uictx(uictx) 
+{
     setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT); 
     noScroll();

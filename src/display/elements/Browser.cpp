@@ -25,7 +25,10 @@ const int _lineHeight = lv_font_get_line_height(&BROWSER_ELEMENT_FONT)+3;
 
 // const std::string DEFAULE_PATH = "/home/portablejoe/music/";
 
-Browser::Browser(BaseWidget* parent, UIContext * const uictx) : View(parent, uictx) {
+Browser::Browser(BaseWidget* parent, UIContext * const uictx) : 
+    BaseWidget(parent, true),
+    _uictx(uictx)
+{
     setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT);
     lv_obj_add_style(_lvhost, &Style::workspace, 0);

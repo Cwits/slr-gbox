@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 #include "display/primitives/Popup.h"
 
 #include "common/defines.h"
@@ -41,7 +41,7 @@ struct ModulationUI {
     // uint8_t * _drawBuffer;
 };
 
-struct ModEngineView : public View {
+struct ModEngineView : public BaseWidget {
     ModEngineView(BaseWidget * parent, UIContext * const uictx);
     ~ModEngineView();
     
@@ -59,7 +59,7 @@ struct ModEngineView : public View {
     void createModUI(const std::shared_ptr<slr::ModulationPatternView> view);
 
     private:
-  
+    UIContext * const _uictx;
     // void updateUI();
 
     // bool handleSwipe(GestLib::SwipeGesture & swipe) override;

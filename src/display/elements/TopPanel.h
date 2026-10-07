@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "display/primitives/View.h"
+#include "display/primitives/BaseWidget.h"
 
 namespace UI {
 
@@ -11,15 +11,15 @@ class Button;
 class Label;
 class UIContext;
 
-class TopPanel : public View {
+class TopPanel : public BaseWidget {
     public:
     TopPanel(BaseWidget * parent, UIContext * const uictx);
     ~TopPanel();
 
     void setMetroColor(lv_color_t color);
-    void update() override {}
     
     private:
+    UIContext * const _uictx;
     std::unique_ptr<Label> _lblProjectName;
 
     std::unique_ptr<Button> _btnSave;

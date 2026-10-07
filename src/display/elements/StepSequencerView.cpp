@@ -29,7 +29,8 @@ namespace UI {
 const std::string_view notarget = "No Sequence Target";
 
 StepSequencerView::StepSequencerView(BaseWidget * parent, UIContext * const uictx) :
-    View(parent, uictx),
+    BaseWidget(parent, true),
+    _uictx(uictx),
     _container(this)
 {
     setPos(Layout::STEP_SEQ_X, Layout::STEP_SEQ_Y);

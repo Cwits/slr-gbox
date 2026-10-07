@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 namespace slr {
+
 class Timeline;
 
 struct ClipItem {
