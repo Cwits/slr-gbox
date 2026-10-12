@@ -190,14 +190,14 @@ void Timeline::hideLoopMarkers() {
 }
 
 void Timeline::moveToFront() {
-    lv_obj_move_to_index(_loop.filler, -1);
-    lv_obj_move_to_index(_loop.lineStart, -1);
-    lv_obj_move_to_index(_loop.lineEnd, -1);
-    lv_obj_move_to_index(_loop.handleStart->lvhost(), -1);
-    lv_obj_move_to_index(_loop.handleEnd->lvhost(), -1);
-    for(auto &l : _lines) {
-        lv_obj_move_to_index(l.line, -1);
-    }
+    // lv_obj_move_to_index(_loop.filler, -1);
+    // lv_obj_move_to_index(_loop.lineStart, -1);
+    // lv_obj_move_to_index(_loop.lineEnd, -1);
+    // lv_obj_move_to_index(_loop.handleStart->lvhost(), -1);
+    // lv_obj_move_to_index(_loop.handleEnd->lvhost(), -1);
+    // for(auto &l : _lines) {
+    //     lv_obj_move_to_index(l.line, -1);
+    // }
 }
 
 void Timeline::updateLoopMarkers(float hzoom) {

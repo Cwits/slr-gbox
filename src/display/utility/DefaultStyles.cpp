@@ -100,6 +100,7 @@ void initDefaultStyles() {
 
     lv_style_init(&GridFile);
     lv_style_copy(&GridFile, &borderless);
+    lv_style_set_bg_opa(&GridFile, LV_OPA_0);
 
     lv_style_init(&DropDown);
     lv_style_copy(&DropDown, &borderless);

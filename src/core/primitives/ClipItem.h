@@ -5,6 +5,7 @@
 #include "common/defines.h"
 #include "core/primitives/File.h"
 #include "core/primitives/ClipContainer.h"
+#include "core/primitives/AudioBuffer.h"
 #include "core/primitives/DoubleBuffer.h"
 
 #include <vector>
@@ -14,9 +15,30 @@
 namespace slr {
 
 class Timeline;
+struct MidiTrack;
+
+enum class ClipContentType {
+    Audio,
+    Midi,
+    Automation
+};
+
+struct ClipContent {
+    ClipContentType type;
+
+    bool isMidi() const { return type == ClipContentType::Midi; }
+    bool isAudio() const { return type == ClipContentType::Audio; }
+
+    union {
+        const AudioBuffer * audio;
+        const MidiTrack * midi;
+    };
+
+    ID fileId;
+};
 
 struct ClipItem {
-    ClipItem(const Timeline *tl, const File * const file, frame_t startPos, long forcedId = -1);
+    ClipItem(const Timeline *tl, const ClipContent &content, frame_t startPos, ID selfId);
     ~ClipItem();
 
     frame_t startPosition() const { return _startPosition; }
@@ -24,26 +46,12 @@ struct ClipItem {
     frame_t length() const { return _length; }
     frame_t fileOffset() const { return _fileOffset; }
     bool isMuted() const { return _muted; }
-    ID id() const { return _uniqueId; }
+    ID id() const { return _id; }
 
-    const File * const _file;
+    const ClipContent _content;
 
     void recalculate(const double &coef) {
-        /*recalculate 
-            for midi items - start and length 
-            for audio... start (and length when there will be playback rate introduced)
-            meaning that all the files must be recalculated already?
-        */
-
-        /*
-            в общем просто так не получится, тогда надо как то сопостовлять?
-            то есть 
-            new position = old position * (new frames per quater note / old frames per quater note);
-
-
-        */
-
-       if(_file->isMidi()) {
+       if(_content.isMidi()) {
             _startPosition = _startPosition * coef;
             _length = _length * coef;
        } else {
@@ -63,12 +71,12 @@ struct ClipItem {
     frame_t _length;
     frame_t _fileOffset; //inside of clip
     bool _muted;
-    const ID _uniqueId;
+    ID _id;
 };
 
 struct ClipStorage {
     ~ClipStorage();
-    ClipItem * newClip(const Timeline *tl, const File *const file, frame_t startPosition, long forcedId = -1);
+    ClipItem * newClip(const Timeline *tl, const ClipContent &content, frame_t startPosition, ID clipId);
     // ClipItem * duplicateFrom(const ClipItem *item);
 
     ClipItem * findClipById(ID id);

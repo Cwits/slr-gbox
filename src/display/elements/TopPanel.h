@@ -31,6 +31,7 @@ class TopPanel : public BaseWidget {
     std::unique_ptr<Button> _btnMixer;
     std::unique_ptr<Button> _btnStepSequencer;
     std::unique_ptr<Button> _btnModEngine;
+    std::unique_ptr<Button> _btnEditor;
     
     std::unique_ptr<Button> _btnSettings;
     std::unique_ptr<Button> _btnToggleMetronome;

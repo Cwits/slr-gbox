@@ -3,6 +3,7 @@
 
 #pragma once
 #include "common/defines.h"
+#include "core/primitives/ClipItem.h"
 #include <vector>
 #include <memory>
 #include <atomic>
@@ -10,41 +11,55 @@
 namespace slr {
 
 class File;
-class ClipItem;
+// class ClipItem;
+struct AudioPeaks;
+struct MidiTrack; 
+
+struct ClipContentView {
+    ClipContentType type;
+    
+    bool isMidi() const { return type == ClipContentType::Midi; }
+    bool isAudio() const { return type == ClipContentType::Audio; }
+    
+    union {
+        const AudioPeaks * audio;
+        const MidiTrack * midi; //TODO: need to replace this by something... dunno
+    };
+    ID fileId;
+};
 
 struct ClipItemView {
-    ClipItemView(const ClipItem * container);
+    ClipItemView(const ClipItem * container, const ClipContentView &cont);
 
-    frame_t startPosition() const { return _startPosition; }
-    frame_t endPosition() const { return _startPosition + _length; }
-    frame_t length() const { return _length; }
-    frame_t fileOffset() const { return _fileOffset; }
-    bool muted() const { return _muted; }
+    frame_t startPosition() const;
+    frame_t endPosition() const;
+    frame_t length() const;
+    frame_t fileOffset() const;
+    bool muted() const;
 
-    const ClipItem * item() const { return _item; }
-    ID id() const { return _uniqueId; }
+    ID id() const;
+    ID fileId() const;
 
-    const File * file() const;
+    const ClipContentView _content;
 
     void update();
     uint64_t version() const { return _version.load(std::memory_order_acquire); }
 
 
-    void update(frame_t startPosition, frame_t length, frame_t fileOffset, bool muted) {
-        _startPosition = startPosition;
-        _length = length;
-        _fileOffset = fileOffset;
-        _muted = muted;
-        incrementVersion();
-    }
+    // void update(frame_t startPosition, frame_t length, frame_t fileOffset, bool muted) {
+    //     _startPosition = startPosition;
+    //     _length = length;
+    //     _fileOffset = fileOffset;
+    //     _muted = muted;
+    //     incrementVersion();
+    // }
 
     private:
-    frame_t _startPosition;
-    frame_t _length;
-    frame_t _fileOffset;
-    bool _muted;
-    const ClipItem * const _item;
-    const ID _uniqueId;
+    // frame_t _startPosition;
+    // frame_t _length;
+    // frame_t _fileOffset;
+    // bool _muted;
+    const ClipItem * _item;
 
     void incrementVersion() { _version.fetch_add(1, std::memory_order_release); }
     std::atomic<uint64_t> _version;
@@ -67,7 +82,7 @@ struct ClipContainerView {
 
 struct ClipViewStorage {
     ~ClipViewStorage();
-    ClipItemView * newClipView(const ClipItem * item);
+    ClipItemView * newClipView(const ClipItem * item, const ClipContentView &cont);
     ClipItemView * findClipById(ID id);
     bool deleteClipById(ID id);
 

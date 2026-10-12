@@ -101,10 +101,10 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
         if((ctx.elapsed+ctx.blockSize) <= item->startPosition()) continue;
         if(ctx.elapsed > (item->startPosition()+item->length())) continue;
 
-        switch(item->_file->type()) {
-            case(FileType::Audio): {
-                const AudioFile * const file = static_cast<const AudioFile* const>(item->_file);
-                const AudioBuffer * data = file->data();
+        switch(item->_content.type) {
+            case(ClipContentType::Audio): {
+                // const AudioFile * const file = static_cast<const AudioFile* const>(item->_file);
+                const AudioBuffer * data = item->_content.audio;
                 int channels = data->channels();
 
                 //TODO: i guess this can be optimized...
@@ -153,10 +153,10 @@ void AudioUnit::playbackFiles(const AudioContext &ctx, AudioBuffer *buf, MidiBuf
                 }
 
             } break;
-            case(FileType::Midi): {
+            case(ClipContentType::Midi): {
 
             } break;
-            case(FileType::AudioPeak):
+            case(ClipContentType::Automation):
             default: {
                 LOG_ERROR("Wrong file type");
             } break;

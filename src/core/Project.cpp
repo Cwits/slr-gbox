@@ -14,6 +14,7 @@
 #include "core/RenderPlan.h"
 #include "core/RtEngine.h"
 #include "core/SettingsManager.h"
+#include "core/FileWorker.h"
 #include "core/drivers/AudioDriver.h"
 
 #include "common/logger.h"
@@ -27,7 +28,10 @@
 
 namespace slr {
 
-Project::Project() : _timeline(*this) {
+Project::Project(std::atomic<bool> &shutdown) : 
+    _timeline(*this), 
+    _fileWorker(std::make_unique<FileWorker>())
+{
     _unitList.reserve(INITIAL_UNIT_SIZE);
     
     _metronome = std::make_unique<Metronome>();
@@ -55,15 +59,12 @@ Project::Project() : _timeline(*this) {
 
     _plans.init(p1, p2);
 
-    _unitIDCounter = 0;
-    _clipIDCounter = 0;
-    _audioRouteIDCounter = 0;
-    _midiRouteIDCounter = 0;
-    _sequenceIDCounter = 0;
-    _modulationIDCounter = 0;
+    _fileWorker->init(shutdown, &_generator);
 }
 
 Project::~Project() {
+    _fileWorker->clear();
+    _fileWorker.reset();
 
     BufferManager * man = ControlEngine::bufferManager();
     for(auto & unit : _unitList) {
@@ -110,10 +111,10 @@ AudioUnit * Project::createUnit(BufferManager * bmem, const UnitDescriptor *desc
         std::unique_ptr<AudioUnit> unit = desc->createRT(storage.readable().get(), nextId);
         au = unit.get();
 
-        if(au->id() != nextId) {
-            LOG_ERROR("Something went wrong... expected next unit id was %d but got %d", nextId, au->id());
-            return nullptr;
-        }
+        // if(au->id() != nextId) {
+        //     LOG_ERROR("Something went wrong... expected next unit id was %d but got %d", nextId, au->id());
+        //     return nullptr;
+        // }
 
         if(!unit->create(bmem)) {
             LOG_ERROR("Failed to create unit for some reasons");
@@ -125,7 +126,7 @@ AudioUnit * Project::createUnit(BufferManager * bmem, const UnitDescriptor *desc
         LOG_ERROR("Failed to create module %s", desc->_name->data());
     }
 
-    _unitIDCounter = std::max(_unitIDCounter+1, forcedId);
+    // _unitIdCounter = std::max(_unitIdCounter+1, forcedId);
     return au;
 }
 
@@ -163,9 +164,9 @@ AudioUnit * Project::getUnitById(ID id) {
     return nullptr;
 }
 
-ID Project::getNextUnitId() const {
-    return _unitIDCounter+1;
-}
+// ID Project::getNextUnitId() const {
+//     return _unitIdCounter+1;
+// }
 
 Metronome * Project::metronome() const {
     return _metronome.get();
@@ -292,5 +293,6 @@ const RenderPlan * Project::getSwappablePlan(ControlContext &ctx, uint16_t bitma
     if(success) return writable->plan.get();
     else return nullptr;
 }
+
 
 }

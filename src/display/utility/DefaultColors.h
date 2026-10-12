@@ -41,6 +41,7 @@ extern const lv_color_t WorkspaceBackground;
 extern const lv_color_t PanelsBackground;
 extern const lv_color_t PopupBackground;
 extern const lv_color_t DropDownBackground;
+extern const lv_color_t clipPreviewBackground;
 // void initDefault();
 
 } //namespace Colors

@@ -21,15 +21,14 @@ FileWorker::~FileWorker() {
 
 }
 
-bool FileWorker::init(std::atomic<bool> &shutdown) {
+bool FileWorker::init(std::atomic<bool> &shutdown, IdGenerator *gen) {
     // for(int i=0; i<8; ++i) {
     //     std::unique_ptr<AudioFile> file = std::make_unique<AudioFile>();
     //     _tmpAudioFiles.push_back(std::move(file));
     //     _usedTmpAudioFiles.push_back(FileAvailability::NotInUse);
     // }
     
-    _shutdown = false;
-    _thread = std::thread(&FileWorker::run, this, std::reference_wrapper(shutdown));
+    _thread = std::thread(&FileWorker::run, this, gen, std::reference_wrapper(shutdown));
 
     return true;
 }
@@ -44,25 +43,27 @@ bool FileWorker::shutdown() {
 
 bool FileWorker::clear() {
     // LOG_FATAL("Not implemented");
-    std::atomic<bool> finished;
-    finished.store(false);
-    auto close = std::make_unique<Tasks::closeAllFiles>();
-    close->saveFiles = false;
-    close->completed = [&finished]() {
-        finished.store(true, std::memory_order_release);
-    };
-    addTask(std::move(close));
-
-
+    // std::atomic<bool> finished;
+    // finished.store(false);
+    // auto close = std::make_unique<Tasks::closeAllFiles>();
+    // close->saveFiles = false;
+    // close->completed = [&finished]() {
+    //     finished.store(true, std::memory_order_release);
+    // };
+    // addTask(std::move(close));
+    
+    //ugh, the thread already shutted down, so this task won't event work out
     LOG_ERROR("Must implement temporary files cleaning as well!");
-    while( !(finished.load(std::memory_order_acquire) == true)  ) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    // while( !(finished.load(std::memory_order_acquire) == true)  ) {
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // }
 
     return true;
 }
 
-void FileWorker::run(FileWorker * f, std::atomic<bool> &shutdown) {
+//TODO: need separate tasks for recording things to file and loading/saving data
+//like high and low priority tasks
+void FileWorker::run(FileWorker * f, IdGenerator *gen, std::atomic<bool> &shutdown) {
     while(!shutdown) {
         std::unique_lock<std::mutex> lock(f->_mutex);
 
@@ -78,7 +79,7 @@ void FileWorker::run(FileWorker * f, std::atomic<bool> &shutdown) {
         f->_queue.pop();
         lock.unlock();
 
-        FileWorkerContext ctx(f, f->_fileList);
+        FileWorkerContext ctx(f, f->_fileList, gen);
 
         task->exec(ctx);
     }
@@ -151,6 +152,23 @@ std::vector<File*> FileWorker::listFiles(FileType type, bool temporary) {
             ret.push_back(f.get());
         }
     }
+
+    return ret;
+}
+
+const File* FileWorker::findFileById(ID fileId) const {
+    File *ret = nullptr;
+
+    auto it = std::find_if(
+        _fileList.begin(),
+        _fileList.end(),
+        [fileId](const std::unique_ptr<File> &f) {
+            return f->id() == fileId;
+        }
+    );
+
+    if(it != _fileList.end()) 
+        ret = it->get();
 
     return ret;
 }

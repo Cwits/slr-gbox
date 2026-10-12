@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "display/primitives/FileView.h"
+#include "display/primitives/ClipPreview.h"
 
 #include "core/primitives/File.h"
 #include "core/primitives/AudioFile.h"
@@ -21,118 +21,73 @@
 
 #include "display/primitives/UnitUIBase.h"
 #include "display/primitives/Button.h"
+#include "display/primitives/FilePreview.h"
 #include "display/elements/GridView.h"
 #include "display/utility/layoutSizes.h"
 #include "display/utility/DefaultStyles.h"
+#include "display/utility/DefaultColors.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/FileToCanvas.h"
+#include "display/utility/Macros.h"
 #include "common/uiutility.h"
 
 #include "common/logger.h"
 
 namespace UI {
 
-FileView::FileView(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipItemView * clipItem, UIContext * const uictx) :
+ClipPreview::ClipPreview(BaseWidget * parent, UnitUIBase * parentUI, const slr::ClipItemView * clipItem, UIContext * const uictx) :
     BaseWidget(parent, true, true),
     _uictx(uictx),
     _parentUI(parentUI),
     _clipItem(clipItem),
     _uniqueId(clipItem->id())
 {
-// _lvhost = parent->lvhost();
     addStyle(&Style::GridFile);
-    _canvas = lv_canvas_create(lvhost());
-
-    _originalX = 0;
-    _originalY = 0;
-
-    //calculate width
-    lv_obj_set_pos(_canvas, 0, 0);
+    noScroll();
     
-    _peakColor = lv_color_make(parentUI->color().r, 
+    _preview = std::make_unique<FilePreview>(this, &clipItem->_content, uictx);
+    _preview->setPos(0, 0);
+    _preview->_peakColor = lv_color_make(parentUI->color().r, 
                                     parentUI->color().g, 
                                     parentUI->color().b);
-    _fillColor = lv_color_hex(0x000000);
+    _preview->_fillColor = lv_color_make(parentUI->color().r, 
+                                    parentUI->color().g, 
+                                    parentUI->color().b);
 
-    _canvasWidth = 0;
-    _canvasHeight = 0;
-
-    tapCallback(std::bind(&FileView::handleTap, this, std::placeholders::_1));
-    doubleTapCallback(std::bind(&FileView::handleDoubleTap, this, std::placeholders::_1));
-    holdCallback(std::bind(&FileView::handleHold, this, std::placeholders::_1));
-
-    // show();
+    tapCallback(std::bind(&ClipPreview::handleTap, this, std::placeholders::_1));
+    doubleTapCallback(std::bind(&ClipPreview::handleDoubleTap, this, std::placeholders::_1));
+    holdCallback(std::bind(&ClipPreview::handleHold, this, std::placeholders::_1));
 }
 
-FileView::~FileView() {
-    lv_obj_delete(_canvas);
-    // delete [] _drawBuffer;
+ClipPreview::~ClipPreview() {
 }
 
-void FileView::update() {
+void ClipPreview::update() {
     //redraw canvas
 }
 
-void FileView::setSize(lv_coord_t w, lv_coord_t h) {
+void ClipPreview::setSize(lv_coord_t w, lv_coord_t h) {
     BaseWidget::setSize(w, h);
-    _canvasWidth = w;
-    _canvasHeight = h;
-    
-    //allocate buffer
-    // _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE)];
-    _drawBuffer = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(_canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE));
-    //set buffer
-    lv_canvas_set_buffer(_canvas, _drawBuffer.get(), _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
-
+    _preview->setSize(w, h);
 }
 
-void FileView::recalculateWidthAndRedraw() {
+void ClipPreview::recalculateWidthAndRedraw() {
     slr::frame_t frames = _clipItem->length();
     float framesPerPixel = UIUtility::framesPerPixel(_uictx->gridHorizontalZoom());
     int pixels = frames * framesPerPixel;
-    LOG_INFO("Old width: %d, new width: %d", _canvasWidth, pixels);
-    _canvasWidth = pixels;
     
-    std::unique_ptr<uint8_t[]> swappable = std::make_unique<uint8_t[]>(LV_DRAW_BUF_SIZE(pixels, Layout::TRACK_HEIGHT, LV_COLOR_FORMAT_NATIVE));
-    lv_canvas_set_buffer(_canvas, swappable.get(), _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
-    _drawBuffer.swap(swappable);
-    draw();
-    setSize(pixels, UI::Layout::TRACK_HEIGHT);
+    setSize(pixels, _preview->height());
+    _preview->setSize(pixels, _preview->height());
+    _preview->draw(_clipItem->fileOffset(), _clipItem->length());
+    _preview->show();
 }
 
-void FileView::draw() {
-    lv_canvas_fill_bg(_canvas, lv_palette_main(LV_PALETTE_GREY), LV_OPA_COVER);
-
-    if(_clipItem->item()->_file->isAudio()) {
-        const slr::AudioFile * const afile = static_cast<const slr::AudioFile* const>(_clipItem->item()->_file);
-        
-        UIHelpers::audioFileToCanvas(
-            afile,
-            _clipItem->fileOffset(),
-            _clipItem->length(),
-            _canvas,
-            _canvasHeight,
-            _canvasWidth,
-            _peakColor,
-            _fillColor
-        );
-    } else if(_clipItem->item()->_file->isMidi()) {
-        //draw midi file
-        const slr::MidiFile * const mfile = static_cast<const slr::MidiFile *const>(_clipItem->item()->_file);
-        UIHelpers::midiFileToCanvas(
-            mfile, 
-            _clipItem->fileOffset(), 
-            _clipItem->length(),
-            _canvas,
-            Layout::TRACK_HEIGHT,
-            _canvasWidth,
-            _peakColor,
-            _fillColor
-        );
-    }
+void ClipPreview::draw() {
+    _preview->draw(_clipItem->fileOffset(), _clipItem->length());
+    _preview->show();
 }
 
-void FileView::pollUIUpdate() {    
+void ClipPreview::pollUIUpdate() {    
     const slr::ClipItemView * const fview = _clipItem;
 
     uint64_t version = fview->version();
@@ -144,7 +99,7 @@ void FileView::pollUIUpdate() {
     //as well length
 }
 
-bool FileView::handleTap(const GestLib::TapGesture &tap) {
+bool ClipPreview::handleTap(const GestLib::TapGesture &tap) {
     // LOG_INFO("Tap from item: id: %d, name: %s, track: %d, name: %s", 
     //             _item->_uniqueId, 
     //             _item->_file->name().c_str(), 
@@ -153,13 +108,13 @@ bool FileView::handleTap(const GestLib::TapGesture &tap) {
     return true;
 }
 
-bool FileView::handleDoubleTap(const GestLib::DoubleTapGesture & dtap) {
-    _uictx->_popManager->enableFilePopup(this);
+bool ClipPreview::handleDoubleTap(const GestLib::DoubleTapGesture & dtap) {
     _uictx->_popManager->setFilePopupPosition(dtap.x, dtap.y);
+    _uictx->_popManager->enableFilePopup(this);
     return true;
 }
 
-bool FileView::handleHold(const GestLib::HoldGesture &hold) {
+bool ClipPreview::handleHold(const GestLib::HoldGesture &hold) {
     //for dragging file across timeline
     int cx = hold.x-Layout::TRACK_CONTROL_PANEL_WIDTH;
     int cy = hold.y-Layout::TOP_PANEL_HEIGHT;
@@ -199,11 +154,8 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
 {
     setSize(Layout::FILE_POPUP_W, Layout::FILE_POPUP_H);
 
-    _deleteBtn = new Button(this, LV_SYMBOL_TRASH);
-    _deleteBtn->setPos(Layout::FILE_POP_DELETE_BTN_X, Layout::FILE_POP_DELETE_BTN_Y);
-    _deleteBtn->setSize(Layout::Button, Layout::Button);
-    _deleteBtn->setFont(&DEFAULT_FONT);
-    _deleteBtn->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+    BUTTONDEF(_btnDelete, Layout::FILE_POP_DELETE_BTN_X, Layout::FILE_POP_DELETE_BTN_Y, LV_SYMBOL_TRASH);
+    _btnDelete->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Remove item event");
         auto act = std::make_unique<slr::Actions::RemoveClip>();
         act->targetId = this->_item->parentUI()->id();
@@ -212,17 +164,23 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
         this->_uictx->_popManager->disableFilePopup();
         return true;
     });
+
+    BUTTONDEF(_btnEdit, 20 + Layout::Button, 10, LV_SYMBOL_EDIT);
+    _btnEdit->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        this->_uictx->edit(this->_item->_clipItem->fileId());
+        this->hide();
+        return true;
+    });
 }
 
 FilePopup::~FilePopup() {
-    delete _deleteBtn;
 }
 
 void FilePopup::update() {
 
 }
 
-void FilePopup::setItem(FileView * item) {
+void FilePopup::setItem(ClipPreview * item) {
     _item = item;
 }
 

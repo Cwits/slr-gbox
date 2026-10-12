@@ -6,6 +6,7 @@
 #include "core/primitives/MidiEvent.h"
 
 #include <fstream>
+#include <memory>
 
 namespace slr {
 
@@ -28,17 +29,16 @@ enum class MidiFileFormat {
 
 
 */
+struct MidiTrack {
+    //from https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
+    //track_event = <v_time> + <midi_event> | <meta_event> | <sysex_event>
+    std::vector<MidiEvent> midiEvents;
+    std::vector<MetaEvent> metaEvents;
+    std::vector<SysexEvent> sysexEvents; 
+    // frame_t length;
+};
 
 struct MidiFile : public File {
-    struct MidiTrack {
-        //from https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html
-        //track_event = <v_time> + <midi_event> | <meta_event> | <sysex_event>
-        std::vector<MidiEvent> midiEvents;
-        std::vector<MetaEvent> metaEvents;
-        std::vector<SysexEvent> sysexEvents; 
-        // frame_t length;
-    };
-
     MidiFile(long forcedId = -1);
     ~MidiFile();
 
@@ -62,7 +62,7 @@ struct MidiFile : public File {
     uint32_t ppqn() const { return _ppqn; }
     std::size_t trackCount() const { return _tracks.size(); }
 
-    const MidiTrack & track(std::size_t id) const { return _tracks.at(id); }
+    const MidiTrack * track(std::size_t id) const { return _tracks.at(id).get(); }
 
     private:
     std::fstream _handle;
@@ -76,7 +76,7 @@ struct MidiFile : public File {
     MidiFileFormat _format;
     uint32_t _ppqn;
 
-    std::vector<MidiTrack> _tracks;
+    std::vector<std::unique_ptr<MidiTrack>> _tracks;
 
     frame_t readvlv(uint8_t * data, int &currentReadPosition);
 };

@@ -18,7 +18,7 @@ static ID fileUniqueId = 0;
 
 File::File(FileType type, const ID forcedId) : 
     _type(type),
-    _uniqueId(forcedId == -1 ? fileUniqueId : static_cast<ID>(forcedId)) 
+    _uniqueId(forcedId) 
 {
     // fileUniqueId++;
     

@@ -3,6 +3,7 @@
 
 #pragma once
 #include "display/primitives/UnitUIBase.h"
+#include "snapshots/FileContainerView.h"
 #include <memory>
 
 namespace slr {
@@ -16,6 +17,7 @@ class Label;
 class Button;
 class UIContext;
 struct Timeline;
+struct FilePreview;
 
 struct SamplerUI : public UnitUIBase {
     SamplerUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, UIContext * uictx);
@@ -67,14 +69,9 @@ struct SamplerUI : public UnitUIBase {
         std::unique_ptr<Timeline> _timeline;
         float _horizontalZoom;
 
-        int _canvasWidth;
-        int _canvasHeight;
-
-        lv_obj_t * _canvas;
-        lv_color_t _peakColor;
-        lv_color_t _fillColor;
-        uint8_t * _drawBuffer;
-
+        slr::ClipContentView _content;
+        std::unique_ptr<FilePreview> _preview;
+        
         bool handleDrag(const GestLib::DragGesture & drag);
         
         friend class SamplerUI;

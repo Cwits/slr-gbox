@@ -58,7 +58,7 @@ void LoadAssetAction::exec(ControlContext &ctx) {
                     opened->result = success;
                     opened->completed.store(true, std::memory_order_release);
                 };
-                ctx.fileWorker->addTask(std::move(task));
+                ctx.project->fileWorker()->addTask(std::move(task));
                 
                 setState(ActionState::Waiting);
             } else if(std::holds_alternative<File*>(_action.data)) {

@@ -11,13 +11,16 @@
 #include "display/utility/DefaultColors.h"
 #include "display/utility/FileToCanvas.h"
 #include "display/elements/Timeline.h"
+#include "display/primitives/FilePreview.h"
 
 #include "snapshots/AudioUnitView.h"
+#include "snapshots/FileContainerView.h"
 
 #include "core/primitives/AudioFile.h"
 #include "core/actions/Actions.h"
 #include "units/Sampler/SamplerActions.h"
 
+#include "common/uiutility.h"
 #include "common/logger.h"
 
 #include <cassert>
@@ -87,7 +90,6 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
     const std::shared_ptr<const slr::SamplerView> tr = _parentUI->_sampler.lock();
     slr::Color clr = tr->color();
     lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
-    // setColor(lv_color_make(clr.r, clr.g, clr.b));
 
     _horizontalZoom = 1.0f;
     _timeline = std::make_unique<Timeline>(this, lvhost(), &_horizontalZoom, parentUI->_uictx);
@@ -103,27 +105,11 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
     _lblAsset->setTextColor(lv_color_hex(0xffffff));
     _lastAssetState = false;
 
-    //canvas
-    _canvas = lv_canvas_create(lvhost());
-    _peakColor = lv_color_make(parentUI->color().r, 
-                                    parentUI->color().g, 
-                                    parentUI->color().b);
-    _fillColor = lv_color_hex(0x000000);
-    _canvasWidth = Layout::WORKSPACE_WIDTH-20;
-    _canvasHeight = 400;
-    lv_obj_set_pos(_canvas, 10, 430);
-    _drawBuffer = new uint8_t[LV_DRAW_BUF_SIZE(_canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE)];    
-    //set buffer
-    lv_canvas_set_buffer(_canvas, _drawBuffer, _canvasWidth, _canvasHeight, LV_COLOR_FORMAT_NATIVE);
-    lv_canvas_fill_bg(_canvas, Colors::Red, LV_OPA_20);
-
     dragCallback(std::bind(&SamplerUI::SamplerUnitUI::handleDrag, this, std::placeholders::_1));
 }
 
 SamplerUI::SamplerUnitUI::~SamplerUnitUI() {
     lv_obj_delete(_testRect);
-    lv_obj_delete(_canvas);
-    delete [] _drawBuffer;
 }
 
 void SamplerUI::SamplerUnitUI::pollUIUpdate() {
@@ -134,18 +120,32 @@ void SamplerUI::SamplerUnitUI::pollUIUpdate() {
         _lblAsset->setText(text);
 
         const slr::AudioFile * const afile = sampler->asset();
-        lv_canvas_fill_bg(_canvas, Colors::Blue, LV_OPA_20);
+        _content.type = slr::ClipContentType::Audio;
+        _content.audio = afile->peaks();
+        _content.fileId = afile->id();
 
-        UIHelpers::audioFileToCanvas(
-            afile,
-            0,
-            afile->frames(),
-            _canvas,
-            _canvasHeight,
-            _canvasWidth,
-            _peakColor,
-            _fillColor
-        );
+        _preview = std::make_unique<FilePreview>(this, &_content, _parentUI->_uictx);
+        _preview->_fillColor = lv_color_make(_parentUI->color().r, 
+                                    _parentUI->color().g, 
+                                    _parentUI->color().b);
+        _preview->_peakColor = lv_color_hex(0x000000);
+        _preview->setSize(Layout::WORKSPACE_WIDTH-20, 400);
+        _preview->setPos(10, 430);
+        _preview->draw(0, afile->frames());
+        _preview->show();
+
+        //need to properly recalculate timeline zoom
+        float fpp = UIUtility::samplesPerPixel(_horizontalZoom);
+        float framesOnTimeline = (Layout::WORKSPACE_WIDTH-20) * fpp; //at current zoom
+        
+        slr::frame_t fileFrames = afile->frames();
+        float ratio = framesOnTimeline / (float)fileFrames;
+
+        float newZoom = _horizontalZoom / ratio;
+
+        _horizontalZoom = newZoom;
+        _timeline->rebuildTimeline();
+        
     } else if(!sampler->asset() && _lastAssetState) {
         _lastAssetState = false;
         _lblAsset->setText("No asset");

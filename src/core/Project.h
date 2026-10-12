@@ -7,6 +7,7 @@
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
 #include "core/primitives/ClipItem.h"
+#include "core/primitives/IdGenerator.h"
 #include "core/Timeline.h"
 #include "common/defines.h"
 
@@ -24,10 +25,11 @@ struct ModulationEngine;
 struct RenderPlan;
 struct Sequence;
 struct ModulationPattern;
+struct FileWorker;
 
 class Project {
     public:
-    Project();
+    Project(std::atomic<bool> &shutdown);
     ~Project();
 
     //TODO: need somehow remove this 4 guys from here, and, maybe, pass RenderPlan to timeline or smth?
@@ -47,7 +49,7 @@ class Project {
     AudioUnit * getUnitById(ID id); //for building track graph???
     const std::vector<std::unique_ptr<AudioUnit>> & getAllUnits() const { return _unitList; }
 
-    ID getNextUnitId() const;
+    // ID getNextUnitId() const;
 
     const std::vector<AudioRoute> & routes() const { return _routes; }
     void addRoute(AudioRoute route) { _routes.push_back(route); }
@@ -77,23 +79,22 @@ class Project {
     const RenderPlan * getSwappablePlan(ControlContext &ctx, uint16_t bitmask);
     void swapPlan() { _plans.swap(); }
 
+    FileWorker * fileWorker() const { return _fileWorker.get(); }
+
+    IdGenerator _generator;
+
     private:
     bool _isSolo;
 
     Timeline _timeline;
-
-    ID _unitIDCounter;
-    ID _clipIDCounter;
-    ID _audioRouteIDCounter;
-    ID _midiRouteIDCounter;
-    ID _sequenceIDCounter;
-    ID _modulationIDCounter;
 
     std::vector<std::unique_ptr<AudioUnit>> _unitList;
     std::vector<AudioRoute> _routes;
     std::vector<MidiRoute> _midiRoutes;
 
     std::unique_ptr<Metronome> _metronome;
+
+    std::unique_ptr<FileWorker> _fileWorker;
 
     ClipContainerMap _clipContainerMap; ////TODO: this is a problem, because not cleared on unit deleting
     ClipStorage _clipStorage; 

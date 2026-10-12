@@ -136,7 +136,7 @@ bool MidiFile::open(std::string &path) {
         uint8_t * rawdata = readed.get();
         _handle.read((char*)rawdata, trkchunk.length);
         
-        MidiTrack track;
+        std::unique_ptr<MidiTrack> track = std::make_unique<MidiTrack>();
         //track_event = <v_time> + <midi_event> | <meta_event> | <sysex_event>
         int bytesReaded = 0;
         frame_t trackGlobalPosition = 0;
@@ -168,7 +168,7 @@ bool MidiFile::open(std::string &path) {
                 if(!adjustPpqn) ev.offset = position+trackGlobalPosition;
                 else ev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
 
-                track.midiEvents.push_back(ev);
+                track->midiEvents.push_back(ev);
             } else if(evType >= MidiEventType::SysEx && evType <= MidiEventType::SystemReset) {
                 //sysex or meta
                 if(byte == 0xF0 || byte == 0xF7) {
@@ -183,7 +183,7 @@ bool MidiFile::open(std::string &path) {
                     if(!adjustPpqn) sev.offset = position+trackGlobalPosition;
                     else sev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
 
-                    track.sysexEvents.push_back(std::move(sev));
+                    track->sysexEvents.push_back(std::move(sev));
                 } else if(byte == 0xFF) {
                     //meta
                     MetaEvent mev;
@@ -197,7 +197,7 @@ bool MidiFile::open(std::string &path) {
                     if(!adjustPpqn) mev.offset = position+trackGlobalPosition;
                     else mev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
                     
-                    track.metaEvents.push_back(std::move(mev));
+                    track->metaEvents.push_back(std::move(mev));
                 }
             } else {
                 //invalid
@@ -222,6 +222,13 @@ bool MidiFile::open(std::string &path) {
         return false;
     }
 
+    _path = path;
+    _name = std::string(
+        path.substr(
+            path.find_last_of("/", path.size())+1,
+            path.size()-path.find_last_of("/", path.size())-1)
+    );
+
     return true;
 }
 
@@ -242,7 +249,7 @@ void MidiFile::finishAfterRecord() {
 }
 
 frame_t MidiFile::frames() const {
-    return _tracks[0].midiEvents.at(_tracks[0].midiEvents.size()-1).offset;
+    return _tracks[0]->midiEvents.at(_tracks[0]->midiEvents.size()-1).offset;
 }
 
 bool MidiFile::openInternal(std::string &path, bool tmp) {

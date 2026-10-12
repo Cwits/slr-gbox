@@ -146,6 +146,7 @@ file(GLOB SOURCES
   src/core/primitives/Parameter.cpp
   src/core/primitives/ParameterArray.cpp
   src/core/primitives/RtTask.cpp
+  src/core/primitives/IdGenerator.cpp
 
   #utility
   src/core/utility/basicAudioManipulation.cpp
@@ -221,6 +222,7 @@ file(GLOB SOURCES
   src/display/elements/Timeline.cpp
   src/display/elements/TopPanel.cpp
   src/display/elements/UnitView.cpp
+  src/display/elements/EditorView.cpp
   
   src/display/popups/DialogWindows.cpp
   src/display/popups/DragViewSelector.cpp
@@ -237,7 +239,8 @@ file(GLOB SOURCES
   src/display/primitives/Button.cpp
   src/display/primitives/Checkbox.cpp
   src/display/primitives/DropDown.cpp
-  src/display/primitives/FileView.cpp
+  src/display/primitives/ClipPreview.cpp
+  src/display/primitives/FilePreview.cpp
   src/display/primitives/Label.cpp
   src/display/primitives/Popup.cpp
   src/display/primitives/Slider.cpp

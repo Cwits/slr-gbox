@@ -13,6 +13,7 @@
 #include "display/elements/UnitView.h"
 #include "display/elements/Browser.h"
 #include "display/elements/StepSequencerView.h"
+#include "display/elements/EditorView.h"
 #include "display/elements/Timeline.h"
 
 namespace UI {
@@ -71,6 +72,11 @@ void UIContext::registerFrequentUpdate(std::function<void()> clb) {
 
 void UIContext::filesRecalculated() { _recalculateGridFilePositions = false; }
 
+void UIContext::edit(slr::ID fileId) {
+    _editorView->setEditable(fileId);
+    switchToView(MainView::Editor);
+}
+
 BaseWidget * UIContext::topPanel() { return _topPanel; }
 BaseWidget * UIContext::bottomPanel() { return _bottomPanel; }
 BaseWidget * UIContext::grid() { return _gridView; }
@@ -80,6 +86,7 @@ BaseWidget * UIContext::unitView() { return _unitView; }
 BaseWidget * UIContext::browser() { return _browser; }
 BaseWidget * UIContext::stepSequencer() { return _stepSequencerView; }
 BaseWidget * UIContext::dragSelector() { return _dragSelector; }
+BaseWidget * UIContext::editorView() { return _editorView; }
 
 
 }

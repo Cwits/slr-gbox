@@ -3,7 +3,7 @@
 
 #include "display/elements/RootWindow.h"
 
-#include "display/primitives/FileView.h"
+#include "display/primitives/ClipPreview.h"
 #include "display/primitives/UnitUIBase.h"
 #include "display/primitives/Label.h"
 
@@ -20,6 +20,7 @@
 #include "display/elements/BottomPanel.h"
 #include "display/elements/StepSequencerView.h"
 #include "display/elements/ModEngineView.h"
+#include "display/elements/EditorView.h"
 #include "display/elements/Timeline.h"
 
 #include "display/popups/RouteManager.h"
@@ -65,6 +66,7 @@ RootWindow::RootWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _browser = std::make_unique<Browser>(this, &_uiContext);
     _stepSequencerView = std::make_unique<StepSequencerView>(this, &_uiContext);
     _modEngineView = std::make_unique<ModEngineView>(this, &_uiContext);
+    _editorView = std::make_unique<EditorView>(this, &_uiContext);
     
     //TODO: set context values...
     _uiContext._topPanel = _topPanel.get();
@@ -73,6 +75,7 @@ RootWindow::RootWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _uiContext._unitView = _unitView.get();
     _uiContext._browser = _browser.get();
     _uiContext._stepSequencerView = _stepSequencerView.get();
+    _uiContext._editorView = _editorView.get();
     // _uiContext._gridTimeline = _gridView->_timeline.get();
     
     _dragViewSelector = std::make_unique<DragViewSelector>(this, &_uiContext);
@@ -162,6 +165,7 @@ void RootWindow::switchToView(MainView view) {
     _browser->hide();
     _stepSequencerView->hide();
     _modEngineView->hide();
+    _editorView->hide();
 
     BaseWidget * target = getSwitchViewTarget(view);
     target->pollUIUpdate();
@@ -387,7 +391,7 @@ BaseWidget * RootWindow::getSwitchViewTarget(MainView & view) {
         case(MainView::Unit): ret = _unitView.get(); break;
         case(MainView::Browser): ret = _browser.get(); break;
         case(MainView::Patch): ; break;
-        case(MainView::Editor): ; break;
+        case(MainView::Editor): ret = _editorView.get(); break;
         case(MainView::StepSequencer): ret = _stepSequencerView.get(); break;
         case(MainView::ModEngine): ret = _modEngineView.get(); break;
     }

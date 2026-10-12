@@ -74,11 +74,12 @@ void ModifyClipItemAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            //TODO: update with values from action or flat task...
             if(_direction == ActionDirection::Forward) {
-                item->update(_action.startPosition, _action.length, _action.fileStartOffset, _action.muted);
+                // item->update(_action.startPosition, _action.length, _action.fileStartOffset, _action.muted);
+                item->update();
             } else {
-                item->update(_oldValues.startPosition, _oldValues.length, _oldValues.fileStartOffset, _oldValues.muted);
+                // item->update(_oldValues.startPosition, _oldValues.length, _oldValues.fileStartOffset, _oldValues.muted);
+                item->update();
             }
              
             setState(ActionState::Finished);

@@ -108,14 +108,14 @@ bool Serializer::serialize(ControlContext &ctx) {
         json["Units"].push_back(unit);
     }
 
-    FileWorker *fw = ctx.fileWorker;
+    FileWorker *fw = ctx.project->fileWorker();
     const std::vector<File*> files = fw->listFiles(FileType::All, false);
     json["Files Count"] = files.size();
 
     for(const File *f : files) {
         auto saveTask = std::make_unique<Tasks::saveFile>();
         saveTask->fileId = f->id();
-        ctx.fileWorker->addTask(std::move(saveTask));
+        fw->addTask(std::move(saveTask));
 
         nlohmann::ordered_json filesub = saveFile(f);
         json["Files"].push_back(filesub);
@@ -184,7 +184,7 @@ nlohmann::ordered_json Serializer::saveClip(const ClipItem *clip) {
     ret["Length"] = clip->length();
     ret["File Offset"] = clip->fileOffset();
     ret["Is Muted"] = clip->isMuted();
-    ret["File ID"] = clip->_file->id();
+    ret["File ID"] = 0;//clip->_file->id(); TODO:Broken
     return ret;
 }
 
@@ -196,7 +196,7 @@ nlohmann::ordered_json Serializer::saveClip(const ClipItemView *clip) {
     ret["Length"] = clip->length();
     ret["File Offset"] = clip->fileOffset();
     ret["Is Muted"] = clip->muted();
-    ret["File ID"] = clip->file()->id();
+    ret["File ID"] = 0;//clip->file()->id();  TODO:Broken
     return ret;
 }
 

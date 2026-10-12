@@ -25,8 +25,8 @@ struct RtTask;
 
 struct ControlContext {
     ControlContext(
+        std::atomic<bool> &shutdown,
         Project *prj, 
-        FileWorker *fw, 
         RtEngine *rt, 
         ProjectView *pv, 
         MidiController *mc, 
@@ -35,8 +35,9 @@ struct ControlContext {
         std::deque<std::unique_ptr<Undoable>> *redo,
         std::vector<std::unique_ptr<ActionExecutable>> *actions,
         std::shared_mutex *actionMutex
-    ) : project(prj), 
-        fileWorker(fw), 
+    ) : 
+        _shutdown(shutdown),
+        project(prj), 
         engine(rt), 
         projectView(pv), 
         midiController(mc), 
@@ -47,8 +48,8 @@ struct ControlContext {
         _actionMutex(actionMutex),
         _nonConstEngine(rt) {} 
 
+    std::atomic<bool> & _shutdown;
     Project * const project;
-    FileWorker * const fileWorker;
     RtEngine * const engine;
     ProjectView * const projectView;
     MidiController * const midiController;

@@ -51,7 +51,6 @@
 namespace slr {
 
 std::thread _controlThread;
-// std::atomic<bool> _shutdown;
 std::condition_variable _cond;
 
 std::unique_ptr<BufferManager> _bufferManager;
@@ -59,7 +58,6 @@ std::unique_ptr<BufferManager> _bufferManager;
 std::unique_ptr<RtEngine> _engine;
     
 std::unique_ptr<Project> _project;
-std::unique_ptr<FileWorker> _fileWorker;
 
 std::unique_ptr<ProjectView> _projectSnapshot;
 std::unique_ptr<DriverView> _driverView;
@@ -92,8 +90,8 @@ void processLoop(std::atomic<bool> &shutdown) {
 
     while(!shutdown) {
         ControlContext ctx(
+            shutdown,
             _project.get(),
-            _fileWorker.get(),
             _engine.get(),
             _projectSnapshot.get(),
             _midiController.get(),
@@ -220,23 +218,9 @@ bool init(std::atomic<bool> &shutdown) {
     // _undoList.resize(64);
     // _redoList.resize(64);
 
-    // _shutdown = false;
-
     _bufferManager = std::make_unique<BufferManager>();
     if(!_bufferManager->init(SettingsManager::getBlockSize(), DEFAULT_BUFFER_CHANNELS)) {
         LOG_ERROR("Failed to init Buffer Manager");
-        return false;
-    }
-
-    // if(!AudioBufferManager::init(SettingsManager::getBlockSize(),
-    //                             DEFAULT_BUFFER_CHANNELS)) {
-    //     LOG_ERROR("Failed to init Audio Buffer Manager");
-    //     return false;
-    // }
-
-    _fileWorker = std::make_unique<FileWorker>();
-    if(!_fileWorker->init(shutdown)) {
-        LOG_ERROR("Failed to init File Worker");
         return false;
     }
 
@@ -258,7 +242,7 @@ bool init(std::atomic<bool> &shutdown) {
         if loagind project than do it here
     */
 
-    _project = std::make_unique<Project>();
+    _project = std::make_unique<Project>(shutdown);
     _project->metronome()->create(_bufferManager.get());
     _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
     
@@ -291,11 +275,11 @@ bool shutdown() {
     _projectSnapshot.reset();
     _project.reset();
     
-    if(!_fileWorker->shutdown()) {
-        LOG_ERROR("Failed to shutdown File Worker");
-        return false;
-    }
-    _fileWorker.reset();
+    // if(!_fileWorker->shutdown()) {
+    //     LOG_ERROR("Failed to shutdown File Worker");
+    //     return false;
+    // }
+    // _fileWorker.reset();
 
     // if(!AudioBufferManager::shutdown()) {
     //     LOG_ERROR("Failed to shutdown Audio Buffer Manager");
@@ -314,7 +298,7 @@ void emergencyStop() {
 
 }
 
-void prepareForProjectLoading() {
+void prepareForProjectLoading(ControlContext &ctx) {
     if(!_engine->stop()) {
         LOG_FATAL("Failed to stop Engine");
     }
@@ -325,10 +309,10 @@ void prepareForProjectLoading() {
     _projectSnapshot.reset();
     _project.reset();
 
-    _fileWorker->clear();
+    // _fileWorker->clear();
     _bufferManager->clear();
 
-    _project = std::make_unique<Project>();
+    _project = std::make_unique<Project>(ctx._shutdown);
     _project->metronome()->create(_bufferManager.get());
     _projectSnapshot = std::make_unique<ProjectView>(&_project->timeline());
 
@@ -369,7 +353,7 @@ RtEngine * rtEngine() {
 }
 
 FileWorker * fileWorker() {
-    return _fileWorker.get();
+    return _project->fileWorker();
 }
 
 MidiController * midiController() {

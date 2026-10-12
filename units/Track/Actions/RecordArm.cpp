@@ -88,13 +88,13 @@ void RecordArmAction::exec(ControlContext &ctx) {
                     recFile->prepareAsTemporary(path, DEFAULT_BUFFER_CHANNELS, SettingsManager::getSampleRate());
 
                     AudioFile * recordFile = recFile.get();
-                    ctx.fileWorker->appendFile(std::move(recFile), true);
+                    ctx.project->fileWorker()->appendFile(std::move(recFile), true);
 
                     std::unique_ptr<AudioRecord> tgt = std::make_unique<AudioRecord>();
                     tgt->clear();
                     tgt->_parent = track;
                     tgt->_engine = ctx.engine;
-                    tgt->_fileWorker = ctx.fileWorker;
+                    tgt->_fileWorker = ctx.project->fileWorker();
 
                     tgt->_latencyToCompensate = latencyToCompensate;
                     tgt->_recordFile = recordFile;

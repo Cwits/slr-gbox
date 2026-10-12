@@ -4,7 +4,7 @@
 #include "display/primitives/UnitUIBase.h"
 #include "display/primitives/Button.h"
 #include "display/primitives/Label.h"
-#include "display/primitives/FileView.h"
+#include "display/primitives/ClipPreview.h"
 
 #include "display/popups/RouteManager.h"
 #include "display/elements/Timeline.h"
@@ -192,12 +192,12 @@ DefaultGridUI::~DefaultGridUI() {
 }
 
 void DefaultGridUI::showFiles() {
-    for(std::unique_ptr<FileView> &fw : _fileUIs)
+    for(std::unique_ptr<ClipPreview> &fw : _fileUIs)
         fw->show();
 }
 
 void DefaultGridUI::hideFiles() {
-    for(std::unique_ptr<FileView> &fw : _fileUIs)
+    for(std::unique_ptr<ClipPreview> &fw : _fileUIs)
         fw->hide();
 }
 
@@ -234,7 +234,7 @@ void DefaultGridUI::pollFileUpdate() {
 
                 //add to grid
                 for(const auto * civ : toAdd) {
-                    std::unique_ptr<FileView> fw = std::make_unique<FileView>(uictx->gridGrid(), _uibase, civ, uictx);
+                    std::unique_ptr<ClipPreview> fw = std::make_unique<ClipPreview>(uictx->gridGrid(), _uibase, civ, uictx);
                 
                     float xposition = UIUtility::frameToPixel(civ->startPosition(), uictx->gridHorizontalZoom());
                     int ypos = _uibase->gridUI()->getY();
@@ -252,9 +252,9 @@ void DefaultGridUI::pollFileUpdate() {
                 }
             } else {
                 //items removed
-                std::vector<FileView*> toRemove;
+                std::vector<ClipPreview*> toRemove;
                 for(std::size_t i=0; i<uiSize; ++i) {
-                    std::unique_ptr<FileView>& item = _fileUIs.at(i);
+                    std::unique_ptr<ClipPreview>& item = _fileUIs.at(i);
                     bool found = false;
                     for(std::size_t y=0; y<viewSize; ++y) {
                         if(item->id() == items.at(y)->id()) { 
@@ -287,7 +287,7 @@ void DefaultGridUI::pollFileUpdate() {
     std::size_t uiSize = _fileUIs.size(); 
 
     for(std::size_t i=0; i<uiSize; ++i) {
-        std::unique_ptr<FileView>& fui = _fileUIs.at(i);
+        std::unique_ptr<ClipPreview>& fui = _fileUIs.at(i);
 
         fui->pollUIUpdate();
     }
@@ -323,7 +323,7 @@ void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
 
     std::size_t size = _fileUIs.size();
     for(std::size_t i=0; i<size; ++i) {
-        std::unique_ptr<FileView>& item = _fileUIs.at(i);
+        std::unique_ptr<ClipPreview>& item = _fileUIs.at(i);
         float bar = ((float)item->_clipItem->startPosition() / tl.framesPerBar());
         int newx = (pixPerBar*std::round(bar)) - pixMoved;
         int cy = item->getY();
@@ -333,7 +333,7 @@ void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
 
 void DefaultGridUI::updatePosition(int x, int y) {
     lv_obj_set_pos(lvhost(), x, y);
-    for(std::unique_ptr<FileView> & fw : _fileUIs) {
+    for(std::unique_ptr<ClipPreview> & fw : _fileUIs) {
         int cx = fw->getX();
         int cy = fw->getY();
         int newy = y;
@@ -341,10 +341,10 @@ void DefaultGridUI::updatePosition(int x, int y) {
     }
 }
 
-std::vector<FileView*> DefaultGridUI::fileList() {
-    std::vector<FileView*> ret;
-
-    for(std::unique_ptr<FileView> & fv : _fileUIs) {
+std::vector<ClipPreview*> DefaultGridUI::fileList() {
+    std::vector<ClipPreview*> ret;
+    ret.reserve(_fileUIs.size());
+    for(std::unique_ptr<ClipPreview> & fv : _fileUIs) {
         ret.push_back(fv.get());
     }
 

@@ -4,7 +4,7 @@
 #include "display/popups/PopupManager.h"
 
 #include "display/primitives/UnitUIBase.h"
-#include "display/primitives/FileView.h"
+#include "display/primitives/ClipPreview.h"
 #include "display/popups/ScreenKeyboard.h"
 #include "display/popups/RouteManager.h"
 #include "display/popups/NewUnitPopup.h"
@@ -64,7 +64,7 @@ void PopupManager::disableRouteManager() {
     _routeManager->hide();
 }
 
-void PopupManager::enableFilePopup(FileView * file) {
+void PopupManager::enableFilePopup(ClipPreview * file) {
     _filePopup->setItem(file);
     _filePopup->update();
     _filePopup->activate();

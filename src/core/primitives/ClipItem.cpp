@@ -4,6 +4,7 @@
 
 #include "common/defines.h"
 #include "core/primitives/AudioUnit.h"
+#include "core/primitives/MidiFile.h"
 #include "core/primitives/File.h"
 #include "core/Timeline.h"
 #include "common/logger.h"
@@ -15,22 +16,17 @@
 
 namespace slr {
 
-static ID _clipItemUniqueId = 0;
-
-ClipItem::ClipItem(const Timeline *tl, const File * const file, frame_t startPos, long forcedId) : 
+ClipItem::ClipItem(const Timeline *tl, const ClipContent &content, frame_t startPos, ID selfId) : 
     _startPosition(startPos), 
-    _length(file->frames()), 
     _fileOffset(0), 
     _muted(false), 
-    _file(file), 
-    _uniqueId(forcedId == -1 ? _clipItemUniqueId : static_cast<ID>(forcedId)) {
-
-    ID testres = std::max(_uniqueId, _clipItemUniqueId);
-    if(testres == _clipItemUniqueId) _clipItemUniqueId = testres+1;
-    else _clipItemUniqueId = testres;
-
-    if(file->isMidi()) {
-        _length = (file->frames() / tl->ppqn()) * tl->framesPerQuater();
+    _content(std::move(content)), 
+    _id(selfId)
+{
+    if(_content.isMidi()) {
+        _length = (_content.midi->midiEvents.back().offset / (float)tl->ppqn()) * tl->framesPerQuater();
+    } else {
+        _length = static_cast<frame_t>(_content.audio->size());
     }
 }
 
@@ -41,12 +37,11 @@ ClipStorage::~ClipStorage() {
 
 }
 
-ClipItem * ClipStorage::newClip(const Timeline *tl, const File * const file, frame_t startPosition, long forcedId) {
+ClipItem * ClipStorage::newClip(const Timeline *tl, const ClipContent &content, frame_t startPosition, ID clipId) {
     ClipItem * clip = nullptr;
     std::unique_ptr<ClipItem> itemUniq;
 
-    if(forcedId >= 0) itemUniq = std::make_unique<ClipItem>(tl, file, startPosition, forcedId); 
-    else itemUniq = std::make_unique<ClipItem>(tl, file, startPosition);
+    itemUniq = std::make_unique<ClipItem>(tl, content, startPosition, clipId); 
     
     clip = itemUniq.get();
 

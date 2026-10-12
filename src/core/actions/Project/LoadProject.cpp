@@ -44,8 +44,11 @@ void LoadProjectAction::exec(ControlContext &ctx) {
                 soo... have to ensure that all necessary things to restore project - exists
                 and somehow check that there will be enough memory for loading everything?
             */
-            ControlEngine::prepareForProjectLoading();
+            ControlEngine::prepareForProjectLoading(ctx);
             
+            LOG_FAIL("Control context is outdated here! need another step, that wait's for new context before loading");
+            abortAction();
+            return;
             //acquire json
             _dataToLoad = Deserializer::loadJson(_action.path);
             

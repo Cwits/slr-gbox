@@ -23,6 +23,7 @@ class GridGrid;
 class UnitView;
 class Browser;
 class StepSequencerView;
+struct EditorView;
 struct DragViewSelector;
 
 enum class MainView {
@@ -52,6 +53,7 @@ struct UIContext {
     BaseWidget * unitView();
     BaseWidget * browser();
     BaseWidget * stepSequencer();
+    BaseWidget * editorView();
     BaseWidget * dragSelector();
 
     void switchToView(MainView view);
@@ -76,6 +78,8 @@ struct UIContext {
     bool recalcGridFiles() const { return _recalculateGridFilePositions; }
     void filesRecalculated();
 
+    void edit(slr::ID fileId);
+
     private:
     DragContext * _dragContext;
     
@@ -86,6 +90,7 @@ struct UIContext {
     Browser * _browser;
     StepSequencerView * _stepSequencerView;
     DragViewSelector * _dragSelector;
+    EditorView * _editorView;
     //BaseWidget * _patch;
 
     UnitUIBase * _lastSelectedModule = nullptr;

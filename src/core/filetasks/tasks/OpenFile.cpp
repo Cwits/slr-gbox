@@ -8,6 +8,7 @@
 #include "core/primitives/MidiFile.h"
 #include "core/utility/FileWorkerContext.h"
 #include "core/FileWorker.h"
+#include "core/Project.h"
 
 #include "common/FileIO.h"
 #include "common/logger.h"
@@ -29,9 +30,9 @@ void OpenFile::exec(FileWorkerContext &ctx) {
             return;
         }
 
-        std::unique_ptr<AudioFile> ufile;
-        if(forcedId) ufile = std::make_unique<AudioFile>(forcedId.value());
-        else ufile = std::make_unique<AudioFile>();
+        ID afileId = ctx.gen->nextFileId(forcedId ? forcedId.value() : 0);
+
+        std::unique_ptr<AudioFile> ufile = std::make_unique<AudioFile>(afileId);
 
         AudioFile * afile = ufile.get();
 
@@ -41,9 +42,9 @@ void OpenFile::exec(FileWorkerContext &ctx) {
             return;
         }
         
-        std::unique_ptr<AudioPeakFile> apkfile;
-        if(viewForcedId) apkfile = std::make_unique<AudioPeakFile>(viewForcedId.value());
-        else apkfile = std::make_unique<AudioPeakFile>();
+        ID pfileId = ctx.gen->nextFileId(viewForcedId ? viewForcedId.value() : 0);
+
+        std::unique_ptr<AudioPeakFile> apkfile = std::make_unique<AudioPeakFile>(pfileId);
         
         std::string subpath = afile->path();
         if(!Common::FileIO::changeExtentionTo(subpath, ".slrpk")) {
@@ -72,8 +73,15 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         afile->setPeaks(apkfile->peaks());
 
         //if total success
+        LOG_SUCCESS("Audio File %s loaded with ID %u, peak file ID %u", 
+            afile->path().c_str(), 
+            afile->id(),
+            apkfile->id()
+        );
+
         ctx.worker->appendFile(std::move(ufile), false);
         ctx.worker->appendFile(std::move(apkfile), false);
+
         finished(afile, true);
     } else if(Common::FileIO::pathHasExtention(Common::FileIO::Extention::Midi, path)) {
         if(!Common::FileIO::pathOrFileExists(path)) {
@@ -82,9 +90,8 @@ void OpenFile::exec(FileWorkerContext &ctx) {
             return;
         }
 
-        std::unique_ptr<MidiFile> ufile;
-        if(forcedId) ufile = std::make_unique<MidiFile>(forcedId.value());
-        else ufile = std::make_unique<MidiFile>();
+        ID mfileId = ctx.gen->nextFileId(forcedId ? forcedId.value() : 0);
+        std::unique_ptr<MidiFile> ufile = std::make_unique<MidiFile>(mfileId);
 
         MidiFile *mfile = ufile.get();
 
@@ -95,7 +102,10 @@ void OpenFile::exec(FileWorkerContext &ctx) {
         }
 
         //some kind of midi peak file?
-
+        LOG_SUCCESS("Midi File %s loaded with ID %u", 
+            ufile->path().c_str(), 
+            ufile->id()
+        );
         ctx.worker->appendFile(std::move(ufile), false);
         finished(mfile, true);
     }

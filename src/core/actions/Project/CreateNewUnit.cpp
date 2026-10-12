@@ -42,15 +42,15 @@ void CreateNewUnitAction::exec(ControlContext &ctx) {
             return;
         }
 
-        ID nextId = 0;
-        if(!_action.forcedId) {
-            if(_createdUnitId == 0)
-                nextId = ctx.project->getNextUnitId();
-            else 
-                nextId = _createdUnitId;    
-        } else {
-            nextId = _action.forcedId.value();
-        }
+        ID nextId = ctx.project->_generator.nextUnitId(_action.forcedId ? _action.forcedId.value() : 0);
+        // if(!_action.forcedId) {
+        //     if(_createdUnitId == 0)
+        //         nextId = ctx.project->getNextUnitId();
+        //     else 
+        //         nextId = _createdUnitId;    
+        // } else {
+        //     nextId = _action.forcedId.value();
+        // }
 
         AudioUnit * au = ctx.project->createUnit(ctx.bufferManager, desc, nextId);
         if(!au) {

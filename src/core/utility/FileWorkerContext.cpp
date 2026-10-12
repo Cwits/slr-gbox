@@ -3,9 +3,10 @@
 
 namespace slr {
 
-FileWorkerContext::FileWorkerContext(FileWorker *ptr, std::vector<std::unique_ptr<File>> &files) :
+FileWorkerContext::FileWorkerContext(FileWorker *ptr, std::vector<std::unique_ptr<File>> &files, IdGenerator *gen) :
     worker(ptr),
-    files(files)
+    files(files),
+    gen(gen)
 {
 
 }

@@ -28,6 +28,7 @@ class UnitView;
 class Browser;
 class StepSequencerView;
 class ModEngineView;
+struct EditorView;
 
 class Popup;
 class UnitControlPopup;
@@ -89,6 +90,7 @@ struct RootWindow : public BaseWidget {
     std::unique_ptr<Browser> _browser;
     std::unique_ptr<StepSequencerView> _stepSequencerView;
     std::unique_ptr<ModEngineView> _modEngineView;
+    std::unique_ptr<EditorView> _editorView;
 
     //popups
     std::unique_ptr<UnitControlPopup> _unitControlPopup;

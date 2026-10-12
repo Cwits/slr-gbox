@@ -47,7 +47,7 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
                 _flat.sig = _oldValues.sig;
             }
 
-            std::vector<File*> tmp = ctx.fileWorker->listFiles(FileType::Audio);
+            std::vector<File*> tmp = ctx.project->fileWorker()->listFiles(FileType::Audio);
             std::vector<AudioFile*> tmp2;
             tmp2.reserve(tmp.size());
             for(auto *f : tmp) tmp2.push_back(static_cast<AudioFile*>(f));
@@ -55,7 +55,7 @@ void ChangeSignatureBpmAction::exec(ControlContext &ctx) {
             _flat.audiofiles = tmp2;
 
             tmp.clear();
-            tmp = ctx.fileWorker->listFiles(FileType::Midi);
+            tmp = ctx.project->fileWorker()->listFiles(FileType::Midi);
             std::vector<MidiFile*> tmp3;
             tmp3.reserve(tmp.size());
             for(auto *f : tmp) tmp3.push_back(static_cast<MidiFile*>(f));

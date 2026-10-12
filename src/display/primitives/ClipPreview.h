@@ -17,11 +17,11 @@ namespace UI {
 class UnitUIBase;
 class Button;
 class UIContext;
+struct FilePreview;
 
-struct FileView : public BaseWidget { //this should be called ClipUI or smth...
-    // FileView(BaseWidget *parent, const slr::ClipItemView *const item, UIContext *const uictx, int x, int y, int expectedWidth, int expectedHeight);
-    FileView(BaseWidget * parent, UnitUIBase * _parentUI, const slr::ClipItemView * const item, UIContext * const uictx);
-    ~FileView();
+struct ClipPreview : public BaseWidget { //this should be called ClipUI or smth...
+    ClipPreview(BaseWidget * parent, UnitUIBase * _parentUI, const slr::ClipItemView * const item, UIContext * const uictx);
+    ~ClipPreview();
 
     void update();
     UnitUIBase * parentUI() const { return _parentUI; }
@@ -29,13 +29,6 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     void recalculateWidthAndRedraw();
 
     void setSize(lv_coord_t w, lv_coord_t h) override;
-
-    int _canvasWidth;
-    int _canvasHeight;
-
-    lv_obj_t * _canvas;
-    lv_color_t _peakColor;
-    lv_color_t _fillColor;
 
     const slr::ClipItemView * const _clipItem;
 
@@ -46,7 +39,7 @@ struct FileView : public BaseWidget { //this should be called ClipUI or smth...
     UIContext * const _uictx;
     UnitUIBase * _parentUI;
     
-    std::unique_ptr<uint8_t[]> _drawBuffer;
+    std::unique_ptr<FilePreview> _preview;
     
     const slr::ID _uniqueId;
 
@@ -67,13 +60,15 @@ struct FilePopup : public Popup {
     ~FilePopup();
 
     void update();
-    void setItem(FileView * item);
-    const FileView * item() const { return _item; }
+    void setItem(ClipPreview * item);
+    const ClipPreview * item() const { return _item; }
  
     private:
-    FileView * _item;
+    ClipPreview * _item;
 
-    Button * _deleteBtn;
+    std::unique_ptr<Button> _btnDelete;
+    std::unique_ptr<Button> _btnEdit;
+
     
     void forcedClose() override;
 };

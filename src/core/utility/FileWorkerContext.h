@@ -13,14 +13,15 @@ namespace slr {
 
 struct File;
 struct FileWorker;
-
+struct IdGenerator;
 
 struct FileWorkerContext {
-    FileWorkerContext(FileWorker *ptr, std::vector<std::unique_ptr<File>> &files);
+    FileWorkerContext(FileWorker *ptr, std::vector<std::unique_ptr<File>> &files, IdGenerator *gen);
     ~FileWorkerContext();
 
     FileWorker * const worker;
     std::vector<std::unique_ptr<File>> &files;
+    IdGenerator *gen;
 };
 
 } //namespace slr

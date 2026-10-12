@@ -46,8 +46,9 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) :
 
     BUTTONDEF(_btnSave, 450, 0, "Save");
     _btnSave->tapCallback([](const GestLib::TapGesture &tap) -> bool {
-        auto act = std::make_unique<slr::Actions::SaveProject>();
-        slr::EmitAction(std::move(act));
+        LOG_FAIL("Serializer broken, repare it before enabling save. Look for TODO: broken");
+        // auto act = std::make_unique<slr::Actions::SaveProject>();
+        // slr::EmitAction(std::move(act));
         return true;
     });
 
@@ -93,6 +94,13 @@ TopPanel::TopPanel(BaseWidget * parent, UIContext * const uictx) :
     _btnModEngine->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
         // LOG_INFO("Modulation Engine will be added in future versions");
         uictx->switchToView(MainView::ModEngine);
+        return true;
+    });
+
+    posx += (Layout::Margin + Layout::Button);
+    BUTTONDEF(_btnEditor, posx, 0, "Editor");
+    _btnEditor->tapCallback([uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
+        uictx->switchToView(MainView::Editor);
         return true;
     });
       

@@ -6,6 +6,8 @@
 
 #include "core/primitives/AudioUnit.h"
 #include "core/primitives/ClipItem.h"
+#include "core/primitives/AudioFile.h"
+#include "core/primitives/MidiFile.h"
 #include "core/Project.h"
 #include "core/FileWorker.h"
 #include "core/filetasks/FileTasks.h"
@@ -45,7 +47,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
                     opened->result = success;
                     opened->completed.store(true, std::memory_order_release);
                 };
-                ctx.fileWorker->addTask(std::move(task));
+                ctx.project->fileWorker()->addTask(std::move(task));
                 setState(ActionState::Waiting);
             } else if(std::holds_alternative<File*>(_action.data)) {
                 _file = std::get<File*>(_action.data);
@@ -77,19 +79,23 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            if(_action.clipForcedId)
-                _clip = ctx.project->clipStorage().newClip(
-                    &ctx.project->timeline(),
-                    _file, 
-                    _action.startOffset, 
-                    _action.clipForcedId.value()
-                );
-            else 
-                _clip = ctx.project->clipStorage().newClip(
-                    &ctx.project->timeline(),
-                    _file, 
-                    _action.startOffset
-                );
+            ClipContent cont;
+            if(_file->isAudio()) {
+                cont.type = ClipContentType::Audio;
+                cont.audio = static_cast<const AudioFile*>(_file)->data();
+            } else if(_file->isMidi()) {
+                cont.type = ClipContentType::Midi;
+                cont.midi = static_cast<const MidiFile*>(_file)->track(0);
+            }
+            cont.fileId = _file->id();
+            
+            ID clipId = ctx.project->_generator.nextClipId(_action.clipForcedId ? _action.clipForcedId.value() : 0);
+            _clip = ctx.project->clipStorage().newClip(
+                &ctx.project->timeline(),
+                cont, 
+                _action.startOffset, 
+                clipId
+            );
             
             _step = 3;
         } break;
@@ -159,7 +165,17 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            ClipItemView *cview = ctx.projectView->createClipView(_clip);
+            ClipContentView cont;
+            cont.fileId = _file->id();
+            if(_file->isAudio()) {
+                cont.type = ClipContentType::Audio;
+                cont.audio = static_cast<const AudioFile*>(_file)->peaks();
+            } else if(_file->isMidi()) {
+                cont.type = ClipContentType::Midi;
+                cont.midi = static_cast<const MidiFile*>(_file)->track(0);
+            }
+
+            ClipItemView *cview = ctx.projectView->createClipView(_clip, cont);
             if(!cview) {
                 LOG_WARN("Failed to create ClipView");
                 //need some cleanup
@@ -203,15 +219,6 @@ void LoadAsClipAction::checkWaitingCondition(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
     }
 }
-
-// void LoadAsClipAction::undo(ControlContext &ctx) {
-
-// }
-
-// void LoadAsClipAction::redo(ControlContext &ctx) {
-
-// }
-
 
 std::unique_ptr<ActionExecutable> createLoadAsClipAction(const ActionBase*base) {
     return std::make_unique<LoadAsClipAction>(base);

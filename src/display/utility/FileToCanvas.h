@@ -8,13 +8,16 @@
 
 namespace slr {
     class AudioFile;
+    class AudioPeaks;
     class MidiFile;
+    class MidiTrack;
 }
 
 namespace UIHelpers {
 
-bool audioFileToCanvas( 
-    const slr::AudioFile * const file,
+
+void audioFileToCanvas( 
+    const slr::AudioPeaks * const file,
     slr::frame_t fileStart,
     slr::frame_t length,
     lv_obj_t * canvas,
@@ -24,14 +27,16 @@ bool audioFileToCanvas(
     lv_color_t fillColor);
 
 
-
-bool midiFileToCanvas( 
-    const slr::MidiFile * const file,
+void midiFileToCanvas( 
+    const slr::MidiTrack * const file,
     slr::frame_t fileStart,
     slr::frame_t length,
+    int noteFrom,
+    int noteTo,
     lv_obj_t * canvas,
     int canvasHeight,
     int canvasWidth,
     lv_color_t peakColor,
     lv_color_t fillColor);
+
 }

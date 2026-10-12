@@ -108,7 +108,7 @@ inline T clamp(T val, T min, T max) {
 
 template<typename T>
 inline T lerp(T val, T minFrom, T maxFrom, T minTo, T maxTo) {
-    return (val - minFrom) * (maxTo - minTo) / (maxFrom - minFrom) + minTo;
+    return ((val - minFrom) * (maxTo - minTo) / (maxFrom - minFrom)) + minTo;
 }
 
 template<typename T>
@@ -166,6 +166,16 @@ inline T squareWave(const T &amplitude, const T &frame, const T &sampleRate, con
 template<typename T>
 inline T triangleWave(const T &amplitude, const T &frame, const T &sampleRate, const T &rate, const T &phase) {
     return (2*amplitude / M_PI) * sMath::asin(sMath::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF))); //https://en.wikipedia.org/wiki/Triangle_wave
+}
+
+template<typename T>
+inline T min(const T& a, const T& b) {
+    return std::min(a, b);
+}
+
+template<typename T>
+inline T max(const T& a, const T& b) {
+    return std::max(a, b);
 }
 
 } //sMath

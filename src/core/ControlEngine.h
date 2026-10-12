@@ -16,6 +16,7 @@ struct FileWorker;
 struct MidiController;
 struct ActionBase;
 struct BufferManager;
+struct ControlContext;
 
 namespace ControlEngine {
 
@@ -23,7 +24,7 @@ bool init(std::atomic<bool> &shutdown);
 bool shutdown();
 void emergencyStop();
 
-void prepareForProjectLoading();
+void prepareForProjectLoading(ControlContext &ctx);
 
 void EmitAction(std::unique_ptr<ActionBase> action);
 

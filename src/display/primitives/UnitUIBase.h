@@ -20,7 +20,7 @@ namespace UI {
 class Label;
 class Button;
 class UIContext;
-class FileView;
+class ClipPreview;
 class DefaultGridUI;
 class DefaultUnitUI;
 
@@ -79,7 +79,7 @@ struct DefaultGridUI : public BaseWidget {
     void showFiles();
     void hideFiles();
 
-    std::vector<FileView*> fileList();
+    std::vector<ClipPreview*> fileList();
 
     protected:
     UnitUIBase * const _uibase;
@@ -89,7 +89,7 @@ struct DefaultGridUI : public BaseWidget {
     std::unique_ptr<Button> _btnMute;
     std::unique_ptr<Button> _btnSolo;
 
-    std::vector<std::unique_ptr<FileView>> _fileUIs;
+    std::vector<std::unique_ptr<ClipPreview>> _fileUIs;
     uint64_t _fileContainerVersion;
     
     bool handleDoubleTap(const GestLib::DoubleTapGesture &dt);
@@ -100,7 +100,7 @@ struct DefaultUnitUI : public BaseWidget {
     virtual ~DefaultUnitUI();
 
     private:
-    std::unique_ptr<FileView> _fileViewUI; //for using in grid
+    std::unique_ptr<ClipPreview> _fileViewUI; //for using in grid
     // std::unique_ptr<FileView> _fileEditorUI;
     /* 
         it should be something like... dunno... several buttons as

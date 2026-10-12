@@ -11,32 +11,37 @@
 
 namespace slr {
 
-ClipItemView::ClipItemView(const ClipItem * container) : 
-    _startPosition(container->startPosition()),
-    _length(container->length()),
-    _fileOffset(container->fileOffset()),
-    _muted(container->isMuted()),
-    // _file(container->_file),
+ClipItemView::ClipItemView(const ClipItem * container, const ClipContentView &cont) : 
+    // _startPosition(container->startPosition()),
+    // _length(container->length()),
+    // _fileOffset(container->fileOffset()),
+    // _muted(container->isMuted()),
     _item(container),
-    _uniqueId(container->id()) {
+    _content(std::move(cont))
+{
     
     _version.store(0);
 } 
+
+frame_t ClipItemView::startPosition() const { return _item->startPosition(); }
+frame_t ClipItemView::endPosition() const { return _item->endPosition(); }
+frame_t ClipItemView::length() const { return _item->length(); }
+frame_t ClipItemView::fileOffset() const { return _item->fileOffset(); }
+bool ClipItemView::muted() const { return _item->isMuted(); }
+
+ID ClipItemView::id() const { return _item->id(); }
+ID ClipItemView::fileId() const { return _item->_content.fileId; }
 
 void ClipItemView::update() {
     /* 
         chatgpt says that this is bullshit and i should, at least, use double buffer with atomic pointer to actual data
         otherwise ui can read inconsistent data...
     */
-    _startPosition = _item->startPosition();
-    _length = _item->length();
-    _fileOffset = _item->fileOffset();
-    _muted = _item->isMuted();
+    // _startPosition = _item->startPosition();
+    // _length = _item->length();
+    // _fileOffset = _item->fileOffset();
+    // _muted = _item->isMuted();
     incrementVersion();
-}
-
-const File * ClipItemView::file() const {
-    return _item->_file;
 }
 
 ClipContainerView::ClipContainerView() {
@@ -71,10 +76,10 @@ void ClipContainerView::deleteClipViewItem(ID id) {
 
 ClipViewStorage::~ClipViewStorage() { }
 
-ClipItemView * ClipViewStorage::newClipView(const ClipItem *item) {
+ClipItemView * ClipViewStorage::newClipView(const ClipItem *item, const ClipContentView &cont) {
     ClipItemView *ret = nullptr;
     try {
-        std::unique_ptr<ClipItemView> itm = std::make_unique<ClipItemView>(item);
+        std::unique_ptr<ClipItemView> itm = std::make_unique<ClipItemView>(item, cont);
         ret = itm.get();
         _clipList.push_back(std::move(itm));
     } catch(...) {

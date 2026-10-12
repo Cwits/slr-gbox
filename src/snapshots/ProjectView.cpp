@@ -166,8 +166,8 @@ const std::vector<MidiRoute> ProjectView::midiTargetsForId(ID id) {
     return ret;
 }
 
-ClipItemView * ProjectView::createClipView(const ClipItem *item) {
-    return _clipStorage.newClipView(item);
+ClipItemView * ProjectView::createClipView(const ClipItem *item, const ClipContentView &cont) {
+    return _clipStorage.newClipView(item, cont);
 }
 
 ClipItemView * ProjectView::findClipViewById(ID id) {

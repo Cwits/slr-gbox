@@ -9,8 +9,8 @@
 #include "display/utility/DefaultStyles.h"
 #include "display/utility/UIContext.h"
 #include "display/utility/DragContext.h"
-#include "display/primitives/FileView.h"
 #include "display/primitives/UnitUIBase.h"
+#include "display/primitives/ClipPreview.h"
 
 #include  "core/actions/Actions.h"
 #include "snapshots/FileContainerView.h"

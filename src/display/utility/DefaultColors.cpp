@@ -26,6 +26,8 @@ namespace UI {
     0xEE964B - grid lines? - light
     0x28AFB0 - something
     0xFF9F1C
+    0x798071
+    0xC8ADC0
     */
 namespace Colors {
 
@@ -60,6 +62,7 @@ const lv_color_t WorkspaceBackground = lv_color_hex(0x564154);
 const lv_color_t PanelsBackground = lv_color_hex(0x564154);
 const lv_color_t PopupBackground = lv_color_hex(0x19647E);
 const lv_color_t DropDownBackground = lv_color_hex(0x051923);
+const lv_color_t clipPreviewBackground = lv_color_hex(0x798071);
 // void initDefault() {
 
 // }

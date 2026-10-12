@@ -17,13 +17,14 @@ namespace slr {
 struct AudioFile;
 struct MidiFile;
 struct FileTask;
+struct IdGenerator;
 
 class FileWorker {
     public:
     FileWorker();
     ~FileWorker();
 
-    bool init(std::atomic<bool> &shutdown);
+    bool init(std::atomic<bool> &shutdown, IdGenerator *gen);
     bool shutdown();
     bool clear();
 
@@ -41,8 +42,10 @@ class FileWorker {
     const std::vector<File*> listFiles(FileType type, bool temporary = false) const;
     std::vector<File*> listFiles(FileType type, bool temporary = false);
 
+    const File* findFileById(ID fileId) const;
+
     private:
-    static void run(FileWorker * f, std::atomic<bool> &shutdown);
+    static void run(FileWorker * f, IdGenerator *gen, std::atomic<bool> &shutdown);
 
     std::mutex _mutex;
     std::condition_variable _cond;

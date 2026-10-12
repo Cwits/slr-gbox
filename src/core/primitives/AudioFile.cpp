@@ -197,7 +197,7 @@ bool AudioFile::readAndUnpack() {
         _data.reset(nullptr);
     }
 
-    _data = std::make_unique<AudioBuffer>(_info.channels, _info.frames);
+    _data = std::make_unique<AudioBuffer>(_info.frames, _info.channels);
     if(!_data) {
         LOG_ERROR("Failed to allocate AudioBuffer");
         // delete [] rawPtr;

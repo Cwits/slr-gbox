@@ -14,7 +14,6 @@
 #include "display/utility/UIContext.h"
 #include "display/primitives/Button.h"
 #include "display/primitives/Label.h"
-#include "display/primitives/FileView.h"
 #include "common/uiutility.h"
 
 #include "core/utility/helper.h"

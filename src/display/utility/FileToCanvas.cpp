@@ -11,107 +11,119 @@
 
 #include "snapshots/TimelineView.h"
 
+#include "common/Math.h"
+
 namespace UIHelpers {
 
-static int map(int x, int in_min, int in_max, int out_min, int out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
-bool audioFileToCanvas( 
-    const slr::AudioFile * const file,
+void audioFileToCanvas(
+    const slr::AudioPeaks * const peakFile,
     slr::frame_t fileStart,
     slr::frame_t length,
     lv_obj_t * canvas,
     int canvasHeight,
     int canvasWidth,
     lv_color_t peakColor,
-    lv_color_t fillColor) 
+    lv_color_t fillColor)
 {
-    const slr::AudioPeaks * peakFile = file->peaks();
-
-    int xsize = canvasWidth;
-    float pickratio = (float)length / (float)xsize; 
+     float pickratio = (float)length / (float)canvasWidth; 
     // slr::LODLevels nearestLvl = slr::AudioPeaks::pickLevel(pickratio);
 
     const slr::PeakData0 * buffer = peakFile->peaks0();
 
     int channels = buffer->channels();
-    float ratio = (float)buffer->size()/(float)xsize;
+    float ratio = (float)buffer->size()/(float)canvasWidth;
 
     int heightPerChannel = (canvasHeight/channels);
-    int midpoint = 0 + (heightPerChannel/channels);
-    // int center = midpoint;//+(heightPerChannel/2);
+    int lerpMin = 0;
+    int lerpMax = heightPerChannel;
 
     if(ratio < 1.0f) {
         //less than sample per pixel
     } else {
         for(int ch=0; ch<channels; ++ch) {
-            for(int x=0; x<xsize; ++x) {
+            for(int x=0; x<canvasWidth; ++x) {
                 int offset = ratio*x;
 
                 uint8_t min = 255;
                 uint8_t max = 0;
                 for(int off=offset; off<offset+ratio; ++off) {
-                    min = std::min(min, (*buffer)[ch][off]);
-                    max = std::max(max, (*buffer)[ch][off]);
+                    min = sMath::min(min, (*buffer)[ch][off]);
+                    max = sMath::max(max, (*buffer)[ch][off]);
                 }
 
                 //TODO: this + after map is odd... need to fix it
-                uint8_t dmin = map(min, 0, 255, 0, heightPerChannel) + (ch == 0 ? 0 : heightPerChannel);
-                uint8_t dmax = map(max, 0, 255, 0, heightPerChannel) + (ch == 0 ? 0 : heightPerChannel);
-                // if(dmax > TRACK_HEIGHT) dmax = TRACK_HEIGHT;
+                uint16_t dmin = sMath::lerp<uint16_t>(min, 0, 255, lerpMin, lerpMax);
+                uint16_t dmax = sMath::lerp<uint16_t>(max, 0, 255, lerpMin, lerpMax);
+
                 for(int y=dmin; y<dmax; ++y) {
-                    lv_color_t & color = (y == dmin) ? peakColor : ( (y == dmax) ? peakColor : fillColor );
+                    lv_color_t & color = (y == dmin) ? peakColor : ( (y == dmax-1) ? peakColor : fillColor );
                     lv_canvas_set_px(canvas, x, y, color, LV_OPA_COVER);
                 }
             }
-                    
-            // midpoint += heightPerChannel;
+            lerpMin += heightPerChannel;
+            lerpMax += heightPerChannel;
         }
     }
-
-    return true;
 }
 
+struct Note {
+    slr::frame_t ppqnStart = 0;
+    slr::frame_t ppqnEnd = 0;
+    int velocity = 0;
+    int pitch = 0;
+};
 
-bool midiFileToCanvas( 
-    const slr::MidiFile * const file,
+/*
+    leave noteFrom and noteTo == 0 if want to auto pick range
+    fileStart and length must be in frames
+*/
+void midiFileToCanvas( 
+    const slr::MidiTrack * const file,
     slr::frame_t fileStart,
     slr::frame_t length,
+    int noteFrom,
+    int noteTo,
     lv_obj_t * canvas,
     int canvasHeight,
     int canvasWidth,
     lv_color_t peakColor,
     lv_color_t fillColor) 
 {
-    canvasHeight -= 1;
-    canvasWidth -= 1;
-    // slr::TimelineView & tlsnap = slr::TimelineView::getTimelineView();
-    //convert from ppqn to frames?
-    // length = (length / slr::SettingsManager::getPpqn()) * tlsnap.framesPerQuater();
-    const std::vector<slr::MidiEvent> & events = file->track(0).midiEvents;
-    
-    //must spread this acros width and height?
-    struct Note {
-        uint64_t ppqnStart = 0;
-        uint64_t ppqnEnd = 0;
-        int velocity = 0;
-        int pitch = 0;
-    };
-    
+    const std::vector<slr::MidiEvent> & events = file->midiEvents;
     std::vector<Note> notes;
-    notes.reserve(events.size());
+
     int noteMin = 127;
     int noteMax = 0;
-    for(const slr::MidiEvent &ev : events) {
+    
+    bool pickRange = true;
+    if(noteFrom != 0 && noteTo != 0) {
+        //range given manually
+        pickRange = false;
+        noteMin = noteFrom;
+        noteMax = noteTo;
+    }
+    
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+
+    slr::frame_t start = (fileStart / tl.framesPerQuater()) * tl.ppqn();
+    slr::frame_t end = (length / tl.framesPerQuater()) * tl.ppqn();
+
+    for(auto &ev : events) {
+        //skip events that not in range (but may loose some of events unfortunately)
+        if(ev.offset < start) continue;
+        if(ev.offset > end) continue;
+        
         if(ev.type == slr::MidiEventType::NoteOn) {
             Note n;
             n.ppqnStart = ev.offset;
             n.velocity = ev.velocity;
             n.pitch = ev.note;
             notes.push_back(n);
-            noteMin = std::min(noteMin, n.pitch);
-            noteMax = std::max(noteMax, n.pitch);
+            
+            if(pickRange) {
+                noteMin = std::min(noteMin, n.pitch);
+                noteMax = std::max(noteMax, n.pitch);
+            }
         } else if(ev.type == slr::MidiEventType::NoteOff) {
             notes.back().ppqnEnd = ev.offset;
         }
@@ -127,6 +139,8 @@ bool midiFileToCanvas(
         int width = (n.ppqnEnd-n.ppqnStart) * ratio;
         int height = heightPerEvent;
 
+        if(y == canvasHeight) y -= 1;
+
         for(int xpos=x; xpos<width+x; ++xpos) {
             for(int ypos=y; ypos>y-height; --ypos) {
                 lv_canvas_set_px(canvas, xpos, ypos, fillColor, LV_OPA_COVER);
@@ -135,8 +149,6 @@ bool midiFileToCanvas(
 
         lastHeight += heightPerEvent;
     }
-
-    return true;
 }
 
 }

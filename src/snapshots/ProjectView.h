@@ -51,7 +51,7 @@ class ProjectView {
 
     const uint64_t version() const { return _version.load(std::memory_order_acquire); }
 
-    ClipItemView * createClipView(const ClipItem *item);
+    ClipItemView * createClipView(const ClipItem *item, const ClipContentView &cont);
     ClipItemView * findClipViewById(ID id);
     bool deleteClipViewById(ID id);
     void updateClips() { _clipStorage.updateClips(); }

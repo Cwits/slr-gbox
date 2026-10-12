@@ -94,7 +94,7 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
         }
     };
 
-    ctx.fileWorker->addTask(std::move(task));
+    ctx.project->fileWorker()->addTask(std::move(task));
 
     setState(ActionState::Finished);
 }
