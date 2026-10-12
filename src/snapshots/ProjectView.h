@@ -4,7 +4,7 @@
 #pragma once
 
 #include "snapshots/TimelineView.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
 #include "common/defines.h"

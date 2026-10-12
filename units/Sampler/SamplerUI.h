@@ -3,7 +3,7 @@
 
 #pragma once
 #include "display/primitives/UnitUIBase.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include <memory>
 
 namespace slr {

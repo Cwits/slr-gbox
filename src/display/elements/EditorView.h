@@ -4,7 +4,7 @@
 #pragma once
 
 #include "display/primitives/BaseWidget.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include "common/defines.h"
 
 #include <vector>
@@ -40,7 +40,7 @@ struct EditorView : public BaseWidget {
     
     float _horizontalZoom;
     float _verticalZoom;
-    
+
     std::unique_ptr<Timeline> _timeline;
     slr::ClipContentView _content;
     std::unique_ptr<FilePreview> _preview;
@@ -50,7 +50,7 @@ struct EditorView : public BaseWidget {
     };
 
     struct MidiEditor {
-
+        //draw, like... vertical lines, tooling, etc, dunno...
     };
 
     bool handleSwipe(const GestLib::SwipeGesture & swipe);

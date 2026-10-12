@@ -31,9 +31,9 @@ class Browser : public BaseWidget {
     
     std::string _dragndrop;
 
-    std::unique_ptr<Button> _refresh;
-    std::unique_ptr<Button> _dirUp;
-    std::unique_ptr<Label> _lastPath;
+    std::unique_ptr<Button> _btnRefresh;
+    std::unique_ptr<Button> _btnDirUp;
+    std::unique_ptr<Label> _lblLastPath;
 
     struct element {
         element(){}
@@ -42,7 +42,7 @@ class Browser : public BaseWidget {
         lv_obj_t * _icon;  
         Label * _text;
     };
-    std::vector<element*> _elements;
+    std::vector<std::unique_ptr<element>> _elements;
 
     Label * _lastTouched;
 

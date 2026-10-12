@@ -27,7 +27,7 @@
 #include "common/Profiler.h"
 
 #include "snapshots/ProjectView.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include "snapshots/DriverView.h"
 
 #include "common/uiControls.h"

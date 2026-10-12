@@ -36,21 +36,21 @@ Browser::Browser(BaseWidget* parent, UIContext * const uictx) :
 
     int posx = parent->width()-Layout::Button-Layout::Margin;
 
-    BUTTONDEF(_refresh, posx, Layout::Margin, LV_SYMBOL_REFRESH);
-    _refresh->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+    BUTTONDEF(_btnRefresh, posx, Layout::Margin, LV_SYMBOL_REFRESH);
+    _btnRefresh->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->parse(); return true;
     });
 
     posx -= (Layout::Button+Layout::Margin);
-    BUTTONDEF(_dirUp, posx, Layout::Margin, LV_SYMBOL_UP);
-    _dirUp->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+    BUTTONDEF(_btnDirUp, posx, Layout::Margin, LV_SYMBOL_UP);
+    _btnDirUp->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->goUp(); return true;
     });
 
-    _lastPath = std::make_unique<Label>(this, "");
-    _lastPath->setSize(Layout::PARSED_PATH_W, lv_font_get_line_height(&DEFAULT_FONT));
-    _lastPath->setPos(Layout::PARSED_PATH_X, Layout::PARSED_PATH_Y);
-    _lastPath->setFont(&DEFAULT_FONT);
+    _lblLastPath = std::make_unique<Label>(this, "");
+    _lblLastPath->setSize(Layout::PARSED_PATH_W, lv_font_get_line_height(&DEFAULT_FONT));
+    _lblLastPath->setPos(Layout::PARSED_PATH_X, Layout::PARSED_PATH_Y);
+    _lblLastPath->setFont(&DEFAULT_FONT);
 
     _lastTouched = nullptr;
 
@@ -64,9 +64,7 @@ Browser::Browser(BaseWidget* parent, UIContext * const uictx) :
 }
 
 Browser::~Browser() {
-    for(auto * el : _elements) {
-        delete el;
-    }
+    _elements.clear();
 }
 
 void Browser::parse() {
@@ -104,9 +102,7 @@ void Browser::parse() {
     std::sort(_files.begin(), _files.end());
 
     std::size_t s = _folders.size()+_files.size();
-    for(auto * el : _elements) {
-        delete el;
-    }
+    
     _elements.clear();
     _elements.reserve(s);
 
@@ -132,14 +128,14 @@ void Browser::parse() {
             
         }
 
-        element * el = new element();
+        std::unique_ptr<element> el = std::make_unique<element>();
         el->init(this, iconText, text, initY);
-        _elements.push_back(el);
+        _elements.push_back(std::move(el));
 
         initY += (_lineHeight+margin);
     }
 
-    _lastPath->setText(_lastParsedPath);
+    _lblLastPath->setText(_lastParsedPath);
 }
 
 void Browser::goUp() {
@@ -271,7 +267,7 @@ bool Browser::handleSwipe(const GestLib::SwipeGesture &swipe) {
                 if(diff < mod) mod = diff;
 
                 for(std::size_t i=0; i<size; ++i) {
-                    element *el = _elements.at(i);
+                    element *el = _elements.at(i).get();
                     Label *lb = el->_text;
 
                     int cx = lb->getX();
@@ -288,7 +284,7 @@ bool Browser::handleSwipe(const GestLib::SwipeGesture &swipe) {
                 if(diff > mod) mod = diff;
 
                 for(std::size_t i=0; i<size; ++i) {
-                    element *el = _elements.at(i);
+                    element *el = _elements.at(i).get();
                     Label *lb = el->_text;
 
                     int cx = lb->getX();

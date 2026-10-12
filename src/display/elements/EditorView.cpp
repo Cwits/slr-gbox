@@ -20,7 +20,7 @@
 #include "core/FileWorker.h"
 #include "core/ControlEngine.h"
 
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include "snapshots/TimelineView.h"
 
 #include "common/uiutility.h"

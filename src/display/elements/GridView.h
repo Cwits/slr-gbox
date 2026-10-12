@@ -56,13 +56,11 @@ struct GridView : public BaseWidget {
     std::unique_ptr<GridControl> _control;
     std::unique_ptr<Timeline> _timeline;
     std::unique_ptr<GridGrid> _grid;
-    // std::unique_ptr<Timeline> _timeline;
     
     private:
     UIContext * const _uictx;
     
     float _horizontalZoom = 1.0f;
-    lv_obj_t * _timelineContainer;
 
     bool handleSwipe(const GestLib::SwipeGesture & swipe);
     bool handleDrag(const GestLib::DragGesture &drag);

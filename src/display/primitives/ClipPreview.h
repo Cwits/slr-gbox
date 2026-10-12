@@ -55,9 +55,9 @@ struct ClipPreview : public BaseWidget { //this should be called ClipUI or smth.
     bool handleHold(const GestLib::HoldGesture &hold);
 };
 
-struct FilePopup : public Popup {
-    FilePopup(BaseWidget * parent, UIContext * const uictx);
-    ~FilePopup();
+struct ClipPreviewPopup : public Popup {
+    ClipPreviewPopup(BaseWidget * parent, UIContext * const uictx);
+    ~ClipPreviewPopup();
 
     void update();
     void setItem(ClipPreview * item);

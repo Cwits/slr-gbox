@@ -30,7 +30,6 @@
 #include "display/popups/SettingsPopup.h"
 #include "display/popups/VirtualMidiKeyboard.h"
 #include "display/popups/DragViewSelector.h"
-#include "display/popups/ModEngineTargetManager.h"
 
 #include "snapshots/TimelineView.h"
 
@@ -100,8 +99,8 @@ RootWindow::RootWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popups.push_back(_timelinePopup.get());
     _keyboard = std::make_unique<ScreenKeyboard>(this, &_uiContext);
     _popups.push_back(_keyboard.get());
-    _filePopup = std::make_unique<FilePopup>(this, &_uiContext);
-    _popups.push_back(_filePopup.get());
+    _clipPreviewPopup = std::make_unique<ClipPreviewPopup>(this, &_uiContext);
+    _popups.push_back(_clipPreviewPopup.get());
     _newUnitPopup = std::make_unique<NewUnitPopup>(this, &_uiContext);
     _popups.push_back(_newUnitPopup.get());
     _settingsPopup = std::make_unique<SettingsPopup>(this, &_uiContext);
@@ -123,7 +122,7 @@ RootWindow::RootWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _popManager._routeManager = _routeManager.get();
     _popManager._timelinePopup = _timelinePopup.get();
     _popManager._screenKeyboard = _keyboard.get();
-    _popManager._filePopup = _filePopup.get();
+    _popManager._clipPreviewPopup = _clipPreviewPopup.get();
     _popManager._newUnitPopup = _newUnitPopup.get();
     _popManager._settingsPopup = _settingsPopup.get();
     _popManager._virtualMidiKeyboard = _virtualMidiKeyboard.get();

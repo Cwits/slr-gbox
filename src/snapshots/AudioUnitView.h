@@ -5,7 +5,7 @@
 
 #include "snapshots/ParameterView.h"
 #include "snapshots/ParameterArrayView.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include "common/defines.h"
 #include "common/Color.h"
 

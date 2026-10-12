@@ -9,7 +9,7 @@
 #include "core/primitives/ClipItem.h"
 
 #include "snapshots/ProjectView.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 
 #include "common/uiControls.h"
 

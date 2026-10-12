@@ -35,7 +35,7 @@ class UnitControlPopup;
 class RouteManager;
 class TimelinePopup;
 class ScreenKeyboard;
-class FilePopup;
+class ClipPreviewPopup;
 class NewUnitPopup;
 class SettingsPopup;
 class VirtualMidiKeyboard;
@@ -97,7 +97,7 @@ struct RootWindow : public BaseWidget {
     std::unique_ptr<RouteManager> _routeManager;
     std::unique_ptr<TimelinePopup> _timelinePopup;
     std::unique_ptr<ScreenKeyboard> _keyboard;
-    std::unique_ptr<FilePopup> _filePopup;
+    std::unique_ptr<ClipPreviewPopup> _clipPreviewPopup;
     std::unique_ptr<NewUnitPopup> _newUnitPopup;
     std::unique_ptr<SettingsPopup> _settingsPopup;
     std::unique_ptr<VirtualMidiKeyboard> _virtualMidiKeyboard;

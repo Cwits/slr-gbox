@@ -14,7 +14,6 @@
 #include "display/primitives/FilePreview.h"
 
 #include "snapshots/AudioUnitView.h"
-#include "snapshots/FileContainerView.h"
 
 #include "core/primitives/AudioFile.h"
 #include "core/actions/Actions.h"

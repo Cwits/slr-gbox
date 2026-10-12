@@ -17,7 +17,7 @@
 #include "snapshots/ProjectView.h"
 #include "snapshots/TimelineView.h"
 #include "snapshots/AudioUnitView.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 
 #include "display/primitives/Button.h"
 #include "display/elements/GridView.h"

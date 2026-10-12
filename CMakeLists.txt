@@ -173,7 +173,7 @@ file(GLOB SOURCES
 
   #snapshots
   src/snapshots/AudioUnitView.cpp
-  src/snapshots/FileContainerView.cpp
+  src/snapshots/ClipContainerView.cpp
   src/snapshots/ParameterArrayView.cpp
   src/snapshots/ParameterView.cpp
   src/snapshots/ProjectView.cpp
@@ -226,7 +226,6 @@ file(GLOB SOURCES
   
   src/display/popups/DialogWindows.cpp
   src/display/popups/DragViewSelector.cpp
-  src/display/popups/ModEngineTargetManager.cpp
   src/display/popups/NewUnitPopup.cpp
   src/display/popups/PopupManager.cpp
   src/display/popups/RouteManager.cpp

@@ -12,7 +12,7 @@
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 
 #include "common/uiControls.h"
 

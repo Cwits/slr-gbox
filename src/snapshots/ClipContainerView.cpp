@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include "core/primitives/ClipItem.h"
 #include "core/primitives/File.h"
 
@@ -12,10 +12,6 @@
 namespace slr {
 
 ClipItemView::ClipItemView(const ClipItem * container, const ClipContentView &cont) : 
-    // _startPosition(container->startPosition()),
-    // _length(container->length()),
-    // _fileOffset(container->fileOffset()),
-    // _muted(container->isMuted()),
     _item(container),
     _content(std::move(cont))
 {
@@ -37,10 +33,6 @@ void ClipItemView::update() {
         chatgpt says that this is bullshit and i should, at least, use double buffer with atomic pointer to actual data
         otherwise ui can read inconsistent data...
     */
-    // _startPosition = _item->startPosition();
-    // _length = _item->length();
-    // _fileOffset = _item->fileOffset();
-    // _muted = _item->isMuted();
     incrementVersion();
 }
 

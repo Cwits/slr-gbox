@@ -11,8 +11,8 @@
 #include "display/popups/SettingsPopup.h"
 #include "display/popups/VirtualMidiKeyboard.h"
 #include "display/popups/DragViewSelector.h"
-#include "display/popups/ModEngineTargetManager.h"
 
+#include "display/elements/ModEngineView.h"
 #include "display/elements/StepSequencerView.h"
 
 namespace UI {
@@ -64,20 +64,20 @@ void PopupManager::disableRouteManager() {
     _routeManager->hide();
 }
 
-void PopupManager::enableFilePopup(ClipPreview * file) {
-    _filePopup->setItem(file);
-    _filePopup->update();
-    _filePopup->activate();
-    _filePopup->show();
+void PopupManager::enableClipPreviewPopup(ClipPreview * file) {
+    _clipPreviewPopup->setItem(file);
+    _clipPreviewPopup->update();
+    _clipPreviewPopup->activate();
+    _clipPreviewPopup->show();
 }
 
-void PopupManager::setFilePopupPosition(int x, int y) {
-    _filePopup->setPos(x, y);
+void PopupManager::setClipPreviewPopupPosition(int x, int y) {
+    _clipPreviewPopup->setPos(x, y);
 }
 
-void PopupManager::disableFilePopup() {
-    _filePopup->deactivate();
-    _filePopup->hide();
+void PopupManager::disableClipPreviewPopup() {
+    _clipPreviewPopup->deactivate();
+    _clipPreviewPopup->hide();
 }
 
 void PopupManager::enableNewUnitPopup() {

@@ -4,7 +4,7 @@
 #include "common/uiControls.h"
 #include "display/elements/RootWindow.h"
 #include "display/popups/RouteManager.h"
-#include "display/popups/ModEngineTargetManager.h"
+#include "display/elements/ModEngineView.h"
 
 #include "push/pushThread.h"
 #include "push/elements/RootWidget.h"

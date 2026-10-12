@@ -13,7 +13,7 @@
 #include "display/primitives/ClipPreview.h"
 
 #include  "core/actions/Actions.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 
 #include "common/uiutility.h"
 #include "common/logger.h"

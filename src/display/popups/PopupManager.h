@@ -16,7 +16,7 @@ class UnitControlPopup;
 class RouteManager;
 class TimelinePopup;
 class ScreenKeyboard;
-class FilePopup;
+class ClipPreviewPopup;
 class ClipPreview;
 class NewUnitPopup;
 class SettingsPopup;
@@ -41,9 +41,9 @@ struct PopupManager {
     void enableRouteManager(slr::ID unitId);
     void disableRouteManager();
 
-    void enableFilePopup(ClipPreview * file);
-    void setFilePopupPosition(int x, int y);
-    void disableFilePopup();
+    void enableClipPreviewPopup(ClipPreview * file);
+    void setClipPreviewPopupPosition(int x, int y);
+    void disableClipPreviewPopup();
 
     void enableNewUnitPopup();
     void disableNewUnitPopup();
@@ -67,7 +67,7 @@ struct PopupManager {
     UnitControlPopup * _unitControlPopup;
     ScreenKeyboard * _screenKeyboard;
     RouteManager * _routeManager;
-    FilePopup * _filePopup;
+    ClipPreviewPopup * _clipPreviewPopup;
     NewUnitPopup * _newUnitPopup;
     SettingsPopup * _settingsPopup;
     VirtualMidiKeyboard * _virtualMidiKeyboard;

@@ -5,6 +5,7 @@
 #include "display/primitives/Popup.h"
 
 #include <string>
+#include <memory>
 
 namespace UI {
 
@@ -19,7 +20,7 @@ struct InfoDialog : public Popup {
 
     private:
     std::string _text;
-    Button * _btnOk;
+    std::unique_ptr<Button> _btnOk;
 };
 
 struct DecisionDialog : public Popup {
@@ -28,8 +29,9 @@ struct DecisionDialog : public Popup {
 
     private:
     std::string _text;
-    Button * _btnOk;
-    Button * _btnCancle;
+
+    std::unique_ptr<Button> _btnOk;
+    std::unique_ptr<Button> _btnCancle;
 };
 
 }

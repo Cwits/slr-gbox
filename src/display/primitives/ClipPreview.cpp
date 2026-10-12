@@ -16,7 +16,7 @@
 
 #include "snapshots/ProjectView.h"
 #include "snapshots/TimelineView.h"
-#include "snapshots/FileContainerView.h"
+#include "snapshots/ClipContainerView.h"
 #include "snapshots/AudioUnitView.h"
 
 #include "display/primitives/UnitUIBase.h"
@@ -109,8 +109,8 @@ bool ClipPreview::handleTap(const GestLib::TapGesture &tap) {
 }
 
 bool ClipPreview::handleDoubleTap(const GestLib::DoubleTapGesture & dtap) {
-    _uictx->_popManager->setFilePopupPosition(dtap.x, dtap.y);
-    _uictx->_popManager->enableFilePopup(this);
+    _uictx->_popManager->setClipPreviewPopupPosition(dtap.x, dtap.y);
+    _uictx->_popManager->enableClipPreviewPopup(this);
     return true;
 }
 
@@ -149,7 +149,7 @@ bool ClipPreview::handleHold(const GestLib::HoldGesture &hold) {
     return true;
 }
 
-FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
+ClipPreviewPopup::ClipPreviewPopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx) 
 {
     setSize(Layout::FILE_POPUP_W, Layout::FILE_POPUP_H);
@@ -161,7 +161,7 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
         act->targetId = this->_item->parentUI()->id();
         act->clipId = this->_item->_clipItem->id();
         slr::EmitAction(std::move(act));
-        this->_uictx->_popManager->disableFilePopup();
+        this->_uictx->_popManager->disableClipPreviewPopup();
         return true;
     });
 
@@ -173,18 +173,18 @@ FilePopup::FilePopup(BaseWidget * parent, UIContext * const uictx) :
     });
 }
 
-FilePopup::~FilePopup() {
+ClipPreviewPopup::~ClipPreviewPopup() {
 }
 
-void FilePopup::update() {
+void ClipPreviewPopup::update() {
 
 }
 
-void FilePopup::setItem(ClipPreview * item) {
+void ClipPreviewPopup::setItem(ClipPreview * item) {
     _item = item;
 }
 
-void FilePopup::forcedClose() {
+void ClipPreviewPopup::forcedClose() {
 
 }
 
