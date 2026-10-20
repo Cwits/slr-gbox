@@ -244,14 +244,14 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
     */
 
     if(plan->modPatternCount) {
-        for(uint32_t p=0; p<plan->modPatternCount; ++p) {
-            plan->modulationPatterns[p].process(ctx);
+        for(const auto m : *plan->modulationPatterns) {
+            m->process(ctx);
         }
     }
 
     if(plan->sequenceCount) {
-        for(uint32_t s=0; s<plan->sequenceCount; ++s) {
-            plan->sequences[s].process(ctx);
+        for(const auto s : *plan->sequences) {
+            s->process(ctx);
         }
     }
    

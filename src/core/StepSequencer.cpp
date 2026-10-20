@@ -32,7 +32,7 @@ StepSequencerEngine::~StepSequencerEngine() {
 }
 
 Sequence * StepSequencerEngine::createNewSequence() {
-   _sequences.push_back(std::make_unique<Sequence>(sequenceIdCounter));
+    _sequences.push_back(std::make_unique<Sequence>(sequenceIdCounter));
     sequenceIdCounter++;
 
     Sequence * ret = _sequences.back().get();
@@ -111,6 +111,7 @@ Sequence::Sequence(ID uniqueId) :
 void Sequence::initDefault(const Timeline &tl) {
     clearAllLayers();
     _stepCount = 16;
+    _stepDuration = StepDuration::d16;
 
     for(int i=0; i<LAYERS_COUNT; ++i) initLayer(i, 36+i, 120);
     for(int i=0; i<TARGET_COUNT; ++i) _targets[i] = nullptr;

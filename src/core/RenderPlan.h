@@ -86,10 +86,10 @@ struct RenderPlan {
     // SubGraphSlice * slices;
     // uint32_t slicesCount;
 
-    const ModulationPattern * modulationPatterns = nullptr;
+    const std::vector<ModulationPattern*> *modulationPatterns = nullptr;
     uint32_t modPatternCount = 0;
     
-    const Sequence* sequences = nullptr;
+    const std::vector<Sequence*> *sequences = nullptr;
     uint32_t sequenceCount = 0;
 };
 

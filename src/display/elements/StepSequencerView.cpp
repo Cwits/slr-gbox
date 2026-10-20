@@ -457,6 +457,7 @@ StepSequencerView::LayersContainer::LayersContainer(StepSequencerView *parent) :
     setPos(0, 290);
     setSize(Layout::STEP_SEQ_WIDTH, Layout::STEP_SEQ_HEIGHT-290); //overlaps with bottom panel
     setColor(lv_color_hex(0xac857e));
+    addStyle(&Style::workspace);
     // setColor(lv_color_make(rand()%255, rand()%255, rand()%255));
     
     int ypos = 10;
