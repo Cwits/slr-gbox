@@ -37,19 +37,17 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT);
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     addStyle(&Style::PopupDefault);
-    noScroll();
 
-    _text = new Label(this, "Routes for");
-    _text->setSize(300, 40);
-    _text->setPos(450, 60);
-    _text->setFont(&DEFAULT_FONT);
+    _lblTargetNameStatic = std::make_unique<Label>(this, "Routes for");
+    _lblTargetNameStatic->setSize(300, 40);
+    _lblTargetNameStatic->setPos(450, 60);
     
-    _ddCurrentUnit = new DropDown(this);
+    _ddCurrentUnit = std::make_unique<DropDown>(this);
     _ddCurrentUnit->setPos(650, 40);
     _ddCurrentUnit->setSize(600, Layout::Button);
     std::string tmptext = "None";
     _ddCurrentUnit->setSelected(tmptext);
-    _ddCurrentUnit->selectedCallback([this, drop = _ddCurrentUnit](const std::string selected){
+    _ddCurrentUnit->selectedCallback([this, drop = _ddCurrentUnit.get()](const std::string selected){
         std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
         auto it = std::find_if(
             list.begin(),
@@ -69,7 +67,7 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         this->liveUpdate();
     });
 
-    _ddCurrentUnit->button()->touchDownCallback([this, drop = _ddCurrentUnit](const GestLib::TouchDownEvent &td) -> bool {
+    _ddCurrentUnit->button()->touchDownCallback([this, drop = _ddCurrentUnit.get()](const GestLib::TouchDownEvent &td) -> bool {
         drop->button()->setColor(Colors::ButtonPressed);
         std::vector<slr::AudioUnitView*> list = slr::ProjectView::getProjectView().unitList();
         std::vector<std::string> names;
@@ -82,45 +80,39 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     });
 
     /* First item right side */
-    _inputsText = new Label(this, "Receiving from:");
-    _inputsText->setSize(250, 33);
-    _inputsText->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, 150-35);
-    _inputsText->setFont(&DEFAULT_FONT);
-    _inputsText->setTextColor(Colors::Black);
+    _lblInputTextStatic = std::make_unique<Label>(this, "Receiving from:");
+    _lblInputTextStatic->setSize(250, 33);
+    _lblInputTextStatic->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, 150-35);
 
     /* left side */
-    _outputsText = new Label(this, "Sending to:");
-    _outputsText->setSize(250, 33);
-    _outputsText->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, 150-35);
-    _outputsText->setFont(&DEFAULT_FONT);
-    _outputsText->setTextColor(Colors::Black);
+    _lblOutputTextStatic = std::make_unique<Label>(this, "Sending to:");
+    _lblOutputTextStatic->setSize(250, 33);
+    _lblOutputTextStatic->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, 150-35);
 
-    _btnAudioTab = new Button(this, "Audio Routes");
+    _btnAudioTab = std::make_unique<Button>(this, "Audio Routes");
     _btnAudioTab->setSize(200, Layout::Button);
     _btnAudioTab->setPos(10, 40);
-    _btnAudioTab->setFont(&DEFAULT_FONT);
     _btnAudioTab->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_midiTab->hide();
         this->_audioTab->show();
         return true;
     });
 
-    _btnMidiTab = new Button(this, "Midi Routes");
+    _btnMidiTab = std::make_unique<Button>(this, "Midi Routes");
     _btnMidiTab->setSize(200, Layout::Button);
     _btnMidiTab->setPos(200+Layout::Margin, 40);
-    _btnMidiTab->setFont(&DEFAULT_FONT);
     _btnMidiTab->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_audioTab->hide();
         this->_midiTab->show();
         return true;
     });
 
-    _audioTab = new AudioTab(this, _currentUnitId);
-    _midiTab = new MidiTab(this, _currentUnitId);
+    _audioTab = std::make_unique<AudioTab>(this, _currentUnitId);
+    _midiTab = std::make_unique<MidiTab>(this, _currentUnitId);
 
-    _midiThru = new Checkbox(this);
-    _midiThru->setPos(1300, 40);
-    _midiThru->checkCallback([this](bool isChecked) {
+    _chbMidiThru = std::make_unique<Checkbox>(this);
+    _chbMidiThru->setPos(1300, 40);
+    _chbMidiThru->checkCallback([this](bool isChecked) {
         // slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(_currentUnitId);
 
         // slr::Events::ToggleMidiThru e = {
@@ -130,14 +122,13 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         // slr::EmitEvent(e);
     });
 
-    _midiThruText = new Label(this, "Midi Thru");
-    _midiThruText->setSize(200, 40);
-    _midiThruText->setPos(1300+10+Layout::CHECKBOX, 55);
-    _midiThruText->setFont(&DEFAULT_FONT);
+    _lblMidiThruStatic = std::make_unique<Label>(this, "Midi Thru");
+    _lblMidiThruStatic->setSize(200, 40);
+    _lblMidiThruStatic->setPos(1300+10+Layout::CHECKBOX, 55);
     
-    _omniHwInput = new Checkbox(this);
-    _omniHwInput->setPos(1500, 40);
-    _omniHwInput->checkCallback([this](bool isChecked) {
+    _chbOmniHwInput = std::make_unique<Checkbox>(this);
+    _chbOmniHwInput->setPos(1500, 40);
+    _chbOmniHwInput->checkCallback([this](bool isChecked) {
         // slr::AudioUnitView * view = slr::ProjectView::getProjectView().getUnitById(this->_currentUnitId);
         // if(!view) {
         //     LOG_ERROR("Failed to find unit view for id %u", this->_currentUnitId);
@@ -151,25 +142,12 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         // slr::EmitEvent(e);
     });
 
-    _omniHwInputText = new Label(this, "Omni HW");
-    _omniHwInputText->setSize(300, 40);
-    _omniHwInputText->setPos(1500+10+Layout::CHECKBOX, 55);
-    _omniHwInputText->setFont(&DEFAULT_FONT);
+    _lblOmniHwInputStatic = std::make_unique<Label>(this, "Omni HW");
+    _lblOmniHwInputStatic->setSize(300, 40);
+    _lblOmniHwInputStatic->setPos(1500+10+Layout::CHECKBOX, 55);
 }
 
-RouteManager::~RouteManager() {
-    delete _text;
-    delete _inputsText;
-    delete _outputsText;
-    
-    delete _ddCurrentUnit;
-    delete _audioTab;
-    delete _midiTab;
-
-    delete _midiThru;
-    delete _omniHwInput;
-    delete _midiThruText;
-    delete _omniHwInputText;
+RouteManager::~RouteManager() { 
 }
 
 void RouteManager::update() {
@@ -186,8 +164,8 @@ void RouteManager::update() {
     _audioTab->update();
     _midiTab->update();
 
-    _midiThru->setValue(view->isMidiThru());
-    _omniHwInput->setValue(view->isOmniHwInput());
+    _chbMidiThru->setValue(view->isMidiThru());
+    _chbOmniHwInput->setValue(view->isOmniHwInput());
 }
 
 void RouteManager::forcedClose() {

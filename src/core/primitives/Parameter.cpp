@@ -73,7 +73,7 @@ float ParameterFloat::value(frame_t frame) const {
 
     // float ret = _value + modAmt;
         
-    return sMath::clamp(_value + modAmt, _min, _max);
+    return Math::clamp(_value + modAmt, _min, _max);
 }
 
 ParameterInt::ParameterInt(std::string name, float defaultValue, float minimalValue, float maximalValue, float step)
@@ -93,10 +93,10 @@ int ParameterInt::value(frame_t frame) const {
         modAmt += ((_mods[i].ptr)[frame]) * _mods[i].ammount;
     }
 
-    return _value + sMath::round(modAmt);
+    return _value + Math::round(modAmt);
 }
 
-void ParameterInt::setValue(float value) { set(sMath::round(value)); }
+void ParameterInt::setValue(float value) { set(Math::round(value)); }
 
 ParameterBool::ParameterBool(std::string name, float defaultValue, float minimalValue, float maximalValue, float step)
     : ParameterBase(name, defaultValue, minimalValue, maximalValue, step), _value(defaultValue) {
@@ -118,9 +118,9 @@ bool ParameterBool::value(frame_t frame) const {
     //need to round with epsilon and some tolerance, otherwise always will be true
     //everything non zero must be true(either positive or negative)
     // return ((_value ? 1.f : 0.f) + modAmt) >= 0.5 ? true : false;
-    return sMath::isApproximatelyZero(sMath::abs( (_value ? 1.f : 0.f) + modAmt ) );
+    return Math::isApproximatelyZero(Math::abs( (_value ? 1.f : 0.f) + modAmt ) );
 }
 
-void ParameterBool::setValue(float value) { set(sMath::isDefinitelyGreaterThan( sMath::abs(value), 0.5f) ); }
+void ParameterBool::setValue(float value) { set(Math::isDefinitelyGreaterThan( Math::abs(value), 0.5f) ); }
 
 }

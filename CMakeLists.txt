@@ -81,19 +81,20 @@ set(LIBRARIES lvgl::lvgl
 
 file(GLOB SOURCES
   #actions
-  src/core/actions/AudioUnit/LoadAsClip.cpp
-  src/core/actions/AudioUnit/RemoveClip.cpp
   src/core/actions/AudioUnit/SetParameter.cpp
   src/core/actions/AudioUnit/ToggleMidiThru.cpp
   src/core/actions/AudioUnit/ToggleOmniHwInput.cpp
   src/core/actions/AudioUnit/SetName.cpp
   src/core/actions/AudioUnit/SetColor.cpp
 
+  src/core/actions/ClipItem/LoadAsClip.cpp
+  src/core/actions/ClipItem/RemoveClip.cpp
+  src/core/actions/ClipItem/ModifyClipItem.cpp
+
   src/core/actions/Project/CreateNewUnit.cpp
   src/core/actions/Project/DeleteUnit.cpp
   src/core/actions/Project/AddNewAudioRoute.cpp
   src/core/actions/Project/AddNewMidiRoute.cpp
-  src/core/actions/Project/ModifyClipItem.cpp
   src/core/actions/Project/SaveProject.cpp
   src/core/actions/Project/LoadProject.cpp
   src/core/actions/Project/UpdateRenderPlan.cpp
@@ -131,6 +132,7 @@ file(GLOB SOURCES
 
   #filetasks
   src/core/filetasks/tasks/OpenFile.cpp
+  src/core/filetasks/tasks/DumpAudio.cpp
   src/core/filetasks/FileTasks.cpp
 
   #primitives

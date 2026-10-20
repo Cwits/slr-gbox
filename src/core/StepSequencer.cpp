@@ -165,7 +165,7 @@ frame_t Sequence::process(const AudioContext &ctx) const {
 
     frame_t framesPerStep = ctx.timeline.framesInStep(_stepDuration);
     float frameFraction = ctx.timeline.framesInStepFraction(_stepDuration);
-    frame_t fraction = sMath::floor(frameFraction * _stepCount);
+    frame_t fraction = Math::floor(frameFraction * _stepCount);
     frame_t loopLength = framesPerStep * _stepCount + fraction;
     
     frame_t positionWithinLoop = 0;
@@ -240,7 +240,7 @@ frame_t Sequence::process(const AudioContext &ctx) const {
 
     if(_framesTillNoteOff < ctx.blockSize) {
         int step = positionWithinLoop / framesPerStep;
-        frame_t frac = sMath::floor(frameFraction * ((step%_stepCount)+1));
+        frame_t frac = Math::floor(frameFraction * ((step%_stepCount)+1));
         frame_t delay = _framesTillNoteOff;
 
 #if STEP_SEQUENCER_TRACE == 1

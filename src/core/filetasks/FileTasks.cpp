@@ -57,21 +57,6 @@ void closeAllFiles::exec(FileWorkerContext &ctx) {
 };
 
 /* Audio Tasks */
-void dumpAudio::exec(FileWorkerContext &ctx) {
-    //check testFileWorker.cpp for example
-    LOG_INFO("Dumping data to file %s", file->name().c_str());
-    bool res = file->dumpRecordedData(buffer);
-    
-    if(!res) {
-        //TODO: handle failure
-        //e.g. reacquire another buffer to keep writing, or file? or... idk...
-        //at least stop the record and notify...
-        LOG_ERROR("Dumping data to file %s failed", file->name().c_str());
-    }
-
-    //emit event
-    callback(ctx.worker, res);
-}
 
 /* Audio Buffer Editing */
 /* 

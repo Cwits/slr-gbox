@@ -7,6 +7,7 @@
 #include "common/defines.h"
 
 #include "core/filetasks/tasks/OpenFile.h"
+#include "core/filetasks/tasks/DumpAudio.h"
 
 #include <string>
 #include <functional>
@@ -51,16 +52,6 @@ struct closeAllFiles : public FileTask {
 };
 
 /* Audio FileTasks */
-struct dumpAudio : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    AudioBuffer * buffer;
-    AudioFile * file;
-    frame_t size;
-
-    std::function<void(FileWorker*const, bool)> callback;
-    //check AudioFile.cpp for more detailed info
-};
 
 /* for any of next audio manipulation tasks:
     if user want to manipulate audio:

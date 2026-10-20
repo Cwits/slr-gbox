@@ -82,7 +82,6 @@ class ProjectView {
 
     void incrementVersion() { _version.fetch_add(1, std::memory_order_release); }
     std::atomic<uint64_t> _version;
-    // frame_t _playheadPosition;
 };
 
 }

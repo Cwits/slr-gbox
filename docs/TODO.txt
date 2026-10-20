@@ -35,13 +35,6 @@ AudioUnit:
         plus make ::output(id) to grant access to specific output for render plan builder
 [ ] - make a virtual void reinit() = 0; member function that must be called every time when some fundamental settings are changed
         e.g. block size or sample rate or others.
-[\] - ~~AudioUnit File Manipulation~~ rolled back, now only Track can load audio and midi files.
-        [x] - Make FileContainer Part of AudioUnit, so all audio units can load audio and midi files
-        [x] - Transfer playback logic from Track to AudioUnit,
-        [x] - Transfer related to File Events from Track to AudioUnit(OpenFile, CloseFile)
-        [\] - Make some config members as bool canLoadFile(type), AudioUnit::playbackFiles() abstraction, and ???
-                canLoadFiles handled in UnitUIBase
-        [ ] - Make unified logic for drawing files...
 [ ] - In order to be able to inject midi events to AudioUnit they need some (current frame MidiBuffer) and small SPSCQueue...
         Injecting should work same way as MidiPort::pushEvent(...) in terms of frame calculating.
         (Current frame MidiBuffer - buffer where events for current frame will be stored and manipulated?)
@@ -93,15 +86,13 @@ MidiController:
 
 Project:
 [x] - make save and load system(serialization)
-[ ] - make undo/redo system
+[x] - make undo/redo system
 
 Render Plan:
 [ ] - implement settings checkbox "automatically update Render Plan on each new route" or smth
         so, if checked - render plan would be rebuilt every time new route(audio or midi) would be added.
         if unchecked - render plan would be updated only if user press specific button.(so can add bunch of routes and than update).
         (also, if unchecked than need some notifying icon to show up when new routes were added, but wasn't plan wasnt rebuilded)
-[ ] - Sequences, Modulations processors, as well as Timeline pointer must be passed through RenderPlan
-
 
 Modulation Engine:
 [ ] - lfo rate < 1.0 must impact overall length of oscillator

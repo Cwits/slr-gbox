@@ -256,7 +256,7 @@ void ModEngineView::updateLine(slr::frame_t nudge) {
     slr::frame_t sampleRate = slr::TimelineView::getTimelineView().sampleRate();
     slr::frame_t reminder = nudge % sampleRate;
 
-    int x = static_cast<int>(sMath::lerp<slr::frame_t>(reminder, 0, sampleRate, 360, 1560));
+    int x = static_cast<int>(Math::lerp<slr::frame_t>(reminder, 0, sampleRate, 360, 1560));
     _points[0] = {x, 240};
     _points[1] = {x, 840};
     lv_line_set_points(_line, &_points[0], 2);
@@ -300,20 +300,20 @@ void ModEngineView::redrawCanvas(const std::string type, float rate, float offse
     fillCanvas(_cnvModView, 1200, 600, Colors::Black);
     if(type.compare("Sin") == 0) {
         for(int x=0; x<1200; ++x) {
-            // float sample = sMath::sin(2*M_PI * (x/1200.f) * rate + offset);
-            float sample = sMath::sineWave(1.0f, static_cast<float>(x), 1200.f, rate, offset);
-            int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
+            // float sample = Math::sin(2*M_PI * (x/1200.f) * rate + offset);
+            float sample = Math::sineWave(1.0f, static_cast<float>(x), 1200.f, rate, offset);
+            int y = Math::lerp(sample, 1.f, -1.f, 10.f, 590.f);
             lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
         }
 
     } else if(type.compare("Saw") == 0) {
         int prev = 600/2;
         for(int x=0; x<1200; ++x) {
-            float sample = sMath::sawtoothWave(0.5f, static_cast<float>(x), 1200.f, rate, offset);
-            int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
+            float sample = Math::sawtoothWave(0.5f, static_cast<float>(x), 1200.f, rate, offset);
+            int y = Math::lerp(sample, 1.f, -1.f, 10.f, 590.f);
             lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
             
-            if(sMath::abs(prev - y) > 10) {
+            if(Math::abs(prev - y) > 10) {
                 for(int py = 10; py<590; ++py) {
                     lv_canvas_set_px(_cnvModView, x, py, Colors::Red, LV_OPA_COVER);
                 }
@@ -323,8 +323,8 @@ void ModEngineView::redrawCanvas(const std::string type, float rate, float offse
     } else if(type.compare("Square") == 0) {
         int prev = 0;
         for(int x=0; x<1200; ++x) {
-            float sample = sMath::squareWave(1.0f, static_cast<float>(x), 1200.f, rate, offset);
-            int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
+            float sample = Math::squareWave(1.0f, static_cast<float>(x), 1200.f, rate, offset);
+            int y = Math::lerp(sample, 1.f, -1.f, 10.f, 590.f);
             lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
             if(prev != y) {
                 for(int py = 10; py<590; ++py) {
@@ -335,8 +335,8 @@ void ModEngineView::redrawCanvas(const std::string type, float rate, float offse
         }
     } else if(type.compare("Tri") == 0) {
         for(int x=0; x<1200; ++x) {
-            float sample = sMath::triangleWave(1.0f, static_cast<float>(x), 1200.0f, rate, offset);
-            int y = sMath::lerp(sample, 1.f, -1.f, 10.f, 590.f);
+            float sample = Math::triangleWave(1.0f, static_cast<float>(x), 1200.0f, rate, offset);
+            int y = Math::lerp(sample, 1.f, -1.f, 10.f, 590.f);
             lv_canvas_set_px(_cnvModView, x, y, Colors::Red, LV_OPA_COVER);
         }
     } else if(type.compare("Rand") == 0) {

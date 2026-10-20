@@ -82,22 +82,22 @@ struct RouteManager : public Popup {
         void newRoute(bool isInput);
     };
 
-    Label * _text;
-    Label * _inputsText;
-    Label * _outputsText;
+    std::unique_ptr<Label> _lblTargetNameStatic;
+    std::unique_ptr<Label> _lblInputTextStatic; 
+    std::unique_ptr<Label> _lblOutputTextStatic; 
 
-    DropDown * _ddCurrentUnit;
+    std::unique_ptr<DropDown> _ddCurrentUnit;
 
-    Button * _btnAudioTab;
-    Button * _btnMidiTab;
+    std::unique_ptr<Button> _btnAudioTab;
+    std::unique_ptr<Button> _btnMidiTab;
 
-    Label * _midiThruText;
-    Checkbox * _midiThru;
-    Label * _omniHwInputText;
-    Checkbox * _omniHwInput;
+    std::unique_ptr<Label> _lblMidiThruStatic; //static
+    std::unique_ptr<Checkbox> _chbMidiThru;
+    std::unique_ptr<Label> _lblOmniHwInputStatic; //static
+    std::unique_ptr<Checkbox> _chbOmniHwInput;
 
-    AudioTab * _audioTab;
-    MidiTab * _midiTab;
+    std::unique_ptr<AudioTab> _audioTab;
+    std::unique_ptr<MidiTab> _midiTab;
     
     void forcedClose() override;
 };

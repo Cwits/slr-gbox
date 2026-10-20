@@ -43,7 +43,6 @@ ClipPreview::ClipPreview(BaseWidget * parent, UnitUIBase * parentUI, const slr::
     _uniqueId(clipItem->id())
 {
     addStyle(&Style::GridFile);
-    noScroll();
     
     _preview = std::make_unique<FilePreview>(this, &clipItem->_content, uictx);
     _preview->setPos(0, 0);
@@ -152,6 +151,7 @@ bool ClipPreview::handleHold(const GestLib::HoldGesture &hold) {
 ClipPreviewPopup::ClipPreviewPopup(BaseWidget * parent, UIContext * const uictx) :
     Popup(parent, uictx) 
 {
+    addStyle(&Style::PopupDefault);
     setSize(Layout::FILE_POPUP_W, Layout::FILE_POPUP_H);
 
     BUTTONDEF(_btnDelete, Layout::FILE_POP_DELETE_BTN_X, Layout::FILE_POP_DELETE_BTN_Y, LV_SYMBOL_TRASH);

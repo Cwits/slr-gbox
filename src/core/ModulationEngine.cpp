@@ -40,17 +40,17 @@ float ModulationPattern::value(frame_t frame) const {
     float res = 0.0;
         
     switch(_shape) {
-        case(ModulationShape::sin): res = sMath::sineWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
-        case(ModulationShape::saw): res = sMath::sawtoothWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
-        case(ModulationShape::square): res = sMath::squareWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
-        case(ModulationShape::tri): res = sMath::squareWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
+        case(ModulationShape::sin): res = Math::sineWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
+        case(ModulationShape::saw): res = Math::sawtoothWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
+        case(ModulationShape::square): res = Math::squareWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
+        case(ModulationShape::tri): res = Math::squareWave(_amplitude, static_cast<float>(frame), _sampleRate, _lfoRate, _phase); break;
         case(ModulationShape::rnd): res = 0.0; /* res = data[( ( (frame/_sampleRate or steps?) * _lfoRate) + _phase) % steps] */ break;
     }
         
 
-    // if(_interpolate) return sMath::lerp(res, -1.f, 1.f, _valueMin, _valueMax);
+    // if(_interpolate) return Math::lerp(res, -1.f, 1.f, _valueMin, _valueMax);
     // else return res;
-    return sMath::lerp(res, -1.f, 1.f, _valueMin, _valueMax);
+    return Math::lerp(res, -1.f, 1.f, _valueMin, _valueMax);
     // LOG_INFO("frame: %lu, value: %.6f", frame, res);
     // return res;
 }

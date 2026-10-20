@@ -47,13 +47,13 @@ void audioFileToCanvas(
                 uint8_t min = 255;
                 uint8_t max = 0;
                 for(int off=offset; off<offset+ratio; ++off) {
-                    min = sMath::min(min, (*buffer)[ch][off]);
-                    max = sMath::max(max, (*buffer)[ch][off]);
+                    min = Math::min(min, (*buffer)[ch][off]);
+                    max = Math::max(max, (*buffer)[ch][off]);
                 }
 
                 //TODO: this + after map is odd... need to fix it
-                uint16_t dmin = sMath::lerp<uint16_t>(min, 0, 255, lerpMin, lerpMax);
-                uint16_t dmax = sMath::lerp<uint16_t>(max, 0, 255, lerpMin, lerpMax);
+                uint16_t dmin = Math::lerp<uint16_t>(min, 0, 255, lerpMin, lerpMax);
+                uint16_t dmax = Math::lerp<uint16_t>(max, 0, 255, lerpMin, lerpMax);
 
                 for(int y=dmin; y<dmax; ++y) {
                     lv_color_t & color = (y == dmin) ? peakColor : ( (y == dmax-1) ? peakColor : fillColor );

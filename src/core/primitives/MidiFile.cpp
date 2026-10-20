@@ -166,7 +166,7 @@ bool MidiFile::open(std::string &path) {
                 }
 
                 if(!adjustPpqn) ev.offset = position+trackGlobalPosition;
-                else ev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
+                else ev.offset = Math::floor((position+trackGlobalPosition) * ppqnAdj);
 
                 track->midiEvents.push_back(ev);
             } else if(evType >= MidiEventType::SysEx && evType <= MidiEventType::SystemReset) {
@@ -181,7 +181,7 @@ bool MidiFile::open(std::string &path) {
                     }
 
                     if(!adjustPpqn) sev.offset = position+trackGlobalPosition;
-                    else sev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
+                    else sev.offset = Math::floor((position+trackGlobalPosition) * ppqnAdj);
 
                     track->sysexEvents.push_back(std::move(sev));
                 } else if(byte == 0xFF) {
@@ -195,7 +195,7 @@ bool MidiFile::open(std::string &path) {
                     }
 
                     if(!adjustPpqn) mev.offset = position+trackGlobalPosition;
-                    else mev.offset = sMath::floor((position+trackGlobalPosition) * ppqnAdj);
+                    else mev.offset = Math::floor((position+trackGlobalPosition) * ppqnAdj);
                     
                     track->metaEvents.push_back(std::move(mev));
                 }

@@ -41,16 +41,16 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
     assert(getState() == ActionState::Executing);
 
     LOG_INFO("Dumping audio data to file %s", _action.targetFile->name().c_str());
-    auto task = std::make_unique<Tasks::dumpAudio>();
+    auto task = std::make_unique<Tasks::DumpAudio>();
     task->buffer = _action.targetBuffer;
     task->file = _action.targetFile;
     task->size = _action.size;
 
-    task->callback = [ctx, rec = _action.targetBuffer, 
+    task->finished = [ctx, rec = _action.targetBuffer, 
                     target = _action.targetFile, 
                     trackId = _action.trackId,
                     startPos = _action.fileStartPosition]
-                    (FileWorker * const fw, bool success) 
+                    (bool success) 
     {
         //clean and release buffer no matter what happened
         AudioBuffer * buf = rec;
@@ -63,7 +63,7 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
         ctx.bufferManager->releaseAudioRecord(buf);
 
         if(!success) {
-            LOG_ERROR("Failed to dump audio data to file %s", target->path().c_str());
+            LOG_FAIL("Failed to dump audio data to file %s", target->path().c_str());
             LOG_WARN("Disabling track %u record", trackId);
 
             auto act = std::make_unique<Actions::RecordArm>();
@@ -83,7 +83,7 @@ void DumpRecAudioAction::exec(ControlContext &ctx) {
                 target->path().c_str());
             std::string path = target->path();
 
-            fw->removeFile(target, true);
+            ctx.project->fileWorker()->removeFile(target, true);
             
             auto act = std::make_unique<slr::Actions::LoadAsClip>();
             act->data = path;

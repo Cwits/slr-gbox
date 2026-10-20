@@ -83,7 +83,7 @@ frame_t Metronome::process(const AudioContext &ctx, const Dependencies &inputs) 
         frame_t delta = s + (_soundLength - _remainedSamplesToPlay);
 
         // sample_t amp = std::exp(-(float)delta / _tau) * std::sin(2.0f*M_PI * freq * (delta/44100));
-        sample_t amp = 0.7*sMath::sin(sMath::TWOPIF * freq * ((float)delta/(float)_sampleRate));
+        sample_t amp = 0.7*Math::sin(Math::TWOPIF * freq * ((float)delta/(float)_sampleRate));
         //TODO: add simple decay
         (*_outputs)[0][s] = amp;
         (*_outputs)[1][s] = amp;

@@ -45,7 +45,7 @@ Slider::Slider(BaseWidget * parent) :
     lv_label_set_text(_lblMax, "1.5");
     lv_obj_set_style_text_font(_lblMax, &DEFAULT_FONT, 0);
 
-    int correctY = sMath::lerp<float>(1.0f, 0.0f, 1.5f, maxY, minY);
+    int correctY = Math::lerp<float>(1.0f, 0.0f, 1.5f, maxY, minY);
 
     _lblZero = lv_label_create(lvhost());
     lv_obj_set_size(_lblZero, 50, lv_font_get_line_height(&DEFAULT_FONT));
@@ -65,7 +65,7 @@ Slider::Slider(BaseWidget * parent) :
             
             lv_obj_set_pos(this->_sliderCap, 200-50-20, posy);
 
-            float res = sMath::lerp<float>(posy, maxY, minY, 0.0f, 1.5f);
+            float res = Math::lerp<float>(posy, maxY, minY, 0.0f, 1.5f);
             // LOG_INFO("res: %f", res);
             if(this->_onChange) {
                 this->_onChange(res);
@@ -93,13 +93,13 @@ void Slider::onChangeCallback(std::function<void(const float)> onChange) {
 }
 
 void Slider::setCap(const float value) {
-    int posy = sMath::lerp<float>(value, 0.0f, 1.5f, maxY, minY);
+    int posy = Math::lerp<float>(value, 0.0f, 1.5f, maxY, minY);
     lv_obj_set_pos(_sliderCap, 200-50-20, posy);
 }
 
 const float Slider::getCap() {
     int posy = lv_obj_get_y(_sliderCap);
-    float val = sMath::lerp<float>(posy, maxY, minY, 0.0f, 1.5f);
+    float val = Math::lerp<float>(posy, maxY, minY, 0.0f, 1.5f);
     return val;
 }
 

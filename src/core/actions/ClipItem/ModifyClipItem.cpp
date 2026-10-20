@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "core/actions/Project/ModifyClipItem.h"
+#include "core/actions/ClipItem/ModifyClipItem.h"
 
 #include "core/actions/ActionBase.h"
 #include "core/utility/ControlContext.h"

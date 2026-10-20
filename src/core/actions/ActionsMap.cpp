@@ -8,18 +8,19 @@
 
 // Audio Units
 #include "core/actions/AudioUnit/SetParameter.h"
-#include "core/actions/AudioUnit/LoadAsClip.h"
-#include "core/actions/AudioUnit/RemoveClip.h"
 #include "core/actions/AudioUnit/ToggleMidiThru.h"
 #include "core/actions/AudioUnit/ToggleOmniHwInput.h"
 #include "core/actions/AudioUnit/SetName.h"
 #include "core/actions/AudioUnit/SetColor.h"
 
+#include "core/actions/ClipItem/LoadAsClip.h"
+#include "core/actions/ClipItem/RemoveClip.h"
+#include "core/actions/ClipItem/ModifyClipItem.h"
+
 #include "core/actions/Project/CreateNewUnit.h"
 #include "core/actions/Project/DeleteUnit.h"
 #include "core/actions/Project/AddNewAudioRoute.h"
 #include "core/actions/Project/AddNewMidiRoute.h"
-#include "core/actions/Project/ModifyClipItem.h"
 #include "core/actions/Project/SaveProject.h"
 #include "core/actions/Project/LoadProject.h"
 #include "core/actions/Project/UpdateRenderPlan.h"

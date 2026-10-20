@@ -35,6 +35,8 @@ BaseWidget::BaseWidget(BaseWidget * parent, bool hasHost, bool addAsChild) :
                 false, false, false};
 
     _lastPolledUIVersion = 0;
+
+    if(_hasHost) noScroll();
 }
 
 BaseWidget::BaseWidget(lv_obj_t * parent) :

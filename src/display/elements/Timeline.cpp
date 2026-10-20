@@ -106,7 +106,7 @@ void Timeline::rebuildTimeline() {
 
     if(_lines.size() != barsOnDisplay) {
         //not the first time, need to recalculate capacity, 
-        // int diff = sMath::abs<int>(_lines.size() - barsOnDisplay);
+        // int diff = Math::abs<int>(_lines.size() - barsOnDisplay);
         std::size_t old = _lines.size();
         _lines.reserve(barsOnDisplay);
 
@@ -130,7 +130,7 @@ void Timeline::rebuildTimeline() {
 
     int startBar = (_nudge/tl.framesPerBar()) + 1;
     float wtf = pixMoved * pixelPerBar;
-    int wtf2 = sMath::round(wtf);
+    int wtf2 = Math::round(wtf);
     int y = _y+30; //+30 - for number background
 
     for(std::size_t i=0; i<_lines.size(); ++i, ++startBar) {

@@ -3,7 +3,7 @@
 #include <cmath>
 #include <limits>
 
-namespace sMath {
+namespace Math {
 
 /* 
     from 
@@ -135,37 +135,37 @@ inline double atan(double val) {
 
 /*  frame <= sampleRate
     0.0 <= phase < 1.0 
-    return amplitude * sMath::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF)); */
+    return amplitude * Math::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF)); */
 template<typename T>
 inline T sineWave(const T &amplitude, const T &frame, const T &sampleRate, const T &rate, const T &phase) {
-    return amplitude * sMath::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF));
+    return amplitude * Math::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF));
 }
 
 /*  frame <= sampleRate
     0.0 <= phase < 1.0 
     T tmp = ((frame*rate)/sampleRate) + phase; 
-    return 2.0 * (tmp - ( 0.5 + sMath::floor(tmp) ) ); */
+    return 2.0 * (tmp - ( 0.5 + Math::floor(tmp) ) ); */
 template<typename T>
 inline T sawtoothWave(const T &amplitude, const T &frame, const T &sampleRate, const T &rate, const T &phase) {
     T tmp = ((frame*rate)/sampleRate) + phase; //https://en.wikipedia.org/wiki/Sawtooth_wave
-    return 2.0 * (tmp - ( 0.5 + sMath::floor(tmp) ) );
+    return 2.0 * (tmp - ( 0.5 + Math::floor(tmp) ) );
 
 }
 
 /*  frame <= sampleRate
     0.0 <= phase < 1.0 
-    return amplitude * std::copysign(1.0f, sMath::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF)) ); */
+    return amplitude * std::copysign(1.0f, Math::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF)) ); */
 template<typename T>
 inline T squareWave(const T &amplitude, const T &frame, const T &sampleRate, const T &rate, const T &phase) {
-    return amplitude * std::copysign(1.0f, sMath::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF)) ); //https://en.wikipedia.org/wiki/Square_wave_(waveform)
+    return amplitude * std::copysign(1.0f, Math::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF)) ); //https://en.wikipedia.org/wiki/Square_wave_(waveform)
 } 
 
 /*  frame <= sampleRate
     0.0 <= phase < 1.0 
-    return (2*amplitude / M_PI) * sMath::asin(sMath::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF))); */
+    return (2*amplitude / M_PI) * Math::asin(Math::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF))); */
 template<typename T>
 inline T triangleWave(const T &amplitude, const T &frame, const T &sampleRate, const T &rate, const T &phase) {
-    return (2*amplitude / M_PI) * sMath::asin(sMath::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF))); //https://en.wikipedia.org/wiki/Triangle_wave
+    return (2*amplitude / M_PI) * Math::asin(Math::sin(TWOPIF * (frame/sampleRate) * rate + (phase*TWOPIF))); //https://en.wikipedia.org/wiki/Triangle_wave
 }
 
 template<typename T>

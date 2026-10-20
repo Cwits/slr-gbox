@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2025 Cwits
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "core/actions/AudioUnit/RemoveClip.h"
+#include "core/actions/ClipItem/RemoveClip.h"
 
 #include "core/actions/ActionBase.h"
 #include "core/utility/ControlContext.h"
