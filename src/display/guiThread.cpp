@@ -33,7 +33,10 @@ std::unique_ptr<UI::SplashScreen> _splash;
 lv_obj_t * _main_screen;
 
 #if defined(__aarch64__)
-GestLib::GestureRecognizer _recognizer;
+#include "gestlib/drivers/Generic.h"
+std::unique_ptr<GestLib::GenericDriver> _driver;
+std::unique_ptr<GestLib::GestureRecognizer> _recognizer;
+// GestLib::GestureRecognizer _recognizer;
 #else
 FakeGestures _fakeGestures;
 #endif
@@ -81,12 +84,14 @@ void initGui() {
     lv_timer_handler();
 
 #if defined(__aarch64__)
-    if(!_recognizer.init()) {
+    _driver = std::make_unique<GestLib::GenericDriver>(GestLib::GenericDriverConfig{});
+    _recognizer = std::make_unique<GestLib::GestureRecognier>(GestLib::RecognizerConfig{});
+
+    if(!_recognizer->init(_driver.get())) {
         LOG_FATAL("Failed to init gesture recognizer");
     }
 
-    _recognizer.windowSize(SDL_HOR_RES, SDL_VER_RES);
-    if(!_recognizer.start()) {
+    if(!_recognizer->start()) {
         LOG_FATAL("Failed to start gesture recognizer");
     }
 
@@ -114,9 +119,9 @@ void runGui(std::atomic<bool> &shutdown) {
     while(!shutdown) {
         now = std::chrono::steady_clock::now();
 #if defined(__aarch64__)
-        std::vector<GestLib::Gesture> gestures = _recognizer.fetchGestures();
+        std::vector<GestLib::Gesture> gestures = _recognizer->fetchGestures();
         for(GestLib::Gesture &g : gestures) {
-            UI::MainWindow::inst()->handleGesture(g);
+            UI::RootWindow::inst()->handleGesture(g);
         }
         while(SDL_PollEvent(&event)) {
             if(event.type == SDL_QUIT) {
@@ -189,7 +194,8 @@ void runGui(std::atomic<bool> &shutdown) {
     }
 
 #if defined(__aarch64__)
-    _recognizer.shutdown();
+    _recognizer->shutdown();
+    _driver->shutdown();
 #endif
 
     root.reset();
