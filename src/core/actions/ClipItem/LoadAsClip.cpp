@@ -172,7 +172,7 @@ void LoadAsClipAction::exec(ControlContext &ctx) {
                 cont.audio = static_cast<const AudioFile*>(_file)->peaks();
             } else if(_file->isMidi()) {
                 cont.type = ClipContentType::Midi;
-                cont.midi = static_cast<const MidiFile*>(_file)->track(0);
+                cont.midi = static_cast<const MidiFile*>(_file)->peaks(0);
             }
 
             ClipItemView *cview = ctx.projectView->createClipView(_clip, cont);

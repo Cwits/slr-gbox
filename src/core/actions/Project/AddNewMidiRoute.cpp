@@ -92,7 +92,8 @@ void AddNewMidiRouteAction::exec(ControlContext &ctx) {
         } break; 
         case(2): {
             ctx.projectView->updateRoutes(ctx.project->midiRoutes());
-            UIControls::updateRouteManager();
+            // UIControls::updateRouteManager();
+            _action.finished();
             
             setState(ActionState::Finished);
         } break;

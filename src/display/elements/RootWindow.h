@@ -77,7 +77,7 @@ struct RootWindow : public BaseWidget {
 
     void pollUIUpdate() override;
     
-    void registerFrequentUpdate(std::function<void()> clb);
+    // void registerFrequentUpdate(std::function<void()> clb);
 
     static RootWindow * inst();
     

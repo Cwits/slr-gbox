@@ -6,6 +6,7 @@
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeakFile.h"
 #include "core/primitives/MidiFile.h"
+#include "core/primitives/MidiPeaks.h"
 #include "core/utility/FileWorkerContext.h"
 #include "core/FileWorker.h"
 #include "core/Project.h"
@@ -84,6 +85,7 @@ void OpenFile::exec(FileWorkerContext &ctx) {
 
         finished(afile, true);
     } else if(Common::FileIO::pathHasExtention(Common::FileIO::Extention::Midi, path)) {
+        //midi file
         if(!Common::FileIO::pathOrFileExists(path)) {
             LOG_FAIL("Path or file %s don't exists", path.c_str());
             finished(nullptr, false);
@@ -100,6 +102,17 @@ void OpenFile::exec(FileWorkerContext &ctx) {
             finished(nullptr, false);
             return;
         }
+
+        std::vector<std::unique_ptr<MidiPeaks>> peakList;
+
+        for(std::size_t trk=0; trk<mfile->trackCount(); ++trk) {
+            std::unique_ptr<MidiPeaks> peaks = std::make_unique<MidiPeaks>();
+            peaks->buildPeaks(mfile->track(trk), trk);
+
+            peakList.push_back(std::move(peaks));
+        }
+
+        mfile->setPeaks(peakList);
 
         //some kind of midi peak file?
         LOG_SUCCESS("Midi File %s loaded with ID %u", 

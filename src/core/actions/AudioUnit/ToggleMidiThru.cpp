@@ -72,7 +72,8 @@ void ToggleMidiThruAction::exec(ControlContext &ctx) {
                 view->setMidiThru(_oldState);
             }
 
-            UIControls::updateRouteManager();
+            // UIControls::updateRouteManager();
+            _action.finished();
 
             setState(ActionState::Finished);
     	} break;

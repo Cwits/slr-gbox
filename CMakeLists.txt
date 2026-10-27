@@ -144,6 +144,7 @@ file(GLOB SOURCES
   src/core/primitives/File.cpp
   src/core/primitives/ClipItem.cpp
   src/core/primitives/MidiFile.cpp
+  src/core/primitives/MidiPeaks.cpp
   src/core/primitives/MidiPort.cpp
   src/core/primitives/Parameter.cpp
   src/core/primitives/ParameterArray.cpp

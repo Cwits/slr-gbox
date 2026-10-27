@@ -11,6 +11,7 @@
 #include "display/utility/layoutSizes.h"
 #include "display/utility/DefaultColors.h"
 #include "display/utility/DefaultStyles.h"
+#include "display/utility/Macros.h"
 #include "common/logger.h"
 
 #include "core/primitives/AudioRoute.h"
@@ -23,6 +24,8 @@
 #include "snapshots/ProjectView.h"
 #include "snapshots/AudioUnitView.h"
 #include "snapshots/DriverView.h"
+
+#include "common/uiControls.h"
 
 #include <algorithm>
 
@@ -38,13 +41,11 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     setPos(Layout::ROUTE_MANAGER_X, Layout::ROUTE_MANAGER_Y);
     addStyle(&Style::PopupDefault);
 
-    _lblTargetNameStatic = std::make_unique<Label>(this, "Routes for");
-    _lblTargetNameStatic->setSize(300, 40);
-    _lblTargetNameStatic->setPos(450, 60);
+    LABEL(_lblTargetNameStatic, 450, 60, 300, 40, "Routes for");
     
     _ddCurrentUnit = std::make_unique<DropDown>(this);
-    _ddCurrentUnit->setPos(650, 40);
     _ddCurrentUnit->setSize(600, Layout::Button);
+    _ddCurrentUnit->setPos(650, 40);
     std::string tmptext = "None";
     _ddCurrentUnit->setSelected(tmptext);
     _ddCurrentUnit->selectedCallback([this, drop = _ddCurrentUnit.get()](const std::string selected){
@@ -80,35 +81,27 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
     });
 
     /* First item right side */
-    _lblInputTextStatic = std::make_unique<Label>(this, "Receiving from:");
-    _lblInputTextStatic->setSize(250, 33);
-    _lblInputTextStatic->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, 150-35);
+    LABEL(_lblInputTextStatic, Layout::ROUTE_CTL_LEFT_EXT_X, 150-35, 250, 33, "Receiving From");
 
     /* left side */
-    _lblOutputTextStatic = std::make_unique<Label>(this, "Sending to:");
-    _lblOutputTextStatic->setSize(250, 33);
-    _lblOutputTextStatic->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, 150-35);
+    LABEL(_lblOutputTextStatic, Layout::ROUTE_CTL_RIGHT_EXT_X, 150-35, 250, 33, "Sending To");
 
-    _btnAudioTab = std::make_unique<Button>(this, "Audio Routes");
-    _btnAudioTab->setSize(200, Layout::Button);
-    _btnAudioTab->setPos(10, 40);
+    BUTTON(_btnAudioTab, 10, 40, 200, Layout::Button, "Audio Routes");
     _btnAudioTab->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_midiTab->hide();
         this->_audioTab->show();
         return true;
     });
 
-    _btnMidiTab = std::make_unique<Button>(this, "Midi Routes");
-    _btnMidiTab->setSize(200, Layout::Button);
-    _btnMidiTab->setPos(200+Layout::Margin, 40);
+    BUTTON(_btnMidiTab, 200+Layout::Margin, 40, 200, Layout::Button, "Midi Routes");
     _btnMidiTab->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
         this->_audioTab->hide();
         this->_midiTab->show();
         return true;
     });
 
-    _audioTab = std::make_unique<AudioTab>(this, _currentUnitId);
-    _midiTab = std::make_unique<MidiTab>(this, _currentUnitId);
+    _audioTab = std::make_unique<AudioTab>(this, _currentUnitId, this);
+    _midiTab = std::make_unique<MidiTab>(this, _currentUnitId, this);
 
     _chbMidiThru = std::make_unique<Checkbox>(this);
     _chbMidiThru->setPos(1300, 40);
@@ -119,12 +112,15 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         //     .targetId = view->id(),
         //     .newState = view->isMidiThru() ? false : true
         // };
+        //     action->finished = [ptr = _rm]() {
+        //     UIControls::DisplayTask([ptr]() {
+        //         ptr->liveUpdate();
+        //     });
+        // };
         // slr::EmitEvent(e);
     });
 
-    _lblMidiThruStatic = std::make_unique<Label>(this, "Midi Thru");
-    _lblMidiThruStatic->setSize(200, 40);
-    _lblMidiThruStatic->setPos(1300+10+Layout::CHECKBOX, 55);
+    LABEL(_lblMidiThruStatic, 1300+10+Layout::CHECKBOX, 55, 200, 40, "Midi Thru");
     
     _chbOmniHwInput = std::make_unique<Checkbox>(this);
     _chbOmniHwInput->setPos(1500, 40);
@@ -138,13 +134,15 @@ RouteManager::RouteManager(BaseWidget * parent, UIContext * const uictx) :
         // slr::Events::ToggleOmniHwInput e = {
         //     .targetId = view->id(),
         //     .newState = view->isOmniHwInput() ? false : true
+        // };action->finished = [ptr = _rm]() {
+        //     UIControls::DisplayTask([ptr]() {
+        //         ptr->liveUpdate();
+        //     });
         // };
         // slr::EmitEvent(e);
     });
 
-    _lblOmniHwInputStatic = std::make_unique<Label>(this, "Omni HW");
-    _lblOmniHwInputStatic->setSize(300, 40);
-    _lblOmniHwInputStatic->setPos(1500+10+Layout::CHECKBOX, 55);
+    LABEL(_lblOmniHwInputStatic, 1500+10+Layout::CHECKBOX, 55, 300, 40, "Omni HW");
 }
 
 RouteManager::~RouteManager() { 
@@ -179,9 +177,10 @@ void RouteManager::liveUpdate() {
     update();
 }
 
-RouteManager::AudioTab::AudioTab(BaseWidget *parent, const slr::ID &id)
+RouteManager::AudioTab::AudioTab(BaseWidget *parent, const slr::ID &id, RouteManager *rm)
     : BaseWidget(parent, true),
-    _currentId(id)
+    _currentId(id),
+    _rm(rm)
 {
     setPos(0, 150);
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT-150);
@@ -194,41 +193,12 @@ RouteManager::AudioTab::AudioTab(BaseWidget *parent, const slr::ID &id)
     _inputs.clear();
     _outputs.clear();
     
-    _nextInput._extint = nullptr;
-    _nextInput._dropdown = nullptr;
-    _nextInput._channelMap = nullptr;
-    _nextInput._addRemoveButton = nullptr;
-    
-    _nextOutput._extint = nullptr;
-    _nextOutput._dropdown = nullptr;
-    _nextOutput._channelMap = nullptr;
-    _nextOutput._addRemoveButton = nullptr;
     show();
 }
 
 RouteManager::AudioTab::~AudioTab() {
-    for(auto &r : _inputs) {
-        delete r._extint;
-        delete r._dropdown;
-        delete r._channelMap;
-        delete r._addRemoveButton;
-    }
-    for(auto &r : _outputs) {
-        delete r._extint;
-        delete r._dropdown;
-        delete r._channelMap;
-        delete r._addRemoveButton;
-    }
-    
-    delete _nextInput._extint;
-    delete _nextInput._dropdown;
-    delete _nextInput._channelMap;
-    delete _nextInput._addRemoveButton;
-    
-    delete _nextOutput._extint;
-    delete _nextOutput._dropdown;
-    delete _nextOutput._channelMap;
-    delete _nextOutput._addRemoveButton;
+    _inputs.clear();
+    _outputs.clear();
 }
 
 void RouteManager::AudioTab::update() {
@@ -264,64 +234,21 @@ void RouteManager::AudioTab::update() {
 }
 
 void RouteManager::AudioTab::forcedClose() {
-    for(Route &r : _outputs) {
-        delete r._extint;
-        delete r._dropdown;
-        delete r._channelMap;
-        delete r._addRemoveButton;
-        r._extint = nullptr;
-        r._dropdown = nullptr;
-        r._channelMap = nullptr;
-        r._addRemoveButton = nullptr;
-    }
-
     _outputs.clear();
-    
-    for(Route &r : _inputs) {
-        delete r._extint;
-        delete r._dropdown;
-        delete r._channelMap;
-        delete r._addRemoveButton;
-        r._extint = nullptr;
-        r._dropdown = nullptr;
-        r._channelMap = nullptr;
-        r._addRemoveButton = nullptr;
-    }
-
     _inputs.clear();
 
-    delete _nextInput._extint;
-    delete _nextInput._dropdown;
-    delete _nextInput._channelMap;
-    delete _nextInput._addRemoveButton;
-    
-    delete _nextOutput._extint;
-    delete _nextOutput._dropdown;
-    delete _nextOutput._channelMap;
-    delete _nextOutput._addRemoveButton;
-    
-    _nextInput._extint = nullptr;
-    _nextInput._dropdown = nullptr;
-    _nextInput._channelMap = nullptr;
-    _nextInput._addRemoveButton = nullptr;
-    
-    _nextOutput._extint = nullptr;
-    _nextOutput._dropdown = nullptr;
-    _nextOutput._channelMap = nullptr;
-    _nextOutput._addRemoveButton = nullptr;
+    _nextInput.reset();
+    _nextOutput.reset();
 }
 
 void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, const int posY) {
-    Route r;
-
-    Button * extint = nullptr;
+    std::unique_ptr<Button> extint;
     if(isNew) 
-        extint = new Button(this, "EXT");
+        extint = std::make_unique<Button>(this, "EXT");
     else 
-        extint = new Button(this, in._sourceType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
+        extint = std::make_unique<Button>(this, in._sourceType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
     extint->setSize(Layout::ROUTE_CTL_LEFT_EXT_W, Layout::ROUTE_CTL_LEFT_EXT_H);
     extint->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, Layout::ROUTE_CTL_LEFT_EXT_Y+posY);
-    extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             std::string text = this->_nextInput._extint->text();
@@ -355,12 +282,10 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
             return true;
         });
     }
-    r._extint = extint;
-
     
-    DropDown * drop = new DropDown(this);
-    drop->setPos(Layout::ROUTE_CTL_LEFT_DD_X, Layout::ROUTE_CTL_LEFT_DD_Y+posY);
+    std::unique_ptr<DropDown> drop = std::make_unique<DropDown>(this);
     drop->setSize(Layout::ROUTE_CTL_LEFT_DD_W, Layout::ROUTE_CTL_LEFT_DD_H); 
+    drop->setPos(Layout::ROUTE_CTL_LEFT_DD_X, Layout::ROUTE_CTL_LEFT_DD_Y+posY);
     if(isNew) {
         // slr::DriverView *dri = slr::DriverView::driverView(); -> fetch driver name
         std::vector<std::string> items;
@@ -381,18 +306,14 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
         drop->setSelected(tmptext);
         drop->disableButton();
     }
-    r._dropdown = drop;
 
-    Button * map = new Button(this, "MAP");
+    std::unique_ptr<Button> map = std::make_unique<Button>(this, "MAP");
     map->setPos(Layout::ROUTE_CTL_LEFT_MAP_X, Layout::ROUTE_CTL_LEFT_MAP_Y+posY);
     map->setSize(Layout::ROUTE_CTL_LEFT_MAP_W, Layout::ROUTE_CTL_LEFT_MAP_H);
-    map->setFont(&DEFAULT_FONT);
-    r._channelMap = map;
 
-    Button * addremove = new Button(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
+    std::unique_ptr<Button> addremove = std::make_unique<Button>(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
     addremove->setPos(Layout::ROUTE_CTL_LEFT_ADD_X, Layout::ROUTE_CTL_LEFT_ADD_Y+posY);
     addremove->setSize(Layout::ROUTE_CTL_LEFT_ADD_W, Layout::ROUTE_CTL_LEFT_ADD_H);
-    addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
         addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             this->newRoute(true);
@@ -408,23 +329,29 @@ void RouteManager::AudioTab::addAsInput(bool isNew, const slr::AudioRoute &in, c
     //     }
     // });
 
-    r._addRemoveButton = addremove;
-
-    if(isNew) _nextInput = r;
-    else _inputs.push_back(r);
+    if(isNew) {
+        _nextInput._extint.swap(extint);
+        _nextInput._dropdown.swap(drop);
+        _nextInput._channelMap.swap(map);
+        _nextInput._addRemoveButton.swap(addremove);
+    } else { 
+        Route r;
+        r._extint = std::move(extint);
+        r._dropdown = std::move(drop);
+        r._channelMap = std::move(map);
+        r._addRemoveButton = std::move(addremove);
+        _inputs.push_back(std::move(r));
+    }
 }
 
 void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out, const int posY) {
-    Route r;
-
-    Button *extint = nullptr;
+    std::unique_ptr<Button> extint;
     if(isNew) 
-        extint = new Button(this, "EXT");
+        extint = std::make_unique<Button>(this, "EXT");
     else 
-        extint = new Button(this, out._targetType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
+        extint = std::make_unique<Button>(this, out._targetType == slr::AudioRoute::Type::EXT ? "EXT" : "INT");
     extint->setSize(Layout::ROUTE_CTL_RIGHT_EXT_W, Layout::ROUTE_CTL_RIGHT_EXT_H);
     extint->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, Layout::ROUTE_CTL_RIGHT_EXT_Y+posY);
-    extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             std::string text = this->_nextOutput._extint->text();
@@ -456,11 +383,10 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
             return true;
         }); 
     }
-    r._extint = extint;
 
-    DropDown * drop = new DropDown(this);
-    drop->setPos(Layout::ROUTE_CTL_RIGHT_DD_X, Layout::ROUTE_CTL_RIGHT_DD_Y+posY);
+    std::unique_ptr<DropDown> drop = std::make_unique<DropDown>(this);
     drop->setSize(Layout::ROUTE_CTL_RIGHT_DD_W, Layout::ROUTE_CTL_RIGHT_DD_H);
+    drop->setPos(Layout::ROUTE_CTL_RIGHT_DD_X, Layout::ROUTE_CTL_RIGHT_DD_Y+posY);
     
     if(isNew) {
         // slr::DriverView *dri = slr::DriverView::driverView(); -> fetch driver name
@@ -482,18 +408,15 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
         drop->setSelected(tmptext);
         drop->disableButton();
     }
-    r._dropdown = drop;
 
-    Button * map = new Button(this, "Map");
+    std::unique_ptr<Button> map = std::make_unique<Button>(this, "Map");
     map->setSize(Layout::ROUTE_CTL_RIGHT_MAP_W, Layout::ROUTE_CTL_RIGHT_MAP_H);
     map->setPos(Layout::ROUTE_CTL_RIGHT_MAP_X, Layout::ROUTE_CTL_RIGHT_MAP_Y+posY);
     map->setFont(&DEFAULT_FONT);
-    r._channelMap = map;
 
-    Button * addremove = new Button(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
+    std::unique_ptr<Button> addremove = std::make_unique<Button>(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
     addremove->setSize(Layout::ROUTE_CTL_RIGHT_ADD_W, Layout::ROUTE_CTL_RIGHT_ADD_H);
     addremove->setPos(Layout::ROUTE_CTL_RIGHT_ADD_X, Layout::ROUTE_CTL_RIGHT_ADD_Y+posY);
-    addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
         addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             this->newRoute(false);
@@ -508,10 +431,20 @@ void RouteManager::AudioTab::addAsOutput(bool isNew, const slr::AudioRoute &out,
     //         //remove route
     //     }
     // });
-    r._addRemoveButton = addremove;
-    
-    if(isNew) _nextOutput = r;
-    else _outputs.push_back(r);
+
+    if(isNew) {
+        _nextOutput._extint.swap(extint);
+        _nextOutput._dropdown.swap(drop);
+        _nextOutput._channelMap.swap(map);
+        _nextOutput._addRemoveButton.swap(addremove);
+    } else {
+        Route r;
+        r._extint = std::move(extint);
+        r._dropdown = std::move(drop);
+        r._channelMap = std::move(map);
+        r._addRemoveButton = std::move(addremove);
+        _outputs.push_back(std::move(r));
+    }
 }
 
 void RouteManager::AudioTab::newRoute(bool isInput) {
@@ -614,12 +547,18 @@ void RouteManager::AudioTab::newRoute(bool isInput) {
 
     auto action = std::make_unique<slr::Actions::AddNewAudioRoute>();
     action->route = newroute;
+    action->finished = [ptr = _rm]() {
+        UIControls::DisplayTask([ptr]() {
+            ptr->liveUpdate();
+        });
+    };
     slr::EmitAction(std::move(action));
 }
 
-RouteManager::MidiTab::MidiTab(BaseWidget *parent, const slr::ID &id) 
+RouteManager::MidiTab::MidiTab(BaseWidget *parent, const slr::ID &id, RouteManager *rm) 
     : BaseWidget(parent, true),
-    _currentId(id)
+    _currentId(id),
+    _rm(rm)
 {
     setPos(0, 150);
     setSize(Layout::ROUTE_MANAGER_WIDTH, Layout::ROUTE_MANAGER_HEIGHT-150);
@@ -628,16 +567,6 @@ RouteManager::MidiTab::MidiTab(BaseWidget *parent, const slr::ID &id)
 
     _inputs.reserve(5);
     _outputs.reserve(5);
-
-    _nextInput._addRemoveButton = nullptr;
-    _nextInput._channelMap = nullptr;
-    _nextInput._dropdown = nullptr;
-    _nextInput._extint = nullptr;
-
-    _nextOutput._addRemoveButton = nullptr;
-    _nextOutput._channelMap = nullptr;
-    _nextOutput._dropdown = nullptr;
-    _nextOutput._extint = nullptr;
 }
 
 RouteManager::MidiTab::~MidiTab() {
@@ -675,61 +604,22 @@ void RouteManager::MidiTab::update() {
 }
 
 void RouteManager::MidiTab::forcedClose() {
-    for(auto &r : _inputs) {
-        delete r._addRemoveButton;
-        delete r._channelMap;
-        delete r._dropdown;
-        delete r._extint;
-        r._addRemoveButton = nullptr;
-        r._channelMap = nullptr;
-        r._dropdown = nullptr;
-        r._extint = nullptr;   
-    }
     _inputs.clear();
-
-    for(auto &r : _outputs) {
-        delete r._addRemoveButton;
-        delete r._channelMap;
-        delete r._dropdown;
-        delete r._extint;
-        r._addRemoveButton = nullptr;
-        r._channelMap = nullptr;
-        r._dropdown = nullptr;
-        r._extint = nullptr;
-    }
     _outputs.clear();
 
-    delete _nextInput._addRemoveButton;
-    delete _nextInput._channelMap;
-    delete _nextInput._dropdown;
-    delete _nextInput._extint;
-    _nextInput._addRemoveButton = nullptr;
-    _nextInput._channelMap = nullptr;
-    _nextInput._dropdown = nullptr;
-    _nextInput._extint = nullptr;
-
-    delete _nextOutput._addRemoveButton;
-    delete _nextOutput._channelMap;
-    delete _nextOutput._dropdown;
-    delete _nextOutput._extint;
-    _nextOutput._addRemoveButton = nullptr;
-    _nextOutput._channelMap = nullptr;
-    _nextOutput._dropdown = nullptr;
-    _nextOutput._extint = nullptr;
+    _nextInput.reset();
+    _nextOutput.reset();
 }
 
 void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, const int posY) {
-    Route r;
-
-    Button * extint = nullptr;
+    std::unique_ptr<Button> extint;
     if(isNew) 
-        extint = new Button(this, "EXT");
+        extint = std::make_unique<Button>(this, "EXT");
     else 
-        extint = new Button(this, in._sourceType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
+        extint = std::make_unique<Button>(this, in._sourceType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
 
     extint->setSize(Layout::ROUTE_CTL_LEFT_EXT_W, Layout::ROUTE_CTL_LEFT_EXT_H);
     extint->setPos(Layout::ROUTE_CTL_LEFT_EXT_X, Layout::ROUTE_CTL_LEFT_EXT_Y+posY);
-    extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool{
             std::string text = this->_nextInput._extint->text();
@@ -766,11 +656,10 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
             return true;
         });
     }
-    r._extint = extint;
 
-    DropDown * drop = new DropDown(this);
-    drop->setPos(Layout::ROUTE_CTL_LEFT_DD_X, Layout::ROUTE_CTL_LEFT_DD_Y+posY);
+    std::unique_ptr<DropDown> drop = std::make_unique<DropDown>(this);
     drop->setSize(Layout::ROUTE_CTL_LEFT_DD_W, Layout::ROUTE_CTL_LEFT_DD_H);
+    drop->setPos(Layout::ROUTE_CTL_LEFT_DD_X, Layout::ROUTE_CTL_LEFT_DD_Y+posY);
     if(isNew) {
         const std::vector<std::unique_ptr<slr::MidiPort>> & activePorts = slr::ControlEngine::midiController()->activePorts();    
     
@@ -800,22 +689,14 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
         drop->setSelected(tmptext);
         drop->disableButton();
     }
-    r._dropdown = drop;
 
-    Button * map = new Button(this, "Map");
+    std::unique_ptr<Button> map = std::make_unique<Button>(this, "Map");
     map->setSize(Layout::ROUTE_CTL_LEFT_MAP_W, Layout::ROUTE_CTL_LEFT_MAP_H);
     map->setPos(Layout::ROUTE_CTL_LEFT_MAP_X, Layout::ROUTE_CTL_LEFT_MAP_Y+posY);
-    map->setFont(&DEFAULT_FONT);
-    r._channelMap = map;
-
-    Button * addremove  = nullptr;
-    if(isNew)
-        addremove = new Button(this, LV_SYMBOL_PLUS);
-    else 
-        addremove = new Button(this, LV_SYMBOL_MINUS);
+    
+    std::unique_ptr<Button> addremove = std::make_unique<Button>(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
     addremove->setSize(Layout::ROUTE_CTL_LEFT_ADD_W, Layout::ROUTE_CTL_LEFT_ADD_H);
     addremove->setPos(Layout::ROUTE_CTL_LEFT_ADD_X, Layout::ROUTE_CTL_LEFT_ADD_Y+posY);
-    addremove->setFont(&DEFAULT_FONT);
     if(isNew) {
         addremove->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             this->newRoute(true);
@@ -827,23 +708,32 @@ void RouteManager::MidiTab::addAsInput(bool isNew, const slr::MidiRoute &in, con
             return true;
         });
     }
-    r._addRemoveButton = addremove;
 
-    if(isNew) _nextInput = r;
-    else _inputs.push_back(r);
+    if(isNew) {
+        _nextInput._extint.swap(extint);
+        _nextInput._dropdown.swap(drop);
+        _nextInput._channelMap.swap(map);
+        _nextInput._addRemoveButton.swap(addremove); 
+    } else { 
+        Route r;
+        r._extint = std::move(extint);
+        r._dropdown = std::move(drop);
+        r._channelMap = std::move(map);
+        r._addRemoveButton = std::move(addremove);
+        _inputs.push_back(std::move(r)); 
+    }
 }
 
 void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, const int posY) {
     Route r;
     
-    Button * extint = nullptr;
+    std::unique_ptr<Button> extint = nullptr;
     if(isNew) 
-        extint = new Button(this, "EXT");
+        extint = std::make_unique<Button>(this, "EXT");
     else 
-        extint = new Button(this, out._targetType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
+        extint = std::make_unique<Button>(this, out._targetType == slr::MidiRoute::Type::EXT ? "EXT" : "INT");
     extint->setSize(Layout::ROUTE_CTL_RIGHT_EXT_W, Layout::ROUTE_CTL_RIGHT_EXT_H);
     extint->setPos(Layout::ROUTE_CTL_RIGHT_EXT_X, Layout::ROUTE_CTL_RIGHT_EXT_Y+posY);
-    extint->setFont(&DEFAULT_FONT);
     if(isNew) {
         extint->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
             std::string text = this->_nextOutput._extint->text();
@@ -878,9 +768,8 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
             return true;
         });
     }
-    r._extint = extint;
 
-    DropDown * drop = new DropDown(this);
+    std::unique_ptr<DropDown> drop = std::make_unique<DropDown>(this);
     drop->setPos(Layout::ROUTE_CTL_RIGHT_DD_X, Layout::ROUTE_CTL_RIGHT_DD_Y+posY);
     drop->setSize(Layout::ROUTE_CTL_RIGHT_DD_W, Layout::ROUTE_CTL_RIGHT_DD_H);
     if(isNew) {
@@ -913,19 +802,12 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
         drop->setSelected(tmptext);
         drop->disableButton();
     }
-    r._dropdown = drop;
 
-    Button * map = new Button(this, "Map");
+    std::unique_ptr<Button> map = std::make_unique<Button>(this, "Map");
     map->setSize(Layout::ROUTE_CTL_RIGHT_MAP_W, Layout::ROUTE_CTL_RIGHT_MAP_H);
     map->setPos(Layout::ROUTE_CTL_RIGHT_MAP_X, Layout::ROUTE_CTL_RIGHT_MAP_Y+posY);
-    map->setFont(&DEFAULT_FONT);
-    r._channelMap = map;
 
-    Button * addremove = nullptr;
-    if(isNew) 
-        addremove = new Button(this, LV_SYMBOL_PLUS);
-    else 
-        addremove = new Button(this, LV_SYMBOL_MINUS);
+    std::unique_ptr<Button> addremove = std::make_unique<Button>(this, isNew ? LV_SYMBOL_PLUS : LV_SYMBOL_MINUS);
     addremove->setSize(Layout::ROUTE_CTL_RIGHT_ADD_W, Layout::ROUTE_CTL_RIGHT_ADD_H);
     addremove->setPos(Layout::ROUTE_CTL_RIGHT_ADD_X, Layout::ROUTE_CTL_RIGHT_ADD_Y+posY);
     addremove->setFont(&DEFAULT_FONT);
@@ -941,10 +823,19 @@ void RouteManager::MidiTab::addAsOutput(bool isNew, const slr::MidiRoute &out, c
             return true;
         });
     }
-    r._addRemoveButton = addremove;
-
-    if(isNew) _nextOutput = r;
-    else _outputs.push_back(r);
+    if(isNew) {
+        _nextOutput._extint.swap(extint);
+        _nextOutput._dropdown.swap(drop);
+        _nextOutput._channelMap.swap(map);
+        _nextOutput._addRemoveButton.swap(addremove);
+    } else { 
+        Route r;
+        r._extint = std::move(extint);
+        r._dropdown = std::move(drop);
+        r._channelMap = std::move(map);
+        r._addRemoveButton = std::move(addremove);
+        _outputs.push_back(std::move(r)); 
+    }
 }
 
 void RouteManager::MidiTab::newRoute(bool isInput) {
@@ -1051,7 +942,25 @@ void RouteManager::MidiTab::newRoute(bool isInput) {
     
     auto action = std::make_unique<slr::Actions::AddNewMidiRoute>();
     action->route = newroute;
+    action->finished = [ptr = _rm]() {
+        UIControls::DisplayTask([ptr]() {
+            ptr->liveUpdate();
+        });
+    };
     slr::EmitAction(std::move(action));
+}
+
+RouteManager::Route::Route(Route &&rhs) {
+    _extint.swap(rhs._extint);
+    _dropdown.swap(rhs._dropdown);
+    _channelMap.swap(rhs._channelMap);
+    _addRemoveButton.swap(rhs._addRemoveButton);
+}
+void RouteManager::Route::reset() {
+    _extint.reset();
+    _dropdown.reset();
+    _channelMap.reset();
+    _addRemoveButton.reset();
 }
 
 }

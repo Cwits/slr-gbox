@@ -24,6 +24,7 @@ lv_style_t Panels;
 lv_style_t Label;
 lv_style_t Text;
 lv_style_t DropDown;
+lv_style_t EditorLine;
 
 void initDefaultStyles() {
     lv_style_init(&borderless);
@@ -49,6 +50,10 @@ void initDefaultStyles() {
     lv_style_set_pad_all(&gridLine, 0);
     lv_style_set_radius(&gridLine, 0);
     lv_style_set_border_width(&gridLine, 0);
+
+    lv_style_init(&EditorLine);
+    lv_style_copy(&EditorLine, &gridLine);
+    lv_style_set_line_width(&EditorLine, 1);
 
     lv_style_init(&playheadStyle);
     lv_style_copy(&playheadStyle, &gridLine);

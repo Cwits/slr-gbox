@@ -28,10 +28,12 @@ struct DragViewSelector : public Popup {
 
     lv_obj_t * _gridZoneRect;
     lv_obj_t * _unitZoneRect;
+    lv_obj_t * _editorZoneRect;
 
     std::unique_ptr<Label> _lblName;
     std::unique_ptr<Label> _lblGrid;
     std::unique_ptr<Label> _lblUnit;
+    std::unique_ptr<Label> _lblEditor;
 
     static void timerClb(lv_timer_t * timer);
     bool handleDrag(const GestLib::DragGesture & drag);

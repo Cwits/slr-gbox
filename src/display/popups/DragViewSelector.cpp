@@ -34,9 +34,10 @@ struct Box2d {
 
 const Box2d gridZone = { .x = 20, .y = (980/2) - 100, .w = 200, .h = 200 };
 const Box2d unitZone = { .x = 250, .y = (980/2) - 100, .w = 200, .h = 200 };
+const Box2d editorZone = { .x = 500, .y = (980/2) - 100, .w = 200, .h = 200 };
 const Box2d modEngineZone = { .x = 500, .y = 20, .w = 200, .h = 200 };
 
-const int TIMEOUT_TIME = 700;
+const int TIMEOUT_TIME = 500;
 
 DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) :
     Popup(parent, uictx)
@@ -65,20 +66,27 @@ DragViewSelector::DragViewSelector(BaseWidget *parent, UIContext * const uictx) 
     lv_obj_set_pos(_unitZoneRect, unitZone.x, unitZone.y);
     lv_obj_set_style_bg_color(_unitZoneRect, lv_color_make(0, 255, 0), 0);
 
+    _editorZoneRect = lv_obj_create(lvhost());
+    lv_obj_set_size(_editorZoneRect, editorZone.w, editorZone.h);
+    lv_obj_set_pos(_editorZoneRect, editorZone.x, editorZone.y);
+    lv_obj_set_style_bg_color(_editorZoneRect, lv_color_make(0, 0, 255), 0);
+
     _lblName = std::make_unique<Label>(this, "Select target");
     _lblName->setSize(200, 40);
     _lblName->setPos(Layout::ROUTE_MANAGER_WIDTH, 20);
-    _lblName->setFont(&DEFAULT_FONT);
     
     _lblGrid = std::make_unique<Label>(this, "Grid");
     _lblGrid->setSize(gridZone.w, 40);
     _lblGrid->setPos(gridZone.x + (gridZone.w/2) - 40, gridZone.y + (gridZone.h/2) - 10);
-    _lblGrid->setFont(&DEFAULT_FONT);
     
     _lblUnit = std::make_unique<Label>(this, "Unit");
     _lblUnit->setSize(unitZone.w, 40);
     _lblUnit->setPos(unitZone.x + (unitZone.w/2) - 40, unitZone.y + (unitZone.h/2) - 10);
-    _lblUnit->setFont(&DEFAULT_FONT);
+    
+    _lblEditor = std::make_unique<Label>(this, "Editor");
+    _lblEditor->setSize(editorZone.w, 40);
+    _lblEditor->setPos(editorZone.x + (editorZone.w/2) - 40, editorZone.y + (editorZone.h/2) - 10);
+
 
     dragCallback(std::bind(&DragViewSelector::handleDrag, this, std::placeholders::_1));
 }
@@ -87,6 +95,7 @@ DragViewSelector::~DragViewSelector() {
     // lv_obj_delete(_timDrag);
     lv_obj_delete(_gridZoneRect);
     lv_obj_delete(_unitZoneRect);
+    lv_obj_delete(_editorZoneRect);
 }
 
 void DragViewSelector::update() {
@@ -145,7 +154,10 @@ void DragViewSelector::timerClb(lv_timer_t * timer) {
         //transfer gesture to unit        
         _this->_uictx->transferGesture(_this->_uictx->unitView(), GestLib::Gestures::Drag);
         _this->_uictx->switchToView(MainView::Unit);
-    } //...
+    } else if(editorZone.isPointWithin(xpos, ypos)) {
+        _this->_uictx->transferGesture(_this->_uictx->editorView(), GestLib::Gestures::Drag);
+        _this->_uictx->switchToView(MainView::Editor);
+    }
 
     _this->reset();
     _this->_uictx->_popManager->disableDragSelector();

@@ -74,7 +74,8 @@ void ToggleOmniHwAction::exec(ControlContext &ctx) {
                 view->setOmniHw(_oldState);
             }
 
-            UIControls::updateRouteManager();
+            // UIControls::updateRouteManager();
+            _action.finished();
 
             setState(ActionState::Finished);
     	} break;

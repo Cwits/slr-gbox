@@ -18,7 +18,7 @@ FileWorker::FileWorker() {
 }
 
 FileWorker::~FileWorker() {
-
+    shutdown();
 }
 
 bool FileWorker::init(std::atomic<bool> &shutdown, IdGenerator *gen) {

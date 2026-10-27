@@ -10,7 +10,8 @@
 
 namespace slr {
 
-class Timeline; 
+struct MidiPeaks;
+
 enum class MidiFileFormat {
     SingleTrack,
     MultipleTrack,
@@ -64,6 +65,9 @@ struct MidiFile : public File {
 
     const MidiTrack * track(std::size_t id) const { return _tracks.at(id).get(); }
 
+    const MidiPeaks * peaks(std::size_t id) const { return _peaks.at(id).get(); }
+    void setPeaks(std::vector<std::unique_ptr<MidiPeaks>> & peaks);
+    
     private:
     std::fstream _handle;
 
@@ -77,6 +81,7 @@ struct MidiFile : public File {
     uint32_t _ppqn;
 
     std::vector<std::unique_ptr<MidiTrack>> _tracks;
+    std::vector<std::unique_ptr<MidiPeaks>> _peaks;
 
     frame_t readvlv(uint8_t * data, int &currentReadPosition);
 };

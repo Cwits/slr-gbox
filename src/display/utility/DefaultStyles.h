@@ -19,6 +19,7 @@ extern lv_style_t GridFile;
 extern lv_style_t Text;
 /* Grid */
 extern lv_style_t gridLine;
+extern lv_style_t EditorLine;
 extern lv_style_t playheadStyle;
 
 extern lv_style_t loopMarkersStyle;

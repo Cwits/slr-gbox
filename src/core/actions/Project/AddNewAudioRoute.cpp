@@ -94,7 +94,8 @@ void AddNewRouteAction::exec(ControlContext &ctx) {
                 ctx.project->swapPlan();
             }
             ctx.projectView->updateRoutes(ctx.project->routes());
-            UIControls::updateRouteManager();
+            // UIControls::updateRouteManager();
+            _action.finished();
 
             setState(ActionState::Finished);
         } break;

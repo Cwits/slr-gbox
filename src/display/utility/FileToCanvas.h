@@ -11,6 +11,7 @@ namespace slr {
     class AudioPeaks;
     class MidiFile;
     class MidiTrack;
+    class MidiPeaks;
 }
 
 namespace UIHelpers {
@@ -28,7 +29,7 @@ void audioFileToCanvas(
 
 
 void midiFileToCanvas( 
-    const slr::MidiTrack * const file,
+    const slr::MidiPeaks * const peaks,
     slr::frame_t fileStart,
     slr::frame_t length,
     int noteFrom,

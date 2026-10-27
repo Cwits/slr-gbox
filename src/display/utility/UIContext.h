@@ -72,7 +72,7 @@ struct UIContext {
     float gridHorizontalZoom();
     void gridToFront();
 
-    void registerFrequentUpdate(std::function<void()> clb);
+    // void registerFrequentUpdate(std::function<void()> clb);
 
     void recalculateGrid() { _recalculateGridFilePositions = true; }
     bool recalcGridFiles() const { return _recalculateGridFilePositions; }

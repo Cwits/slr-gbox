@@ -178,4 +178,9 @@ inline T max(const T& a, const T& b) {
     return std::max(a, b);
 }
 
+template<typename T>
+inline T ceil(T a) {
+    return std::ceil(a);
+}
+
 } //sMath

@@ -32,14 +32,20 @@ struct RouteManager : public Popup {
     private:
 
     struct Route {
-        Button * _extint; //button
-        DropDown * _dropdown; //dropdown
-        Button * _channelMap; //dropdown
-        Button * _addRemoveButton; //button
+        Route() = default;
+        ~Route() = default;
+        Route(Route &&);
+    
+        std::unique_ptr<Button> _extint;
+        std::unique_ptr<DropDown> _dropdown;
+        std::unique_ptr<Button> _channelMap;
+        std::unique_ptr<Button> _addRemoveButton;
+
+        void reset();
     };
 
     struct AudioTab : public BaseWidget {
-        AudioTab(BaseWidget *parent, const slr::ID &id);
+        AudioTab(BaseWidget *parent, const slr::ID &id, RouteManager *rm);
         ~AudioTab();
 
         void update();
@@ -47,6 +53,7 @@ struct RouteManager : public Popup {
 
         private:
         const slr::ID & _currentId;
+        RouteManager *_rm;
 
         void addAsInput(bool isNew, const slr::AudioRoute &in, const int posY);
         void addAsOutput(bool isNew, const slr::AudioRoute &out, const int posY);
@@ -61,7 +68,7 @@ struct RouteManager : public Popup {
     };
 
     struct MidiTab : public BaseWidget {
-        MidiTab(BaseWidget *parent, const slr::ID &id);
+        MidiTab(BaseWidget *parent, const slr::ID &id, RouteManager *rm);
         ~MidiTab();
 
         void update();
@@ -69,6 +76,7 @@ struct RouteManager : public Popup {
 
         private:
         const slr::ID & _currentId;
+        RouteManager *_rm;
 
         void addAsInput(bool isNew, const slr::MidiRoute &in, const int posY);
         void addAsOutput(bool isNew, const slr::MidiRoute &out, const int posY);

@@ -307,15 +307,19 @@ void GridGrid::pollUIUpdate() {
 bool GridView::handleZoom(const GestLib::ZoomGesture &zoom) {
     // LOG_WARN("Zooom, Zoooom, Zooom! Need more coffee! %f", zoom.diff);
 
-    if(zoom.diff > 0) {
-        _horizontalZoom *= 0.99f;
-        _timeline->rebuildTimeline();
-        _uictx->recalculateGrid();
-    } else if(zoom.diff < 0) {
-        _horizontalZoom *= 1.01f;
-        _timeline->rebuildTimeline();
-        _uictx->recalculateGrid();
-    }
+    _horizontalZoom *= zoom.horDif;
+    _timeline->rebuildTimeline();
+    _uictx->recalculateGrid();
+
+    // if(zoom.horDif > 1) {
+    //     _horizontalZoom *= 0.99f;
+    //     _timeline->rebuildTimeline();
+    //     _uictx->recalculateGrid();
+    // } else if(zoom.horDif < 0) {
+    //     _horizontalZoom *= 1.01f;
+    //     _timeline->rebuildTimeline();
+    //     _uictx->recalculateGrid();
+    // }
 
     return true;
 }

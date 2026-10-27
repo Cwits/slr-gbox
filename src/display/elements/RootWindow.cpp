@@ -156,6 +156,8 @@ RootWindow::~RootWindow() {
     for(std::unique_ptr<UnitUIBase> &b : _removedUnits) {
         b->destroy(&_uiContext);
     }
+
+    _dragContext.reset();
 }
 
 void RootWindow::switchToView(MainView view) {
@@ -294,6 +296,16 @@ bool RootWindow::handleGesture(GestLib::Gesture & gesture) {
     }
 
     bool ret = globtarget->handleGesture(gesture);
+
+    if(_dragContext->dragOnGoing){
+        if(gesture.type == GestLib::Gestures::Drag) {
+            if(gesture.drag.state == GestLib::GestureState::End) {
+                LOG_WARN("Hit here");
+                _dragContext.reset();
+            }
+        }
+    }
+
     return ret;
 }
 
@@ -353,6 +365,8 @@ void RootWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture)
         _gestureTarget = _unitView.get();
     } else if(target == _modEngineView.get()) {
         _gestureTarget = _modEngineView.get();
+    } else if(target == _editorView.get()) {
+        _gestureTarget = _editorView.get();
     } else {
         LOG_ERROR("Target not handled");
     }
@@ -565,8 +579,8 @@ void RootWindow::pollUIUpdate() {
     _bottomPanel->pollUIUpdate();
 }
 
-void RootWindow::registerFrequentUpdate(std::function<void()> clb) {
-    // _frequentUpdateCallbacks.push_back(std::move(clb));
-}
+// void RootWindow::registerFrequentUpdate(std::function<void()> clb) {
+//     // _frequentUpdateCallbacks.push_back(std::move(clb));
+// }
 
 } //namespace UI

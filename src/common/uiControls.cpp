@@ -116,13 +116,6 @@ void updateTimeline(const bool timeSigOrBpm) {
     });
 }
 
-/* Route Manager */
-void updateRouteManager() {
-    postToLvgl([]() {
-        UI::RootWindow::inst()->_routeManager->liveUpdate();
-    });
-}
-
 /* Metronome */
 void updateMetronomeState(bool onoff) {
     postToLvgl([onoff]() {
@@ -166,6 +159,10 @@ void clearUI() {
             PushUI::RootWidget::inst()->clearUI();
         });
     }
+}
+
+void DisplayTask(std::function<void()> fn) {
+    postToLvgl(std::move(fn));
 }
 
 } //namespace UIControls

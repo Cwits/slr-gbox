@@ -7,11 +7,18 @@
 #include "core/primitives/AudioPeaks.h"
 #include "core/primitives/MidiFile.h"
 #include "core/primitives/MidiEvent.h"
+#include "core/primitives/MidiPeaks.h"
 #include "core/SettingsManager.h"
 
 #include "snapshots/TimelineView.h"
 
 #include "common/Math.h"
+#include "common/logger.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <vector>
 
 namespace UIHelpers {
 
@@ -70,15 +77,15 @@ struct Note {
     slr::frame_t ppqnStart = 0;
     slr::frame_t ppqnEnd = 0;
     int velocity = 0;
-    int pitch = 0;
+    int note = 0;
 };
 
 /*
-    leave noteFrom and noteTo == 0 if want to auto pick range
+    leave noteFrom and noteTo == -1 if want to auto pick range
     fileStart and length must be in frames
 */
-void midiFileToCanvas( 
-    const slr::MidiTrack * const file,
+void midiFileToCanvas(
+    const slr::MidiPeaks * const peaks,
     slr::frame_t fileStart,
     slr::frame_t length,
     int noteFrom,
@@ -87,68 +94,91 @@ void midiFileToCanvas(
     int canvasHeight,
     int canvasWidth,
     lv_color_t peakColor,
-    lv_color_t fillColor) 
+    lv_color_t fillColor)
 {
-    const std::vector<slr::MidiEvent> & events = file->midiEvents;
-    std::vector<Note> notes;
-
-    int noteMin = 127;
-    int noteMax = 0;
-    
-    bool pickRange = true;
-    if(noteFrom != 0 && noteTo != 0) {
-        //range given manually
-        pickRange = false;
-        noteMin = noteFrom;
-        noteMax = noteTo;
+    if (!peaks || !canvas ||
+        canvasWidth <= 0 || canvasHeight <= 0 ||
+        length <= 0) {
+        return;
     }
-    
+
     slr::TimelineView &tl = slr::TimelineView::getTimelineView();
 
-    slr::frame_t start = (fileStart / tl.framesPerQuater()) * tl.ppqn();
-    slr::frame_t end = (length / tl.framesPerQuater()) * tl.ppqn();
+    const auto framesPerQuarter = tl.framesPerQuater();
+    const auto ppqn = tl.ppqn();
 
-    for(auto &ev : events) {
-        //skip events that not in range (but may loose some of events unfortunately)
-        if(ev.offset < start) continue;
-        if(ev.offset > end) continue;
-        
-        if(ev.type == slr::MidiEventType::NoteOn) {
-            Note n;
-            n.ppqnStart = ev.offset;
-            n.velocity = ev.velocity;
-            n.pitch = ev.note;
-            notes.push_back(n);
-            
-            if(pickRange) {
-                noteMin = std::min(noteMin, n.pitch);
-                noteMax = std::max(noteMax, n.pitch);
-            }
-        } else if(ev.type == slr::MidiEventType::NoteOff) {
-            notes.back().ppqnEnd = ev.offset;
+    if(framesPerQuarter <= 0 || ppqn <= 0) return;
+
+    const slr::frame_t start = (fileStart / framesPerQuarter) * ppqn;
+    const slr::frame_t end = ((fileStart + length) / framesPerQuarter) * ppqn;
+
+    if(end <= start) return;
+
+    const std::vector<slr::Note> &notes = peaks->notes();
+
+    int noteMin = 128;
+    int noteMax = 0;
+
+    const bool pickRange = noteFrom == -1 || noteTo == -1;
+
+    if(!pickRange) {
+        noteMin = Math::clamp(noteFrom, 0, 127);
+        noteMax = Math::clamp(noteTo, 0, 127);
+
+        if(noteMin > noteMax) return;
+    }
+
+    if(pickRange) {
+        for(const auto &n : notes) {
+            noteMin = std::min(noteMin, n.note);
+            noteMax = std::max(noteMax, n.note);
         }
     }
 
-    float heightPerEvent = canvasHeight/(noteMax-noteMin);
-    int lastHeight = 0;
-    float ratio = (float)canvasWidth / (float)notes.back().ppqnEnd;
+    if(pickRange) {
+        if(noteMin > noteMax) {
+            LOG_ERROR("Note min %d can't be bigger than note max %d", noteMin, noteMax);
+            return;
+        }
+    }
 
-    for(auto &n : notes) {
-        int x = n.ppqnStart * ratio;
-        int y = canvasHeight - ((n.pitch-noteMin) * heightPerEvent);
-        int width = (n.ppqnEnd-n.ppqnStart) * ratio;
-        int height = heightPerEvent;
+    const int noteCount = noteMax - noteMin + 1;
+    if(noteCount <= 0) return;
 
-        if(y == canvasHeight) y -= 1;
+    const double pixelsPerTick = static_cast<double>(canvasWidth) / static_cast<double>(end - start);
+    const double pixelsPerNote = static_cast<double>(canvasHeight) / noteCount;
 
-        for(int xpos=x; xpos<width+x; ++xpos) {
-            for(int ypos=y; ypos>y-height; --ypos) {
-                lv_canvas_set_px(canvas, xpos, ypos, fillColor, LV_OPA_COVER);
+    for(const auto &n : notes) {
+        if(n.note < noteMin || n.note > noteMax) continue;
+
+        const auto clippedStart = Math::max(n.ppqnStart, start);
+        const auto clippedEnd = Math::min(n.ppqnEnd, end);
+
+        if(clippedEnd <= clippedStart) continue;
+
+        int x1 = static_cast<int>((clippedStart - start) * pixelsPerTick);
+        int x2 = static_cast<int>((clippedEnd - start) * pixelsPerTick);
+
+        x1 = Math::clamp(x1, 0, canvasWidth - 1);
+        x2 = Math::clamp(x2, x1 + 1, canvasWidth);
+
+        const int row = noteMax - n.note;
+            
+        int y1 = static_cast<int>(Math::floor(row * pixelsPerNote));
+        int y2 = static_cast<int>(Math::ceil((row + 1) * pixelsPerNote));
+
+        y1 = Math::clamp(y1, 0, canvasHeight - 1);
+        y2 = Math::clamp(y2, y1 + 1, canvasHeight);
+
+        const lv_color_t color = n.velocity >= 100 ? peakColor : fillColor;
+
+        for(int x=x1; x<x2; ++x) {
+            for(int y=y1; y<y2; ++y) {
+                lv_canvas_set_px(canvas, x, y, color, LV_OPA_COVER);
             }
         }
-
-        lastHeight += heightPerEvent;
     }
 }
+
 
 }

@@ -66,9 +66,9 @@ void UIContext::gridToFront() {
     _gridView->_timeline->moveToFront();
 }
 
-void UIContext::registerFrequentUpdate(std::function<void()> clb) {
-    _rootWindow->registerFrequentUpdate(std::move(clb));
-}
+// void UIContext::registerFrequentUpdate(std::function<void()> clb) {
+//     _rootWindow->registerFrequentUpdate(std::move(clb));
+// }
 
 void UIContext::filesRecalculated() { _recalculateGridFilePositions = false; }
 

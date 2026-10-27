@@ -7,6 +7,7 @@
 #include "common/logger.h"
 #include "common/Math.h"
 #include "core/SettingsManager.h"
+#include "core/primitives/MidiPeaks.h"
 
 #include <iostream>
 #include <vector>
@@ -272,5 +273,8 @@ frame_t MidiFile::readvlv(uint8_t * data, int &currentReadPosition) {
     }
     return position;
 }
+
+
+void MidiFile::setPeaks(std::vector<std::unique_ptr<MidiPeaks>> & peaks) { _peaks = std::move(peaks); }
 
 }

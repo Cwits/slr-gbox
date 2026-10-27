@@ -25,7 +25,7 @@ struct FilePreview : public BaseWidget {
 
     void setSize(lv_coord_t w, lv_coord_t h) override;
     void pollUIUpdate() override;
-    void draw(slr::frame_t, slr::frame_t, int = 0, int = 0);
+    void draw(slr::frame_t, slr::frame_t, int = -1, int = -1);
 
     const slr::ClipContentView * const _content;
 

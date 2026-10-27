@@ -9,6 +9,7 @@
 #include "common/logger.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace UI {
 
@@ -43,14 +44,19 @@ void DropDown::setSize(lv_coord_t w, lv_coord_t h) {
     _btn->setSize(w, h);
 
     lv_obj_set_size(_lvhost, w, h); 
+    _lastHeight = h;
 }
 
+//SetSize() must be called before setPos
 void DropDown::setPos(lv_coord_t x, lv_coord_t y) {
     _btn->setPos(x, y);
 
-    int height = lv_font_get_line_height(&DEFAULT_FONT);
-    height = height + (height/2);
-    lv_obj_set_pos(_lvhost, x, y+height);
+    /*
+        if setSize was called right before setPos(e.g. in Route Manager on creating stuff)
+        than height of button wasn't actually updated yet, thus lv_obj_get_height(_btn->lvhost()) returns 0
+        so, have to use _lastHeight for thos purpose
+    */
+    lv_obj_set_pos(_lvhost, x, y+_lastHeight);
 }
 
 void DropDown::setItems(std::vector<std::string> &items) {
@@ -149,6 +155,7 @@ bool DropDown::handleTap(const GestLib::TapGesture & tap) {
     // int index = ((tap.y-y) / height) - 1;
     if(idx >= _items.size()) {
         LOG_ERROR("Wrong index");
+        close();
         return false;
     }
     

@@ -39,6 +39,8 @@ FilePreview::FilePreview(BaseWidget * parent, const slr::ClipContentView * const
     _content(clipItem)
 {
     addStyle(&Style::GridFile);
+    // lv_obj_set_style_border_width(lvhost(), 2, 0);
+    // lv_obj_set_style_border_color(lvhost(), Colors::White, 0);
     noScroll();
     _canvas = lv_canvas_create(lvhost());
     lv_obj_set_pos(_canvas, 0, 0);

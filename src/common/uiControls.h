@@ -4,6 +4,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <functional>
 #include "common/defines.h"
 
 namespace slr {
@@ -46,9 +47,6 @@ void deleteUI(slr::ID id);
 /* Timeline */
 void updateTimeline(const bool timeSigOrBpm);
 
-/* Route Manager */
-void updateRouteManager();
-
 /* Metronome */
 void updateMetronomeState(bool onoff);
 
@@ -64,5 +62,7 @@ void updateModulationTargetManager();
 // void deleteModulationUI(slr::ID id);
 
 void clearUI();
+
+void DisplayTask(std::function<void()> fn);
 
 }

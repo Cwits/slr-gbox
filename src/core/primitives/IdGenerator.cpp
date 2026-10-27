@@ -8,10 +8,12 @@ namespace slr {
 IdGenerator::IdGenerator() {
     _unitIdCounter = 1;
     _clipIdCounter = 1;
+    _fileIdCounter = 1;
     _audioRouteIdCounter = 1;
     _midiRouteIdCounter = 1;
     _sequenceIdCounter = 1;
     _modulationIdCounter = 1;
+    
 }
 
 

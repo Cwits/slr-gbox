@@ -11,9 +11,8 @@
 namespace slr {
 
 class File;
-// class ClipItem;
 struct AudioPeaks;
-struct MidiTrack; 
+struct MidiPeaks;
 
 struct ClipContentView {
     ClipContentType type;
@@ -23,7 +22,7 @@ struct ClipContentView {
     
     union {
         const AudioPeaks * audio;
-        const MidiTrack * midi; //TODO: need to replace this by something... dunno
+        const MidiPeaks *midi;
     };
     ID fileId;
 };
@@ -45,20 +44,7 @@ struct ClipItemView {
     void update();
     uint64_t version() const { return _version.load(std::memory_order_acquire); }
 
-
-    // void update(frame_t startPosition, frame_t length, frame_t fileOffset, bool muted) {
-    //     _startPosition = startPosition;
-    //     _length = length;
-    //     _fileOffset = fileOffset;
-    //     _muted = muted;
-    //     incrementVersion();
-    // }
-
     private:
-    // frame_t _startPosition;
-    // frame_t _length;
-    // frame_t _fileOffset;
-    // bool _muted;
     const ClipItem * _item;
 
     void incrementVersion() { _version.fetch_add(1, std::memory_order_release); }

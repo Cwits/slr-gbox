@@ -41,6 +41,7 @@ struct DropDown : public BaseWidget {
     std::function<void(const std::string)> _callback;
     
     bool _isClosed;
+    int _lastHeight;
     // const lv_font_t * _textFont;
 
     void open();

@@ -342,20 +342,20 @@ void FakeGestures::makeDTSwipeEnd(int x, int y) {
 void FakeGestures::makeZoomIn(int x, int y) {
     GestLib::Gesture zoom;
     zoom.type = GestLib::Gestures::Zoom;
-    zoom.zoom.x1 = x;
-    zoom.zoom.y1 = y;
-    zoom.zoom.x2 = x;
-    zoom.zoom.y2 = y;
-    zoom.zoom.diff = 1.0f;
+    // zoom.zoom.x1 = x;
+    // zoom.zoom.y1 = y;
+    // zoom.zoom.x2 = x;
+    // zoom.zoom.y2 = y;
+    // zoom.zoom.diff = 1.0f;
     UI::RootWindow::inst()->handleGesture(zoom); 
 }
 void FakeGestures::makeZoomOut(int x, int y) {
     GestLib::Gesture zoom;
     zoom.type = GestLib::Gestures::Zoom;
-    zoom.zoom.x1 = x;
-    zoom.zoom.y1 = y;
-    zoom.zoom.x2 = x;
-    zoom.zoom.y2 = y;
-    zoom.zoom.diff = -1.0f;
+    // zoom.zoom.x1 = x;
+    // zoom.zoom.y1 = y;
+    // zoom.zoom.x2 = x;
+    // zoom.zoom.y2 = y;
+    // zoom.zoom.diff = -1.0f;
     UI::RootWindow::inst()->handleGesture(zoom);
 }

@@ -82,12 +82,14 @@ struct ToggleMidiThru : public ActionBase {
     ToggleMidiThru(const ToggleMidiThru &rhs) :
         ActionBase(rhs),
         targetId(rhs.targetId),
-        newState(rhs.newState) {}
+        newState(rhs.newState),
+        finished(rhs.finished) {}
 
     std::type_index actionType() const override { return typeid(ToggleMidiThru); }
 
     ID targetId;
     bool newState;
+    std::function<void()> finished;
 };
 
 struct ToggleOmniHwInput : public ActionBase {
@@ -95,12 +97,14 @@ struct ToggleOmniHwInput : public ActionBase {
     ToggleOmniHwInput(const ToggleOmniHwInput &rhs) :
         ActionBase(rhs),
         targetId(rhs.targetId),
-        newState(rhs.newState) {}
+        newState(rhs.newState),
+        finished(std::move(rhs.finished)) {}
 
     std::type_index actionType() const override { return typeid(ToggleOmniHwInput); }
 
     ID targetId;
     bool newState;
+    std::function<void()> finished;
 };
 
 struct SetName : public ActionBase {
@@ -157,23 +161,31 @@ struct DeleteUnit : public ActionBase {
 struct AddNewAudioRoute : public ActionBase {
 	AddNewAudioRoute() {}
 	AddNewAudioRoute(const AddNewAudioRoute &rhs) : 
-		ActionBase(rhs), route(rhs.route), swapPlan(rhs.swapPlan) {}
+		ActionBase(rhs), 
+        route(rhs.route), 
+        swapPlan(rhs.swapPlan),
+        finished(std::move(rhs.finished)) {}
 		
 	std::type_index actionType() const override { return typeid(AddNewAudioRoute); }
 	
     AudioRoute route;
     bool swapPlan = true;
+    std::function<void()> finished;
 };
 
 struct AddNewMidiRoute : public ActionBase {
 	AddNewMidiRoute() {}
 	AddNewMidiRoute(const AddNewMidiRoute &rhs) : 
-		ActionBase(rhs), route(rhs.route), swapPlan(rhs.swapPlan) {}
+		ActionBase(rhs), 
+        route(rhs.route), 
+        swapPlan(rhs.swapPlan),
+        finished(std::move(rhs.finished)) {}
 		
 	std::type_index actionType() const override { return typeid(AddNewMidiRoute); }
 	
     MidiRoute route;
     bool swapPlan = true;
+    std::function<void()> finished;
 };
 
 struct ModifyClipItem : public ActionBase {

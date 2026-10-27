@@ -27,6 +27,7 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx) :
     setPos(Layout::BOTTOM_PANEL_X, Layout::BOTTOM_PANEL_Y);
     setSize(Layout::BOTTOM_PANEL_WIDTH, Layout::BOTTOM_PANEL_HEIGHT);
     addStyle(&Style::Panels);
+    lv_obj_set_style_bg_color(lvhost(), Colors::Blue, 0);
 
     int posy = 10;
     int posx = 10;
