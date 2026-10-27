@@ -307,7 +307,7 @@ void GridGrid::pollUIUpdate() {
 bool GridView::handleZoom(const GestLib::ZoomGesture &zoom) {
     // LOG_WARN("Zooom, Zoooom, Zooom! Need more coffee! %f", zoom.diff);
 
-    _horizontalZoom *= zoom.horDif;
+    _horizontalZoom /= zoom.horDif;
     _timeline->rebuildTimeline();
     _uictx->recalculateGrid();
 

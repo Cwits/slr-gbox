@@ -85,7 +85,8 @@ void initGui() {
 
 #if defined(__aarch64__)
     _driver = std::make_unique<GestLib::GenericDriver>(GestLib::GenericDriverConfig{});
-    _recognizer = std::make_unique<GestLib::GestureRecognier>(GestLib::RecognizerConfig{});
+    _driver->init(true);
+    _recognizer = std::make_unique<GestLib::GestureRecognzier>(GestLib::RecognizerConfig{});
 
     if(!_recognizer->init(_driver.get())) {
         LOG_FATAL("Failed to init gesture recognizer");
