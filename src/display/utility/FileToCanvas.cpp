@@ -38,7 +38,9 @@ void audioFileToCanvas(
     const slr::PeakData0 * buffer = peakFile->peaks0();
 
     int channels = buffer->channels();
-    float ratio = (float)buffer->size()/(float)canvasWidth;
+    float diff = length - fileStart;
+    float ratio = (float)diff / (float)canvasWidth;
+    // float ratio = (float)buffer->size()/(float)canvasWidth;
 
     int heightPerChannel = (canvasHeight/channels);
     int lerpMin = 0;
@@ -49,7 +51,7 @@ void audioFileToCanvas(
     } else {
         for(int ch=0; ch<channels; ++ch) {
             for(int x=0; x<canvasWidth; ++x) {
-                int offset = ratio*x;
+                int offset = (ratio*x) + fileStart;
 
                 uint8_t min = 255;
                 uint8_t max = 0;

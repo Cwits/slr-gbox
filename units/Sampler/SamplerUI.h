@@ -67,7 +67,7 @@ struct SamplerUI : public UnitUIBase {
         bool _lastAssetState;
         std::unique_ptr<Label> _lblAsset;
         std::unique_ptr<Timeline> _timeline;
-        float _horizontalZoom;
+        double _horizontalZoom;
 
         slr::ClipContentView _content;
         std::unique_ptr<FilePreview> _preview;

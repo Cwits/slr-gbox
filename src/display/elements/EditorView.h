@@ -44,9 +44,15 @@ struct EditorView : public BaseWidget {
 
     lv_obj_t * _toolPanel;
     std::unique_ptr<Label> _lblFilePath;
+    const slr::File * _lastDrawed;
     
-    float _horizontalZoom;
-    float _verticalZoom;
+    bool _zoomRedraw;
+    double _horizontalZoom;
+    double _verticalZoom;
+    slr::frame_t _drawStart;
+    slr::frame_t _drawEnd;
+    int _noteStart;
+    int _noteEnd;
 
     std::unique_ptr<Timeline> _timeline;
     slr::ClipContentView _content;

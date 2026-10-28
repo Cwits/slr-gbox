@@ -44,7 +44,7 @@ EditorView::EditorView(BaseWidget * parent, UIContext * uictx) :
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT); 
     noScroll();
     addStyle(&Style::workspace);
-    
+
     dragCallback(std::bind(&EditorView::handleDrag, this, std::placeholders::_1));
     swipeCallback(std::bind(&EditorView::handleSwipe, this, std::placeholders::_1));
     zoomCallback(std::bind(&EditorView::handleZoom, this, std::placeholders::_1));
@@ -69,6 +69,9 @@ EditorView::EditorView(BaseWidget * parent, UIContext * uictx) :
     _timeline->show();
 
     _dragStartedHere = false;
+    _zoomRedraw = false;
+    _content.fileId = 0;
+    _lastDrawed = nullptr;
 
     hide();
 }
@@ -82,6 +85,7 @@ void EditorView::setEditable(slr::ID fileId) {
     //not a good way, better smth like slr::ProjectView::getProject()->findfileById(fileId);
     const slr::FileWorker * worker = slr::ControlEngine::fileWorker();
     const slr::File * file = worker->findFileById(fileId);
+    _lastDrawed = file;
     
     if(!file) {
         std::string text = "Failed to find file with id: ";
@@ -95,13 +99,11 @@ void EditorView::setEditable(slr::ID fileId) {
     _lblFilePath->setText(text);
 
     //prepare
-    slr::frame_t fileFrames = 0; //for timeline
     slr::frame_t drawFrames = 0;
     if(file->isAudio()) {
         _content.type = slr::ClipContentType::Audio;
         _content.audio = static_cast<const slr::AudioFile*>(file)->peaks();
         drawFrames = static_cast<const slr::AudioFile*>(file)->frames();
-        fileFrames = drawFrames;
         //show audio tools, hide midi
     } else if(file->isMidi()) {
         _content.type = slr::ClipContentType::Midi;
@@ -113,9 +115,15 @@ void EditorView::setEditable(slr::ID fileId) {
         //show midi tools, hide audio
     }
     _content.fileId = file->id();
-        
-    int noteStart = 0;
-    int noteEnd = 128;
+    
+    //reset all values
+    _horizontalZoom = 1.0f;
+    _verticalZoom = 1.0f;
+    _noteStart = 0;
+    _noteEnd = 128;
+    _drawStart = 0;
+    _drawEnd = drawFrames;
+
 
     //redraw canvas
     if(_preview) _preview.reset();
@@ -126,9 +134,9 @@ void EditorView::setEditable(slr::ID fileId) {
     int canvasHeight = Layout::WORKSPACE_HEIGHT-(100+30); //30 for timeline numbers and 100 for toolbox
     _preview->setSize(Layout::WORKSPACE_WIDTH, canvasHeight);
     if(file->isAudio())
-        _preview->draw(0, drawFrames);
+        _preview->draw(_drawStart, _drawEnd);
     else if(file->isMidi())
-        _preview->draw(0, drawFrames, noteStart, noteEnd);
+        _preview->draw(_drawStart, _drawEnd, _noteStart, _noteEnd);
     _preview->show();
 
     
@@ -142,11 +150,10 @@ void EditorView::setEditable(slr::ID fileId) {
     }
     
 
-
     //recalculate timeline zoom and rebuild
     float fpp = UIUtility::samplesPerPixel(_horizontalZoom);
     float framesOnTimeline = Layout::WORKSPACE_WIDTH * fpp; //at current zoom
-    float ratio = framesOnTimeline / (float)drawFrames;
+    float ratio = framesOnTimeline / (float)_drawEnd;
 
     float newZoom = _horizontalZoom / ratio;
 
@@ -157,7 +164,7 @@ void EditorView::setEditable(slr::ID fileId) {
     if(file->isAudio()) {
         for(auto &l : _midiEditor._lines) l->hide();
     } else if(file->isMidi()) {
-        int notesOnDisplay = noteEnd - noteStart;
+        int notesOnDisplay = _noteEnd - _noteStart;
         float heightPerNote = static_cast<float>(canvasHeight) / notesOnDisplay;
 
         for (int i = 0; i < notesOnDisplay; ++i) {
@@ -170,7 +177,7 @@ void EditorView::setEditable(slr::ID fileId) {
 
             lv_line_set_points(l->line, &l->position[0], 2);
 
-            std::string text = std::to_string(noteEnd - i - 1);
+            std::string text = std::to_string(_noteEnd - i - 1);
             lv_label_set_text(l->num, text.c_str());
 
             lv_obj_set_pos(l->num, 3, ypos-3);
@@ -182,6 +189,55 @@ void EditorView::setEditable(slr::ID fileId) {
 }
 
 void EditorView::pollUIUpdate() {
+    
+    if(_zoomRedraw) {
+        _zoomRedraw = false;
+        
+        if(_content.fileId != 0)
+            _preview->draw(_drawStart, _drawEnd, _noteStart, _noteEnd);
+
+        //recalculate timeline zoom and rebuild
+        float fpp = UIUtility::samplesPerPixel(_horizontalZoom);
+        float framesOnTimeline = Layout::WORKSPACE_WIDTH * fpp; //at current zoom
+        float ratio = framesOnTimeline / (float)_drawEnd;
+
+        float newZoom = _horizontalZoom / ratio;
+
+        // _horizontalZoom = newZoom; file dependent thing
+        _timeline->nudge(_drawStart);
+        _timeline->rebuildTimeline();
+
+        //show or hide horizontal lines
+        if(_content.isAudio()) {
+            for(auto &l : _midiEditor._lines) l->hide();
+        } else if(_content.isMidi()) {
+            int notesOnDisplay = _noteEnd - _noteStart;
+            float heightPerNote = static_cast<float>(Layout::WORKSPACE_HEIGHT-(100+30)) / notesOnDisplay;
+
+            if(notesOnDisplay > 128) notesOnDisplay = 128; //???
+            for (int i = 0; i < notesOnDisplay; ++i) {
+                Line *l = _midiEditor._lines[i].get();
+
+                int ypos = Math::round(i * heightPerNote)+130;
+
+                l->position[0] = {0, ypos};
+                l->position[1] = {Layout::WORKSPACE_WIDTH, ypos};
+
+                lv_line_set_points(l->line, &l->position[0], 2);
+
+                std::string text = std::to_string(_noteEnd - i - 1);
+                lv_label_set_text(l->num, text.c_str());
+
+                lv_obj_set_pos(l->num, 3, ypos-3);
+                lv_obj_move_to_index(l->num, -1);
+
+                l->show();
+            }
+        }
+    }
+    
+    //check if file updated
+
 }
 
 bool EditorView::handleSwipe(const GestLib::SwipeGesture & swipe) {
@@ -238,6 +294,46 @@ bool EditorView::handleDrag(const GestLib::DragGesture &drag) {
 }
 
 bool EditorView::handleZoom(const GestLib::ZoomGesture &zoom) {
+    
+    /*
+    1. need to find center in frames based on current range and zoom
+    2. calculate new zoom values
+    3. update gui (can't force to redraw here i guess, better raise some flag and redraw in pollUIUpdate())
+    
+    as well as need some limits to prevent zoom going to inf
+    */
+    
+    double newHorZoom = _horizontalZoom / zoom.horDif;
+    double newVerZoom = _verticalZoom / zoom.verDif;
+
+    double horDiff = _horizontalZoom / newHorZoom;
+
+    LOG_INFO("Zoom difs h%.2f v%.2f, new h%.2f v%.2f", 
+        zoom.horDif, zoom.verDif, newHorZoom, newVerZoom);
+
+    int width = Layout::WORKSPACE_WIDTH;
+    int height = Layout::WORKSPACE_HEIGHT-(100+30);
+
+    //need to check for file end
+    double anchor = Math::clamp((double)zoom.xCenter / width, 0.0, 1.0);
+
+    slr::frame_t framesOnDisplay = _drawEnd - _drawStart;
+    slr::frame_t zoomCenterFrame = _drawStart + framesOnDisplay * anchor; 
+    
+    slr::frame_t newFrames = framesOnDisplay * newHorZoom;
+
+    _drawStart = zoomCenterFrame - (newFrames * anchor);
+    _drawEnd = _drawStart + newFrames;
+
+    // _drawStart = Math::abs((long)framesOnDisplay - (long)newFrames);
+    // _drawEnd = newFrames;
+
+    _horizontalZoom = newHorZoom;
+
+    _zoomRedraw = true;
+
+    // _horizontalZoom = newHorZoom;
+    // _verticalZoom = newVerZoom;
 
     return true;
 }

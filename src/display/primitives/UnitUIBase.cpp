@@ -272,7 +272,6 @@ void DefaultGridUI::pollFileUpdate() {
                             y = 0;
                         }
                     }
-                    delete toRemove.at(i);
                 }
             }
 

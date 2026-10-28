@@ -60,7 +60,7 @@ struct GridView : public BaseWidget {
     private:
     UIContext * const _uictx;
     
-    float _horizontalZoom = 1.0f;
+    double _horizontalZoom = 1.0f;
 
     bool handleSwipe(const GestLib::SwipeGesture & swipe);
     bool handleDrag(const GestLib::DragGesture &drag);

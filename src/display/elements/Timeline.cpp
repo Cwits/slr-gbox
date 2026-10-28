@@ -18,7 +18,7 @@
 namespace UI {
 
 
-Timeline::Timeline(BaseWidget * parent, lv_obj_t *host, float * const zoomPtr, UIContext * uictx) :
+Timeline::Timeline(BaseWidget * parent, lv_obj_t *host, double * const zoomPtr, UIContext * uictx) :
     BaseWidget(parent, false),
     _uictx(uictx),
     _host(host),

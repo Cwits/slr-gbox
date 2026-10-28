@@ -32,13 +32,17 @@ lv_display_t *lvDisplay;
 std::unique_ptr<UI::SplashScreen> _splash;
 lv_obj_t * _main_screen;
 
+#include "gestlib/GestureRecognizer.h"
 #if defined(__aarch64__)
 #include "gestlib/drivers/Generic.h"
 std::unique_ptr<GestLib::GenericDriver> _driver;
 std::unique_ptr<GestLib::GestureRecognizer> _recognizer;
 // GestLib::GestureRecognizer _recognizer;
 #else
-FakeGestures _fakeGestures;
+#include "gestlib/drivers/FakeSDL.h"
+std::unique_ptr<GestLib::FakeSDLDriver> _driver;
+std::unique_ptr<GestLib::GestureRecognizer> _recognizer;
+// FakeGestures _fakeGestures;
 #endif
 
 std::ofstream _logFile;
@@ -86,7 +90,7 @@ void initGui() {
 #if defined(__aarch64__)
     _driver = std::make_unique<GestLib::GenericDriver>(GestLib::GenericDriverConfig{});
     _driver->init(true);
-    _recognizer = std::make_unique<GestLib::GestureRecognzier>(GestLib::RecognizerConfig{});
+    _recognizer = std::make_unique<GestLib::GestureRecognizer>(GestLib::RecognizerConfig{});
 
     if(!_recognizer->init(_driver.get())) {
         LOG_FATAL("Failed to init gesture recognizer");
@@ -97,6 +101,19 @@ void initGui() {
     }
 
 #else
+    _driver = std::make_unique<GestLib::FakeSDLDriver>(GestLib::FakeSDLDriverConfig{});
+    _driver->init();
+    std::cout << _driver->helpString() << std::endl;
+    
+    _recognizer = std::make_unique<GestLib::GestureRecognizer>(GestLib::RecognizerConfig{});
+
+    if(!_recognizer->init(_driver.get())) {
+        LOG_FATAL("Failed to init gesture recognizer");
+    }
+
+    if(!_recognizer->start()) {
+        LOG_FATAL("Failed to start gesture recognizer");
+    }
     // if(SDL_CaptureMouse(SDL_TRUE) == -1) {
     //     LOG_ERROR("Failed to SDL_CaptureMouse");
     // }
@@ -132,35 +149,20 @@ void runGui(std::atomic<bool> &shutdown) {
             }
         }
 #else
-        int counter = 0;
+        // int counter = 0;
         while(SDL_PollEvent(&event)) {
-            if(event.type == SDL_KEYDOWN) {
-                _fakeGestures.handleKeyboard(event.key);
-                counter++;
-                // LOG_INFO("Key pressed, %i", event.key.keysym.sym);
-            } else if(event.type == SDL_KEYUP) {
-                _fakeGestures.handleKeyboard(event.key);
-                counter++;
-                // LOG_INFO("Key released, %i", event.key.keysym.sym);
-            } else if(event.type == SDL_MOUSEMOTION) {
-                _fakeGestures.handleMouseMotion(event.motion);
-                counter++;
-                // LOG_INFO("mouse motion, x:%i, y:%i", event.motion.x, event.motion.y);
-            } else if(event.type == SDL_MOUSEBUTTONDOWN) {
-                _fakeGestures.handleMouseButton(event.button);
-                counter++;
-                // LOG_INFO("mouse button pressed, %i", event.button.button);
-            } else if(event.type == SDL_MOUSEBUTTONUP) {
-                _fakeGestures.handleMouseButton(event.button);
-                counter++;
-                // LOG_INFO("mouse button released, %i", event.button.button);
-            } else if(event.type == SDL_QUIT) {
+            if(event.type == SDL_QUIT) {
                 //TODO: not always catching this event...
                 LOG_INFO("Sdl quit");
-                // _running = false;
                 shutdown = true;
+            } else {
+                _driver->feedSDLEvent(event);
             }
             // print_sdl_event(event);
+        }
+        std::vector<GestLib::Gesture> gestures = _recognizer->fetchGestures();
+        for(GestLib::Gesture &g : gestures) {
+            UI::RootWindow::inst()->handleGesture(g);
         }
 #endif
         uint32_t mills = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTick).count();
@@ -195,6 +197,9 @@ void runGui(std::atomic<bool> &shutdown) {
     }
 
 #if defined(__aarch64__)
+    _recognizer->shutdown();
+    _driver->shutdown();
+#else
     _recognizer->shutdown();
     _driver->shutdown();
 #endif

@@ -13,7 +13,7 @@ namespace UI {
 struct UIContext;
 
 struct Timeline : public BaseWidget {
-    Timeline(BaseWidget * parent, lv_obj_t *host, float * const zoomPtr, UIContext * uictx);
+    Timeline(BaseWidget * parent, lv_obj_t *host, double * const zoomPtr, UIContext * uictx);
     ~Timeline();
 
     void setSize(lv_coord_t w, lv_coord_t h) override;
@@ -36,7 +36,7 @@ struct Timeline : public BaseWidget {
     private:
     UIContext * const _uictx;
     lv_obj_t * _host;
-    float * const _zoomPtr;
+    double * const _zoomPtr;
 
     slr::frame_t _nudge;
 
