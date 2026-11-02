@@ -229,6 +229,24 @@ inline slr::frame_t pixelToFrame(int pixel, float horizontalZoom) {
     return pixel/notFramesPerPixel;
 }
 
+inline slr::frame_t ppqnToFrames(const slr::frame_t f, const slr::TimelineView &tl) {
+    return ((float)f / (float)tl.ppqn()) * tl.framesPerQuater();
+}
+
+template<typename T>
+void incrementUntill(T &base, const T limit, const T step) {
+    if(base + step <= limit) base += step;
+    else base += (limit - base);
+}
+
+template<typename T>
+void decrementUntill(T &base, const T limit, const T step) {
+    if(base - step >= limit) base -= step;
+    else {
+        T diff = base - limit;
+        base -= diff;
+    }
+}
 
 const std::string_view ErrorString = "Error String";
 }

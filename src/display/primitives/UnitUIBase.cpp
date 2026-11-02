@@ -20,6 +20,7 @@
 #include  "core/actions/Actions.h"
 
 #include "common/logger.h"
+#include "common/Math.h"
 
 #include <string>
 
@@ -318,7 +319,7 @@ void DefaultGridUI::setNudge(slr::frame_t nudge, const float horizontalZoom) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();
     int pixPerBar = UIUtility::pixelPerBar(horizontalZoom);
     float pixMoved = ( (float)nudge / tl.framesPerBar() ) * pixPerBar;
-
+    
     std::size_t size = _fileUIs.size();
     for(std::size_t i=0; i<size; ++i) {
         std::unique_ptr<ClipPreview>& item = _fileUIs.at(i);

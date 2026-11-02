@@ -78,15 +78,26 @@ void FilePreview::draw(slr::frame_t frameStart, slr::frame_t frameEnd, int notef
     lv_canvas_fill_bg(_canvas, Colors::clipPreviewBackground, LV_OPA_30);
 
     if(_content->isAudio()) {        
-        UIHelpers::audioFileToCanvas(
+        // UIHelpers::audioFileToCanvas(
+        //     _content->audio,
+        //     frameStart,
+        //     frameEnd,
+        //     _canvas,
+        //     _canvasHeight,
+        //     _canvasWidth,
+        //     _peakColor,
+        //     _fillColor
+        // );
+        UIHelpers::audioFileToBuffer(
             _content->audio,
             frameStart,
             frameEnd,
-            _canvas,
+            reinterpret_cast<lv_color32_t*>(_drawBuffer.get()),
             _canvasHeight,
             _canvasWidth,
             _peakColor,
-            _fillColor
+            _fillColor,
+            LV_OPA_COVER
         );
     } else if(_content->isMidi()) {
         UIHelpers::midiFileToCanvas(

@@ -355,21 +355,22 @@ void RootWindow::transferGesture(BaseWidget * target, GestLib::Gestures gesture)
         return;
     }
 
-    if(target == _dragViewSelector.get()) {
-        _gestureTarget = _dragViewSelector.get();
-    } else if(target == _gridView.get()) {
-        _gestureTarget = _gridView.get();
-    } else if(target == _browser.get()) {
-        _gestureTarget = _browser.get();
-    } else if(target == _unitView.get()) {
-        _gestureTarget = _unitView.get();
-    } else if(target == _modEngineView.get()) {
-        _gestureTarget = _modEngineView.get();
-    } else if(target == _editorView.get()) {
-        _gestureTarget = _editorView.get();
-    } else {
-        LOG_ERROR("Target not handled");
-    }
+    _gestureTarget = target;
+    // if(target == _dragViewSelector.get()) {
+    //     _gestureTarget = _dragViewSelector.get();
+    // } else if(target == _gridView.get()) {
+    //     _gestureTarget = _gridView.get();
+    // } else if(target == _browser.get()) {
+    //     _gestureTarget = _browser.get();
+    // } else if(target == _unitView.get()) {
+    //     _gestureTarget = _unitView.get();
+    // } else if(target == _modEngineView.get()) {
+    //     _gestureTarget = _modEngineView.get();
+    // } else if(target == _editorView.get()) {
+    //     _gestureTarget = _editorView.get();
+    // } else {
+    //     LOG_ERROR("Target not handled");
+    // }
 }
 
 void RootWindow::floatingText(bool warning, const std::string &text) {

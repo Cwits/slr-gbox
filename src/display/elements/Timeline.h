@@ -49,15 +49,19 @@ struct Timeline : public BaseWidget {
     lv_style_t _numberFont;
 
     struct GridLine {
-        lv_obj_t * number;
-        lv_obj_t * line;
+        ~GridLine() {
+            if(number) lv_obj_delete(number);
+            if(line) lv_obj_delete(line);
+        }
+        lv_obj_t * number = nullptr;
+        lv_obj_t * line = nullptr;
         lv_point_precise_t points[2];
 
         void show();
         void hide();
     };
 
-    std::vector<GridLine> _lines;
+    std::vector<std::unique_ptr<GridLine>> _lines;
     GridLine _playhead;
 
     struct LoopThings;

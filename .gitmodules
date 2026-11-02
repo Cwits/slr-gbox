@@ -4,6 +4,7 @@
 [submodule "external/gestlib"]
 	path = external/gestlib
 	url = https://github.com/Cwits/gestlib.git
+	branch = dev
 [submodule "external/loguru"]
 	path = external/loguru
 	url = https://github.com/emilk/loguru.git

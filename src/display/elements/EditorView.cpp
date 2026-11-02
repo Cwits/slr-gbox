@@ -15,6 +15,7 @@
 #include "display/primitives/FilePreview.h"
 
 #include "core/primitives/AudioFile.h"
+#include "core/primitives/AudioPeaks.h"
 #include "core/primitives/MidiFile.h"
 #include "core/primitives/MidiPeaks.h"
 #include "core/actions/Actions.h"
@@ -34,11 +35,30 @@
 
 namespace UI {
 
+lv_style_t styleDark;
+lv_style_t styleBright;
+lv_style_t noteStyle;
+
+const int ToolboxHeight = Layout::Button+30;
+const int DrawableHeight = Layout::WORKSPACE_HEIGHT - (ToolboxHeight); //30 comming from Timeline noubers background
+const int DrawableY = ToolboxHeight;
+
+
+bool blackKeys[] = { 
+    false, true, 
+    false, true, 
+    false, 
+    false, true, 
+    false, true, 
+    false, true,
+    false 
+};
+
+const lv_font_t * pickFont(int pix);
 
 EditorView::EditorView(BaseWidget * parent, UIContext * uictx) : 
     BaseWidget(parent, true),
-    _uictx(uictx),
-    _midiEditor(this)
+    _uictx(uictx)
 {
     setPos(Layout::WORKSPACE_POSITION_X, Layout::WORKSPACE_POSITION_Y);
     setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT); 
@@ -50,7 +70,7 @@ EditorView::EditorView(BaseWidget * parent, UIContext * uictx) :
     zoomCallback(std::bind(&EditorView::handleZoom, this, std::placeholders::_1));
 
     _toolPanel = lv_obj_create(lvhost());
-    lv_obj_set_size(_toolPanel, Layout::WORKSPACE_WIDTH, 100);
+    lv_obj_set_size(_toolPanel, Layout::WORKSPACE_WIDTH, Layout::Button);
     lv_obj_set_pos(_toolPanel, 0, 0);
     lv_obj_add_style(_toolPanel, &Style::workspace, 0);
     lv_obj_set_style_bg_color(_toolPanel, Colors::Red, 0);
@@ -58,20 +78,22 @@ EditorView::EditorView(BaseWidget * parent, UIContext * uictx) :
     _lblFilePath = std::make_unique<Label>(this, "Empty");
     _lblFilePath->setPos(10, 140);
     _lblFilePath->setSize(1600, 40);
+    lv_obj_set_style_bg_opa(_lblFilePath->lvhost(), LV_OPA_TRANSP, 0);
 
-    _verticalZoom = 1.0f;
     _horizontalZoom = 1.0f;
-
-    _timeline = std::make_unique<Timeline>(this, lvhost(), &_horizontalZoom, _uictx);
-    _timeline->setPos(0, 100);
-    _timeline->setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT-100);
-    _timeline->rebuildTimeline();
-    _timeline->show();
 
     _dragStartedHere = false;
     _zoomRedraw = false;
-    _content.fileId = 0;
-    _lastDrawed = nullptr;
+    
+    _audioEditor = std::make_unique<AudioEditor>(this, *this);
+    _midiEditor = std::make_unique<MidiEditor>(this, *this);
+    _audioEditor->_content.fileId = 0;
+
+    _timeline = std::make_unique<Timeline>(this, lvhost(), &_horizontalZoom, _uictx);
+    _timeline->setPos(0, ToolboxHeight-30); //30 from self number background
+    _timeline->setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT-(ToolboxHeight-30));
+    _timeline->rebuildTimeline();
+    _timeline->show();
 
     hide();
 }
@@ -85,7 +107,6 @@ void EditorView::setEditable(slr::ID fileId) {
     //not a good way, better smth like slr::ProjectView::getProject()->findfileById(fileId);
     const slr::FileWorker * worker = slr::ControlEngine::fileWorker();
     const slr::File * file = worker->findFileById(fileId);
-    _lastDrawed = file;
     
     if(!file) {
         std::string text = "Failed to find file with id: ";
@@ -101,55 +122,21 @@ void EditorView::setEditable(slr::ID fileId) {
     //prepare
     slr::frame_t drawFrames = 0;
     if(file->isAudio()) {
-        _content.type = slr::ClipContentType::Audio;
-        _content.audio = static_cast<const slr::AudioFile*>(file)->peaks();
-        drawFrames = static_cast<const slr::AudioFile*>(file)->frames();
+        _audioEditor->preparePreview(static_cast<const slr::AudioFile*>(file));
+        
         //show audio tools, hide midi
+        _audioEditor->show();
+        _midiEditor->hide();
     } else if(file->isMidi()) {
-        _content.type = slr::ClipContentType::Midi;
-        // _content.midi = static_cast<const slr::MidiFile*>(file)->track(0);
-        _content.midi = static_cast<const slr::MidiFile*>(file)->peaks(0);
-
-        slr::TimelineView &tl = slr::TimelineView::getTimelineView();
-        drawFrames = (_content.midi->notes().back().ppqnEnd / (float)tl.ppqn()) * tl.framesPerQuater();
+        _midiEditor->preparePreview(static_cast<const slr::MidiFile*>(file));
+        
         //show midi tools, hide audio
+        _audioEditor->hide();
+        _midiEditor->show();
     }
-    _content.fileId = file->id();
+
+    //since we setted up file -> the _drawStart and _drawEnd are filled
     
-    //reset all values
-    _horizontalZoom = 1.0f;
-    _verticalZoom = 1.0f;
-    _noteStart = 0;
-    _noteEnd = 128;
-    _drawStart = 0;
-    _drawEnd = drawFrames;
-
-
-    //redraw canvas
-    if(_preview) _preview.reset();
-    _preview = std::make_unique<FilePreview>(this, &_content, _uictx);
-    _preview->_fillColor = lv_color_hex(0x000000);
-    _preview->_peakColor = lv_color_hex(0xffffff);
-    _preview->setPos(0, 100+30); //30 for timeline numbers
-    int canvasHeight = Layout::WORKSPACE_HEIGHT-(100+30); //30 for timeline numbers and 100 for toolbox
-    _preview->setSize(Layout::WORKSPACE_WIDTH, canvasHeight);
-    if(file->isAudio())
-        _preview->draw(_drawStart, _drawEnd);
-    else if(file->isMidi())
-        _preview->draw(_drawStart, _drawEnd, _noteStart, _noteEnd);
-    _preview->show();
-
-    
-    if(file->isAudio()) {
-        //hide Midi Note Preview things
-    } else if(file->isMidi()) {
-        //recalculate Note Preview positions and place them
-        //bad thing because positions are calcolated twice here and in preview->draw(...) little bit higher...
-
-
-    }
-    
-
     //recalculate timeline zoom and rebuild
     float fpp = UIUtility::samplesPerPixel(_horizontalZoom);
     float framesOnTimeline = Layout::WORKSPACE_WIDTH * fpp; //at current zoom
@@ -158,82 +145,25 @@ void EditorView::setEditable(slr::ID fileId) {
     float newZoom = _horizontalZoom / ratio;
 
     _horizontalZoom = newZoom;
+    _timeline->nudge(_drawStart);
     _timeline->rebuildTimeline();
-
-    //show or hide horizontal lines
-    if(file->isAudio()) {
-        for(auto &l : _midiEditor._lines) l->hide();
-    } else if(file->isMidi()) {
-        int notesOnDisplay = _noteEnd - _noteStart;
-        float heightPerNote = static_cast<float>(canvasHeight) / notesOnDisplay;
-
-        for (int i = 0; i < notesOnDisplay; ++i) {
-            Line *l = _midiEditor._lines[i].get();
-
-            int ypos = Math::round(i * heightPerNote)+130;
-
-            l->position[0] = {0, ypos};
-            l->position[1] = {Layout::WORKSPACE_WIDTH, ypos};
-
-            lv_line_set_points(l->line, &l->position[0], 2);
-
-            std::string text = std::to_string(_noteEnd - i - 1);
-            lv_label_set_text(l->num, text.c_str());
-
-            lv_obj_set_pos(l->num, 3, ypos-3);
-            lv_obj_move_to_index(l->num, -1);
-
-            l->show();
-        }
-    }
+    // recalculateTimelineHZoom();
 }
 
 void EditorView::pollUIUpdate() {
     
     if(_zoomRedraw) {
         _zoomRedraw = false;
+
+        if(_audioEditor->visible()) {
+            _audioEditor->redraw();
+        } else {
+            _midiEditor->redraw();
+        }
         
-        if(_content.fileId != 0)
-            _preview->draw(_drawStart, _drawEnd, _noteStart, _noteEnd);
-
-        //recalculate timeline zoom and rebuild
-        float fpp = UIUtility::samplesPerPixel(_horizontalZoom);
-        float framesOnTimeline = Layout::WORKSPACE_WIDTH * fpp; //at current zoom
-        float ratio = framesOnTimeline / (float)_drawEnd;
-
-        float newZoom = _horizontalZoom / ratio;
-
-        // _horizontalZoom = newZoom; file dependent thing
         _timeline->nudge(_drawStart);
         _timeline->rebuildTimeline();
-
-        //show or hide horizontal lines
-        if(_content.isAudio()) {
-            for(auto &l : _midiEditor._lines) l->hide();
-        } else if(_content.isMidi()) {
-            int notesOnDisplay = _noteEnd - _noteStart;
-            float heightPerNote = static_cast<float>(Layout::WORKSPACE_HEIGHT-(100+30)) / notesOnDisplay;
-
-            if(notesOnDisplay > 128) notesOnDisplay = 128; //???
-            for (int i = 0; i < notesOnDisplay; ++i) {
-                Line *l = _midiEditor._lines[i].get();
-
-                int ypos = Math::round(i * heightPerNote)+130;
-
-                l->position[0] = {0, ypos};
-                l->position[1] = {Layout::WORKSPACE_WIDTH, ypos};
-
-                lv_line_set_points(l->line, &l->position[0], 2);
-
-                std::string text = std::to_string(_noteEnd - i - 1);
-                lv_label_set_text(l->num, text.c_str());
-
-                lv_obj_set_pos(l->num, 3, ypos-3);
-                lv_obj_move_to_index(l->num, -1);
-
-                l->show();
-            }
-        }
+        
     }
     
     //check if file updated
@@ -241,7 +171,99 @@ void EditorView::pollUIUpdate() {
 }
 
 bool EditorView::handleSwipe(const GestLib::SwipeGesture & swipe) {
-   
+    //when moving from left to right - delta < 0 -- need to go closer to start
+    //when from right to left - delta > 0 - need to go closed to end
+
+    int mul = ((float)160 * (1.0f - _horizontalZoom)) * swipe.dx;
+    slr::frame_t oldNudge = _drawStart;
+    if(swipe.dx > 0) {
+       slr::frame_t onDisplay = _drawEnd - _drawStart;
+        // LOG_INFO("start: %lu, end: %lu, total: %lu", _drawStart, _drawEnd, _fileLength);
+        if(_drawEnd + mul < _fileLength) {
+            _drawStart += mul;
+            _drawEnd += mul; 
+            _zoomRedraw = true;
+        } else {
+            int diff = _fileLength - (_drawEnd + mul);
+            if(diff > 0) {
+                _drawStart += diff;
+                _drawEnd += diff;
+                _zoomRedraw = true;
+            } else {
+                if(_drawEnd != _fileLength) {
+                    _drawStart += (_fileLength - _drawEnd);
+                    _drawEnd += (_fileLength - _drawEnd);
+                    _zoomRedraw = true;
+                }
+            }
+        }
+    } else if(swipe.dx < 0) {
+        if(oldNudge > 0) {
+            slr::frame_t newNudge = 0;
+            int64_t diff = oldNudge + mul;
+            if(diff >= 0) {
+                newNudge = oldNudge + mul;
+            } else {
+                newNudge = 0;
+            }
+            if(diff >= 0) {
+                _drawStart = _drawStart + mul;
+                _drawEnd = _drawEnd + mul;
+                _zoomRedraw = true;
+            } else {
+            }
+            // _drawEnd = _drawEnd - newNudge;
+        }
+    }
+
+    if(!_midiEditor->visible()) return true;
+
+    // LOG_INFO("delta for y %d", swipe.dy);
+    mul = swipe.dy * 0.3;
+    
+    int &noteMin = _midiEditor->_noteMin;
+    int &noteMax = _midiEditor->_noteMax;
+    if(swipe.dy > 0) { 
+        //from bottom to top -> scroll down
+        if(noteMin - mul > 0) {
+            noteMin -= mul;
+            noteMax -= mul;
+            _midiEditor->_fNoteMin -= mul;
+            _midiEditor->_fNoteMax -= mul;
+            _zoomRedraw = true;
+        } else {
+            int diff = noteMin;
+            if(diff > 0) {
+                noteMin -= diff;
+                noteMax -= diff;
+                _midiEditor->_fNoteMin -= diff;
+                _midiEditor->_fNoteMax -= diff;
+                _zoomRedraw = true;
+            }
+            
+        }
+    } else if(swipe.dy < 0) { 
+        //from top to bottom -> scroll up
+        int dy = Math::abs(mul);
+        if(noteMax + dy < 127) {
+            noteMin += dy;
+            noteMax += dy;
+            _midiEditor->_fNoteMin += dy;
+            _midiEditor->_fNoteMax += dy;
+            _zoomRedraw = true;
+        } else {
+            int tmp = 127 - noteMax; 
+            if(tmp > 0) {
+                noteMin += tmp;
+                noteMax += tmp;
+                _midiEditor->_fNoteMin += tmp;
+                _midiEditor->_fNoteMax += tmp;
+                _zoomRedraw = true;
+            }
+        }
+    }
+
+
     return true;
 }
 
@@ -250,7 +272,27 @@ bool EditorView::handleDrag(const GestLib::DragGesture &drag) {
     //emm... how to determine if
     if(drag.state == GestLib::GestureState::Start) {
         _dragStartedHere = true;
+
+        if(_midiEditor->visible()) {
+            int possiblePitch = _midiEditor->_noteMax - ((drag.y-(Layout::TOP_PANEL_HEIGHT+DrawableY)) / _midiEditor->_heightPerRow)+1;
+            int y =  Math::floor((_midiEditor->_noteMax - possiblePitch) * _midiEditor->_heightPerRow);
+
+            std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(_midiEditor.get(), *_midiEditor.get());
+            p->x = drag.x-30;
+            p->y = y;
+            p->h = _midiEditor->_heightPerRow;
+            p->w = 30;
+            p->_changingLength = true;
+            p->_changingStart = false;
+            p->setPos(p->x, p->y);
+            p->setSize(p->w, p->h);
+            p->show();
+
+            _midiEditor->_notePreviews.push_back(std::move(p));
+            _uictx->transferGesture(_midiEditor->_notePreviews.back().get(), GestLib::Gestures::Drag);
+        }
         //possibly user want to move midi events around
+
     } else if(drag.state == GestLib::GestureState::Move) {
         if(!_dragStartedHere) {
             if(ctx.dragOnGoing) {
@@ -258,6 +300,7 @@ bool EditorView::handleDrag(const GestLib::DragGesture &drag) {
             }   
         } else {
             //possibly user want to move midi events around
+
         }
     } else if(drag.state == GestLib::GestureState::End) {
         if(!_dragStartedHere) {
@@ -294,68 +337,374 @@ bool EditorView::handleDrag(const GestLib::DragGesture &drag) {
 }
 
 bool EditorView::handleZoom(const GestLib::ZoomGesture &zoom) {
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+
+    // LOG_INFO("Zoom difs h%.2f v%.2f, new h%.2f v%.2f",
+    //     zoom.horDif, zoom.verDif, newHorZoom, newVerZoom);
+
+    const double width = Layout::WORKSPACE_WIDTH;
+    const double height = DrawableHeight;
+
+    const slr::frame_t oldStart = _drawStart;
+    const slr::frame_t oldEnd = _drawEnd;
+
+    {
+        double newHorZoom = _horizontalZoom / zoom.horDif;
+        const double anchor = Math::clamp(static_cast<double>(zoom.xCenter) / width, 0.0, 1.0);
+        const long double oldRange = static_cast<long double>(oldEnd) - oldStart;
+        const long double anchorFrame = static_cast<long double>(oldStart) + oldRange * anchor;
+        const long double newRange = oldRange / zoom.horDif;
+
+        if(newRange >= _fileLength) return false;
+
+        long double newStart = anchorFrame - newRange * anchor;
+        long double newEnd = newStart + newRange;
+
+        if (newRange >= _fileLength) {
+            newStart = 0;
+            newEnd = _fileLength;
+        } else {
+            if (newStart < 0) {
+                newEnd -= newStart;
+                newStart = 0;
+            }
+
+            if (newEnd > _fileLength) {
+                newStart -= newEnd - _fileLength;
+                newEnd = _fileLength;
+            }
+        }
+
+        _drawStart = static_cast<slr::frame_t>(newStart);
+        _drawEnd = static_cast<slr::frame_t>(newEnd);
+
+        _horizontalZoom = newHorZoom;
+    }
+
+    //for midi
+    if(_midiEditor->visible()) {
+        double newVerZoom = _midiEditor->_verticalZoom / zoom.verDif;
+
+        const double anchor = Math::clamp(static_cast<double>(zoom.yCenter) / height, 0.0, 1.0);
+        const long double oldRange = static_cast<long double>(_midiEditor->_fNoteMax) - _midiEditor->_fNoteMin;
+        const long double anchorFrame = _midiEditor->_fNoteMin + oldRange * anchor;
+        const long double newRange = Math::clamp(oldRange / zoom.verDif, 4.0L, 127.0L);
+        long double newMin = anchorFrame - newRange * anchor;
+        newMin = Math::clamp(newMin, 0.0L, 127.0L - newRange);
+
+        _midiEditor->_fNoteMin = newMin;
+        _midiEditor->_fNoteMax = newMin + newRange;
+
+        _midiEditor->_noteMin = Math::round(_midiEditor->_fNoteMin);
+        _midiEditor->_noteMax = Math::round(_midiEditor->_fNoteMax);
+        if(_midiEditor->_noteMax - _midiEditor->_noteMin < 4) {
+            _midiEditor->_noteMax = _midiEditor->_noteMin + 4;
+
+            if(_midiEditor->_noteMax > 127) {
+                _midiEditor->_noteMax = 127;
+                _midiEditor->_noteMin = 123;
+            }
+        }
+
+        _midiEditor->_verticalZoom = newVerZoom;
+    }
+
     
-    /*
-    1. need to find center in frames based on current range and zoom
-    2. calculate new zoom values
-    3. update gui (can't force to redraw here i guess, better raise some flag and redraw in pollUIUpdate())
-    
-    as well as need some limits to prevent zoom going to inf
-    */
-    
-    double newHorZoom = _horizontalZoom / zoom.horDif;
-    double newVerZoom = _verticalZoom / zoom.verDif;
-
-    double horDiff = _horizontalZoom / newHorZoom;
-
-    LOG_INFO("Zoom difs h%.2f v%.2f, new h%.2f v%.2f", 
-        zoom.horDif, zoom.verDif, newHorZoom, newVerZoom);
-
-    int width = Layout::WORKSPACE_WIDTH;
-    int height = Layout::WORKSPACE_HEIGHT-(100+30);
-
-    //need to check for file end
-    double anchor = Math::clamp((double)zoom.xCenter / width, 0.0, 1.0);
-
-    slr::frame_t framesOnDisplay = _drawEnd - _drawStart;
-    slr::frame_t zoomCenterFrame = _drawStart + framesOnDisplay * anchor; 
-    
-    slr::frame_t newFrames = framesOnDisplay * newHorZoom;
-
-    _drawStart = zoomCenterFrame - (newFrames * anchor);
-    _drawEnd = _drawStart + newFrames;
-
-    // _drawStart = Math::abs((long)framesOnDisplay - (long)newFrames);
-    // _drawEnd = newFrames;
-
-    _horizontalZoom = newHorZoom;
-
     _zoomRedraw = true;
-
-    // _horizontalZoom = newHorZoom;
-    // _verticalZoom = newVerZoom;
 
     return true;
 }
 
+AudioEditor::AudioEditor(BaseWidget *parent, EditorView &editor) :
+    BaseWidget(parent, true),
+    _editor(editor)
+{
+    setPos(Layout::WORKSPACE_POSITION_X, DrawableY);
+    setSize(Layout::WORKSPACE_WIDTH, DrawableHeight); 
+    noScroll();
+    addStyle(&Style::workspace);
+}
 
-EditorView::MidiEditor::MidiEditor(BaseWidget *parent) :
-    BaseWidget(parent, false)
+void AudioEditor::redraw() {
+    _preview->draw(_editor._drawStart, _editor._drawEnd);
+}
+
+void AudioEditor::preparePreview(const slr::AudioFile *file) {
+    _content.type = slr::ClipContentType::Audio;
+    _content.audio = file->peaks();
+    _content.fileId = file->id();
+    //set editor vars
+    _editor._drawStart = 0;
+    _editor._drawEnd = file->frames();
+    _editor._fileLength = _editor._drawEnd;
+    
+    //redraw canvas
+    if(_preview) _preview.reset();
+    _preview = std::make_unique<FilePreview>(this, &_content, _editor._uictx);
+    _preview->_fillColor = lv_color_hex(0x000000);
+    _preview->_peakColor = lv_color_hex(0xffffff);
+    _preview->setPos(0, 0); 
+    _preview->setSize(Layout::WORKSPACE_WIDTH, DrawableHeight);
+    _preview->draw(_editor._drawStart, _editor._drawEnd);
+    _preview->show();
+}
+
+MidiEditor::MidiEditor(BaseWidget *parent, EditorView &editor) :
+    BaseWidget(parent, true),
+    _editor(editor)
 {    
-    _lines.reserve(128);
-    for(int i=0; i<128; ++i) {
-        std::unique_ptr<Line> l = std::make_unique<Line>();
-        l->line = lv_line_create(parent->lvhost());
-        lv_obj_add_style(l->line, &Style::EditorLine, 0);
-        if(i == 0) lv_obj_set_style_line_color(l->line, lv_color_hex(0xff0000), 0);
+    setPos(Layout::WORKSPACE_POSITION_X, DrawableY);
+    setSize(Layout::WORKSPACE_WIDTH, DrawableHeight); 
+    noScroll();
+    addStyle(&Style::workspace);
 
-        l->num = lv_label_create(parent->lvhost());
-        lv_obj_set_style_text_font(l->num, &lv_font_montserrat_8, 0);
-        lv_obj_set_style_text_color(l->num, Colors::White, 0);
+    lv_style_init(&styleDark);
+    lv_style_copy(&styleDark, &Style::borderless);
+    lv_style_set_bg_color(&styleDark, lv_color_hex(0x737373));
+    lv_style_set_border_width(&styleDark, 1);
+    lv_style_set_border_color(&styleDark, Colors::Black);
+    
+    lv_style_init(&styleBright);
+    lv_style_copy(&styleBright, &Style::borderless);
+    lv_style_set_bg_color(&styleBright, lv_color_darken(lv_color_hex(0xd9d9d9), 70));
+    lv_style_set_border_width(&styleBright, 1);
+    lv_style_set_border_color(&styleBright, Colors::Black);
+
+    lv_style_init(&noteStyle);
+    lv_style_copy(&noteStyle, &Style::borderless);
+    lv_style_set_radius(&noteStyle, 5);
+    lv_style_set_bg_color(&noteStyle, Colors::Black);
+
+    _bglines.reserve(128);
+    for(int i=0; i<128; ++i) {
+        std::unique_ptr<Line> l = std::make_unique<Line>(this);
 
         l->hide();
-        _lines.push_back(std::move(l));
+        _bglines.push_back(std::move(l));
     }
+    show();
+}
+
+void MidiEditor::redraw() {
+    notesDraw();
+}
+
+void MidiEditor::preparePreview(const slr::MidiFile *file) {
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    const slr::MidiPeaks *peaks = file->peaks(0);
+    const std::vector<slr::Note> &notes = peaks->notes();
+    _file = file;
+    
+    //set editor vars...
+    _editor._drawStart = 0;
+    _editor._drawEnd = (peaks->notes().back().ppqnEnd / (float)tl.ppqn()) * tl.framesPerQuater();
+    _editor._fileLength = _editor._drawEnd;
+
+    _noteMin = 127;
+    _noteMax = 0;
+    //get range 
+    for(const auto &n : notes) {
+        _noteMin = Math::min(_noteMin, n.note);
+        _noteMax = Math::max(_noteMax, n.note);
+    }
+
+    if(_noteMin > _noteMax) {
+        LOG_ERROR("Some error appeared");
+        return;
+    }
+    
+    _fNoteMin = _noteMin;
+    _fNoteMax = _noteMax;
+    
+    notesDraw();
+}
+
+void MidiEditor::notesDraw() {
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    for(auto &line : _bglines) line->hide();
+
+    int notesOnDisplay = (_noteMax - _noteMin)+1;
+    int totalHeight = DrawableHeight;
+    float heightPerNote = static_cast<float>(totalHeight) / notesOnDisplay;
+    int h = Math::round(heightPerNote);
+
+    _heightPerRow = h;
+    _rowsOnDisplay = notesOnDisplay;
+
+    for(int n=0; n<notesOnDisplay; ++n) {
+        Line *l = _bglines[n].get();
+
+        int xpos = 0;
+        int ypos = Math::round(n * heightPerNote);
+    
+        l->setSize(Layout::WORKSPACE_WIDTH, h);
+        l->setPos(xpos, ypos);
+        l->addStyle( blackKeys[(_noteMax - n)%12] ? &styleDark : &styleBright );
+
+        if(_heightPerRow > 6) {
+            l->_noteText = lv_label_create(l->lvhost());
+            std::string text = std::to_string(_noteMax-n);
+            lv_label_set_text(l->_noteText, text.c_str());
+            const lv_font_t * font = pickFont(_heightPerRow);
+            lv_obj_set_style_text_font(l->_noteText, font, 0);
+            lv_obj_set_style_text_color(l->_noteText, Colors::White, 0);
+            lv_obj_set_pos(l->_noteText, 10, (_heightPerRow/2) - (lv_font_get_line_height(font)/2));
+            // lv_obj_set_size(l->_noteText, 20, _heightPerRow);
+        }
+
+        l->show();
+    }
+
+    _notePreviews.clear();
+    
+    const std::vector<slr::Note> &notes = _file->peaks(0)->notes();
+    const double pixelsPerTick = static_cast<double>(Layout::WORKSPACE_WIDTH) / static_cast<double>(_editor._drawEnd - _editor._drawStart);
+    for(const auto &n : notes) {
+        if(n.note < _noteMin && n.note > _noteMax) continue;
+        slr::frame_t start = UIUtility::ppqnToFrames(n.ppqnStart, tl);
+        slr::frame_t end = UIUtility::ppqnToFrames(n.ppqnEnd, tl);
+        if(start >= _editor._drawEnd || end <= _editor._drawStart) continue;
+        
+        start = Math::max(start, _editor._drawStart) - _editor._drawStart;
+        end = Math::min(end, _editor._drawEnd) - _editor._drawStart;
+
+        int xpos = Math::round(start * pixelsPerTick);
+        int w = Math::round((end-start) * pixelsPerTick);
+        int ypos = Math::floor((_noteMax - n.note) * heightPerNote);
+
+        std::unique_ptr<NotePreview> nprev = std::make_unique<NotePreview>(this, *this);
+        nprev->x = xpos;
+        nprev->y = ypos;
+        nprev->w = w;
+        nprev->h = Math::round(heightPerNote);
+
+        nprev->setPos(xpos, ypos);
+        nprev->setSize(w, nprev->h);
+        nprev->show();
+        _notePreviews.push_back(std::move(nprev));
+    }
+}
+
+NotePreview::NotePreview(BaseWidget *parent, MidiEditor &editor) :
+    BaseWidget(parent, true),
+    _editor(editor)
+{
+    addStyle(&noteStyle);
+    noScroll();
+
+    //need some tool picker - e.g.
+    /*
+        if(_editor._tool == MoveTool) moveNote(...);
+        else if(_editor._tool == EditNote) editLength(...);
+        else if(...) ...
+    */
+
+    holdCallback(std::bind(&NotePreview::handleHold, this, std::placeholders::_1));
+    dragCallback(std::bind(&NotePreview::handleDrag, this, std::placeholders::_1));
+    swipeCallback(std::bind(&NotePreview::handleSwipe, this, std::placeholders::_1));
+}
+
+bool NotePreview::handleHold(const GestLib::HoldGesture &hold) {
+    moveNote(hold.x, hold.y, hold.state == GestLib::GestureState::End ? true : false);
+    return true;
+}
+
+bool NotePreview::handleDrag(const GestLib::DragGesture &drag) {
+    // moveNote(drag.x, drag.y, drag.state == GestLib::GestureState::End ? true : false);
+    if(drag.state == GestLib::GestureState::Start) {
+        //check if the gesture is within... 30px of note edge
+        bool withinEdge = false;
+        if((drag.x >= x && drag.x <= x+30) || 
+        (drag.x <= (x+w) && drag.x >= (x+w-30)))
+        {
+            _changingLength = true;
+        } else {
+            _changingLength = false;
+        }
+
+        if(drag.x >= x && drag.x <= x+30) _changingStart = true;
+        else _changingStart = false;
+    } else if(drag.state == GestLib::GestureState::Move) {
+        if(!_changingLength) return true;
+
+        if(_changingStart) {
+            int oldx = x;
+            int oldw = w;
+            // int dx = x - drag.x;
+            // if(w - dx > 10) {
+            //     x = drag.x;
+            //     w = w + dx;
+            // } else {
+
+            // }
+                x = drag.x;
+                w = w + (oldx-drag.x);
+        } else {
+            w = drag.x - x;
+            if(w < 10) w = 10;
+        }
+
+        setPos(x, y);
+        setSize(w, h);
+
+        LOG_INFO("New sizes x%d y%d w%d h%d", x, y, w, h);
+    }
+    return true;
+}
+
+bool NotePreview::handleSwipe(const GestLib::SwipeGesture &swipe) {
+    return true;
+}
+
+void NotePreview::moveNote(int newx, int newy, bool isEnd) {
+    x = newx;
+    y = newy - (Layout::TOP_PANEL_HEIGHT + DrawableY);
+    y -= h/2;
+    x -= w/2;
+
+    
+    if(isEnd) {
+        // calc possible note
+        // int possiblePitch = _editor._noteMax - ((newy/*-130-Layout::TOP_PANEL_HEIGHT*/) / _editor._heightPerRow) + 1;
+        int possiblePitch = _editor._noteMax - ((newy-(Layout::TOP_PANEL_HEIGHT+DrawableY)) / _editor._heightPerRow)+1;
+        y =  Math::floor((_editor._noteMax - possiblePitch) * _editor._heightPerRow);
+        // y = Math::round(_editor._noteMax - (possiblePitch - _editor._noteMin));
+
+        // slr::frame_t aproxStart = newx;
+        // slr::frame_t aproxEnd = newx + w;
+        //need to mul start and end to a framesPerPixel value
+        
+        LOG_INFO("Possible note %d", possiblePitch);
+    }
+    
+    setPos(x, y);
+}
+
+
+const lv_font_t * pickFont(int pix) {
+    const lv_font_t * ret;
+    if(pix <= 8) ret = &lv_font_montserrat_8;
+    else if(pix > 8 && pix <= 10) ret = &lv_font_montserrat_10;
+    else if(pix > 10 && pix <= 12) ret = &lv_font_montserrat_12;
+    else if(pix > 12 && pix <= 14) ret = &lv_font_montserrat_14;
+    else if(pix > 14 && pix <= 16) ret = &lv_font_montserrat_16;
+    else if(pix > 16 && pix <= 18) ret = &lv_font_montserrat_18;
+    else if(pix > 18 && pix <= 20) ret = &lv_font_montserrat_20;
+    else if(pix > 20 && pix <= 22) ret = &lv_font_montserrat_22;
+    else if(pix > 22 && pix <= 24) ret = &lv_font_montserrat_24;
+    else if(pix > 24 && pix <= 26) ret = &lv_font_montserrat_26;
+    else if(pix > 26 && pix <= 28) ret = &lv_font_montserrat_28;
+    else if(pix > 28 && pix <= 30) ret = &lv_font_montserrat_30;
+    else if(pix > 30 && pix <= 32) ret = &lv_font_montserrat_32;
+    else if(pix > 32 && pix <= 34) ret = &lv_font_montserrat_34;
+    else if(pix > 34 && pix <= 36) ret = &lv_font_montserrat_36;
+    else if(pix > 36 && pix <= 38) ret = &lv_font_montserrat_38;
+    else if(pix > 38 && pix <= 40) ret = &lv_font_montserrat_40;
+    else if(pix > 40 && pix <= 42) ret = &lv_font_montserrat_42;
+    else if(pix > 42 && pix <= 44) ret = &lv_font_montserrat_44;
+    else if(pix > 44 && pix <= 46) ret = &lv_font_montserrat_46;
+    else if(pix > 46) ret = &lv_font_montserrat_48;
+    return ret;
 }
 
 }

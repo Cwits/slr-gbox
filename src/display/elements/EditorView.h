@@ -20,20 +20,12 @@ struct UIContext;
 struct Timeline;
 struct Label;
 struct FilePreview;
-
-struct NotePreview {
-    int x;
-    int y;
-    int w; 
-    int h;
-};
+struct AudioEditor;
+struct MidiEditor;
 
 struct EditorView : public BaseWidget {
     EditorView(BaseWidget * parent, UIContext * const uictx);
     ~EditorView();
-
-    float hZoom() const { return _horizontalZoom; }
-    float vZoom() const { return _verticalZoom; }
 
     void pollUIUpdate() override;
 
@@ -44,49 +36,110 @@ struct EditorView : public BaseWidget {
 
     lv_obj_t * _toolPanel;
     std::unique_ptr<Label> _lblFilePath;
-    const slr::File * _lastDrawed;
+    slr::frame_t _fileLength;
     
     bool _zoomRedraw;
     double _horizontalZoom;
-    double _verticalZoom;
     slr::frame_t _drawStart;
     slr::frame_t _drawEnd;
-    int _noteStart;
-    int _noteEnd;
 
     std::unique_ptr<Timeline> _timeline;
-    slr::ClipContentView _content;
-    std::unique_ptr<FilePreview> _preview;
 
-    struct AudioEditor {
-
-    };
-
-    struct Line {
-        ~Line() { lv_obj_delete(line); lv_obj_delete(num); }
-        lv_obj_t *line;
-        lv_obj_t *num;
-        lv_point_precise_t position[2];
-
-        void show() { lv_obj_remove_flag(line, LV_OBJ_FLAG_HIDDEN); lv_obj_remove_flag(num, LV_OBJ_FLAG_HIDDEN); }
-        void hide() { lv_obj_add_flag(line, LV_OBJ_FLAG_HIDDEN); lv_obj_add_flag(num, LV_OBJ_FLAG_HIDDEN); }
-    };
-
-    struct MidiEditor : public BaseWidget {
-        MidiEditor(BaseWidget *parent);
-        std::vector<std::unique_ptr<Line>> _lines;
-        //draw, like... vertical lines, tooling, etc, dunno...
-
-        std::vector<NotePreview> _notePreviews;
-    };
-
-    MidiEditor _midiEditor;
+    std::unique_ptr<AudioEditor> _audioEditor;
+    std::unique_ptr<MidiEditor> _midiEditor;
 
     bool _dragStartedHere;
 
     bool handleSwipe(const GestLib::SwipeGesture & swipe);
     bool handleDrag(const GestLib::DragGesture &drag);
     bool handleZoom(const GestLib::ZoomGesture &zoom);
+
+    friend class AudioEditor;
+    friend class MidiEditor;
 };
 
+
+struct AudioEditor : public BaseWidget {
+    AudioEditor(BaseWidget *, EditorView &editor);
+
+    void redraw();
+    void preparePreview(const slr::AudioFile*);
+
+    slr::ClipContentView _content;
+    std::unique_ptr<FilePreview> _preview;
+
+    private:
+    EditorView & _editor;
+    // bool handleHold(const GestLib::HoldGesture &);
+};
+
+struct Line : public BaseWidget {
+    Line(BaseWidget *parent) : BaseWidget(parent, true, false) {}
+    ~Line() { if(_noteText) lv_obj_delete(_noteText); }
+
+    void hide() override { BaseWidget::hide(); if(_noteText) lv_obj_add_flag(_noteText, LV_OBJ_FLAG_HIDDEN); }
+    void show() override { BaseWidget::show(); if(_noteText) lv_obj_clear_flag(_noteText, LV_OBJ_FLAG_HIDDEN); }
+
+    lv_obj_t * _noteText = nullptr;
+    // lv_obj_t * bg; //different for white and black keys... just lv_obj_create() with different colors
+};
+
+struct MidiEditor;
+struct NotePreview : public BaseWidget {
+    NotePreview(BaseWidget *, MidiEditor&);
+
+    int x;
+    int y;
+    int w; 
+    int h;
+
+    bool _changingLength;
+    bool _changingStart;
+    
+    private:
+    MidiEditor &_editor;
+
+    
+    bool handleHold(const GestLib::HoldGesture &);
+    bool handleDrag(const GestLib::DragGesture &);
+    bool handleSwipe(const GestLib::SwipeGesture &);
+
+    void moveNote(int newx, int newy, bool isEnd);
+};
+    
+struct MidiEditor : public BaseWidget {
+    MidiEditor(BaseWidget *parent, EditorView &editor);
+
+    void redraw();
+    void preparePreview(const slr::MidiFile*);
+    void notesDraw();
+
+    std::vector<std::unique_ptr<Line>> _bglines;
+        
+    std::vector<std::unique_ptr<NotePreview>> _notePreviews;
+    float _fNoteMin;
+    float _fNoteMax;
+    int _noteMin;
+    int _noteMax;
+    int _rowsOnDisplay;
+    float _heightPerRow;
+    double _verticalZoom;
+
+    // std::vector<std::unique_ptr<Line>> _lines;
+    //draw, like... vertical lines, tooling, etc, dunno...
+
+    private:
+    const slr::MidiFile *_file;
+    EditorView &_editor;
+};
+
+/*
+struct MidiEditorToolbox {
+
+};
+
+drag or swipe to change length, 
+hold for pick and move around
+
+*/
 }

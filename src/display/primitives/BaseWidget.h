@@ -22,7 +22,6 @@ struct BaseWidget {
         bool isSwipe;
         bool isDoubleTap;
         bool isDoubleTapSwipe;
-        bool isDoubleTapCircular;
         bool isZoom; //-
         bool isTwoFingerTap; //-
         bool isTwoFingerSwipe; //-
@@ -118,7 +117,6 @@ struct BaseWidget {
     bool handleDrag(const GestLib::DragGesture & drag);
     bool handleSwipe(const GestLib::SwipeGesture & swipe);
     bool handleDTSwipe(const GestLib::DTSwipeGesture & swipe);
-    bool handleDTCircular(const GestLib::DTCircularGesture & swipe);
     bool handleZoom(const GestLib::ZoomGesture & zoom);
 
     uint64_t _lastPolledUIVersion;

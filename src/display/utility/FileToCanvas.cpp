@@ -75,6 +75,81 @@ void audioFileToCanvas(
     }
 }
 
+
+
+void audioFileToBuffer(
+    const slr::AudioPeaks * const peakFile,
+    slr::frame_t fileStart,
+    slr::frame_t length,
+    lv_color32_t * drawBuffer,
+    int canvasHeight,
+    int canvasWidth,
+    lv_color_t peakColor,
+    lv_color_t fillColor,
+    lv_opa_t opa)
+{
+    // float pickratio = ((float)length - (float)fileStart) / (float)canvasWidth; 
+    // slr::LODLevels nearestLvl = slr::pickLevel(pickratio);
+
+    const slr::PeakData0 * buffer = peakFile->peaks0();
+    const int channels = buffer->channels();
+
+    slr::frame_t fileLength = length - fileStart;
+    slr::frame_t totalFrames = static_cast<uint64_t>(fileLength);
+
+    if(totalFrames < static_cast<uint64_t>(canvasWidth)) {
+        //render separately
+        return;
+    }
+    
+    const int heightPerChannel = canvasHeight / channels;
+
+    lv_color32_t peakp = lv_color_to_32(peakColor, opa);
+    lv_color32_t fillp = lv_color_to_32(fillColor, opa);
+
+    for(int ch = 0; ch < channels; ++ch) {
+        const int yBase = ch * heightPerChannel;
+        const int yEnd = (ch == channels - 1) ? 
+            canvasHeight : 
+            yBase + heightPerChannel;
+
+        uint16_t yMap[256];
+        for(int v=0; v<256; ++v) {
+            yMap[v] = static_cast<uint16_t>(Math::lerp<uint16_t>(v, 0, 255, yBase, yEnd));
+        }
+
+        for(int x=0; x<canvasWidth; ++x) {
+            const uint64_t begin =
+                static_cast<uint64_t>(fileStart) +
+                (static_cast<uint64_t>(x) * totalFrames) / canvasWidth;
+
+            const uint64_t end =
+                static_cast<uint64_t>(fileStart) +
+                (static_cast<uint64_t>(x + 1) * totalFrames) / canvasWidth;
+
+            uint8_t minVal = 255;
+            uint8_t maxVal = 0;
+
+            for(uint64_t off=begin; off<end; ++off) {
+                const uint8_t value = (*buffer)[ch][off];
+
+                if(value < minVal) minVal = value;
+                if(value > maxVal) maxVal = value;
+            }
+
+            const int yMin = Math::clamp<int>(yMap[minVal], yBase, yEnd);
+            const int yMax = Math::clamp<int>(yMap[maxVal], yBase, yEnd);
+
+            for (int y = yMin; y < yMax; ++y) {
+                const lv_color32_t color = (y == yMin || y == yMax - 1) ? peakp : fillp;
+
+                drawBuffer[y * canvasWidth + x] = color;
+            }
+        }
+    }
+}
+
+
 struct Note {
     slr::frame_t ppqnStart = 0;
     slr::frame_t ppqnEnd = 0;
@@ -177,6 +252,7 @@ void midiFileToCanvas(
         for(int x=x1; x<x2; ++x) {
             for(int y=y1; y<y2; ++y) {
                 lv_canvas_set_px(canvas, x, y, color, LV_OPA_COVER);
+                // drawBuffer[y * canvasWidth + x] = color;
             }
         }
     }

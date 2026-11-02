@@ -17,6 +17,7 @@
 
 namespace UI {
 
+constexpr float MIN_LINE_SPACING = 48.0f;
 
 Timeline::Timeline(BaseWidget * parent, lv_obj_t *host, double * const zoomPtr, UIContext * uictx) :
     BaseWidget(parent, false),
@@ -63,10 +64,10 @@ Timeline::Timeline(BaseWidget * parent, lv_obj_t *host, double * const zoomPtr, 
 
 Timeline::~Timeline() {
     lv_obj_delete(_numberBackground);
-    for(std::size_t i=0; i<_lines.size(); ++i) {
-        lv_obj_delete(_lines[i].number);
-        lv_obj_delete(_lines[i].line);
-    }
+    // for(std::size_t i=0; i<_lines.size(); ++i) {
+    //     lv_obj_delete(_lines[i].number);
+    //     lv_obj_delete(_lines[i].line);
+    // }
 }
 
 void Timeline::setSize(lv_coord_t w, lv_coord_t h) {
@@ -98,57 +99,97 @@ void Timeline::nudge(slr::frame_t nudge) {
     _nudge = nudge;
 }
 
-// void Timeline::rebuildTimeline(float horZoom) {
 void Timeline::rebuildTimeline() {
-    // float pixelPerBar = UIUtility::pixelPerBar(horZoom);
     float pixelPerBar = UIUtility::pixelPerBar(*_zoomPtr);
     int barsOnDisplay = (_width / pixelPerBar) + 2; 
 
-    if(_lines.size() != barsOnDisplay) {
-        //not the first time, need to recalculate capacity, 
-        // int diff = Math::abs<int>(_lines.size() - barsOnDisplay);
+    int subdivisions = 1;
+    int barStep = 1;
+
+    //determine resolution
+    if(pixelPerBar >= MIN_LINE_SPACING) {
+        while(pixelPerBar / (subdivisions * 2) >= MIN_LINE_SPACING) {
+            subdivisions *= 2;
+        }
+    } else {
+        while(pixelPerBar * barStep < MIN_LINE_SPACING) {
+            barStep *= 2;
+        }
+    }
+
+    int linesOnDisplay = subdivisions == 1 ? barsOnDisplay / barStep : subdivisions*barsOnDisplay;
+    if(_lines.size() < linesOnDisplay) {
         std::size_t old = _lines.size();
-        _lines.reserve(barsOnDisplay);
+        _lines.reserve(linesOnDisplay);
 
         for(std::size_t l=old; l<_lines.capacity(); ++l) {
-            GridLine gl;
+            std::unique_ptr<GridLine> gl = std::make_unique<GridLine>();
             //create label
-            gl.number = lv_label_create(_numberBackground);
-            lv_obj_set_size(gl.number, 40, lv_font_get_line_height(&lv_font_montserrat_28));
-            lv_obj_add_style(gl.number, &_numberFont, 0);
+            gl->number = lv_label_create(_numberBackground);
+            lv_obj_set_size(gl->number, 80, lv_font_get_line_height(&lv_font_montserrat_28));
+            lv_obj_add_style(gl->number, &_numberFont, 0);
 
             //create line
-            // gl.line = lv_line_create(parent()->lvhost());
-            gl.line = lv_line_create(_host);
-            lv_obj_add_style(gl.line, &Style::gridLine, 0);
+            gl->line = lv_line_create(_host);
+            lv_obj_add_style(gl->line, &Style::gridLine, 0);
             _lines.push_back(std::move(gl));
         }
     }
 
-    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
-    float pixMoved = ( (float)_nudge / tl.framesPerBar() ) - ( (int)_nudge/tl.framesPerBar() );
+    for(auto &l : _lines) l->hide();
 
-    int startBar = (_nudge/tl.framesPerBar()) + 1;
-    float wtf = pixMoved * pixelPerBar;
-    int wtf2 = Math::round(wtf);
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();    
+    double nudgeBars = static_cast<double>(_nudge) / tl.framesPerBar();
+    int firstBar = static_cast<int>(Math::floor(nudgeBars));
+    float fractionalBar = static_cast<float>(nudgeBars - static_cast<float>(firstBar));
     int y = _y+30; //+30 - for number background
 
-    for(std::size_t i=0; i<_lines.size(); ++i, ++startBar) {
-        GridLine &l = _lines[i];
-        
-        if(i < barsOnDisplay) {
-            //calc positions
-            int xpos = (pixelPerBar*i) - wtf2;
-            
-            lv_obj_set_pos(l.number, xpos, 1);
-            lv_label_set_text_fmt(l.number, "%d", startBar);
+    if(subdivisions == 1) {
+        //draw only bars and numbers
+        int alignedFirstBar = static_cast<int>(Math::ceil(static_cast<double>(firstBar) / barStep)) * barStep;
+        for(int i=0; i<linesOnDisplay; ++i) {
+            GridLine *l = _lines[i].get();
 
-            l.points[0] = {_x+xpos, y};
-            l.points[1] = {_x+xpos, y+_height-30};
-            lv_line_set_points(l.line, &l.points[0], 2);
-            l.show();
-        } else {
-            l.hide();
+            int barIndex = alignedFirstBar + i * barStep;
+            int xpos = Math::round(pixelPerBar * (barIndex - nudgeBars));
+            int barNumber = barIndex + 1;
+
+            lv_obj_set_pos(l->number, xpos, 1);
+            lv_label_set_text_fmt(l->number, "%d", barNumber);
+            lv_obj_set_style_text_font(l->number, &lv_font_montserrat_28, 0);
+
+            l->points[0] = {_x + xpos, y};
+            l->points[1] = {_x + xpos, y + _height - 30};
+
+            lv_line_set_points(l->line, l->points, 2);
+            l->show();
+        }
+    } else {
+        //bars with subdivisions
+        for(int i = 0; i < linesOnDisplay; ++i) {
+            GridLine *l = _lines[i].get();
+
+            int index = firstBar + i;
+            bool isBarLine = index % subdivisions == 0;
+            int xpos = Math::round(pixelPerBar * (static_cast<double>(index) / subdivisions - nudgeBars));
+            int barNumber = static_cast<int>(Math::floor(static_cast<double>(index) / subdivisions));
+            
+            lv_obj_set_pos(l->number, xpos, 1);
+            if(isBarLine) {
+                lv_label_set_text_fmt(l->number, "%d", barNumber + 1);
+                lv_obj_set_style_text_font(l->number, &lv_font_montserrat_28, 0);
+            } else {
+                int rem = index - barNumber * subdivisions;
+                std::string text = std::to_string(rem+1) + "/" + std::to_string(subdivisions);
+                lv_label_set_text_fmt(l->number, "%s", text.c_str());
+                lv_obj_set_style_text_font(l->number, &lv_font_montserrat_18, 0);
+            }
+
+            l->points[0] = {_x + xpos, y};
+            l->points[1] = {_x + xpos, y + _height - 30};
+
+            lv_line_set_points(l->line, l->points, 2);
+            l->show();
         }
     }
 

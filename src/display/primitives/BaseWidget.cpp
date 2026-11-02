@@ -32,7 +32,7 @@ BaseWidget::BaseWidget(BaseWidget * parent, bool hasHost, bool addAsChild) :
                 false, false, false, 
                 false, false, false,
                 false, false, false,
-                false, false, false};
+                false, false};
 
     _lastPolledUIVersion = 0;
 
@@ -195,7 +195,6 @@ bool BaseWidget::canHandleGesture(GestLib::Gestures gesture) {
     if(gesture == GestLib::Gestures::Swipe && _flags.isSwipe) ret = true;
     if(gesture == GestLib::Gestures::DoubleTap && _flags.isDoubleTap) ret = true;
     if(gesture == GestLib::Gestures::DoubleTapSwipe && _flags.isDoubleTapSwipe) ret = true;
-    if(gesture == GestLib::Gestures::DoubleTapCircular && _flags.isDoubleTapCircular) ret = true;
     if(gesture == GestLib::Gestures::Zoom && _flags.isZoom) ret = true;
     if(gesture == GestLib::Gestures::TwoFingerTap && _flags.isTwoFingerTap) ret = true;
     if(gesture == GestLib::Gestures::TwoFingerSwipe && _flags.isTwoFingerSwipe) ret = true;
@@ -216,7 +215,6 @@ bool BaseWidget::handleGesture(GestLib::Gesture & gesture) {
         case(GestLib::Gestures::Drag): ret = handleDrag(gesture.drag); break;
         case(GestLib::Gestures::Swipe): ret = handleSwipe(gesture.swipe); break;
         case(GestLib::Gestures::DoubleTapSwipe): ret = handleDTSwipe(gesture.dtSwipe); break;
-        case(GestLib::Gestures::DoubleTapCircular): ret = handleDTCircular(gesture.dtCircular); break;
         case(GestLib::Gestures::Zoom): ret = handleZoom(gesture.zoom); break;
     }
     return ret;
@@ -290,9 +288,6 @@ bool BaseWidget::handleSwipe(const GestLib::SwipeGesture & swipe) {
     return false;
 }
 bool BaseWidget::handleDTSwipe(const GestLib::DTSwipeGesture & swipe) {
-    return false;
-}
-bool BaseWidget::handleDTCircular(const GestLib::DTCircularGesture & swipe) {
     return false;
 }
 bool BaseWidget::handleZoom(const GestLib::ZoomGesture &zoom) {

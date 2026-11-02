@@ -27,6 +27,16 @@ void audioFileToCanvas(
     lv_color_t peakColor,
     lv_color_t fillColor);
 
+void audioFileToBuffer(
+    const slr::AudioPeaks * const peakFile,
+    slr::frame_t fileStart,
+    slr::frame_t length,
+    lv_color32_t * drawBuffer,
+    int canvasHeight,
+    int canvasWidth,
+    lv_color_t peakColor,
+    lv_color_t fillColor,
+    lv_opa_t opa);
 
 void midiFileToCanvas( 
     const slr::MidiPeaks * const peaks,
