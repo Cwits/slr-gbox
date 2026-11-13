@@ -13,6 +13,10 @@
 #include "display/primitives/UnitUIBase.h"
 #include "display/primitives/Label.h"
 #include "display/primitives/FilePreview.h"
+#include "display/primitives/Button.h"
+#include "display/utility/Helpers.h"
+#include "display/popups/PopupManager.h"
+#include "display/popups/TimelinePopup.h"
 
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeaks.h"
@@ -25,6 +29,7 @@
 
 #include "snapshots/ClipContainerView.h"
 #include "snapshots/TimelineView.h"
+#include "snapshots/ProjectView.h"
 
 #include "common/uiutility.h"
 #include "common/uiControls.h"
@@ -35,13 +40,15 @@
 
 namespace UI {
 
+lv_style_t handleLine;
+
 lv_style_t styleDark;
 lv_style_t styleBright;
 lv_style_t noteStyle;
 
-const int ToolboxHeight = Layout::Button+30;
-const int DrawableHeight = Layout::WORKSPACE_HEIGHT - (ToolboxHeight); //30 comming from Timeline noubers background
-const int DrawableY = ToolboxHeight;
+const int ToolboxHeight = Layout::Button;
+const int DrawableHeight = Layout::WORKSPACE_HEIGHT - (ToolboxHeight+30); //30 comming from Timeline noubers background
+const int DrawableY = ToolboxHeight+30;
 
 
 bool blackKeys[] = { 
@@ -54,7 +61,10 @@ bool blackKeys[] = {
     false 
 };
 
-const lv_font_t * pickFont(int pix);
+slr::frame_t snapToGrid(slr::frame_t frame, const UI::Timeline &tl) {
+
+    return 0;
+}
 
 EditorView::EditorView(BaseWidget * parent, UIContext * uictx) : 
     BaseWidget(parent, true),
@@ -69,37 +79,37 @@ EditorView::EditorView(BaseWidget * parent, UIContext * uictx) :
     swipeCallback(std::bind(&EditorView::handleSwipe, this, std::placeholders::_1));
     zoomCallback(std::bind(&EditorView::handleZoom, this, std::placeholders::_1));
 
-    _toolPanel = lv_obj_create(lvhost());
-    lv_obj_set_size(_toolPanel, Layout::WORKSPACE_WIDTH, Layout::Button);
-    lv_obj_set_pos(_toolPanel, 0, 0);
-    lv_obj_add_style(_toolPanel, &Style::workspace, 0);
-    lv_obj_set_style_bg_color(_toolPanel, Colors::Red, 0);
-
     _lblFilePath = std::make_unique<Label>(this, "Empty");
     _lblFilePath->setPos(10, 140);
     _lblFilePath->setSize(1600, 40);
     lv_obj_set_style_bg_opa(_lblFilePath->lvhost(), LV_OPA_TRANSP, 0);
 
     _horizontalZoom = 1.0f;
-
-    _dragStartedHere = false;
     _zoomRedraw = false;
     
-    _audioEditor = std::make_unique<AudioEditor>(this, *this);
-    _midiEditor = std::make_unique<MidiEditor>(this, *this);
+    _audioToolbox = std::make_unique<AudioToolbox>(this);
+    _audioEditor = std::make_unique<AudioEditor>(this, *this, *_audioToolbox.get());
     _audioEditor->_content.fileId = 0;
+    _audioToolbox->_editor = _audioEditor.get();
+
+    _midiToolbox = std::make_unique<MidiToolbox>(this);
+    _midiEditor = std::make_unique<MidiEditor>(this, *this, *_midiToolbox.get());
 
     _timeline = std::make_unique<Timeline>(this, lvhost(), &_horizontalZoom, _uictx);
-    _timeline->setPos(0, ToolboxHeight-30); //30 from self number background
-    _timeline->setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT-(ToolboxHeight-30));
+    _timeline->setPos(0, ToolboxHeight); //30 from self number background
+    _timeline->setSize(Layout::WORKSPACE_WIDTH, Layout::WORKSPACE_HEIGHT-(ToolboxHeight));
     _timeline->rebuildTimeline();
     _timeline->show();
+
+    //todo: dirty hack for tests, remove later
+    _enteringViewClb = [this]() {
+        this->_uictx->_popManager->_timelinePopup->_current = this->_timeline.get();
+    };
 
     hide();
 }
 
 EditorView::~EditorView() {
-    lv_obj_delete(_toolPanel);
 }
 
 void EditorView::setEditable(slr::ID fileId) {
@@ -126,25 +136,21 @@ void EditorView::setEditable(slr::ID fileId) {
         
         //show audio tools, hide midi
         _audioEditor->show();
+        _audioToolbox->show();
+        _midiToolbox->hide();
         _midiEditor->hide();
     } else if(file->isMidi()) {
         _midiEditor->preparePreview(static_cast<const slr::MidiFile*>(file));
         
         //show midi tools, hide audio
         _audioEditor->hide();
+        _audioToolbox->hide();
+        _midiToolbox->show();
         _midiEditor->show();
     }
 
     //since we setted up file -> the _drawStart and _drawEnd are filled
-    
-    //recalculate timeline zoom and rebuild
-    float fpp = UIUtility::samplesPerPixel(_horizontalZoom);
-    float framesOnTimeline = Layout::WORKSPACE_WIDTH * fpp; //at current zoom
-    float ratio = framesOnTimeline / (float)_drawEnd;
-
-    float newZoom = _horizontalZoom / ratio;
-
-    _horizontalZoom = newZoom;
+    calcNewZoom(_drawEnd);
     _timeline->nudge(_drawStart);
     _timeline->rebuildTimeline();
     // recalculateTimelineHZoom();
@@ -154,113 +160,99 @@ void EditorView::pollUIUpdate() {
     
     if(_zoomRedraw) {
         _zoomRedraw = false;
-
+        
+        //rebuild timeline first, because things below depends on it
+        _timeline->nudge(_drawStart);
+        _timeline->rebuildTimeline();
+        
         if(_audioEditor->visible()) {
             _audioEditor->redraw();
         } else {
             _midiEditor->redraw();
         }
-        
-        _timeline->nudge(_drawStart);
-        _timeline->rebuildTimeline();
-        
     }
     
     //check if file updated
 
 }
 
+void EditorView::calcNewZoom(slr::frame_t size) {
+    float fpp = UIUtility::samplesPerPixel(_horizontalZoom);
+    float framesOnTimeline = Layout::WORKSPACE_WIDTH * fpp; //at current zoom
+    float ratio = framesOnTimeline / (float)size;
+    float newZoom = _horizontalZoom / ratio;
+    _horizontalZoom = newZoom;
+}
+
 bool EditorView::handleSwipe(const GestLib::SwipeGesture & swipe) {
     //when moving from left to right - delta < 0 -- need to go closer to start
     //when from right to left - delta > 0 - need to go closed to end
+
+    if(swipe.state == GestLib::GestureState::End) _zoomRedraw = true;
 
     int mul = ((float)160 * (1.0f - _horizontalZoom)) * swipe.dx;
     slr::frame_t oldNudge = _drawStart;
     if(swipe.dx > 0) {
        slr::frame_t onDisplay = _drawEnd - _drawStart;
         // LOG_INFO("start: %lu, end: %lu, total: %lu", _drawStart, _drawEnd, _fileLength);
-        if(_drawEnd + mul < _fileLength) {
-            _drawStart += mul;
-            _drawEnd += mul; 
-            _zoomRedraw = true;
-        } else {
-            int diff = _fileLength - (_drawEnd + mul);
-            if(diff > 0) {
-                _drawStart += diff;
-                _drawEnd += diff;
-                _zoomRedraw = true;
-            } else {
-                if(_drawEnd != _fileLength) {
-                    _drawStart += (_fileLength - _drawEnd);
-                    _drawEnd += (_fileLength - _drawEnd);
-                    _zoomRedraw = true;
-                }
+        UIUtility::incrementUntil<slr::frame_t>(_drawEnd, mul, _fileLength, 
+            [&start =  _drawStart, &end = _drawEnd, &redraw = _zoomRedraw](const slr::frame_t inc) {
+                if(inc == 0) return;
+                start += inc;
+                end += inc;
+                redraw = true;
             }
-        }
+        );
     } else if(swipe.dx < 0) {
-        if(oldNudge > 0) {
-            slr::frame_t newNudge = 0;
-            int64_t diff = oldNudge + mul;
-            if(diff >= 0) {
-                newNudge = oldNudge + mul;
-            } else {
-                newNudge = 0;
+        UIUtility::decrementUntil<slr::frame_t>(_drawStart, std::abs(mul), 0,
+            [&start = _drawStart, &end = _drawEnd, &redraw = _zoomRedraw](const slr::frame_t dec) {
+                if(dec == 0) return;
+                start -= dec;
+                end -= dec;
+                redraw = true;
             }
-            if(diff >= 0) {
-                _drawStart = _drawStart + mul;
-                _drawEnd = _drawEnd + mul;
-                _zoomRedraw = true;
-            } else {
-            }
-            // _drawEnd = _drawEnd - newNudge;
-        }
+        );
     }
 
     if(!_midiEditor->visible()) return true;
 
     // LOG_INFO("delta for y %d", swipe.dy);
-    mul = swipe.dy * 0.3;
+    static int slowMeDown = 0;
+    slowMeDown += std::abs(swipe.dy);
+    if(slowMeDown < 30) return true;
+    slowMeDown = 0;
+
+    mul = 1;
     
     int &noteMin = _midiEditor->_noteMin;
     int &noteMax = _midiEditor->_noteMax;
     if(swipe.dy > 0) { 
-        //from bottom to top -> scroll down
-        if(noteMin - mul > 0) {
-            noteMin -= mul;
-            noteMax -= mul;
-            _midiEditor->_fNoteMin -= mul;
-            _midiEditor->_fNoteMax -= mul;
-            _zoomRedraw = true;
-        } else {
-            int diff = noteMin;
-            if(diff > 0) {
-                noteMin -= diff;
-                noteMax -= diff;
-                _midiEditor->_fNoteMin -= diff;
-                _midiEditor->_fNoteMax -= diff;
-                _zoomRedraw = true;
+        UIUtility::decrementUntil<int>(noteMin, mul, 0, 
+            [&min = noteMin, &max = noteMax, 
+            &fmin = _midiEditor->_fNoteMin, &fmax = _midiEditor->_fNoteMax,
+            &redraw = _zoomRedraw](const int dec) {
+                if(dec == 0) return;
+                min -= dec;
+                max -= dec;
+                fmin -= dec;
+                fmin -= max;
+                redraw = true;
             }
-            
-        }
+        );
     } else if(swipe.dy < 0) { 
         //from top to bottom -> scroll up
-        int dy = Math::abs(mul);
-        if(noteMax + dy < 127) {
-            noteMin += dy;
-            noteMax += dy;
-            _midiEditor->_fNoteMin += dy;
-            _midiEditor->_fNoteMax += dy;
-            _zoomRedraw = true;
-        } else {
-            int tmp = 127 - noteMax; 
-            if(tmp > 0) {
-                noteMin += tmp;
-                noteMax += tmp;
-                _midiEditor->_fNoteMin += tmp;
-                _midiEditor->_fNoteMax += tmp;
-                _zoomRedraw = true;
+        UIUtility::incrementUntil<int>(noteMax, std::abs(mul), 127, 
+            [&min = noteMin, &max = noteMax, 
+            &fmin = _midiEditor->_fNoteMin, &fmax = _midiEditor->_fNoteMax,
+            &redraw = _zoomRedraw](const int dec) {
+                if(dec == 0) return;
+                min += dec;
+                max += dec;
+                fmin += dec;
+                fmin += max;
+                redraw = true;
             }
-        }
+        );
     }
 
 
@@ -271,39 +263,12 @@ bool EditorView::handleDrag(const GestLib::DragGesture &drag) {
     DragContext & ctx = *_uictx->dragContext();
     //emm... how to determine if
     if(drag.state == GestLib::GestureState::Start) {
-        _dragStartedHere = true;
-
-        if(_midiEditor->visible()) {
-            int possiblePitch = _midiEditor->_noteMax - ((drag.y-(Layout::TOP_PANEL_HEIGHT+DrawableY)) / _midiEditor->_heightPerRow)+1;
-            int y =  Math::floor((_midiEditor->_noteMax - possiblePitch) * _midiEditor->_heightPerRow);
-
-            std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(_midiEditor.get(), *_midiEditor.get());
-            p->x = drag.x-30;
-            p->y = y;
-            p->h = _midiEditor->_heightPerRow;
-            p->w = 30;
-            p->_changingLength = true;
-            p->_changingStart = false;
-            p->setPos(p->x, p->y);
-            p->setSize(p->w, p->h);
-            p->show();
-
-            _midiEditor->_notePreviews.push_back(std::move(p));
-            _uictx->transferGesture(_midiEditor->_notePreviews.back().get(), GestLib::Gestures::Drag);
-        }
-        //possibly user want to move midi events around
 
     } else if(drag.state == GestLib::GestureState::Move) {
-        if(!_dragStartedHere) {
-            if(ctx.dragOnGoing) {
-                ctx.updateIconPos(drag.x, drag.y);
-            }   
-        } else {
-            //possibly user want to move midi events around
-
-        }
+        if(ctx.dragOnGoing) {
+            ctx.updateIconPos(drag.x, drag.y);
+        }   
     } else if(drag.state == GestLib::GestureState::End) {
-        if(!_dragStartedHere) {
             if(ctx.dragOnGoing && ctx.origin != nullptr) {
                 if(ctx.payload.type == DragPayload::DataType::FilePath) {
                     std::string *path = ctx.payload.filePath.path;
@@ -327,20 +292,15 @@ bool EditorView::handleDrag(const GestLib::DragGesture &drag) {
                 }
             }
             ctx.reset();
-        } else {
-            
-        }
-        _dragStartedHere = false;
     }
 
     return true;
 }
 
 bool EditorView::handleZoom(const GestLib::ZoomGesture &zoom) {
-    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    if(zoom.state == GestLib::GestureState::End) _zoomRedraw = true;
 
-    // LOG_INFO("Zoom difs h%.2f v%.2f, new h%.2f v%.2f",
-    //     zoom.horDif, zoom.verDif, newHorZoom, newVerZoom);
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
 
     const double width = Layout::WORKSPACE_WIDTH;
     const double height = DrawableHeight;
@@ -383,6 +343,7 @@ bool EditorView::handleZoom(const GestLib::ZoomGesture &zoom) {
 
     //for midi
     if(_midiEditor->visible()) {
+        if(zoom.verDif == 0.0f) return true;
         double newVerZoom = _midiEditor->_verticalZoom / zoom.verDif;
 
         const double anchor = Math::clamp(static_cast<double>(zoom.yCenter) / height, 0.0, 1.0);
@@ -415,18 +376,181 @@ bool EditorView::handleZoom(const GestLib::ZoomGesture &zoom) {
     return true;
 }
 
-AudioEditor::AudioEditor(BaseWidget *parent, EditorView &editor) :
+AudioEditor::AudioEditor(BaseWidget *parent, EditorView &editor, AudioToolbox &toolbox) :
     BaseWidget(parent, true),
-    _editor(editor)
+    _editor(editor),
+    _toolbox(toolbox)
 {
     setPos(Layout::WORKSPACE_POSITION_X, DrawableY);
     setSize(Layout::WORKSPACE_WIDTH, DrawableHeight); 
     noScroll();
     addStyle(&Style::workspace);
+
+    
+    lv_style_init(&handleLine);
+    lv_style_set_line_width(&handleLine, 2);
+    lv_style_set_line_color(&handleLine, Colors::White);
+    lv_style_set_line_rounded(&handleLine, true);
+    lv_style_set_margin_all(&handleLine, 0);
+    lv_style_set_pad_all(&handleLine, 0);
+    lv_style_set_radius(&handleLine, 0);
+    lv_style_set_border_width(&handleLine, 0);
+
+    _filler = lv_obj_create(lvhost());
+    _lineStart = lv_line_create(lvhost());
+    _lineEnd = lv_line_create(lvhost());
+
+    lv_obj_add_style(_filler, &Style::workspace, 0);
+    lv_obj_set_style_bg_color(_filler, Colors::White, 0);
+    lv_obj_set_style_bg_opa(_filler, LV_OPA_50, 0);
+    lv_obj_add_style(_lineStart, &handleLine, 0);
+    lv_obj_add_style(_lineEnd, &handleLine, 0);
+
+    lv_obj_move_to_index(_filler, -1);
+    lv_obj_move_to_index(_lineStart, -1);
+    lv_obj_move_to_index(_lineEnd, -1);
+    
+    _handleStart = std::make_unique<Handle>(this);
+    _handleEnd = std::make_unique<Handle>(this);
+    _handleEnd->_endHandle = true;
+    
+    _handleStart->setZ(10);
+    _handleStart->_editor = this;
+    _handleEnd->setZ(10);
+    _handleEnd->_editor = this;
+
+    hideHandles();
+
+    dragCallback(std::bind(&AudioEditor::handleDrag, this, std::placeholders::_1));
 }
+
+AudioEditor::~AudioEditor() {
+    lv_obj_delete(_filler);
+    lv_obj_delete(_lineStart);
+    lv_obj_delete(_lineEnd);
+}
+
+void AudioEditor::showHandles() {
+    lv_obj_clear_flag(_filler, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(_lineStart, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(_lineEnd, LV_OBJ_FLAG_HIDDEN);
+    _handleStart->show();
+    _handleEnd->show();
+}
+
+void AudioEditor::hideHandles() {
+    lv_obj_add_flag(_filler, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(_lineStart, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(_lineEnd, LV_OBJ_FLAG_HIDDEN);
+    _handleStart->hide();
+    _handleEnd->hide();
+}
+
+bool AudioEditor::handleDrag(const GestLib::DragGesture &drag) {
+    //make both start and end, on move change filler width
+    if(drag.state == GestLib::GestureState::Start) {
+        //put start
+        _pointsStart[0] = {drag.x, 0};
+        _pointsStart[1] = {drag.x, DrawableHeight};
+        lv_line_set_points(_lineStart, _pointsStart, 2);
+        _pointsEnd[0] = {drag.x, 0};
+        _pointsEnd[1] = {drag.x, DrawableHeight};
+        lv_line_set_points(_lineEnd, _pointsEnd, 2); //just to hide end line
+
+        lv_obj_set_pos(_filler, drag.x, 0);
+        lv_obj_set_size(_filler, drag.x - _pointsStart[0].x, DrawableHeight);
+
+        _handleStart->setPos(drag.x, 0);
+        _handleEnd->setPos(drag.x, 0);
+
+        showHandles();
+
+        _selectorStart = _editor._timeline->positionToFrames(drag.x);
+        _toolbox._lblStart->setText(std::to_string(_selectorStart));
+    } else if(drag.state == GestLib::GestureState::Move) {
+        lv_obj_set_size(_filler, drag.x - _pointsStart[0].x, DrawableHeight);
+    } else if(drag.state == GestLib::GestureState::End) {
+        _pointsEnd[0] = {drag.x, 0};
+        _pointsEnd[1] = {drag.x, DrawableHeight};
+        lv_line_set_points(_lineEnd, _pointsEnd, 2);
+
+        lv_obj_set_size(_filler, drag.x - _pointsStart[0].x, DrawableHeight);
+
+        _handleEnd->setPos(drag.x - Layout::Button, DrawableHeight - Layout::Button);
+        
+        _selectorEnd = _editor._timeline->positionToFrames(drag.x);
+        _toolbox._lblEnd->setText(std::to_string(_selectorEnd));
+    }
+
+    return true;
+}
+
 
 void AudioEditor::redraw() {
     _preview->draw(_editor._drawStart, _editor._drawEnd);
+
+    //redraw handles 
+    int startx = _editor._timeline->absoluteFramesToPosition(_selectorStart);
+    int endx = _editor._timeline->absoluteFramesToPosition(_selectorEnd);
+    bool startHidden = false;
+    bool endHidden = false;
+    //start handle
+    if(_selectorStart < _editor._drawStart) {
+        startHidden = true;
+        _handleStart->hide();
+
+        lv_obj_add_flag(_lineStart, LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_set_pos(_filler, 0, 0);
+        lv_obj_set_size(_filler, _pointsEnd[0].x, DrawableHeight);
+    } else {
+        _handleStart->show();
+        _handleStart->setPos(startx, 0);
+
+        _pointsStart[0] = {startx, 0};
+        _pointsStart[1] = {startx, DrawableHeight};
+        lv_line_set_points(_lineStart, _pointsStart, 2);
+        lv_obj_clear_flag(_lineStart, LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_set_pos(_filler, startx, 0);
+        lv_obj_set_size(_filler, (endx > Layout::WORKSPACE_WIDTH ? Layout::WORKSPACE_WIDTH : endx) - startx, DrawableHeight);
+    }
+
+    if(_selectorEnd > _editor._drawEnd) {
+        //hide
+        endHidden = true;
+        _handleEnd->hide();
+
+        lv_obj_add_flag(_lineEnd, LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_set_size(_filler, Layout::WORKSPACE_WIDTH - _pointsStart[0].x, DrawableHeight);
+    } else {
+        //show
+        int posx = _editor._timeline->absoluteFramesToPosition(_selectorEnd);
+        _handleEnd->show();
+        _handleEnd->setPos(endx - Layout::Button, DrawableHeight - Layout::Button);
+        
+        _pointsEnd[0] = {endx, 0};
+        _pointsEnd[1] = {endx, DrawableHeight};
+        lv_line_set_points(_lineEnd, _pointsEnd, 2);
+        lv_obj_clear_flag(_lineEnd, LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_set_size(
+            _filler, 
+            (startx > 0 ? 
+                endx - startx : 
+                (endx > Layout::WORKSPACE_WIDTH ? 
+                    Layout::WORKSPACE_WIDTH : 
+                    endx)
+                ), 
+            DrawableHeight
+        );
+    }
+
+    if(startHidden && endHidden) {
+        lv_obj_set_pos(_filler, 0, 0);
+        lv_obj_set_size(_filler, Layout::WORKSPACE_WIDTH, DrawableHeight);
+    }
 }
 
 void AudioEditor::preparePreview(const slr::AudioFile *file) {
@@ -447,11 +571,301 @@ void AudioEditor::preparePreview(const slr::AudioFile *file) {
     _preview->setSize(Layout::WORKSPACE_WIDTH, DrawableHeight);
     _preview->draw(_editor._drawStart, _editor._drawEnd);
     _preview->show();
+    _preview->setZ(1);
 }
 
-MidiEditor::MidiEditor(BaseWidget *parent, EditorView &editor) :
+AudioEditor::Handle::Handle(BaseWidget *parent) :
+    BaseWidget(parent, true)
+{
+    setSize(Layout::Button, Layout::Button);
+    touchDownCallback([](const GestLib::TouchDownEvent &td) -> bool {
+        return true;
+    });
+    dragCallback(std::bind(&AudioEditor::Handle::handleDrag, this, std::placeholders::_1));
+}
+
+bool AudioEditor::Handle::handleDrag(const GestLib::DragGesture &drag) {
+    if(!_endHandle) {
+        //start one
+        setPos(drag.x, 0);
+        _editor->_pointsStart[0] = {drag.x, 0};
+        _editor->_pointsStart[1] = {drag.x, DrawableHeight};
+        lv_line_set_points(_editor->_lineStart, _editor->_pointsStart, 2);
+
+        lv_obj_set_pos(_editor->_filler, drag.x, 0);
+        lv_obj_set_size(_editor->_filler, _editor->_pointsEnd[0].x - drag.x, DrawableHeight);
+    } else {
+        //end one
+        setPos(drag.x - Layout::Button, DrawableHeight - Layout::Button);
+
+        _editor->_pointsEnd[0] = {drag.x, 0};
+        _editor->_pointsEnd[1] = {drag.x, DrawableHeight};
+        lv_line_set_points(_editor->_lineEnd, _editor->_pointsEnd, 2);
+
+        // lv_obj_set_pos(_editor->_filler, )
+        lv_obj_set_size(_editor->_filler, drag.x - _editor->_pointsStart[0].x, DrawableHeight);
+    }
+
+    
+    if(drag.state == GestLib::GestureState::End) {
+        if(_endHandle) {
+            _editor->_selectorEnd = _editor->_editor._timeline->positionToFrames(drag.x);
+            _editor->_toolbox._lblEnd->setText(std::to_string(_editor->_selectorEnd));
+        } else {
+            _editor->_selectorStart = _editor->_editor._timeline->positionToFrames(drag.x);
+            _editor->_toolbox._lblStart->setText(std::to_string(_editor->_selectorStart));
+        }
+    }
+    return true;
+}
+
+AudioToolbox::AudioToolbox(BaseWidget *parent) :
+    BaseWidget(parent, true) 
+{
+    setPos(0, 0);
+    setSize(Layout::WORKSPACE_WIDTH, ToolboxHeight);
+    noScroll();
+    addStyle(&Style::workspace);
+
+    _btnSelectAll = std::make_unique<Button>(this, "SelAll");
+    _btnSelectAll->setPos(10, 0);
+    _btnSelectAll->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        edit->_selectorStart = 0;
+        edit->_selectorEnd = edit->_editor._fileLength;
+        return true;
+    });
+
+    _btnCut = std::make_unique<Button>(this, "Cut");
+    _btnCut->setPos(Layout::Button + 30, 0);
+    _btnCut->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        
+        return true;
+    });
+
+    _btnCopy = std::make_unique<Button>(this, "Copy");
+    _btnCopy->setPos((Layout::Button*2) + (30*2), 0);
+    _btnCopy->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        auto act = std::make_unique<slr::Actions::CopyAudio>();
+        act->start = edit->_selectorStart;
+        act->end = edit->_selectorEnd;
+        act->fileId = edit->_content.fileId;
+        slr::EmitAction(std::move(act));
+        return true;
+    });
+
+    _btnPaste = std::make_unique<Button>(this, "Paste");
+    _btnPaste->setPos((Layout::Button*3) + (30*3), 0);
+    _btnPaste->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        auto act = std::make_unique<slr::Actions::PasteAudio>();
+        act->start = edit->_selectorStart;
+        act->end = edit->_selectorEnd;
+        act->fileId = edit->_content.fileId;
+        act->finished = [edit]() {
+            UIControls::DisplayTask([edit]() {
+                //need to update content...
+                const slr::File *f = slr::ControlEngine::fileWorker()->findFileById(edit->_content.fileId);
+                edit->_editor._fileLength = f->frames();
+                if(edit->_editor._drawEnd > f->frames()) edit->_editor._drawEnd = f->frames();
+                if(edit->_selectorStart > f->frames()) edit->_selectorStart = 0;
+                if(edit->_selectorEnd > f->frames()) edit->_selectorEnd = 0;
+
+                edit->redraw();
+            });
+        };
+        slr::EmitAction(std::move(act));
+        return true;
+    });
+
+    _btnDelete = std::make_unique<Button>(this, "Delete");
+    _btnDelete->setPos((Layout::Button*4) + (30*4), 0);
+    _btnDelete->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        auto act = std::make_unique<slr::Actions::DeleteAudio>();
+        act->start = edit->_selectorStart;
+        act->end = edit->_selectorEnd;
+        act->fileId = edit->_content.fileId;
+        act->finished = [edit]() {
+            UIControls::DisplayTask([edit]() {
+                const slr::File *f = slr::ControlEngine::fileWorker()->findFileById(edit->_content.fileId);
+                edit->_editor._fileLength = f->frames();
+                if(edit->_editor._drawEnd > f->frames()) edit->_editor._drawEnd = f->frames();
+                if(edit->_selectorStart > f->frames()) edit->_selectorStart = 0;
+                if(edit->_selectorEnd > f->frames()) edit->_selectorEnd = 0;
+                
+                edit->redraw();
+            });
+        };
+        slr::EmitAction(std::move(act));
+        return true;
+    });
+    
+    _btnSilence = std::make_unique<Button>(this, "Silence");
+    _btnSilence->setPos((Layout::Button*5) + (30*5), 0);
+    _btnSilence->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        auto act = std::make_unique<slr::Actions::SilenceAudio>();
+        act->start = edit->_selectorStart;
+        act->end = edit->_selectorEnd;
+        act->fileId = edit->_content.fileId;
+        act->finished = [edit]() {
+            UIControls::DisplayTask([edit]() {
+                const slr::File *f = slr::ControlEngine::fileWorker()->findFileById(edit->_content.fileId);
+                edit->_editor._fileLength = f->frames();
+                if(edit->_editor._drawEnd > f->frames()) edit->_editor._drawEnd = f->frames();
+                if(edit->_selectorStart > f->frames()) edit->_selectorStart = 0;
+                if(edit->_selectorEnd > f->frames()) edit->_selectorEnd = 0;
+                
+                edit->redraw();
+            });
+        };
+        slr::EmitAction(std::move(act));
+        return true;
+    });
+
+    _btnReverse = std::make_unique<Button>(this, "Reverse");
+    _btnReverse->setPos((Layout::Button*6) + (30*6), 0);
+    _btnReverse->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        auto act = std::make_unique<slr::Actions::ReverseAudio>();
+        act->start = edit->_selectorStart;
+        act->end = edit->_selectorEnd;
+        act->fileId = edit->_content.fileId;
+        act->finished = [edit]() {
+            UIControls::DisplayTask([edit]() {
+                const slr::File *f = slr::ControlEngine::fileWorker()->findFileById(edit->_content.fileId);
+                edit->_editor._fileLength = f->frames();
+                if(edit->_editor._drawEnd > f->frames()) edit->_editor._drawEnd = f->frames();
+                if(edit->_selectorStart > f->frames()) edit->_selectorStart = 0;
+                if(edit->_selectorEnd > f->frames()) edit->_selectorEnd = 0;
+                
+                edit->redraw();
+            });
+        };
+        slr::EmitAction(std::move(act));
+        return true;
+    });
+
+    _btnReversePhase = std::make_unique<Button>(this, "Phase");
+    _btnReversePhase->setPos((Layout::Button*7) + (30*7), 0);
+    _btnReversePhase->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+
+        return true;
+    });
+
+    
+    _lblStaticStart = std::make_unique<Label>(this, "Start");
+    _lblStaticStart->setPos(950, 20);
+    _lblStaticStart->setSize(100, 40);
+    _lblStart = std::make_unique<Label>(this, "0");
+    _lblStart->setPos(1050, 20);
+    _lblStart->setSize(300, 40);
+    _lblStaticEnd = std::make_unique<Label>(this, "End");
+    _lblStaticEnd->setPos(1200, 20);
+    _lblStaticEnd->setSize(100, 40);
+    _lblEnd = std::make_unique<Label>(this, "nan");
+    _lblEnd->setPos(1300, 20);
+    _lblEnd->setSize(300, 40);
+    
+    _btnRedraw = std::make_unique<Button>(this, "Redraw");
+    _btnRedraw->setPos(Layout::WORKSPACE_WIDTH - ((Layout::Button*3) + (60)), 0);
+    _btnRedraw->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        edit->redraw();
+        return true;
+    });
+
+
+    _btnZoomTo = std::make_unique<Button>(this, "ZTo");
+    _btnZoomTo->setPos(Layout::WORKSPACE_WIDTH - ((Layout::Button*2) + (40)), 0);
+    _btnZoomTo->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        edit->_editor._drawStart = edit->_selectorStart;
+        edit->_editor._drawEnd = edit->_selectorEnd;
+
+        edit->_editor.calcNewZoom(edit->_editor._drawEnd - edit->_editor._drawStart);
+        edit->_editor._zoomRedraw = true;
+        return true;
+    });
+
+    _btnZoomOut = std::make_unique<Button>(this, "ZOut");
+    _btnZoomOut->setPos(Layout::WORKSPACE_WIDTH - ((Layout::Button) + (20)), 0);
+    _btnZoomOut->tapCallback([&edit = _editor](const GestLib::TapGesture &tap) -> bool {
+        edit->_editor._drawStart = 0;
+        edit->_editor._drawEnd = edit->_editor._fileLength;
+
+        edit->_editor.calcNewZoom(edit->_editor._drawEnd);
+        edit->_editor._zoomRedraw = true;
+        return true;
+    });
+}
+
+MidiToolbox::MidiToolbox(BaseWidget *parent/*, MidiEditor &editor*/) :
+    BaseWidget(parent, true)
+{
+    setPos(0, 0);
+    setSize(Layout::WORKSPACE_WIDTH, ToolboxHeight);
+    noScroll();
+    addStyle(&Style::workspace);
+
+    _btnSnapToGrid = std::make_unique<Button>(this, "Snap");
+    _btnSnapToGrid->setPos(50, 0);
+    _btnSnapToGrid->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        if(this->_snapToGrid) this->_snapToGrid = false;
+        else this->_snapToGrid = true;
+        return true;
+    });
+    _btnSnapToGrid->touchUpCallback([this](const GestLib::TouchUpEvent &td) -> bool {
+        if(!this->_snapToGrid) this->_btnSnapToGrid->setColor(Colors::ButtonReleased);
+        else this->_btnSnapToGrid->setColor(Colors::ButtonPressed);
+        return true;
+    });
+
+    _btnSelectTool = std::make_unique<Button>(this, "Select");
+    _btnSelectTool->setPos(500, 0);
+    _btnSelectTool->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        this->_lastTool = MidiTool::Select;
+        return true;
+    });
+    _btnSelectTool->touchUpCallback([this](const GestLib::TouchUpEvent &td) -> bool {
+        if(this->_lastTool == MidiTool::Select) {
+            this->_btnSelectTool->setColor(Colors::ButtonPressed);
+            this->_btnDrawTool->setColor(Colors::ButtonReleased);
+            this->_btnEraseTool->setColor(Colors::ButtonReleased);
+        }
+        return true;
+    });
+    _btnSelectTool->setColor(Colors::ButtonPressed);
+
+    _btnDrawTool = std::make_unique<Button>(this, "Draw");
+    _btnDrawTool->setPos(600, 0);
+    _btnDrawTool->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        this->_lastTool = MidiTool::Draw;
+        return true;
+    });
+    _btnDrawTool->touchUpCallback([this](const GestLib::TouchUpEvent &td) -> bool {
+        if(this->_lastTool == MidiTool::Draw) {
+            this->_btnSelectTool->setColor(Colors::ButtonReleased);
+            this->_btnDrawTool->setColor(Colors::ButtonPressed);
+            this->_btnEraseTool->setColor(Colors::ButtonReleased);
+        }
+        return true;
+    });
+
+    _btnEraseTool = std::make_unique<Button>(this, "Erase");
+    _btnEraseTool->setPos(700, 0);
+    _btnEraseTool->tapCallback([this](const GestLib::TapGesture &tap) -> bool {
+        this->_lastTool = MidiTool::Erase;
+        return true;
+    });
+    _btnEraseTool->touchUpCallback([this](const GestLib::TouchUpEvent &td) -> bool {
+        if(this->_lastTool == MidiTool::Erase) {
+            this->_btnSelectTool->setColor(Colors::ButtonReleased);
+            this->_btnDrawTool->setColor(Colors::ButtonReleased);
+            this->_btnEraseTool->setColor(Colors::ButtonPressed);
+        }
+        return true;
+    });
+}
+
+MidiEditor::MidiEditor(BaseWidget *parent, EditorView &editor, MidiToolbox &toolbox) :
     BaseWidget(parent, true),
-    _editor(editor)
+    _editor(editor),
+    _toolbox(toolbox)
 {    
     setPos(Layout::WORKSPACE_POSITION_X, DrawableY);
     setSize(Layout::WORKSPACE_WIDTH, DrawableHeight); 
@@ -482,6 +896,9 @@ MidiEditor::MidiEditor(BaseWidget *parent, EditorView &editor) :
         l->hide();
         _bglines.push_back(std::move(l));
     }
+
+    tapCallback(std::bind(&MidiEditor::handleTap, this, std::placeholders::_1));
+    dragCallback(std::bind(&MidiEditor::handleDrag, this, std::placeholders::_1));
     show();
 }
 
@@ -572,7 +989,7 @@ void MidiEditor::notesDraw() {
         int w = Math::round((end-start) * pixelsPerTick);
         int ypos = Math::floor((_noteMax - n.note) * heightPerNote);
 
-        std::unique_ptr<NotePreview> nprev = std::make_unique<NotePreview>(this, *this);
+        std::unique_ptr<NotePreview> nprev = std::make_unique<NotePreview>(this, *this, n);
         nprev->x = xpos;
         nprev->y = ypos;
         nprev->w = w;
@@ -585,19 +1002,164 @@ void MidiEditor::notesDraw() {
     }
 }
 
-NotePreview::NotePreview(BaseWidget *parent, MidiEditor &editor) :
+int MidiEditor::pitchAtY(int y) {
+    return _noteMax - ((y-(Layout::TOP_PANEL_HEIGHT+DrawableY)) / _heightPerRow)+1;
+}
+
+int MidiEditor::yToNoteY(int y) {
+    int possiblePitch = pitchAtY(y);
+    return Math::floor((_noteMax - possiblePitch) * _heightPerRow);
+}
+
+bool MidiEditor::handleTap(const GestLib::TapGesture &tap) {
+   switch(_toolbox.lastTool()) {
+        case(MidiTool::Select): {
+            //select many notes
+        } break;
+        case(MidiTool::Draw): {
+            //add new note within grid
+            UI::Timeline *tl = _editor._timeline.get();
+            //there is possibility that after zoom we didn't updated timeline yet, but problem exists within 17ms time frame soo...
+            std::pair<int, int> pos = tl->positionsWithinGrid(tap.x);
+            //add drawable at pos
+            
+            const slr::TimelineView &tlv = slr::TimelineView::getTimelineView();
+
+            slr::Note n;
+            n.note = pitchAtY(tap.y);
+            n.velocity = 100;
+            n.channel = 0;
+            //need to quantize this?
+            n.ppqnStart = UIUtility::framesToPpqn(_editor._timeline->positionToFrames(pos.first), tlv);
+            n.ppqnEnd = UIUtility::framesToPpqn(_editor._timeline->positionToFrames(pos.first+pos.second), tlv);
+
+            LOG_WARN("[Placeholder] Add new note");
+
+            std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(this, *this, n);
+            p->x = pos.first;
+            p->y = yToNoteY(tap.y);
+            p->h = _heightPerRow;
+            p->w = pos.second;
+            p->_changingLength = false;
+            p->_changingStart = false;
+            p->setPos(p->x, p->y);
+            p->setSize(p->w, p->h);
+            p->show();
+
+            _notePreviews.push_back(std::move(p));
+        } break;
+        case(MidiTool::Erase): {
+            //erase note under tap coords if exists
+            auto it = std::find_if(
+                _notePreviews.begin(),
+                _notePreviews.end(),
+                [tap](const std::unique_ptr<NotePreview> &n) {
+                    return UIUtility::withinRange(tap.x, n->x, n->x+n->w) && 
+                            UIUtility::withinRange(tap.y-(Layout::TOP_PANEL_HEIGHT + DrawableY), n->y, n->y+n->h);
+                }
+            );
+
+            if(it != _notePreviews.end()) {
+                int pitch = pitchAtY((*it)->y);
+                // slr::frame_t ppqnStart = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*it)->x));
+                // slr::frame_t ppqnEnd = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*it)->x+(*it)->w));
+                int velocity = 100;
+                int channel = 0;
+
+                _notePreviews.erase(it);
+
+                LOG_WARN("[Placeholder] Erase note");
+            }
+
+        } break;
+   }
+    return true;
+}
+
+bool MidiEditor::handleDrag(const GestLib::DragGesture &drag) {
+    /*if(_toolbox.isSelectTool()) {
+        //use region to select many notes so later all can be moved?
+    } else if(_toolbox.isDrawTool()) {
+        //draw new note, drag from end(as coded down below)
+    } else if(_toolbox.isEraseTool()) {
+        //...??erase everything within selected region?
+    }*/
+
+    switch(_toolbox.lastTool()) {
+        case(MidiTool::Select): {
+
+        } break;
+        case(MidiTool::Draw): {
+
+        if(drag.state == GestLib::GestureState::Start) {
+            
+            // int possiblePitch = _noteMax - ((drag.y-(Layout::TOP_PANEL_HEIGHT+DrawableY)) / _heightPerRow)+1;
+            // int y =  Math::floor((_noteMax - possiblePitch) * _heightPerRow);
+
+            std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(this, *this, slr::Note{});
+            p->x = drag.x-30;
+            p->y = yToNoteY(drag.y);
+            p->h = _heightPerRow;
+            p->w = 30;
+            p->_changingLength = true;
+            p->_changingStart = false;
+            p->setPos(p->x, p->y);
+            p->setSize(p->w, p->h);
+            p->show();
+
+            _notePreviews.push_back(std::move(p));
+            _draggableNote = &_notePreviews.back(); //std::prev(_notePreviews.end());
+            (*_draggableNote)->handleDrag(drag);
+            // _editor._uictx->transferGesture(_notePreviews.back().get(), GestLib::Gestures::Drag);
+        } else if(drag.state == GestLib::GestureState::Move) {
+            if(_draggableNote) (*_draggableNote)->handleDrag(drag);
+        } else if(drag.state == GestLib::GestureState::End) {
+            //recreate 
+            if(_draggableNote) {
+                (*_draggableNote)->handleDrag(drag);
+
+                const slr::TimelineView &tlv = slr::TimelineView::getTimelineView();
+
+                slr::Note n;
+                n.note = pitchAtY((*_draggableNote)->y);
+                n.velocity = 100;
+                n.channel = 0;
+                n.ppqnStart = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*_draggableNote)->x), tlv);
+                n.ppqnEnd = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*_draggableNote)->x+(*_draggableNote)->w), tlv);
+
+                LOG_WARN("[Placeholder] Add new note");
+
+                std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(this, *this, n);
+                p->x = (*_draggableNote)->x;
+                p->y = (*_draggableNote)->y;
+                p->h = (*_draggableNote)->h;
+                p->w = (*_draggableNote)->w;
+                p->_changingLength = false;
+                p->_changingStart = false;
+                p->setPos(p->x, p->y);
+                p->setSize(p->w, p->h);
+                p->show();
+                
+                _draggableNote->swap(p); //old get's deleted
+                _draggableNote = nullptr;
+            }
+        }
+        } break;
+        case(MidiTool::Erase): {
+
+        } break;
+    }
+
+    return true;
+}
+
+NotePreview::NotePreview(BaseWidget *parent, MidiEditor &editor, const slr::Note n) :
     BaseWidget(parent, true),
-    _editor(editor)
+    _editor(editor),
+    _note(n)
 {
     addStyle(&noteStyle);
     noScroll();
-
-    //need some tool picker - e.g.
-    /*
-        if(_editor._tool == MoveTool) moveNote(...);
-        else if(_editor._tool == EditNote) editLength(...);
-        else if(...) ...
-    */
 
     holdCallback(std::bind(&NotePreview::handleHold, this, std::placeholders::_1));
     dragCallback(std::bind(&NotePreview::handleDrag, this, std::placeholders::_1));
@@ -613,42 +1175,60 @@ bool NotePreview::handleDrag(const GestLib::DragGesture &drag) {
     // moveNote(drag.x, drag.y, drag.state == GestLib::GestureState::End ? true : false);
     if(drag.state == GestLib::GestureState::Start) {
         //check if the gesture is within... 30px of note edge
-        bool withinEdge = false;
-        if((drag.x >= x && drag.x <= x+30) || 
-        (drag.x <= (x+w) && drag.x >= (x+w-30)))
+        if(UIUtility::withinRange(drag.x, x, x+30) ||
+            UIUtility::withinRange(drag.x, x+w-30, x+w))
         {
             _changingLength = true;
         } else {
             _changingLength = false;
         }
 
-        if(drag.x >= x && drag.x <= x+30) _changingStart = true;
+        if(UIUtility::withinRange(drag.x, x, x+30)) _changingStart = true;
         else _changingStart = false;
+
+        return _changingLength;
     } else if(drag.state == GestLib::GestureState::Move) {
-        if(!_changingLength) return true;
+        if(!_changingLength) return false;
 
         if(_changingStart) {
             int oldx = x;
-            int oldw = w;
-            // int dx = x - drag.x;
-            // if(w - dx > 10) {
-            //     x = drag.x;
-            //     w = w + dx;
-            // } else {
-
-            // }
-                x = drag.x;
+            if(w + (oldx-drag.x) > 30) {
                 w = w + (oldx-drag.x);
+                x = drag.x;
+            }
+            
         } else {
             w = drag.x - x;
-            if(w < 10) w = 10;
+            if(w < 30) w = 30;
         }
 
         setPos(x, y);
         setSize(w, h);
+        return true;
+    } else if(drag.state == GestLib::GestureState::End) {
+        //TODO: set final and emit action
+        if(!_changingLength) return false; //ignore
 
-        LOG_INFO("New sizes x%d y%d w%d h%d", x, y, w, h);
+        if(_changingStart) {
+            int oldx = x;
+            if(w + (oldx-drag.x) > 30) {
+                w = w + (oldx-drag.x);
+                x = drag.x;
+            }
+            
+            LOG_WARN("[Placeholder] change note start");
+        } else {
+            w = drag.x - x;
+            if(w < 30) w = 30;
+            
+            LOG_WARN("[Placeholder] change note length");
+        }
+
+        setPos(x, y);
+        setSize(w, h);
+        return true;
     }
+
     return true;
 }
 
@@ -664,47 +1244,20 @@ void NotePreview::moveNote(int newx, int newy, bool isEnd) {
 
     
     if(isEnd) {
-        // calc possible note
-        // int possiblePitch = _editor._noteMax - ((newy/*-130-Layout::TOP_PANEL_HEIGHT*/) / _editor._heightPerRow) + 1;
-        int possiblePitch = _editor._noteMax - ((newy-(Layout::TOP_PANEL_HEIGHT+DrawableY)) / _editor._heightPerRow)+1;
-        y =  Math::floor((_editor._noteMax - possiblePitch) * _editor._heightPerRow);
+        int pitch = _editor.pitchAtY(newy);
+        y = _editor.yToNoteY(newy);
         // y = Math::round(_editor._noteMax - (possiblePitch - _editor._noteMin));
 
         // slr::frame_t aproxStart = newx;
         // slr::frame_t aproxEnd = newx + w;
         //need to mul start and end to a framesPerPixel value
         
-        LOG_INFO("Possible note %d", possiblePitch);
+        LOG_INFO("Possible note %d", pitch);
     }
     
     setPos(x, y);
 }
 
 
-const lv_font_t * pickFont(int pix) {
-    const lv_font_t * ret;
-    if(pix <= 8) ret = &lv_font_montserrat_8;
-    else if(pix > 8 && pix <= 10) ret = &lv_font_montserrat_10;
-    else if(pix > 10 && pix <= 12) ret = &lv_font_montserrat_12;
-    else if(pix > 12 && pix <= 14) ret = &lv_font_montserrat_14;
-    else if(pix > 14 && pix <= 16) ret = &lv_font_montserrat_16;
-    else if(pix > 16 && pix <= 18) ret = &lv_font_montserrat_18;
-    else if(pix > 18 && pix <= 20) ret = &lv_font_montserrat_20;
-    else if(pix > 20 && pix <= 22) ret = &lv_font_montserrat_22;
-    else if(pix > 22 && pix <= 24) ret = &lv_font_montserrat_24;
-    else if(pix > 24 && pix <= 26) ret = &lv_font_montserrat_26;
-    else if(pix > 26 && pix <= 28) ret = &lv_font_montserrat_28;
-    else if(pix > 28 && pix <= 30) ret = &lv_font_montserrat_30;
-    else if(pix > 30 && pix <= 32) ret = &lv_font_montserrat_32;
-    else if(pix > 32 && pix <= 34) ret = &lv_font_montserrat_34;
-    else if(pix > 34 && pix <= 36) ret = &lv_font_montserrat_36;
-    else if(pix > 36 && pix <= 38) ret = &lv_font_montserrat_38;
-    else if(pix > 38 && pix <= 40) ret = &lv_font_montserrat_40;
-    else if(pix > 40 && pix <= 42) ret = &lv_font_montserrat_42;
-    else if(pix > 42 && pix <= 44) ret = &lv_font_montserrat_44;
-    else if(pix > 44 && pix <= 46) ret = &lv_font_montserrat_46;
-    else if(pix > 46) ret = &lv_font_montserrat_48;
-    return ret;
-}
 
 }

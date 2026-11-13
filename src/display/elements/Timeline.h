@@ -24,6 +24,19 @@ struct Timeline : public BaseWidget {
     void nudge(slr::frame_t nudge);
     inline slr::frame_t nudge() const { return _nudge; }
 
+    int subdivisions() const { return _subdivisions; }
+    
+    bool isTriplet() const { return _isTriplets; }
+    void triplets(bool enabled) { _isTriplets = enabled; }
+
+    int gridSize() const { return _gridSize; }
+    void gridSize(int size) { _gridSize = size; }
+
+    //return x position and length(width)
+    std::pair<int, int> positionsWithinGrid(int x) const;
+    slr::frame_t positionToFrames(int x) const;
+    int absoluteFramesToPosition(slr::frame_t f) const;
+
     void showLoopMarkers();
     void hideLoopMarkers();
     void updateLoopMarkers(float hzoom);
@@ -44,6 +57,13 @@ struct Timeline : public BaseWidget {
     int _height;
     int _x;
     int _y;
+
+    // bool _adaptiveGrid;
+    int _gridSize = 0; //if 0 - adaptive grid, otherwise show the grid
+    bool _isTriplets;
+    int _subdivisions;
+    int _barStep;
+
 
     lv_obj_t * _numberBackground;
     lv_style_t _numberFont;

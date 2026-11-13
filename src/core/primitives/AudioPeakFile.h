@@ -20,7 +20,7 @@ class AudioPeakFile : public File {
 
     bool open(std::string &path) override;
     static bool createAndBuild(const std::string &path, const AudioFile * file);
-    bool save() override;
+    bool save() const override;
     bool close() override;
     
     void prepareForRecord() override;

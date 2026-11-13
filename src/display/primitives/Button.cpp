@@ -32,6 +32,7 @@ Button::Button(BaseWidget * parent, std::string text) : BaseWidget(parent, false
 
     _defaultColor = Colors::ButtonReleased;
     setFont(&DEFAULT_FONT);
+    setSize(Layout::Button, Layout::Button);
     // lv_obj_add_event_cb(_btn, &Button::event_trampoline, LV_EVENT_CLICKED, this);
 }
 

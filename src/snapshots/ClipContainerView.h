@@ -22,7 +22,7 @@ struct ClipContentView {
     
     union {
         const AudioPeaks * audio;
-        const MidiPeaks *midi;
+        const MidiPeaks * midi;
     };
     ID fileId;
 };

@@ -104,6 +104,7 @@ struct RootWindow : public BaseWidget {
     std::unique_ptr<DragViewSelector> _dragViewSelector;
     std::unique_ptr<TargetSelectPopup> _targetSelectPopup; //for step sequencer
     std::unique_ptr<ModEngineTargetManager> _modEngineTargetManagerPopup;
+    
 
     private:
     UIContext _uiContext;

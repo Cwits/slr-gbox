@@ -17,6 +17,13 @@
 #include "core/actions/ClipItem/RemoveClip.h"
 #include "core/actions/ClipItem/ModifyClipItem.h"
 
+#include "core/actions/FileTaskProxy/CopyAudio.h"
+#include "core/actions/FileTaskProxy/PasteAudio.h"
+#include "core/actions/FileTaskProxy/DeleteAudio.h"
+#include "core/actions/FileTaskProxy/CutAudio.h"
+#include "core/actions/FileTaskProxy/SilenceAudio.h"
+#include "core/actions/FileTaskProxy/ReverseAudio.h"
+
 #include "core/actions/Project/CreateNewUnit.h"
 #include "core/actions/Project/DeleteUnit.h"
 #include "core/actions/Project/AddNewAudioRoute.h"
@@ -99,6 +106,14 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
     map[typeid(Actions::CreateNewModulation)] = &createCreateNewModulationAction;
     map[typeid(Actions::ModifyModulation)] = &createModifyModulationAction;
     map[typeid(Actions::ModifyModulationTarget)] = &createModifyModulationTargetAction;
+
+    map[typeid(Actions::CopyAudio)] = &createCopyAudioAction;
+    map[typeid(Actions::PasteAudio)] = &createPasteAudioAction;
+    map[typeid(Actions::DeleteAudio)] = &createDeleteAudioAction;
+    map[typeid(Actions::CutAudio)] = &createCutAudioAction;
+    map[typeid(Actions::SilenceAudio)] = &createSilenceAudioAction;
+    map[typeid(Actions::ReverseAudio)] = &createReverseAudioAction;
+    
 }
 
 std::map<std::type_index, CreatorFn> & getActionMap() {

@@ -71,7 +71,7 @@ void OpenFile::exec(FileWorkerContext &ctx) {
             return;
         }
 
-        afile->setPeaks(apkfile->peaks());
+        afile->setPeaks(apkfile->peaks(), apkfile->id());
 
         //if total success
         LOG_SUCCESS("Audio File %s loaded with ID %u, peak file ID %u", 

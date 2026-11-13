@@ -145,6 +145,8 @@ RootWindow::RootWindow(lv_obj_t * screen) : BaseWidget(screen) {
     _dragContext = std::make_unique<DragContext>(this);
     _dragContext->reset();
     _uiContext._dragContext = _dragContext.get();
+
+    switchToView(MainView::Grid);
 }
 
 RootWindow::~RootWindow() {
@@ -168,9 +170,14 @@ void RootWindow::switchToView(MainView view) {
     _modEngineView->hide();
     _editorView->hide();
 
+    BaseWidget *old = getSwitchViewTarget(_prevView);
+    if(old && old->_leavingViewClb) old->_leavingViewClb();
+
     BaseWidget * target = getSwitchViewTarget(view);
     target->pollUIUpdate();
     target->show();
+
+    if(target && target->_enteringViewClb) target->_enteringViewClb();
 
     _prevView = _currentView;
     _currentView = view;
@@ -219,7 +226,9 @@ bool RootWindow::handleGesture(GestLib::Gesture & gesture) {
                 //look in top panel
                 node = _topPanel.get();
             } else if(y > Layout::TOP_PANEL_HEIGHT && y < (Layout::WORKSPACE_HEIGHT+Layout::TOP_PANEL_HEIGHT)) {
-                //look in workspace
+                //look in workspace 
+                //TODO: MAJOR ISSUE!!! ugh jeezzzzz... 
+                //in this case, if top panel is shown than need to subtract it height from gesture and always subtract
                 node = getSwitchViewTarget(_currentView);
             } else {
                 //look in bottom panel
@@ -295,16 +304,24 @@ bool RootWindow::handleGesture(GestLib::Gesture & gesture) {
         }
     }
 
+    // std::string gest = GestLib::gestureToText(gesture.type);
+    // if(gesture.type == GestLib::Gestures::Drag) {
+    //     if(gesture.drag.state == GestLib::GestureState::Start) {
+    //         LOG_INFO("Drag gesture start");
+    //         int i = 1231231;
+    //         i -= 1232;
+    //     }
+    // }
     bool ret = globtarget->handleGesture(gesture);
 
-    if(_dragContext->dragOnGoing){
-        if(gesture.type == GestLib::Gestures::Drag) {
-            if(gesture.drag.state == GestLib::GestureState::End) {
-                LOG_WARN("Hit here");
-                _dragContext.reset();
-            }
-        }
-    }
+    // if(_dragContext->dragOnGoing){
+    //     if(gesture.type == GestLib::Gestures::Drag) {
+    //         if(gesture.drag.state == GestLib::GestureState::End) {
+    //             LOG_WARN("Hit here");
+    //             _dragContext.reset();
+    //         }
+    //     }
+    // }
 
     return ret;
 }

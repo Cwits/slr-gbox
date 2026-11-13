@@ -27,31 +27,33 @@ void closeFile::exec(FileWorkerContext &ctx) {
 
 void saveFile::exec(FileWorkerContext &ctx) {
     // std::vector<File*> list = f->listFiles;
-    auto it = std::find_if(
-        ctx.files.begin(),
-        ctx.files.end(),
-        [id = fileId](const std::unique_ptr<File> &f) {
-            return f->id() == id;
-        }
-    );
+    // auto it = std::find_if(
+    //     ctx.files.begin(),
+    //     ctx.files.end(),
+    //     [id = fileId](const std::unique_ptr<File> &f) {
+    //         return f->id() == id;
+    //     }
+    // );
 
-    if(it == ctx.files.end()) {
-        LOG_ERROR("Failed to find file with id %u", fileId);
-        return;
-    }
+    // if(it == ctx.files.end()) {
+    //     LOG_ERROR("Failed to find file with id %u", fileId);
+    //     return;
+    // }
 
-    (*it)->save();
+    // (*it)->save();
+    const File *f = ctx.findFile(fileId);
+    if(f) f->save();
 }
 
 void closeAllFiles::exec(FileWorkerContext &ctx) {
     // bool saveFiles;
     // std::function<void()> completed;
 
-    for(auto &f : ctx.files) {
-        if(saveFiles) f->save();
+    // for(auto &f : ctx.files) {
+    //     if(saveFiles) f->save();
 
-        f.reset();
-    }
+    //     f.reset();
+    // }
 
     completed();
 };

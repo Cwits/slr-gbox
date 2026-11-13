@@ -19,7 +19,7 @@ class File {
     //temporary meaned for recording only -> creates new file
     // virtual bool createTemporary(std::string & path) = 0;
     virtual bool open(std::string & path) = 0;
-    virtual bool save() = 0;
+    virtual bool save() const = 0;
     virtual bool close() = 0;
 
     virtual void prepareForRecord() = 0;
@@ -54,12 +54,12 @@ class File {
     std::string _name;
     std::string _path;
 
-    void clearDirty() { _dirty = false; }
+    void clearDirty() const { _dirty = false; }
 
     private:
     FileType _type;
     ID _uniqueId;
-    std::atomic<bool> _dirty;
+    mutable std::atomic<bool> _dirty;
 
     bool _offline;
 };

@@ -49,6 +49,7 @@ struct BaseWidget {
     int width();
     int height();
     int getZ() const;
+    void setZ(int z);
 
 
     virtual void hide();
@@ -92,6 +93,9 @@ struct BaseWidget {
     void doubleTapCallback(std::function<bool(const GestLib::DoubleTapGesture &)> onDT);
     void zoomCallback(std::function<bool(const GestLib::ZoomGesture &)> onZoom);
     
+    std::function<void()> _enteringViewClb;
+    std::function<void()> _leavingViewClb;
+
     protected:
     BaseWidget * _parent;
     std::vector<BaseWidget*> _childs;

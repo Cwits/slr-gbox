@@ -233,19 +233,25 @@ inline slr::frame_t ppqnToFrames(const slr::frame_t f, const slr::TimelineView &
     return ((float)f / (float)tl.ppqn()) * tl.framesPerQuater();
 }
 
-template<typename T>
-void incrementUntill(T &base, const T limit, const T step) {
-    if(base + step <= limit) base += step;
-    else base += (limit - base);
+inline slr::frame_t framesToPpqn(const slr::frame_t f, const slr::TimelineView &tl) {
+    return ((float)f / (float)tl.framesPerQuater()) * (float)tl.ppqn();
 }
 
 template<typename T>
-void decrementUntill(T &base, const T limit, const T step) {
-    if(base - step >= limit) base -= step;
-    else {
-        T diff = base - limit;
-        base -= diff;
-    }
+inline void incrementUntil(const T var, const T inc, const T lim, std::function<void(const T)> clb) {
+    if(var + inc < lim) clb(inc);
+    else { T diff = lim - var; clb(diff); }
+}
+
+template<typename T>
+inline void decrementUntil(const T var, const T dec, const T lim, std::function<void(const T)> clb) {
+    if(long(var) - long(dec) >= long(lim)) clb(dec);
+    else { T diff = dec - (dec - var); clb(diff); }
+}
+
+template<typename T>
+inline bool withinRange(const T val, const T rangeMin, const T rangeMax) {
+    return (val >= rangeMin && val <= rangeMax);
 }
 
 const std::string_view ErrorString = "Error String";

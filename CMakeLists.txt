@@ -101,6 +101,13 @@ file(GLOB SOURCES
   src/core/actions/Project/Undo.cpp
   src/core/actions/Project/Redo.cpp
 
+  src/core/actions/FileTaskProxy/CopyAudio.cpp
+  src/core/actions/FileTaskProxy/PasteAudio.cpp
+  src/core/actions/FileTaskProxy/DeleteAudio.cpp
+  src/core/actions/FileTaskProxy/CutAudio.cpp
+  src/core/actions/FileTaskProxy/SilenceAudio.cpp
+  src/core/actions/FileTaskProxy/ReverseAudio.cpp
+
   src/core/actions/Timeline/ChangeSignatureBpm.cpp
   src/core/actions/Timeline/ChangeTimelineState.cpp
   src/core/actions/Timeline/LoopPosition.cpp
@@ -133,6 +140,13 @@ file(GLOB SOURCES
   #filetasks
   src/core/filetasks/tasks/OpenFile.cpp
   src/core/filetasks/tasks/DumpAudio.cpp
+  src/core/filetasks/tasks/CopyAudio.cpp
+  src/core/filetasks/tasks/PasteAudio.cpp
+  src/core/filetasks/tasks/UpdateAudioPeaks.cpp
+  src/core/filetasks/tasks/DeleteAudio.cpp
+  src/core/filetasks/tasks/CutAudio.cpp
+  src/core/filetasks/tasks/SilenceAudio.cpp
+  src/core/filetasks/tasks/ReverseAudio.cpp
   src/core/filetasks/FileTasks.cpp
 
   #primitives

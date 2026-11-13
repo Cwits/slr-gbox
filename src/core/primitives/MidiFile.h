@@ -45,7 +45,7 @@ struct MidiFile : public File {
 
     bool createTemporary(std::string &path);
     bool open(std::string &path) override;
-    bool save() override;
+    bool save() const override;
     bool close() override;
 
     void prepareForRecord() override;

@@ -14,7 +14,7 @@
 namespace slr {
 
 FileWorker::FileWorker() {
-
+    _aCopyCtx = std::make_unique<AudioCopyContext>();
 }
 
 FileWorker::~FileWorker() {
@@ -79,7 +79,7 @@ void FileWorker::run(FileWorker * f, IdGenerator *gen, std::atomic<bool> &shutdo
         f->_queue.pop();
         lock.unlock();
 
-        FileWorkerContext ctx(f, f->_fileList, gen);
+        FileWorkerContext ctx(f, f->_fileList, gen, f->_aCopyCtx.get());
 
         task->exec(ctx);
     }

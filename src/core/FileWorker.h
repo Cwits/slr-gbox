@@ -18,6 +18,7 @@ struct AudioFile;
 struct MidiFile;
 struct FileTask;
 struct IdGenerator;
+struct AudioCopyContext;
 
 class FileWorker {
     public:
@@ -56,6 +57,7 @@ class FileWorker {
     std::vector<std::unique_ptr<File>> _fileList;
     std::vector<std::unique_ptr<File>> _tmpFileList;
 
+    std::unique_ptr<AudioCopyContext> _aCopyCtx;
 };
 
 

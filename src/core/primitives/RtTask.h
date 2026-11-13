@@ -4,10 +4,13 @@
 #pragma once
 
 #include "core/primitives/ClipContainer.h"
+// #include "core/primitives/AudioBuffer.h"
 #include "common/defines.h"
 #include <atomic>
 
 namespace slr {
+
+struct AudioFile;
 
 struct FlatTask {
 

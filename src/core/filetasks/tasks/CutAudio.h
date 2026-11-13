@@ -1,0 +1,32 @@
+// SPDX-FileCopyrightText: 2025 Cwits
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#pragma once
+#include "core/filetasks/FileTask.h"
+#include "common/defines.h"
+
+#include <functional>
+#include <optional>
+
+namespace slr {
+
+struct File;
+struct FileWorkerContext;
+
+namespace Tasks {
+
+struct CutAudio : public FileTask {
+    void exec(FileWorkerContext &ctx) override;
+
+    frame_t start;
+    frame_t end;
+    std::optional<int> channel;
+    ID fileId;
+
+    std::function<void(const File * file, bool success)> finished;
+};
+
+} //namespace Tasks
+
+} //namespace slr
+    

@@ -233,7 +233,7 @@ bool MidiFile::open(std::string &path) {
     return true;
 }
 
-bool MidiFile::save() {
+bool MidiFile::save() const {
     return false;
 }
 

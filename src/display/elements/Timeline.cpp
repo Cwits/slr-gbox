@@ -15,6 +15,9 @@
 #include "common/Math.h"
 #include "common/logger.h"
 
+#include <limits>
+#include <cassert>
+
 namespace UI {
 
 constexpr float MIN_LINE_SPACING = 48.0f;
@@ -99,25 +102,119 @@ void Timeline::nudge(slr::frame_t nudge) {
     _nudge = nudge;
 }
 
+std::pair<int, int> Timeline::positionsWithinGrid(int x) const {
+    //assume that x position is within timeline width
+    int xpos = 0;
+    int width = 0;
+
+    float pixelPerBar = UIUtility::pixelPerBar(*_zoomPtr);
+    // nudge...
+    
+    // int gridVal = _gridSize == 0 ? (_subdivisions == 1 ? _barStep : _subdivisions) : _gridSize;
+    int gridVal = _subdivisions == 1 ? _barStep : _subdivisions;
+    float pixelPerSubdiv = pixelPerBar / gridVal;
+    float kindaBar = (float)x / pixelPerBar;
+    
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    double nudgeBars = static_cast<double>(_nudge) / tl.framesPerBar();
+    int firstIndex = static_cast<int>(Math::floor(nudgeBars * _subdivisions));
+    float leftover = /*Math::round*/(pixelPerSubdiv * ((nudgeBars*_subdivisions) - (float)firstIndex));
+
+    
+    float subdiv = leftover == 0 ? 0 : pixelPerSubdiv - leftover;//Math::floor(kindaBar) * pixelPerBar + (pixelPerSubdiv - leftover);
+    while(subdiv+pixelPerSubdiv < x) subdiv += pixelPerSubdiv;
+
+    // xpos = !_nudge ? Math::floor(subdiv) : Math::floor(subdiv) - leftover + pixelPerSubdiv;
+    xpos = Math::round(subdiv);
+    width = pixelPerSubdiv;
+
+    // if(_gridSize == 0) {
+    //     //automatic one - use subdivisions and barStep
+
+    // } else {
+    //     //fixed grid, have to find value independently of how close or far we are?
+    // }
+
+    return std::make_pair(xpos, width);
+}
+
+slr::frame_t Timeline::positionToFrames(int x) const {
+    slr::frame_t ret = 0;
+
+    float pixelPerBar = UIUtility::pixelPerBar(*_zoomPtr);
+    float barsOnDisplay = (float)_width / pixelPerBar;
+    
+    const slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    float framesOnScreen = barsOnDisplay * (float)tl.framesPerBar();
+
+    float coef = (float)x / (float)_width;
+    ret = Math::round(framesOnScreen * coef);
+    ret += _nudge;
+
+    return ret;
+}
+
+int Timeline::absoluteFramesToPosition(slr::frame_t f) const {
+    f -= _nudge;
+    return UIUtility::frameToPixel(f, *_zoomPtr);
+}
+
 void Timeline::rebuildTimeline() {
+    if(std::isinf(*_zoomPtr)) {
+        assert(false || "Can't draw with inf zoom");
+        return;
+    }
+
     float pixelPerBar = UIUtility::pixelPerBar(*_zoomPtr);
     int barsOnDisplay = (_width / pixelPerBar) + 2; 
+    slr::TimelineView &tl = slr::TimelineView::getTimelineView();
+    const slr::BarSize &barSize = tl.getBarSize();
 
-    int subdivisions = 1;
-    int barStep = 1;
+    int divider = (barSize._numerator % 2 == 0) ? 2 :
+                    (barSize._numerator % 3 == 0) ? 3 :
+                    (barSize._numerator % 5 == 0) ? 5 : 
+                    (barSize._numerator % 7 == 0) ? 7 : 1;
 
-    //determine resolution
-    if(pixelPerBar >= MIN_LINE_SPACING) {
-        while(pixelPerBar / (subdivisions * 2) >= MIN_LINE_SPACING) {
-            subdivisions *= 2;
+    _subdivisions = 1;
+    _barStep = 1;
+    bool mulled = false;
+
+    if(_gridSize == 0) {
+        while(pixelPerBar / (_subdivisions * (mulled ? (_isTriplets ? 3 : 2): divider)) >= MIN_LINE_SPACING) {
+            // if(mulled) { 
+            //     if(divider == 2) subdivisions *= divider;
+            //     else subdivisions += divider;
+            // } else {
+            //     subdivisions *= divider;
+            //     mulled = true;
+            // }
+            _subdivisions *= (mulled ? (_isTriplets ? 3 : 2) : divider);
+            mulled = true;
+        }
+
+        while(pixelPerBar * _barStep < MIN_LINE_SPACING) {
+            _barStep *= 2;
         }
     } else {
-        while(pixelPerBar * barStep < MIN_LINE_SPACING) {
-            barStep *= 2;
+        while(pixelPerBar / (_subdivisions * (mulled ? (_isTriplets ? 3 : 2) : divider)) >= MIN_LINE_SPACING) {
+            // if(mulled) { 
+            //     if(divider == 2) subdivisions *= divider;
+            //     else subdivisions += divider;
+            // } else {
+            //     subdivisions *= divider;
+            //     mulled = true;
+            // }
+            _subdivisions *= (mulled ? (_isTriplets ? 3 : 2) : divider);
+            mulled = true;
+            if(_subdivisions >= _gridSize) break;
+        }
+
+        while(pixelPerBar * _barStep < MIN_LINE_SPACING) {
+            _barStep *= 2;
         }
     }
 
-    int linesOnDisplay = subdivisions == 1 ? barsOnDisplay / barStep : subdivisions*barsOnDisplay;
+    int linesOnDisplay = _subdivisions == 1 ? barsOnDisplay / _barStep : _subdivisions*barsOnDisplay;
     if(_lines.size() < linesOnDisplay) {
         std::size_t old = _lines.size();
         _lines.reserve(linesOnDisplay);
@@ -138,19 +235,18 @@ void Timeline::rebuildTimeline() {
 
     for(auto &l : _lines) l->hide();
 
-    slr::TimelineView &tl = slr::TimelineView::getTimelineView();    
     double nudgeBars = static_cast<double>(_nudge) / tl.framesPerBar();
     int firstBar = static_cast<int>(Math::floor(nudgeBars));
-    float fractionalBar = static_cast<float>(nudgeBars - static_cast<float>(firstBar));
+    // float fractionalBar = static_cast<float>(nudgeBars - static_cast<float>(firstBar));
     int y = _y+30; //+30 - for number background
 
-    if(subdivisions == 1) {
+    if(_subdivisions == 1) {
+        int firstIndex = static_cast<int>(Math::ceil(static_cast<double>(firstBar) / _barStep)) * _barStep;
         //draw only bars and numbers
-        int alignedFirstBar = static_cast<int>(Math::ceil(static_cast<double>(firstBar) / barStep)) * barStep;
         for(int i=0; i<linesOnDisplay; ++i) {
             GridLine *l = _lines[i].get();
 
-            int barIndex = alignedFirstBar + i * barStep;
+            int barIndex = firstIndex + i * _barStep;
             int xpos = Math::round(pixelPerBar * (barIndex - nudgeBars));
             int barNumber = barIndex + 1;
 
@@ -165,22 +261,24 @@ void Timeline::rebuildTimeline() {
             l->show();
         }
     } else {
-        //bars with subdivisions
+        int firstIndex = static_cast<int>(Math::floor(nudgeBars * _subdivisions));
+
         for(int i = 0; i < linesOnDisplay; ++i) {
             GridLine *l = _lines[i].get();
 
-            int index = firstBar + i;
-            bool isBarLine = index % subdivisions == 0;
-            int xpos = Math::round(pixelPerBar * (static_cast<double>(index) / subdivisions - nudgeBars));
-            int barNumber = static_cast<int>(Math::floor(static_cast<double>(index) / subdivisions));
-            
+            int index = firstIndex + i;
+            int barNumber = static_cast<int>(Math::floor(static_cast<double>(index) / _subdivisions));
+            int rem = index - barNumber * _subdivisions;
+            bool isBarLine = (rem == 0);
+            int xpos = Math::round(pixelPerBar * ((static_cast<double>(index) / _subdivisions) - nudgeBars));
+
             lv_obj_set_pos(l->number, xpos, 1);
+
             if(isBarLine) {
                 lv_label_set_text_fmt(l->number, "%d", barNumber + 1);
                 lv_obj_set_style_text_font(l->number, &lv_font_montserrat_28, 0);
             } else {
-                int rem = index - barNumber * subdivisions;
-                std::string text = std::to_string(rem+1) + "/" + std::to_string(subdivisions);
+                std::string text = std::to_string(rem+1) + "/" + std::to_string(_subdivisions);
                 lv_label_set_text_fmt(l->number, "%s", text.c_str());
                 lv_obj_set_style_text_font(l->number, &lv_font_montserrat_18, 0);
             }
@@ -197,7 +295,6 @@ void Timeline::rebuildTimeline() {
         updateLoopMarkers(*_zoomPtr);
     }
 }
-
 
 void Timeline::updatePlayhead(slr::frame_t position) {
     slr::TimelineView & tl = slr::TimelineView::getTimelineView();

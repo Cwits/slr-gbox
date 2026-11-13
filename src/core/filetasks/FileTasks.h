@@ -8,6 +8,13 @@
 
 #include "core/filetasks/tasks/OpenFile.h"
 #include "core/filetasks/tasks/DumpAudio.h"
+#include "core/filetasks/tasks/CopyAudio.h"
+#include "core/filetasks/tasks/PasteAudio.h"
+#include "core/filetasks/tasks/UpdateAudioPeaks.h"
+#include "core/filetasks/tasks/DeleteAudio.h"
+#include "core/filetasks/tasks/CutAudio.h"
+#include "core/filetasks/tasks/SilenceAudio.h"
+#include "core/filetasks/tasks/ReverseAudio.h"
 
 #include <string>
 #include <functional>

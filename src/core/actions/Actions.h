@@ -485,7 +485,119 @@ struct ModifyModulationTarget : public ActionBase {
 };
 
 
+struct CopyAudio : public ActionBase {
+    CopyAudio() {}
+    CopyAudio(const CopyAudio &rhs) :
+        ActionBase(rhs),
+        start(rhs.start),
+        end(rhs.end),
+        channel(rhs.channel),
+        fileId(rhs.fileId),
+        finished(rhs.finished) {}
+    
+    std::type_index actionType() const override { return typeid(CopyAudio); }
 
+    frame_t start;
+    frame_t end;
+    std::optional<int> channel;
+    ID fileId;
+    std::function<void(const File * file, bool success)> finished;
+};
+
+struct PasteAudio : public ActionBase {
+    PasteAudio() {}
+    PasteAudio(const PasteAudio &rhs) :
+        ActionBase(rhs),
+        start(rhs.start),
+        end(rhs.end),
+        channel(rhs.channel),
+        fileId(rhs.fileId),
+        finished(rhs.finished) {}
+    
+    std::type_index actionType() const override { return typeid(PasteAudio); }
+
+    frame_t start;
+    frame_t end;
+    std::optional<int> channel;
+    ID fileId;
+    std::function<void()> finished;
+};
+
+struct DeleteAudio : public ActionBase {
+    DeleteAudio() {}
+    DeleteAudio(const DeleteAudio &rhs) :
+        ActionBase(rhs),
+        start(rhs.start),
+        end(rhs.end),
+        channel(rhs.channel),
+        fileId(rhs.fileId),
+        finished(rhs.finished) {}
+    
+    std::type_index actionType() const override { return typeid(DeleteAudio); }
+
+    frame_t start;
+    frame_t end;
+    std::optional<int> channel;
+    ID fileId;
+    std::function<void()> finished;
+};
+
+struct CutAudio : public ActionBase {
+    CutAudio() {}
+    CutAudio(const CutAudio &rhs) :
+        ActionBase(rhs),
+        start(rhs.start),
+        end(rhs.end),
+        channel(rhs.channel),
+        fileId(rhs.fileId),
+        finished(rhs.finished) {}
+    
+    std::type_index actionType() const override { return typeid(CutAudio); }
+
+    frame_t start;
+    frame_t end;
+    std::optional<int> channel;
+    ID fileId;
+    std::function<void()> finished;
+};
+
+struct SilenceAudio : public ActionBase {
+    SilenceAudio() {}
+    SilenceAudio(const SilenceAudio &rhs) :
+        ActionBase(rhs),
+        start(rhs.start),
+        end(rhs.end),
+        channel(rhs.channel),
+        fileId(rhs.fileId),
+        finished(rhs.finished) {}
+    
+    std::type_index actionType() const override { return typeid(SilenceAudio); }
+
+    frame_t start;
+    frame_t end;
+    std::optional<int> channel;
+    ID fileId;
+    std::function<void()> finished;
+};
+
+struct ReverseAudio : public ActionBase {
+    ReverseAudio() {}
+    ReverseAudio(const ReverseAudio &rhs) :
+        ActionBase(rhs),
+        start(rhs.start),
+        end(rhs.end),
+        channel(rhs.channel),
+        fileId(rhs.fileId),
+        finished(rhs.finished) {}
+    
+    std::type_index actionType() const override { return typeid(ReverseAudio); }
+
+    frame_t start;
+    frame_t end;
+    std::optional<int> channel;
+    ID fileId;
+    std::function<void()> finished;
+};
 
 } //namespace Actions
 

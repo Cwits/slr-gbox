@@ -11,6 +11,8 @@
 #include "display/utility/DefaultStyles.h"
 #include "display/utility/UIContext.h"
 
+#include "display/popups/TimelinePopup.h"
+
 #include "common/uiutility.h"
 
 #include "snapshots/TimelineView.h"
@@ -286,6 +288,19 @@ BottomPanel::BottomPanel(BaseWidget * parent, UIContext * const uictx) :
         uictx->_popManager->enableNewUnitPopup();
         return true;
     });
+
+
+    _btnTimelineSettings = std::make_unique<Button>(this, "TL");
+    _btnTimelineSettings->setPos(Layout::BOTTOM_PANEL_WIDTH-(Layout::Button*2)-(Layout::Margin*2), posy);
+    _btnTimelineSettings->setSize(Layout::Button, Layout::Button);
+    _btnTimelineSettings->tapCallback([this, uictx = _uictx](const GestLib::TapGesture &tap) -> bool {
+        // Timeline * _currentTimeline = nullptr
+        uictx->_popManager->_timelinePopup->update();
+        uictx->_popManager->_timelinePopup->activate();
+        uictx->_popManager->_timelinePopup->show();
+        return true;
+    });
+
 
     show();
     _playheadVersion = 0;

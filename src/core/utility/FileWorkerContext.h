@@ -3,11 +3,12 @@
 
 #pragma once
 #include "common/defines.h"
+#include "core/primitives/AudioBuffer.h"
 
-#include <string>
 #include <functional>
 #include <vector>
 #include <memory>
+#include <string>
 
 namespace slr {
 
@@ -15,13 +16,29 @@ struct File;
 struct FileWorker;
 struct IdGenerator;
 
+struct AudioCopyContext {
+    std::unique_ptr<AudioBuffer> _data;
+    ID originFileId;
+    std::string originPath;
+};
+
 struct FileWorkerContext {
-    FileWorkerContext(FileWorker *ptr, std::vector<std::unique_ptr<File>> &files, IdGenerator *gen);
+    FileWorkerContext(
+        FileWorker *ptr, 
+        std::vector<std::unique_ptr<File>> &files, 
+        IdGenerator *gen,
+        AudioCopyContext *actx
+    );
     ~FileWorkerContext();
 
     FileWorker * const worker;
-    std::vector<std::unique_ptr<File>> &files;
     IdGenerator *gen;
+    AudioCopyContext * _aCopyCtx;
+
+    File *findFile(ID fileId);
+    
+    private:
+    std::vector<std::unique_ptr<File>> &files;
 };
 
 } //namespace slr

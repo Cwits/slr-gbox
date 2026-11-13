@@ -267,7 +267,7 @@ bool AudioPeakFile::createAndBuild(const std::string &path, const AudioFile * fi
     return true;
 }
 
-bool AudioPeakFile::save() {
+bool AudioPeakFile::save() const {
     //??
     return false;
 }

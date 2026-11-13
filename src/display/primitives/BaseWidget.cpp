@@ -104,6 +104,11 @@ int BaseWidget::getZ() const {
     return lv_obj_get_index(_lvhost);
 }
 
+void BaseWidget::setZ(int z) {
+    if(!_lvhost) return;
+    lv_obj_move_to_index(_lvhost, z);
+}
+
 int BaseWidget::width() {
     if(!_lvhost) return 0;
     return lv_obj_get_width(_lvhost);

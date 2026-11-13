@@ -11,15 +11,22 @@ namespace UI {
 class Button;
 class Label;
 class UIContext;
+struct Timeline;
+struct Checkbox;
+
 //opens from bottom panel bpm and time signature labels
 struct TimelinePopup : public Popup {
     TimelinePopup(BaseWidget * parent, UIContext * const uictx);
     ~TimelinePopup();
 
     void update();
+
+    Timeline * _current = nullptr;
+
     private:
-    std::unique_ptr<Label> _bpm;
-    std::unique_ptr<Label> _timeSignature;
+    std::unique_ptr<Label> _lblGridSize;
+    std::unique_ptr<Checkbox> _chbTriplets;
+    
 
     std::unique_ptr<Button> _applyBtn;
 };

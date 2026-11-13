@@ -11,6 +11,7 @@
 namespace slr {
 
 class AudioPeaks;
+struct SwapAudioFileData;
 
 struct AudioFile : public File {
     AudioFile(const ID forcedId = 0);
@@ -19,7 +20,7 @@ struct AudioFile : public File {
     //temporary meaned for recording only -> creates new file, don't allocate buffer for getData()
     bool prepareAsTemporary(std::string & path, int channels, int samplerate);
     bool open(std::string & path) override;
-    bool save() override;
+    bool save() const override;
     bool close() override;
 
     void prepareForRecord() override;
@@ -42,14 +43,18 @@ struct AudioFile : public File {
     bool dumpRecordedData(AudioBuffer * recBuffer); //called from file factory
 
     const AudioPeaks * peaks() const { return _peaks; }
-    void setPeaks(const AudioPeaks * pk) { _peaks = pk; }
+    ID peakFileId() const { return _peakFileId; }
+    void setPeaks(const AudioPeaks * pk, ID peakFileId) { _peaks = pk; _peakFileId = peakFileId; }
 
+    void swapData(std::unique_ptr<AudioBuffer> &other);
+    
     private:
     SNDFILE * _file;
     SF_INFO _info;
     std::unique_ptr<AudioBuffer> _data; //interleaved
     
     const AudioPeaks * _peaks;
+    ID _peakFileId;
     
     bool _opened;
     bool _temporary;
@@ -61,6 +66,8 @@ struct AudioFile : public File {
 
     bool openInternal(std::string & path, bool tmp);
     bool readAndUnpack();
+
+    friend class SwapAudioFileData;
 };
     
 }

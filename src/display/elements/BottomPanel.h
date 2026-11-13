@@ -11,6 +11,7 @@ namespace UI {
 class Button;
 class Label;
 class UIContext;
+class Timeline;
 
 struct BottomPanel : public BaseWidget {
     BottomPanel(BaseWidget * parent, UIContext * const uictx);
@@ -35,6 +36,8 @@ struct BottomPanel : public BaseWidget {
     std::unique_ptr<Label> _lblLoopStart;
     std::unique_ptr<Label> _lblLoopEndText;
     std::unique_ptr<Label> _lblLoopEnd;
+
+    std::unique_ptr<Button> _btnTimelineSettings;
 
     uint64_t _playheadVersion;
     UIContext * const _uictx;

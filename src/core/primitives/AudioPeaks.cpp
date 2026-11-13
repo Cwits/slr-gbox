@@ -42,6 +42,7 @@ void AudioPeaks::build(const AudioFile * file) {
     int channels = file->channels();
     for(int i=0; i<TOTAL_LOD_LEVELS; ++i) {
         if(i == 0) {
+            if(_peaks0) _peaks0.reset();
             _peaks0 = std::make_unique<PeakData0>(size, channels);
             uint8_t **data = _peaks0->rawAccesor();
             const sample_t * const* datain = file->data()->rawAccesor();
@@ -58,6 +59,7 @@ void AudioPeaks::build(const AudioFile * file) {
             //TODO: need somehow handle tail
             // frame_t diff = size - (newSize*samplesPerFrame);
 
+            if(_peaks[idx]) _peaks[idx].reset();
             _peaks[idx] = std::make_unique<PeakData>(newSize, channels);
             PeakData * peakData = _peaks[idx].get();
 

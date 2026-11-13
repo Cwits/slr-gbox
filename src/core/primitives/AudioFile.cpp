@@ -53,7 +53,7 @@ bool AudioFile::open(std::string & path) {
     return openInternal(path, false);
 }
 
-bool AudioFile::save() {
+bool AudioFile::save() const {
     sf_write_sync(_file);
     clearDirty();
 
@@ -70,6 +70,11 @@ bool AudioFile::close() {
     _temporary = false;
     _opened = false;
     return true;
+}
+
+void AudioFile::swapData(std::unique_ptr<AudioBuffer> &other) {
+    _data.swap(other);
+    _info.frames = _data->size();
 }
 
 void AudioFile::prepareForRecord() {

@@ -11,6 +11,8 @@
 #include "display/utility/DragContext.h"
 #include "display/primitives/UnitUIBase.h"
 #include "display/primitives/ClipPreview.h"
+#include "display/popups/PopupManager.h"
+#include "display/popups/TimelinePopup.h"
 
 #include  "core/actions/Actions.h"
 #include "snapshots/ClipContainerView.h"
@@ -39,6 +41,7 @@ GridControl::GridControl(GridView * parent, UIContext * const uictx)
     lv_obj_set_style_bg_opa(_lastSelectedRect, LV_OPA_0, 0);
     
     tapCallback(std::bind(&GridControl::handleTap, this, std::placeholders::_1));
+
 
     show();
 }
@@ -110,6 +113,11 @@ GridView::GridView(BaseWidget * parent, UIContext * uictx) :
     dragCallback(std::bind(&GridView::handleDrag, this, std::placeholders::_1));
     swipeCallback(std::bind(&GridView::handleSwipe, this, std::placeholders::_1));
     zoomCallback(std::bind(&GridView::handleZoom, this, std::placeholders::_1));
+
+    //todo: dirty hack for tests, remove later
+    _enteringViewClb = [this]() {
+        this->_uictx->_popManager->_timelinePopup->_current = this->_timeline.get();
+    };
 
     show();
 }
@@ -308,7 +316,6 @@ bool GridView::handleZoom(const GestLib::ZoomGesture &zoom) {
     // LOG_WARN("Zooom, Zoooom, Zooom! Need more coffee! %f", zoom.horDif);
 
     _horizontalZoom /= zoom.horDif;
-
     //TODO: Raise some flag and make redrawing in pollUIUpdate()
     _timeline->rebuildTimeline();
     _uictx->recalculateGrid();
