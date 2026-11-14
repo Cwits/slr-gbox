@@ -24,6 +24,9 @@
 #include "core/actions/FileTaskProxy/SilenceAudio.h"
 #include "core/actions/FileTaskProxy/ReverseAudio.h"
 
+#include "core/actions/FileTaskProxy/AddNewMidiNote.h"
+#include "core/actions/FileTaskProxy/EraseMidiNotes.h"
+
 #include "core/actions/Project/CreateNewUnit.h"
 #include "core/actions/Project/DeleteUnit.h"
 #include "core/actions/Project/AddNewAudioRoute.h"
@@ -114,6 +117,8 @@ void registerDefaultActions(std::map<std::type_index, CreatorFn> & map) {
     map[typeid(Actions::SilenceAudio)] = &createSilenceAudioAction;
     map[typeid(Actions::ReverseAudio)] = &createReverseAudioAction;
     
+    map[typeid(Actions::AddNewMidiNote)] = &createAddNewMidiNoteAction;
+    map[typeid(Actions::EraseMidiNotes)] = &createEraseMidiNotesAction;
 }
 
 std::map<std::type_index, CreatorFn> & getActionMap() {

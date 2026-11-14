@@ -84,7 +84,7 @@ void SilenceAudioAction::exec(ControlContext &ctx) {
         } break;
         case(4): {
             //update version counters?
-            LOG_SUCCESS("Finished audio paste task");
+            LOG_SUCCESS("Finished audio silence task");
             if(_action.finished) _action.finished();
             setState(ActionState::Finished);
         } break;

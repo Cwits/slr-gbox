@@ -75,6 +75,11 @@ void FilePreview::setSize(lv_coord_t w, lv_coord_t h) {
 }
 
 void FilePreview::draw(slr::frame_t frameStart, slr::frame_t frameEnd, int notefrom, int noteto) {
+    _drawStart = frameStart;
+    _drawEnd = frameEnd;
+    _noteStart = notefrom;
+    _noteEnd = noteto;
+
     lv_canvas_fill_bg(_canvas, Colors::clipPreviewBackground, LV_OPA_30);
 
     if(_content->isAudio()) {        
@@ -116,7 +121,17 @@ void FilePreview::draw(slr::frame_t frameStart, slr::frame_t frameEnd, int notef
 }
 
 void FilePreview::pollUIUpdate() {
-
+    if(_content->isAudio()) {
+        if(compareAndSave(_content->audio->version())) {
+            //update
+            if(_drawEnd > _content->audio->peaks0()->size()) {
+                _drawEnd = _content->audio->peaks0()->size();
+            }
+            draw(_drawStart, _drawEnd, _noteStart, _noteEnd);
+        }
+    } else if(_content->isMidi()) {
+        //update Midi
+    }
 }
 
 

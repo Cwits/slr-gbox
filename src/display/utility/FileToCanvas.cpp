@@ -140,7 +140,7 @@ void audioFileToBuffer(
             const int yMin = Math::clamp<int>(yMap[minVal], yBase, yEnd);
             const int yMax = Math::clamp<int>(yMap[maxVal], yBase, yEnd);
 
-            for (int y = yMin; y < yMax; ++y) {
+            for (int y = yMin; y <= yMax; ++y) {
                 const lv_color32_t color = (y == yMin || y == yMax - 1) ? peakp : fillp;
 
                 drawBuffer[y * canvasWidth + x] = color;

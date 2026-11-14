@@ -3,6 +3,7 @@
 
 #pragma once
 #include "common/defines.h"
+#include "common/Version.h"
 #include "core/primitives/AudioBuffer.h"
 #include "core/primitives/Buffer.h"
 
@@ -41,7 +42,7 @@ struct PeakDataBase {
 using PeakData0 = Buffer<uint8_t>;
 using PeakData = Buffer<PeakDataBase>;
 
-struct AudioPeaks {
+struct AudioPeaks : public Common::VersionAtomic {
     AudioPeaks();
     ~AudioPeaks();
 

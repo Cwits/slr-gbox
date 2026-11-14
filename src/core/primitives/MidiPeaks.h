@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/defines.h"
+#include "common/Version.h"
 
 #include <vector>
 
@@ -15,6 +16,15 @@ struct Note {
     int velocity;
     int note;
     int channel;
+
+    Note& operator=(const Note &rhs) {
+        ppqnStart = rhs.ppqnStart;
+        ppqnEnd = rhs.ppqnEnd;
+        velocity = rhs.velocity;
+        note = rhs.note;
+        channel = rhs.channel;
+        return *this;
+    }
 };
 
 struct CC {
@@ -24,7 +34,7 @@ struct CC {
 
 struct MidiTrack;
 
-struct MidiPeaks {
+struct MidiPeaks : public Common::VersionAtomic {
     void buildPeaks(const MidiTrack*, std::size_t);
 
     std::size_t trackNo() const { return _trackNo; }

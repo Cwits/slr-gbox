@@ -29,12 +29,6 @@ void SilenceAudio::exec(FileWorkerContext &ctx) {
         return;
     }
 
-    if(!ctx._aCopyCtx->_data) {
-        LOG_FAIL("Copy buffer is empty");
-        finished(nullptr, std::unique_ptr<AudioBuffer>());
-        return;
-    }
-
     File * tmpa = ctx.findFile(fileId);
     AudioFile * afile = dynamic_cast<AudioFile*>(tmpa);
     if(!afile) {
@@ -47,6 +41,11 @@ void SilenceAudio::exec(FileWorkerContext &ctx) {
     frame_t total = end - start;
 
     std::unique_ptr<AudioBuffer> newbuf = std::make_unique<AudioBuffer>(afile->frames(), channels);
+    const AudioBuffer *oldbuf = afile->data();
+    for(int ch=0; ch<channels; ++ch) {
+        std::memcpy((*newbuf.get())[ch], (*oldbuf)[ch], afile->frames()*sizeof(sample_t));
+    }
+
     for(int ch=0; ch<channels; ++ch) {
         std::memset(&(*newbuf.get())[ch][start], 0, total*sizeof(sample_t));
     }

@@ -85,18 +85,22 @@ void AudioPeaks::build(const AudioFile * file) {
             }
         }
     }
+    incrementVersion();
 }
 
 void AudioPeaks::extend(const AudioBuffer * buf) {
 
+    incrementVersion();
 }
 
 void AudioPeaks::update(const AudioFile * file) {
 
+    incrementVersion();
 }
 
 void AudioPeaks::updateRegion(const AudioFile * file, frame_t start, frame_t end) {
 
+    incrementVersion();
 }
 
 

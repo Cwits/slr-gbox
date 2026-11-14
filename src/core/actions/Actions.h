@@ -6,6 +6,7 @@
 #include "core/actions/ActionBase.h"
 #include "core/primitives/AudioRoute.h"
 #include "core/primitives/MidiRoute.h"
+#include "core/primitives/MidiPeaks.h"
 #include "common/Color.h"
 #include "common/ModEngineCommon.h"
 #include "common/defines.h"
@@ -596,6 +597,40 @@ struct ReverseAudio : public ActionBase {
     frame_t end;
     std::optional<int> channel;
     ID fileId;
+    std::function<void()> finished;
+};
+
+struct AddNewMidiNote : public ActionBase {
+    AddNewMidiNote() {}
+    AddNewMidiNote(const AddNewMidiNote &rhs) :
+        ActionBase(rhs),
+        note(rhs.note),
+        fileId(rhs.fileId),
+        midiTrackId(rhs.midiTrackId),
+        finished(rhs.finished) {}
+
+    std::type_index actionType() const override { return typeid(AddNewMidiNote); }
+
+    Note note;
+    ID fileId;
+    int midiTrackId;
+    std::function<void()> finished;
+};
+
+struct EraseMidiNotes : public ActionBase {
+    EraseMidiNotes() {}
+    EraseMidiNotes(const EraseMidiNotes &rhs) :
+        ActionBase(rhs),
+        notes(rhs.notes),
+        fileId(rhs.fileId),
+        midiTrackId(rhs.midiTrackId),
+        finished(rhs.finished) {}
+
+    std::type_index actionType() const override { return typeid(EraseMidiNotes); }
+
+    std::vector<Note> notes;
+    ID fileId;
+    int midiTrackId;
     std::function<void()> finished;
 };
 

@@ -122,7 +122,7 @@ struct AudioToolbox : public BaseWidget {
     std::unique_ptr<Button> _btnPaste;//+
     std::unique_ptr<Button> _btnDelete; //+
     std::unique_ptr<Button> _btnSilence; //+
-    std::unique_ptr<Button> _btnReverse; 
+    std::unique_ptr<Button> _btnReverse; //+
     std::unique_ptr<Button> _btnReversePhase;
 
     std::unique_ptr<Label> _lblStaticStart;

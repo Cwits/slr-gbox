@@ -6,6 +6,7 @@
 #include "display/primitives/BaseWidget.h"
 #include "display/primitives/Popup.h"
 #include "common/defines.h"
+#include "common/Version.h"
 
 namespace slr {
     class ContainerItemView;
@@ -17,7 +18,7 @@ namespace UI {
 class UnitUIBase;
 class UIContext;
 
-struct FilePreview : public BaseWidget { 
+struct FilePreview : public BaseWidget, public Common::Version { 
     FilePreview(BaseWidget * parent, const slr::ClipContentView * const item, UIContext * const uictx);
     ~FilePreview();
 
@@ -36,10 +37,14 @@ struct FilePreview : public BaseWidget {
 
     private:
     UIContext * const _uictx;
-    uint64_t _uiVersion;
+    // uint64_t _uiVersion;
 
     int _canvasWidth;
     int _canvasHeight;
+    slr::frame_t _drawStart;
+    slr::frame_t _drawEnd; 
+    int _noteStart = -1;
+    int _noteEnd = -1;
 
     lv_obj_t * _canvas;
 

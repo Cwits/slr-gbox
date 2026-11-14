@@ -16,6 +16,10 @@
 #include "core/filetasks/tasks/SilenceAudio.h"
 #include "core/filetasks/tasks/ReverseAudio.h"
 
+#include "core/filetasks/tasks/AddNewMidiNoteTask.h"
+#include "core/filetasks/tasks/UpdateMidiPeaks.h"
+#include "core/filetasks/tasks/EraseMidiNotesTask.h"
+
 #include <string>
 #include <functional>
 #include <optional>
@@ -76,66 +80,6 @@ struct closeAllFiles : public FileTask {
     !Note: all these changes doesn't affect actual file on disk. File on disk get's affected 
             only if user save changes, otherwise it's happening only in ram*/
 // Cut, Copy, Paste, Delete, Silence, Reverse, ReversePhase };
-
-struct cutAudio : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    frame_t start;
-    frame_t end;
-    int channels; //0 - all, otherwise - specified
-    ID targetId;
-    const AudioFile * file;
-};
-
-struct copyAudio : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    frame_t start;
-    frame_t end;
-    int channels; //0 - all, otherwise - specified
-    ID targetId;
-    const AudioFile * file;
-};
-
-struct pasteAudio : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    frame_t start;
-    frame_t end;
-    int channels; //0 - all, otherwise - specified
-    ID targetId;
-    const AudioFile * file;
-};
-
-struct deleteAudio : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    frame_t start;
-    frame_t end;
-    int channels; //0 - all, otherwise - specified
-    ID targetId;
-    const AudioFile * file;
-};
-
-struct silenceAudio : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    frame_t start;
-    frame_t end;
-    int channels; //0 - all, otherwise - specified
-    ID targetId;
-    const AudioFile * file;
-};
-
-struct reverseAudio : public FileTask {
-    void exec(FileWorkerContext &ctx) override;
-
-    frame_t start;
-    frame_t end;
-    int channels; //0 - all, otherwise - specified
-    ID targetId;
-    const AudioFile * file;
-};
 
 struct reverseAudioPhase : public FileTask {
     void exec(FileWorkerContext &ctx) override;

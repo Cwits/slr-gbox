@@ -72,30 +72,6 @@ void closeAllFiles::exec(FileWorkerContext &ctx) {
         (it will automatically apply for each of clipitems
         because clipitems has pointers)
 */
-void cutAudio::exec(FileWorkerContext &ctx) {
-    //file->markDirty();
-}
-
-void copyAudio::exec(FileWorkerContext &ctx) {
-    //file->markDirty();
-}
-
-void pasteAudio::exec(FileWorkerContext &ctx) {
-    //file->markDirty();
-}
-
-void deleteAudio::exec(FileWorkerContext &ctx) {
-    //file->markDirty();
-}
-
-void silenceAudio::exec(FileWorkerContext &ctx) {
-    //file->markDirty();
-}
-
-void reverseAudio::exec(FileWorkerContext &ctx) {
-    //file->markDirty();
-}
-
 void reverseAudioPhase::exec(FileWorkerContext &ctx) {
     //file->markDirty();
 }

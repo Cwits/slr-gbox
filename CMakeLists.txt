@@ -107,6 +107,8 @@ file(GLOB SOURCES
   src/core/actions/FileTaskProxy/CutAudio.cpp
   src/core/actions/FileTaskProxy/SilenceAudio.cpp
   src/core/actions/FileTaskProxy/ReverseAudio.cpp
+  src/core/actions/FileTaskProxy/AddNewMidiNote.cpp
+  src/core/actions/FileTaskProxy/EraseMidiNotes.cpp
 
   src/core/actions/Timeline/ChangeSignatureBpm.cpp
   src/core/actions/Timeline/ChangeTimelineState.cpp
@@ -147,6 +149,10 @@ file(GLOB SOURCES
   src/core/filetasks/tasks/CutAudio.cpp
   src/core/filetasks/tasks/SilenceAudio.cpp
   src/core/filetasks/tasks/ReverseAudio.cpp
+  src/core/filetasks/tasks/AddNewMidiNoteTask.cpp
+  src/core/filetasks/tasks/UpdateMidiPeaks.cpp
+  src/core/filetasks/tasks/EraseMidiNotesTask.cpp
+
   src/core/filetasks/FileTasks.cpp
 
   #primitives

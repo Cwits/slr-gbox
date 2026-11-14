@@ -173,6 +173,9 @@ void EditorView::pollUIUpdate() {
     }
     
     //check if file updated
+    if(_audioEditor->visible())
+        _audioEditor->_preview->pollUIUpdate();
+    
 
 }
 
@@ -1033,7 +1036,16 @@ bool MidiEditor::handleTap(const GestLib::TapGesture &tap) {
             n.ppqnStart = UIUtility::framesToPpqn(_editor._timeline->positionToFrames(pos.first), tlv);
             n.ppqnEnd = UIUtility::framesToPpqn(_editor._timeline->positionToFrames(pos.first+pos.second), tlv);
 
-            LOG_WARN("[Placeholder] Add new note");
+            LOG_INFO("Adding new Midi note");
+            auto act = std::make_unique<slr::Actions::AddNewMidiNote>();
+            act->note.note = n.note;
+            act->note.velocity = n.velocity;
+            act->note.channel = n.channel;
+            act->note.ppqnStart = n.ppqnStart;
+            act->note.ppqnEnd = n.ppqnEnd;
+            act->fileId = _file->id();
+            act->midiTrackId = 0;
+            slr::EmitAction(std::move(act));
 
             std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(this, *this, n);
             p->x = pos.first;
@@ -1060,15 +1072,23 @@ bool MidiEditor::handleTap(const GestLib::TapGesture &tap) {
             );
 
             if(it != _notePreviews.end()) {
-                int pitch = pitchAtY((*it)->y);
-                // slr::frame_t ppqnStart = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*it)->x));
-                // slr::frame_t ppqnEnd = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*it)->x+(*it)->w));
-                int velocity = 100;
-                int channel = 0;
-
-                _notePreviews.erase(it);
+                // int pitch = pitchAtY((*it)->y);
+                // // slr::frame_t ppqnStart = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*it)->x));
+                // // slr::frame_t ppqnEnd = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*it)->x+(*it)->w));
+                // int velocity = 100;
+                // int channel = 0;
+                
+                auto act = std::make_unique<slr::Actions::EraseMidiNotes>();
+                slr::Note n = (*it)->_note;
+                act->notes.push_back(n);
+                act->fileId = _file->id();
+                act->midiTrackId = 0;
+                
+                slr::EmitAction(std::move(act));
 
                 LOG_WARN("[Placeholder] Erase note");
+                
+                _notePreviews.erase(it);
             }
 
         } break;
@@ -1096,7 +1116,14 @@ bool MidiEditor::handleDrag(const GestLib::DragGesture &drag) {
             // int possiblePitch = _noteMax - ((drag.y-(Layout::TOP_PANEL_HEIGHT+DrawableY)) / _heightPerRow)+1;
             // int y =  Math::floor((_noteMax - possiblePitch) * _heightPerRow);
 
-            std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(this, *this, slr::Note{});
+            slr::Note n;
+            n.note = pitchAtY(drag.y);
+            n.velocity = 100;
+            n.channel = 0;
+            n.ppqnStart = 0;
+            n.ppqnEnd = 0;
+
+            std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(this, *this, n);
             p->x = drag.x-30;
             p->y = yToNoteY(drag.y);
             p->h = _heightPerRow;
@@ -1109,7 +1136,7 @@ bool MidiEditor::handleDrag(const GestLib::DragGesture &drag) {
 
             _notePreviews.push_back(std::move(p));
             _draggableNote = &_notePreviews.back(); //std::prev(_notePreviews.end());
-            (*_draggableNote)->handleDrag(drag);
+            // (*_draggableNote)->handleDrag(drag);
             // _editor._uictx->transferGesture(_notePreviews.back().get(), GestLib::Gestures::Drag);
         } else if(drag.state == GestLib::GestureState::Move) {
             if(_draggableNote) (*_draggableNote)->handleDrag(drag);
@@ -1121,13 +1148,23 @@ bool MidiEditor::handleDrag(const GestLib::DragGesture &drag) {
                 const slr::TimelineView &tlv = slr::TimelineView::getTimelineView();
 
                 slr::Note n;
-                n.note = pitchAtY((*_draggableNote)->y);
-                n.velocity = 100;
-                n.channel = 0;
+                n.note = (*_draggableNote)->_note.note;
+                n.velocity = (*_draggableNote)->_note.velocity;
+                n.channel = (*_draggableNote)->_note.channel;
                 n.ppqnStart = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*_draggableNote)->x), tlv);
                 n.ppqnEnd = UIUtility::framesToPpqn(_editor._timeline->positionToFrames((*_draggableNote)->x+(*_draggableNote)->w), tlv);
 
-                LOG_WARN("[Placeholder] Add new note");
+                LOG_INFO("Adding new Midi note");
+
+                auto act = std::make_unique<slr::Actions::AddNewMidiNote>();
+                act->note.note = n.note;
+                act->note.velocity = n.velocity;
+                act->note.channel = n.channel;
+                act->note.ppqnStart = n.ppqnStart;
+                act->note.ppqnEnd = n.ppqnEnd;
+                act->fileId = _file->id();
+                act->midiTrackId = 0;
+                slr::EmitAction(std::move(act));
 
                 std::unique_ptr<NotePreview> p = std::make_unique<NotePreview>(this, *this, n);
                 p->x = (*_draggableNote)->x;
@@ -1146,7 +1183,7 @@ bool MidiEditor::handleDrag(const GestLib::DragGesture &drag) {
         }
         } break;
         case(MidiTool::Erase): {
-
+            //TODO: use an selector area to select many notes at once and erase them
         } break;
     }
 

@@ -87,6 +87,8 @@ void ClipPreview::draw() {
 }
 
 void ClipPreview::pollUIUpdate() {    
+    _preview->pollUIUpdate();
+    
     const slr::ClipItemView * const fview = _clipItem;
 
     uint64_t version = fview->version();

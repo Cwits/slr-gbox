@@ -10,6 +10,14 @@ namespace Common {
 
 struct Version {
     uint64_t version() const { return _version; }
+    bool compareAndSave(uint64_t other) {
+        if(_version != other) {
+            _version = other;
+            return true;
+        } else {
+            return false;
+        }
+    }
     
     protected:
     void incrementVersion() { _version++; }

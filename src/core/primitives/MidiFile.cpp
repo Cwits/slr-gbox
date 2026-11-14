@@ -256,6 +256,10 @@ frame_t MidiFile::frames() const {
 bool MidiFile::openInternal(std::string &path, bool tmp) {
     return false;
 }
+
+void MidiFile::swapTrack(int midiTrackId, std::unique_ptr<MidiTrack> &swappable) {
+    _tracks[midiTrackId].swap(swappable);
+}
     
 frame_t MidiFile::readvlv(uint8_t * data, int &currentReadPosition) {
     frame_t position = 0;

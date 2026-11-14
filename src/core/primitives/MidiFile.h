@@ -64,8 +64,10 @@ struct MidiFile : public File {
     std::size_t trackCount() const { return _tracks.size(); }
 
     const MidiTrack * track(std::size_t id) const { return _tracks.at(id).get(); }
+    void swapTrack(int midiTrackId, std::unique_ptr<MidiTrack> &swappable);
 
     const MidiPeaks * peaks(std::size_t id) const { return _peaks.at(id).get(); }
+    MidiPeaks * peaks(std::size_t id) { return _peaks.at(id).get(); }
     void setPeaks(std::vector<std::unique_ptr<MidiPeaks>> & peaks);
     
     private:

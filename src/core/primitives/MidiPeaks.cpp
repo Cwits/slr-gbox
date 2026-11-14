@@ -13,7 +13,7 @@ void MidiPeaks::buildPeaks(const MidiTrack *trk, std::size_t trackNo) {
     frame_t end = trk->midiEvents.back().offset;
 
     std::array<std::vector<size_t>, 128> activeNotes;
-
+    _notes.clear();
     for(const auto &ev : trk->midiEvents) {
         switch(ev.type) {
             case(MidiEventType::NoteOn): {
@@ -55,6 +55,7 @@ void MidiPeaks::buildPeaks(const MidiTrack *trk, std::size_t trackNo) {
     }
 
     _trackNo = trackNo;
+    incrementVersion();
 }
 
 }
