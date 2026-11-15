@@ -60,20 +60,8 @@ void SilenceAudioAction::exec(ControlContext &ctx) {
                 return;
             }
 
-            //find all related clips
-            std::vector<ClipItem*> relatedClips;
-            ClipStorage & storage = ctx.project->clipStorage();
-            std::vector<ClipItem*> list = storage.items();
-            for(auto &clip : list) {
-                if(clip->_content.isAudio() &&
-                    clip->_content.audio == _swapTarget->data()) 
-                {
-                    relatedClips.push_back(clip);
-                }
-            }
-
             _flat.file = _swapTarget;
-            _flat.clips = relatedClips;
+            _flat.clips = ctx.project->clipStorage().clipsRelatedToAudio(_swapTarget->data());
             _flat.buf = std::move(_readyBuffer);
             _flat.completed.store(false);
 
@@ -134,15 +122,6 @@ void SilenceAudioAction::checkWaitingCondition(ControlContext &ctx) {
         } break;
         default: assert(false && "Unreachable"); break;
     }
-}
-
-void SilenceAudioAction::SwapAudioFileData::execRT() {
-    for(auto &clip : clips) {
-        clip->_content.audio = buf.get();
-    }
-    file->swapData(buf);
-    //update all related clips
-    completed.store(true, std::memory_order_release);
 }
 
 std::unique_ptr<ActionExecutable> createSilenceAudioAction(const ActionBase *base) {

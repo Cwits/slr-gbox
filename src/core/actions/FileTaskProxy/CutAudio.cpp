@@ -71,8 +71,9 @@ void CutAudioAction::exec(ControlContext &ctx) {
                 abortAction();
                 return;
             }
-
-             _flat.file = _swapTarget;
+            
+            _flat.file = _swapTarget;
+            _flat.clips = ctx.project->clipStorage().clipsRelatedToAudio(_swapTarget->data());
             _flat.buf = std::move(_newBuffer);
             _flat.completed.store(false);
 
@@ -139,11 +140,6 @@ void CutAudioAction::checkWaitingCondition(ControlContext &ctx) {
         } break;
         default: assert(false && "Unreachable"); break;
     }
-}
-
-void CutAudioAction::SwapAudioFileData::execRT() {
-    file->swapData(buf);
-    completed.store(true, std::memory_order_release);
 }
 
 std::unique_ptr<ActionExecutable> createCutAudioAction(const ActionBase *base) {

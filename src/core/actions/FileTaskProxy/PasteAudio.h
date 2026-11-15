@@ -29,17 +29,8 @@ struct PasteAudioAction : public ActionExecutable {
     std::unique_ptr<AudioBuffer> _readyBuffer;
     AudioFile *_swapTarget = nullptr;
     std::atomic<bool> _finished;
-    
-    struct SwapAudioFileData : public FlatTask {
-        void execRT();
 
-        std::unique_ptr<AudioBuffer> buf;
-        AudioFile * file;
-
-        std::atomic<bool> completed;
-    };
-
-    SwapAudioFileData _flat;
+    RtTasks::SwapAudioFileData _flat;
     RtTask _task;
 };
 

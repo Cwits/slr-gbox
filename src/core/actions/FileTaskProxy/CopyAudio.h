@@ -22,16 +22,6 @@ struct CopyAudioAction : public ActionExecutable {
 
     private:
     const Actions::CopyAudio _action;
-
-    // struct FlatAction : public FlatTask {
-    //     void execRT();
-
-    //     <variables>
-    //     std::atomic<bool> completed;
-    // };
-
-    // FlatAction _flat;
-    RtTask _task;
 };
 
 std::unique_ptr<ActionExecutable> createCopyAudioAction(const ActionBase*);

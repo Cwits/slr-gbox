@@ -72,6 +72,8 @@ struct ClipItem {
     frame_t _fileOffset; //inside of clip
     bool _muted;
     ID _id;
+
+    friend class SwapAudioFileData;
 };
 
 struct ClipStorage {
@@ -83,6 +85,7 @@ struct ClipStorage {
     void deleteClipById(ID id);
     const std::vector<ClipItem*> items() const;
     std::vector<ClipItem*> items();
+    std::vector<ClipItem*> clipsRelatedToAudio(const AudioBuffer *ptr);
 
     ClipItem * makeUniqueFrom(const ClipItem *other);
     

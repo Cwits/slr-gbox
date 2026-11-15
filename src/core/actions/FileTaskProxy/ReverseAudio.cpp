@@ -58,7 +58,9 @@ void ReverseAudioAction::exec(ControlContext &ctx) {
                 abortAction();
                 return;
             }
+
             _flat.file = _swapTarget;
+            _flat.clips = ctx.project->clipStorage().clipsRelatedToAudio(_swapTarget->data());
             _flat.buf = std::move(_readyBuffer);
             _flat.completed.store(false);
 
@@ -122,6 +124,9 @@ void ReverseAudioAction::checkWaitingCondition(ControlContext &ctx) {
 }
 
 void ReverseAudioAction::SwapAudioFileData::execRT() {
+    for(auto &clip : clips) {
+        clip->_content.audio = buf.get();
+    }
     file->swapData(buf);
     completed.store(true, std::memory_order_release);
 }

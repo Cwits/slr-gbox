@@ -29,16 +29,7 @@ struct CutAudioAction : public ActionExecutable {
     AudioFile * _swapTarget = nullptr;
     std::unique_ptr<AudioBuffer> _newBuffer;
     
-    struct SwapAudioFileData : public FlatTask {
-        void execRT();
-
-        std::unique_ptr<AudioBuffer> buf;
-        AudioFile * file;
-
-        std::atomic<bool> completed;
-    };
-
-    SwapAudioFileData _flat;
+    RtTasks::SwapAudioFileData _flat;
     RtTask _task;
 };
 

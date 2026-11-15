@@ -87,6 +87,18 @@ std::vector<ClipItem*> ClipStorage::items() {
     return ret;
 }
 
+std::vector<ClipItem*> ClipStorage::clipsRelatedToAudio(const AudioBuffer *ptr) {
+    std::vector<ClipItem*> ret;
+    
+    for(auto &clip : _clipList) {
+        if(clip->_content.isAudio() && clip->_content.audio == ptr) {
+            ret.push_back(clip.get());
+        }
+    }
+
+    return ret;
+}
+
 ClipItem * ClipStorage::makeUniqueFrom(const ClipItem *other) {
     LOG_WARN("Not implemented");
     return nullptr;

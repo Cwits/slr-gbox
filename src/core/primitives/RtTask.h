@@ -4,13 +4,15 @@
 #pragma once
 
 #include "core/primitives/ClipContainer.h"
-// #include "core/primitives/AudioBuffer.h"
+#include "core/primitives/AudioBuffer.h"
 #include "common/defines.h"
 #include <atomic>
+#include <vector>
 
 namespace slr {
 
 struct AudioFile;
+struct ClipItem;
 
 struct FlatTask {
 
@@ -65,6 +67,15 @@ struct SwapContainerFlat : public FlatTask {
     std::atomic<bool> completed;
 };
 
+struct SwapAudioFileData : public FlatTask {
+    void execRT();
+
+    std::unique_ptr<AudioBuffer> buf;
+    AudioFile * file;
+    std::vector<ClipItem*> clips;
+
+    std::atomic<bool> completed;
+};
 
 }
 

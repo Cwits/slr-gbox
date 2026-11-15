@@ -43,12 +43,6 @@ void CopyAudioAction::checkWaitingCondition(ControlContext &ctx) {
 
 }
 
-
-// void CopyAudioAction::FlatAction::execRT() {
-
-//     completed.store(true, std::memory_order_release);
-// }
-
 std::unique_ptr<ActionExecutable> createCopyAudioAction(const ActionBase *base) {
     return std::make_unique<CopyAudioAction>(base);
 }

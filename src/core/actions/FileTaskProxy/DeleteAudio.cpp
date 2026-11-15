@@ -58,7 +58,8 @@ void DeleteAudioAction::exec(ControlContext &ctx) {
                 return;
             }
 
-             _flat.file = _swapTarget;
+            _flat.file = _swapTarget;
+            _flat.clips = ctx.project->clipStorage().clipsRelatedToAudio(_swapTarget->data());
             _flat.buf = std::move(_newBuffer);
             _flat.completed.store(false);
 
@@ -119,13 +120,6 @@ void DeleteAudioAction::checkWaitingCondition(ControlContext &ctx) {
         default: assert(false && "Unreachable"); break;
     }
 }
-
-
-void DeleteAudioAction::SwapAudioFileData::execRT() {
-    file->swapData(buf);
-    completed.store(true, std::memory_order_release);
-}
-
 
 std::unique_ptr<ActionExecutable> createDeleteAudioAction(const ActionBase *base) {
     return std::make_unique<DeleteAudioAction>(base);

@@ -34,6 +34,7 @@ struct ReverseAudioAction : public ActionExecutable {
 
         std::unique_ptr<AudioBuffer> buf;
         AudioFile * file;
+        std::vector<ClipItem*> clips;
 
         std::atomic<bool> completed;
     };

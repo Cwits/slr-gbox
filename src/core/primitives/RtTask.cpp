@@ -5,6 +5,7 @@
 #include "core/Project.h"
 #include "core/RtEngine.h"
 #include "core/primitives/AudioUnit.h"
+#include "core/primitives/AudioFile.h"
 // #include "core/primitives/AudioFile.h"
 
 namespace slr {
@@ -24,6 +25,17 @@ void SwapRenderPlan::execRT() {
 
 void SwapContainerFlat::execRT() {
     target->setClipContainer(container);
+    completed.store(true, std::memory_order_release);
+}
+
+void SwapAudioFileData::execRT() {
+    for(auto &clip : clips) {
+        clip->_content.audio = buf.get();
+        if(clip->length() > buf->size()) {
+            clip->update(clip->startPosition(), buf->size(), clip->fileOffset(), clip->isMuted());
+        }
+    }
+    file->swapData(buf);
     completed.store(true, std::memory_order_release);
 }
 

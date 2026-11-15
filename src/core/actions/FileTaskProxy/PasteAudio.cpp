@@ -58,7 +58,9 @@ void PasteAudioAction::exec(ControlContext &ctx) {
                 abortAction();
                 return;
             }
+            
             _flat.file = _swapTarget;
+            _flat.clips = ctx.project->clipStorage().clipsRelatedToAudio(_swapTarget->data());
             _flat.buf = std::move(_readyBuffer);
             _flat.completed.store(false);
 
@@ -119,11 +121,6 @@ void PasteAudioAction::checkWaitingCondition(ControlContext &ctx) {
         } break;
         default: assert(false && "Unreachable"); break;
     }
-}
-
-void PasteAudioAction::SwapAudioFileData::execRT() {
-    file->swapData(buf);
-    completed.store(true, std::memory_order_release);
 }
 
 std::unique_ptr<ActionExecutable> createPasteAudioAction(const ActionBase *base) {
