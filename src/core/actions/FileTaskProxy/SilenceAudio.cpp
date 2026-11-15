@@ -7,6 +7,7 @@
 
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeaks.h"
+#include "core/primitives/ClipItem.h"
 #include "core/Project.h"
 #include "core/FileWorker.h"
 #include "core/filetasks/FileTasks.h"
@@ -58,7 +59,21 @@ void SilenceAudioAction::exec(ControlContext &ctx) {
                 abortAction();
                 return;
             }
+
+            //find all related clips
+            std::vector<ClipItem*> relatedClips;
+            ClipStorage & storage = ctx.project->clipStorage();
+            std::vector<ClipItem*> list = storage.items();
+            for(auto &clip : list) {
+                if(clip->_content.isAudio() &&
+                    clip->_content.audio == _swapTarget->data()) 
+                {
+                    relatedClips.push_back(clip);
+                }
+            }
+
             _flat.file = _swapTarget;
+            _flat.clips = relatedClips;
             _flat.buf = std::move(_readyBuffer);
             _flat.completed.store(false);
 
@@ -122,7 +137,11 @@ void SilenceAudioAction::checkWaitingCondition(ControlContext &ctx) {
 }
 
 void SilenceAudioAction::SwapAudioFileData::execRT() {
+    for(auto &clip : clips) {
+        clip->_content.audio = buf.get();
+    }
     file->swapData(buf);
+    //update all related clips
     completed.store(true, std::memory_order_release);
 }
 

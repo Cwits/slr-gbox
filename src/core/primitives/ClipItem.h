@@ -38,7 +38,7 @@ struct ClipContent {
 };
 
 struct ClipItem {
-    ClipItem(const Timeline *tl, const ClipContent &content, frame_t startPos, ID selfId);
+    ClipItem(const Timeline *tl, ClipContent &content, frame_t startPos, ID selfId);
     ~ClipItem();
 
     frame_t startPosition() const { return _startPosition; }
@@ -48,7 +48,7 @@ struct ClipItem {
     bool isMuted() const { return _muted; }
     ID id() const { return _id; }
 
-    const ClipContent _content;
+    ClipContent _content;
 
     void recalculate(const double &coef) {
        if(_content.isMidi()) {

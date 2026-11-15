@@ -16,7 +16,7 @@
 
 namespace slr {
 
-ClipItem::ClipItem(const Timeline *tl, const ClipContent &content, frame_t startPos, ID selfId) : 
+ClipItem::ClipItem(const Timeline *tl, ClipContent &content, frame_t startPos, ID selfId) : 
     _startPosition(startPos), 
     _fileOffset(0), 
     _muted(false), 

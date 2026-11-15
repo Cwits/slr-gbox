@@ -14,6 +14,7 @@ namespace slr {
 
 struct ActionBase;
 struct AudioFile;
+struct ClipItem;
 
 struct SilenceAudioAction : public ActionExecutable {
     SilenceAudioAction(const ActionBase *base);
@@ -34,6 +35,7 @@ struct SilenceAudioAction : public ActionExecutable {
 
         std::unique_ptr<AudioBuffer> buf;
         AudioFile * file;
+        std::vector<ClipItem*> clips;
 
         std::atomic<bool> completed;
     };

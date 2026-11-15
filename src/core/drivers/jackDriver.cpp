@@ -281,13 +281,13 @@ bool JackDriver::createPorts(int numIn, int numOut) {
     if(ret) LOG_INFO("Default ports created!");
     
     std::size_t size = _inputs.size();
-    _inputBuffers = std::make_unique<AudioBuffer>(size, _bufferSize, true);
+    _inputBuffers = std::make_unique<AudioBuffer>(_bufferSize, size, true);
     // sample_t ** datain = new sample_t*[size];
     // for(std::size_t i=0; i<size; ++i) datain[i] = nullptr;
     // _inputBuffers = new AudioBuffer(datain, static_cast<uint8_t>(size), _bufferSize);
 
     size = _outputs.size();
-    _outputBuffers = std::make_unique<AudioBuffer>(size, _bufferSize, true);
+    _outputBuffers = std::make_unique<AudioBuffer>(_bufferSize, size, true);
     // sample_t ** dataout = new sample_t*[size];
     // for(std::size_t i=0; i<size; ++i) dataout[i] = nullptr;
     // _outputBuffers = new AudioBuffer(dataout, static_cast<uint8_t>(size), _bufferSize);
