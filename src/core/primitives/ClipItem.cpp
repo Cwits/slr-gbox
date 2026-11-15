@@ -37,7 +37,7 @@ ClipStorage::~ClipStorage() {
 
 }
 
-ClipItem * ClipStorage::newClip(const Timeline *tl, const ClipContent &content, frame_t startPosition, ID clipId) {
+ClipItem * ClipStorage::newClip(const Timeline *tl, ClipContent &content, frame_t startPosition, ID clipId) {
     ClipItem * clip = nullptr;
     std::unique_ptr<ClipItem> itemUniq;
 

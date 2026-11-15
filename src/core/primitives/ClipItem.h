@@ -76,7 +76,7 @@ struct ClipItem {
 
 struct ClipStorage {
     ~ClipStorage();
-    ClipItem * newClip(const Timeline *tl, const ClipContent &content, frame_t startPosition, ID clipId);
+    ClipItem * newClip(const Timeline *tl, ClipContent &content, frame_t startPosition, ID clipId);
     // ClipItem * duplicateFrom(const ClipItem *item);
 
     ClipItem * findClipById(ID id);
