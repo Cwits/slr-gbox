@@ -39,8 +39,6 @@ FilePreview::FilePreview(BaseWidget * parent, const slr::ClipContentView * const
     _content(clipItem)
 {
     addStyle(&Style::GridFile);
-    // lv_obj_set_style_border_width(lvhost(), 2, 0);
-    // lv_obj_set_style_border_color(lvhost(), Colors::White, 0);
     noScroll();
     _canvas = lv_canvas_create(lvhost());
     lv_obj_set_pos(_canvas, 0, 0);
@@ -82,17 +80,7 @@ void FilePreview::draw(slr::frame_t frameStart, slr::frame_t frameEnd, int notef
 
     lv_canvas_fill_bg(_canvas, Colors::clipPreviewBackground, LV_OPA_30);
 
-    if(_content->isAudio()) {        
-        // UIHelpers::audioFileToCanvas(
-        //     _content->audio,
-        //     frameStart,
-        //     frameEnd,
-        //     _canvas,
-        //     _canvasHeight,
-        //     _canvasWidth,
-        //     _peakColor,
-        //     _fillColor
-        // );
+    if(_content->isAudio()) {
         UIHelpers::audioFileToBuffer(
             _content->audio,
             frameStart,
@@ -120,17 +108,39 @@ void FilePreview::draw(slr::frame_t frameStart, slr::frame_t frameEnd, int notef
     }
 }
 
+bool FilePreview::needUpdate() {
+    bool ret = false;
+    if(_content->isAudio()) {
+        ret = _content->audio->version() != version();
+    } else {
+        ret = _content->midi->version() != version();
+    }
+    return ret;
+}
+
 void FilePreview::pollUIUpdate() {
     if(_content->isAudio()) {
         if(compareAndSave(_content->audio->version())) {
             //update
             if(_drawEnd > _content->audio->peaks0()->size()) {
+                //need to recalculate width?
+                //slr::frame_t frames = civ->length();
+                //float framesPerPixel = UIUtility::framesPerPixel(uictx->gridHorizontalZoom());
+                //int pixels = frames * framesPerPixel;
+                //fw->setSize(pixels, UI::Layout::TRACK_HEIGHT);
+
                 _drawEnd = _content->audio->peaks0()->size();
             }
             draw(_drawStart, _drawEnd, _noteStart, _noteEnd);
         }
     } else if(_content->isMidi()) {
         //update Midi
+        if(compareAndSave(_content->midi->version())) {
+            // if(_drawEnd > _content->midi->)) {
+            //     _drawEnd = _content->midi->);
+            // }
+            draw(_drawStart, _drawEnd, _noteStart, _noteEnd);
+        }
     }
 }
 

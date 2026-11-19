@@ -30,6 +30,8 @@ struct FilePreview : public BaseWidget, public Common::Version {
 
     const slr::ClipContentView * const _content;
 
+    bool needUpdate();
+
     lv_color_t _peakColor;
     lv_color_t _fillColor;
     int _bgOpa;

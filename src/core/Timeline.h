@@ -27,7 +27,7 @@ class Timeline {
     const bool looping() const { return _isLoop ? true : false; }
     const RollState state() const { return _state; }
 
-    const frame_t elapsed(frame_t & framesPassed) const;
+    const frame_t elapsed(frame_t &framesPassed) const;
     frame_t lastElapsed() const { return _lastElapsed; }
     const frame_t loopStartFrame() const { return _loopStartFrame; }
     const frame_t loopEndFrame() const { return _loopEndFrame; }
@@ -42,7 +42,6 @@ class Timeline {
     const int blockSize() const { return _blockSize; }
     const uint32_t framesPerQuater() const { return calcFramesPerQuater(); }
 
-    [[deprecated]] //use stepToFrames in future
     const uint32_t framesPerBeat() const { return calcFramesPerBeat(); }
     const uint32_t framesPerBar() const { return calcFramesPerBar(); }
     const frame_t framesInStep(StepDuration dur) const;

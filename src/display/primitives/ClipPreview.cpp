@@ -76,7 +76,7 @@ void ClipPreview::recalculateWidthAndRedraw() {
     int pixels = frames * framesPerPixel;
     
     setSize(pixels, _preview->height());
-    _preview->setSize(pixels, _preview->height());
+    // _preview->setSize(pixels, _preview->height());
     _preview->draw(_clipItem->fileOffset(), _clipItem->length());
     _preview->show();
 }
@@ -87,10 +87,19 @@ void ClipPreview::draw() {
 }
 
 void ClipPreview::pollUIUpdate() {    
-    _preview->pollUIUpdate();
+    if(_preview->needUpdate()) {
+        //possibly need to recalculate width
+        // slr::frame_t frames = _clipItem->length();
+        // float framesPerPixel = UIUtility::framesPerPixel(_uictx->gridHorizontalZoom());
+        // int pixels = frames * framesPerPixel;
+            
+        // setSize(pixels, _preview->height());
+
+        _preview->pollUIUpdate();
+    }
     
     const slr::ClipItemView * const fview = _clipItem;
-
+    
     uint64_t version = fview->version();
     if(version == _uiVersion) return;
     _uiVersion = version;

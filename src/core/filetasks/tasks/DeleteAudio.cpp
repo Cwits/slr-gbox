@@ -28,12 +28,6 @@ void DeleteAudio::exec(FileWorkerContext &ctx) {
         return;
     }
 
-    if(!ctx._aCopyCtx->_data) {
-        LOG_FAIL("Copy buffer is empty");
-        finished(nullptr, std::unique_ptr<AudioBuffer>(), false);
-        return;
-    }
-
     File * tmpa = ctx.findFile(fileId);
     AudioFile * afile = dynamic_cast<AudioFile*>(tmpa);
     if(!afile) {

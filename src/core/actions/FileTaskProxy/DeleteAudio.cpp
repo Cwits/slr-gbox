@@ -7,11 +7,13 @@
 
 #include "core/primitives/AudioFile.h"
 #include "core/primitives/AudioPeaks.h"
+#include "core/primitives/ClipItem.h"
 #include "core/Project.h"
 #include "core/FileWorker.h"
 #include "core/filetasks/FileTasks.h"
 
 #include "snapshots/ProjectView.h"
+#include "snapshots/ClipContainerView.h"
 
 #include "common/uiControls.h"
 
@@ -85,6 +87,20 @@ void DeleteAudioAction::exec(ControlContext &ctx) {
         } break;
         case(4): {
             LOG_SUCCESS("Finished audio delete task");
+
+            //need to update clip view?
+            std::vector<ClipItemView*> relatedViews;
+            for(int i=0; i<_flat.clips.size(); ++i) {
+                ClipItemView * v = ctx.projectView->findClipViewById(_flat.clips.at(i)->id());
+                if(v) {
+                    relatedViews.push_back(v);
+                }
+            }
+
+            for(auto &c : relatedViews) {
+                c->update();
+            }
+
             if(_action.finished) _action.finished();
             setState(ActionState::Finished);
         } break;

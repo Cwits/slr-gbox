@@ -121,6 +121,7 @@ frame_t RtEngine::processNextBlock(AudioBuffer * inputs, AudioBuffer * outputs, 
 #endif
 
     //handle rt control tasks
+    //do i have to limit executing tasks only by one per frame?
     {
         RtTask * task = nullptr;
         while(_rtTasks.pop(task)) {

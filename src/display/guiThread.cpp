@@ -103,7 +103,7 @@ void initGui() {
 #else
     _driver = std::make_unique<GestLib::FakeSDLDriver>(GestLib::FakeSDLDriverConfig{});
     SDL_Renderer * renderer = static_cast<SDL_Renderer*>(lv_sdl_window_get_renderer(lvDisplay));
-    _driver->init(renderer);
+    _driver->init();
     std::cout << _driver->helpString() << std::endl;
     
     _recognizer = std::make_unique<GestLib::GestureRecognizer>(GestLib::RecognizerConfig{});

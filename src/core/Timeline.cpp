@@ -101,7 +101,7 @@ void Timeline::stop() {
     _state = RollState::Stop;
 }
 
-const frame_t Timeline::elapsed(frame_t & framesPassed) const {
+const frame_t Timeline::elapsed(frame_t &framesPassed) const {
     frame_t ret = 0;
     if(_state == RollState::Play) {
         if(_resumed) {
