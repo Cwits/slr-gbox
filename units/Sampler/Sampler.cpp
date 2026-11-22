@@ -5,11 +5,17 @@
 #include "core/utility/AudioContext.h"
 #include "core/BufferManager.h"
 
+#include "core/primitives/AudioFile.h"
+#include "core/primitives/MidiEvent.h"
+
 #include "core/utility/basicAudioManipulation.h"
 #include "core/utility/basicMidiManipulation.h"
 
+#include "common/logger.h"
+
 #include <cassert>
 #include <algorithm>
+#include <limits>
 
 namespace slr {
 
@@ -20,9 +26,10 @@ Sampler::Sampler(const ClipContainer * initContainer, const ID forcedId)
     _mix(nullptr),
     _file(nullptr),
     _activeVoiceCount(0),
-    _voicesHead(0),
-    _voicesTail(0),
-    _maxVoices(TOTAL_MAX_VOICES)
+    _rootPitch(ParameterInt("Root Pitch", 36, 0, 127, 1)),
+    _maxVoices(ParameterInt("Max Voices", 8, 0, TOTAL_MAX_VOICES, 1)),
+    _sampleStart(ParameterFrame("Start", 0, 0, ParameterFrame::typemax(), 1)),
+    _sampleEnd(ParameterFrame("End", 0, 0, ParameterFrame::typemax(), 1))
 {
     for(int i=0; i<TOTAL_MAX_VOICES; ++i) {
         _voices[i].clear();
@@ -73,31 +80,28 @@ frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) c
     clearAudioBuffer((*_outputs)[0], ctx.blockSize);
     clearAudioBuffer((*_outputs)[1], ctx.blockSize);
 
-    // _midiInput->clear();
-    // _midiOutput->clear();
+    //do not clear midiInput, because there can be some 
+    _midiOutput->clear();
 
-    // for(uint32_t i=0; i<inputs.midiDepsCnt; ++i) {
-    //     MidiDependencie &mdep = inputs.midi[i];
-
-    //     const MidiBuffer *buf = mdep.external ? getMidiBuffer(ctx, mdep.extId) : mdep.buf;
-    //     std::size_t bufSize = buf->size();
-    //     for(std::size_t j=0; j<bufSize; ++j) {
-    //         const MidiEvent &ev = (*buf)[j];
-    //         _midiRecord->push_back(ev);
-    //     }
-    // }
+    fetchAndSortMidi(ctx, inputs);
     
-    // sortEventsInMidiBuffer(_midiRecord);
-
     if(ctx.playing) {
+        //playbackMidi()???
         playbackFiles(ctx, _outputs, _midiInput);
     }
 
-    if(_activeVoiceCount > 0) {
-        for(uint8_t v=0; v<_activeVoiceCount; ++v) {
+    processIncomingMidi();
 
-        }
+
+    playbackVoices(ctx);
+   
+    //process volume and stuff
+    for(frame_t f=0; f<ctx.blockSize; ++f) {
+        (*_outputs)[0][f] *= _volume.value(f);
+        (*_outputs)[1][f] *= _volume.value(f);
     }
+
+    //
 
     return ctx.blockSize;
 }
@@ -118,42 +122,139 @@ void Sampler::stopRecording() {
 
 }
 
-void Sampler::addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, frame_t playbackEnd, frame_t delayBeforePlayback) {
-    if(_maxVoices == 1 && _activeVoiceCount != 0) {
-        deleteVoice();
+void Sampler::asset(const AudioFile * file) { 
+    _file = file; 
+    _sampleEnd = _file->frames();
+}
+
+void Sampler::addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, frame_t playbackEnd, frame_t delayBeforePlayback) const {
+    if(_activeVoiceCount >= _maxVoices) {
+        return;
     }
 
-    if(_activeVoiceCount >= _maxVoices) return;
-    
-    Voice &v = _voices[_voicesHead];
-    v.velocity = velocity;
-    v.pitch = pitch;
-    v.playbackPosition = playbackStart;
-    v.playbackEnd = playbackEnd;
-    v.delayBeforePlayback = delayBeforePlayback;
+    if(_maxVoices == 1 && _activeVoiceCount != 0) {
+        for(uint8_t i=0; i<TOTAL_MAX_VOICES; ++i) {
+            Voice &v = _voices[i];
+            if(!v.active) continue;
 
-    if(_voicesHead+1 >= _maxVoices) _voicesHead = 0;
-    else _voicesHead++;
+            v.velocity = velocity;
+            v.pitch = pitch;
+            v.playbackPosition = playbackStart;
+            v.playbackEnd = playbackEnd;
+            v.delayBeforePlayback = delayBeforePlayback;
+            v.active = true;
+            break;
+        }
+        return;
+    }
+
+    for(uint8_t i=0; i<TOTAL_MAX_VOICES; ++i) {
+        Voice &v = _voices[i];
+        if(v.active) continue;
+
+        v.velocity = velocity;
+        v.pitch = pitch;
+        v.playbackPosition = playbackStart;
+        v.playbackEnd = playbackEnd;
+        v.delayBeforePlayback = delayBeforePlayback;
+        v.active = true;
+        break;
+    }
+
     _activeVoiceCount++;
 }
 
-void Sampler::deleteVoice() {
+void Sampler::deleteVoice(uint8_t velocity, uint8_t pitch) const {
     assert(_activeVoiceCount > 0);
-    uint8_t toClearId = _voicesTail;
-    
-    if(_voicesTail+1 >= _maxVoices) _voicesTail = 0;
-    else _voicesTail++;
-    _activeVoiceCount--;
-    _voices[toClearId].clear();
+
+    for(uint8_t i=0; i<TOTAL_MAX_VOICES; ++i) {
+        Voice &v = _voices[i];
+        if(!v.active) continue;
+        if(v.velocity != velocity && v.pitch != pitch) continue;
+
+        v.clear();
+        _activeVoiceCount--;
+    }
 }
 
-void Sampler::clearAllVoices() {
+void Sampler::playbackVoices(const AudioContext &ctx) const {
+    if(_activeVoiceCount == 0) return;
+
+    for(uint8_t vv=0; vv<TOTAL_MAX_VOICES; ++vv) {
+        Voice &v = _voices[vv];
+        if(!v.active) continue;
+
+        //mix audio
+        frame_t toPlay = 0;
+        // frame_t playbackStart = 0;
+        if(v.playbackPosition + ctx.blockSize <= v.playbackEnd) toPlay = ctx.blockSize;
+        else {
+            toPlay = v.playbackEnd - v.playbackPosition; 
+            v.active = false; //last thing
+        }
+
+        const AudioBuffer * raw = _file->data();
+        if(raw->channels() == 2) {
+            for(frame_t s=0; s<toPlay; ++s) {
+                (*_outputs)[0][s] += (*raw)[0][s+v.playbackPosition];
+                (*_outputs)[1][s] += (*raw)[1][s+v.playbackPosition];
+            }
+        } else {
+            for(frame_t s=0; s<toPlay; ++s) {
+                (*_outputs)[0][s] += (*raw)[0][s+v.playbackPosition];
+                (*_outputs)[1][s] += (*raw)[0][s+v.playbackPosition];
+            }
+        }
+        v.playbackPosition += toPlay;
+        LOG_INFO("Voice pos: %lu total: %lu", v.playbackPosition, v.playbackEnd);
+    }
+}
+
+void Sampler::clearAllVoices() const {
     _activeVoiceCount = 0;
-    _voicesHead = 0;
-    _voicesTail = 0;
     std::for_each(_voices.begin(), _voices.end(), [](Sampler::Voice &v) {
         v.clear();
     });
+}
+
+void Sampler::processIncomingMidi() const {
+    if(_midiInput->size() == 0) return;
+    for(std::size_t e=0; e<_midiInput->size(); ++e) {
+        const MidiEvent &ev = (*_midiInput)[e];
+        switch(ev.type) {
+            case(MidiEventType::NoteOn): {
+                // addNote();
+                if(_mode == SamplerMode::Classic || _mode == SamplerMode::OneShot) {
+                    addVoice(
+                        ev.velocity, 
+                        ev.note,
+                        _sampleStart,
+                        _sampleEnd,
+                        ev.offset
+                    );
+                } else {
+                    //const Slice &s = pickSlice(ev.note);
+                    /*addVoice(
+                        ev.velocity,
+                        ev.note,
+                        s.start,
+                        s.end,
+                        ev.offset
+                    );
+                    */
+                }
+            } break;
+            case(MidiEventType::NoteOff): {
+                //noteOff
+                if(_mode == SamplerMode::Classic) {
+                    deleteVoice(ev.velocity, ev.note);
+                }
+            } break;
+            case(MidiEventType::CC): {
+                //check learned map for some activities
+            } break;
+        }
+    }
 }
 
 }

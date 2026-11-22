@@ -21,12 +21,10 @@ Timeline::Timeline(Project & prj) :
     _resumed(false),
     _frameOnPaused(0),
     _startCountFrame(0),
-    _lastLoopStamp(0),
     _loopStartFrame(0),
     _loopEndFrame(0),
-    _loopOnGoing(false),
+    _loopEnabledOn(0),
     _prj(prj),
-    // _framesPerQuater(0),
     _lastElapsed(0)
 {
     _loopEndFrame = calcFramesPerQuater() * 16;
@@ -55,8 +53,6 @@ void Timeline::play() {
     _prj.prepareForPlay();
 
     _startCountFrame = 0;
-    _loopOnGoing = false;
-    _lastLoopStamp = 0;
 
     _state = RollState::Preparing;
 }
@@ -114,18 +110,13 @@ const frame_t Timeline::elapsed(frame_t &framesPassed) const {
     
         if(_isLoop) {
             //...
-            frame_t calc = ret - _lastLoopStamp;
-            
-            if(_loopOnGoing) calc += _loopStartFrame;
+            bool enable = _loopEnabledOn < _loopEndFrame;
 
-            if(calc > _loopStartFrame) {
-                if(calc+_blockSize >= _loopEndFrame) {
-                    _lastLoopStamp = ret+_blockSize;
-                    _loopOnGoing = true;
-                }
+            if(enable && ret >= _loopEndFrame) {
+                frame_t diff = _loopEndFrame - _loopStartFrame;
+                ret -= diff;
+                _startCountFrame += diff;
             }
-
-            ret = calc;
         }
     }
     else if(_state == RollState::Preparing) {
@@ -218,10 +209,8 @@ void Timeline::setLoopPosition(frame_t start, frame_t end) {
 
 void Timeline::setLoopState(bool newState) {
     _isLoop = newState;
-    if(newState == true) {
-        _lastLoopStamp = 0;
-    } else {
-        _startCountFrame += _lastLoopStamp;
+    if(newState) {
+        _loopEnabledOn = _lastElapsed;
     }
 }
 

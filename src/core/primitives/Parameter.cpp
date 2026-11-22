@@ -98,6 +98,28 @@ int ParameterInt::value(frame_t frame) const {
 
 void ParameterInt::setValue(float value) { set(Math::round(value)); }
 
+
+ParameterFrame::ParameterFrame(std::string name, float defaultValue, float minimalValue, float maximalValue, float step) :
+    ParameterBase(name, defaultValue, minimalValue, maximalValue, step), _value(static_cast<frame_t>(defaultValue))
+{
+
+}
+ParameterFrame::~ParameterFrame() {}
+
+frame_t ParameterFrame::value(frame_t frame) const {
+    float modAmt = 0.0f;
+    for(int i=0; i<8; ++i) {
+        if(_mods[i].ptr == nullptr) continue;
+    
+        modAmt += ((_mods[i].ptr)[frame]) * _mods[i].ammount;
+    }
+
+    return _value + Math::round(modAmt);
+}
+
+void ParameterFrame::setValue(float value) { set(Math::round(value)); }
+
+
 ParameterBool::ParameterBool(std::string name, float defaultValue, float minimalValue, float maximalValue, float step)
     : ParameterBase(name, defaultValue, minimalValue, maximalValue, step), _value(defaultValue) {
 

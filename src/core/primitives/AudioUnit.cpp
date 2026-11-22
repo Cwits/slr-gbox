@@ -199,6 +199,8 @@ void AudioUnit::fetchAndSortMidi(const AudioContext &ctx, const Dependencies &in
 
         editable[j] = tmp;
     }
+
+    if(_midiThru) { for(std::size_t e=0; e<_midiInput->size(); ++e) { _midiOutput->push_back((*_midiInput)[e]); } }
 }
 
 }

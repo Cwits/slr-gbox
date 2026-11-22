@@ -5,6 +5,7 @@
 
 #include <string>
 #include <array>
+#include <limits>
 
 #include "common/defines.h"
 
@@ -87,6 +88,25 @@ class ParameterInt : public ParameterBase {
     private:
     int _value;
     void set(int value) { _value = value; }
+};
+
+struct ParameterFrame : public ParameterBase {
+    ParameterFrame(std::string name, float defaultValue, float minimalValue, float maximalValue, float step);
+    ~ParameterFrame();
+
+    operator frame_t() const { return _value; }
+    float value() const override { return static_cast<float>(_value); }
+
+    frame_t value(frame_t frame) const;
+
+    ParameterFrame& operator=(frame_t value) { set(value); return *this; }
+    void setValue(float value) override;
+
+    static frame_t typemax() { return std::numeric_limits<frame_t>::max(); }
+
+    private:
+    frame_t _value;
+    void set(frame_t value) { _value = value; }
 };
 
 class ParameterBool : public ParameterBase {

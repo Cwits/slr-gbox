@@ -83,12 +83,12 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
     setPos(0, 0);
     noScroll();
     
-    _testRect = lv_obj_create(lvhost());
-    lv_obj_set_size(_testRect, 200, 200);
-    lv_obj_set_pos(_testRect, 100, 10);
-    const std::shared_ptr<const slr::SamplerView> tr = _parentUI->_sampler.lock();
-    slr::Color clr = tr->color();
-    lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
+    // _testRect = lv_obj_create(lvhost());
+    // lv_obj_set_size(_testRect, 200, 200);
+    // lv_obj_set_pos(_testRect, 100, 10);
+    // // const std::shared_ptr<const slr::SamplerView> tr = _parentUI->_sampler.lock();
+    // slr::Color clr = parentUI->_color;
+    // lv_obj_set_style_bg_color(_testRect, lv_color_make(clr.r, clr.g, clr.b), 0);
 
     _horizontalZoom = 1.0f;
     _timeline = std::make_unique<Timeline>(this, lvhost(), &_horizontalZoom, parentUI->_uictx);
@@ -108,7 +108,7 @@ SamplerUI::SamplerUnitUI::SamplerUnitUI(BaseWidget *parent, SamplerUI * parentUI
 }
 
 SamplerUI::SamplerUnitUI::~SamplerUnitUI() {
-    lv_obj_delete(_testRect);
+    // lv_obj_delete(_testRect);
 }
 
 void SamplerUI::SamplerUnitUI::pollUIUpdate() {

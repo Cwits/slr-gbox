@@ -99,6 +99,8 @@ struct DefaultUnitUI : public BaseWidget {
     DefaultUnitUI(BaseWidget * parent, UnitUIBase *base);
     virtual ~DefaultUnitUI();
 
+    protected:
+
     private:
     std::unique_ptr<ClipPreview> _fileViewUI; //for using in grid
     // std::unique_ptr<FileView> _fileEditorUI;

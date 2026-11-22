@@ -67,13 +67,11 @@ class Timeline {
 
     mutable bool _resumed;
     mutable frame_t _frameOnPaused;
-
     mutable frame_t _startCountFrame;
 
-    mutable frame_t _lastLoopStamp;
     frame_t _loopStartFrame;
     frame_t _loopEndFrame;
-    mutable bool _loopOnGoing; //internal thing
+    frame_t _loopEnabledOn;
 
     Project & _prj;
 

@@ -117,7 +117,6 @@ class AudioUnit {
 
     bool _midiThru;
     bool _omniHwInput; //unit will gather all available midi inputs event if there is no route for that
-    
 
     void fetchAndSortMidi(const AudioContext &ctx, const Dependencies &inputs) const;
     mutable MidiBuffer * _midiInput;

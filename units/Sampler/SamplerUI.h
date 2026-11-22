@@ -63,7 +63,7 @@ struct SamplerUI : public UnitUIBase {
         private:
         SamplerUI * _parentUI;
 
-        lv_obj_t * _testRect;
+        // lv_obj_t * _testRect;
         bool _lastAssetState;
         std::unique_ptr<Label> _lblAsset;
         std::unique_ptr<Timeline> _timeline;

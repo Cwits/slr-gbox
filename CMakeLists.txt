@@ -178,7 +178,6 @@ file(GLOB SOURCES
   src/core/utility/FileWorkerContext.cpp
 
   #core
-  src/core/AudioPeakBuilder.cpp
   src/core/BufferManager.cpp
   src/core/ControlEngine.cpp
   src/core/FileWorker.cpp

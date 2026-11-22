@@ -14,9 +14,13 @@ class AudioFile;
 
 struct Sampler : public AudioUnit {
     enum class SamplerMode {
-        ADSR,
-        OneShot
+        Classic,
+        OneShot,
+        Slicer
     };
+
+    SamplerMode _mode;
+    bool _adsrEnabled; //apply to slices as well
 
     Sampler(const ClipContainer * initContainer, const ID forcedId);
     ~Sampler();
@@ -34,8 +38,9 @@ struct Sampler : public AudioUnit {
     // const AudioBuffer * outputs() const { return _postFX; }
     
     const AudioFile * asset() const { return _file; }
-    void asset(const AudioFile * file) { _file = file; }
-    void clearAllVoices();
+    void asset(const AudioFile * file);
+
+    void clearAllVoices() const;
 
     private:
     BufferManager * _bufferManager;
@@ -44,23 +49,21 @@ struct Sampler : public AudioUnit {
     AudioBuffer * _mix;
 
     const AudioFile * _file;
-
-    void addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, frame_t playbackEnd, frame_t delayBeforePlayback);
-    void deleteVoice();
+    
+    void addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, frame_t playbackEnd, frame_t delayBeforePlayback) const;
+    void deleteVoice(uint8_t velocity, uint8_t pitch) const;
+    void playbackVoices(const AudioContext &ctx) const;
 
     struct Voice {
+        bool active;
         uint8_t velocity;
         uint8_t pitch;
         frame_t playbackPosition;
         frame_t playbackEnd;
         frame_t delayBeforePlayback;
 
-        // Voice& operator=(const Voice &other) {
-
-        //     return *this;
-        // }
-
         void clear() {
+            active = false;
             velocity = 0;
             pitch = 0;
             playbackPosition = 0;
@@ -71,11 +74,15 @@ struct Sampler : public AudioUnit {
 
     static constexpr uint8_t TOTAL_MAX_VOICES = 32;
 
-    std::array<Voice, TOTAL_MAX_VOICES> _voices;
-    uint8_t _activeVoiceCount;
-    uint8_t _voicesHead;
-    uint8_t _voicesTail;
-    uint8_t _maxVoices;
+    mutable std::array<Voice, TOTAL_MAX_VOICES> _voices;
+    mutable uint8_t _activeVoiceCount;
+
+    ParameterInt _rootPitch;
+    ParameterInt _maxVoices;
+    ParameterFrame _sampleStart;
+    ParameterFrame _sampleEnd;
+
+    void processIncomingMidi() const;
 };
 
 }
