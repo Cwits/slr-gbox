@@ -12,6 +12,7 @@
 namespace slr {
 
 class ParameterArray;
+//TODO: must move name to ParameterView...
 class ParameterBase {
     public:
     ParameterBase(std::string & name, float defaultValue, float minimalValue, float maximalValue, float step);
@@ -25,6 +26,9 @@ class ParameterBase {
     float defaultValue() const { return _default; }
     float minimalValue() const { return _min; }
     float maximalValue() const { return _max; }
+
+    void minimalValue(float val) { _min = val; if(value() < val) { setValue(val); } }
+    void maximalValue(float val) { _max = val; if(value() > val) { setValue(val); } }
 
     virtual float normalized() { return 0.0f; }
 

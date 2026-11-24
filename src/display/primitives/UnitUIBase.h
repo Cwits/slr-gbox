@@ -7,6 +7,7 @@
 #include "display/primitives/Popup.h"
 #include "common/Color.h"
 #include "common/defines.h"
+#include "common/Version.h"
 
 #include <vector>
 #include <memory>
@@ -95,7 +96,7 @@ struct DefaultGridUI : public BaseWidget {
     bool handleDoubleTap(const GestLib::DoubleTapGesture &dt);
 };
 
-struct DefaultUnitUI : public BaseWidget {
+struct DefaultUnitUI : public BaseWidget, public Common::Version {
     DefaultUnitUI(BaseWidget * parent, UnitUIBase *base);
     virtual ~DefaultUnitUI();
 

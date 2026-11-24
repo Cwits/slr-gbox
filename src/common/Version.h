@@ -23,7 +23,7 @@ struct Version {
     void incrementVersion() { _version++; }
 
     private:
-    uint64_t _version;
+    uint64_t _version = 0;
 };
 
 struct VersionAtomic {
@@ -33,7 +33,7 @@ struct VersionAtomic {
     void incrementVersion() { _version.fetch_add(1, std::memory_order_release); }
     
     private:
-    std::atomic<uint64_t> _version;
+    std::atomic<uint64_t> _version = 1;
 };
 
 }

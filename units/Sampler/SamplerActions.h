@@ -3,6 +3,7 @@
 #pragma once
 
 #include "core/actions/ActionBase.h"
+#include "units/Sampler/SamplerCommon.h"
 #include "common/defines.h"
 
 #include <variant>
@@ -27,6 +28,19 @@ struct LoadAsset : public ActionBase {
 
     ID targetId;
     std::variant<std::string, File*, ClipItem*> data;
+};
+
+struct SetMode : public ActionBase {
+    SetMode() {}
+    SetMode(const SetMode &rhs) :
+        ActionBase(rhs),
+        targetId(rhs.targetId),
+        newMode(rhs.newMode) {}
+
+    std::type_index actionType() const override { return typeid(SetMode); }
+
+    ID targetId;
+    SamplerMode newMode;
 };
 
 }

@@ -26,14 +26,20 @@ Sampler::Sampler(const ClipContainer * initContainer, const ID forcedId)
     _mix(nullptr),
     _file(nullptr),
     _activeVoiceCount(0),
+    _mode(SamplerMode::Classic),
     _rootPitch(ParameterInt("Root Pitch", 36, 0, 127, 1)),
-    _maxVoices(ParameterInt("Max Voices", 8, 0, TOTAL_MAX_VOICES, 1)),
+    _maxVoices(ParameterInt("Max Voices", 8, 0, MAX_VOICES, 1)),
     _sampleStart(ParameterFrame("Start", 0, 0, ParameterFrame::typemax(), 1)),
     _sampleEnd(ParameterFrame("End", 0, 0, ParameterFrame::typemax(), 1))
 {
-    for(int i=0; i<TOTAL_MAX_VOICES; ++i) {
+    for(int i=0; i<MAX_VOICES; ++i) {
         _voices[i].clear();
     }
+
+    addParameter(&_rootPitch);
+    addParameter(&_maxVoices);
+    addParameter(&_sampleStart);
+    addParameter(&_sampleEnd);
 }
 
 Sampler::~Sampler() {
@@ -101,7 +107,10 @@ frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) c
         (*_outputs)[1][f] *= _volume.value(f);
     }
 
-    //
+    // for(frame_t f=0; f<ctx.blockSize; ++f) {
+    //     (*_outputs)[0][f] *= _pan.value(f);
+    //     (*_outputs)[1][f] *= _pan.value(f);
+    // }
 
     return ctx.blockSize;
 }
@@ -125,6 +134,7 @@ void Sampler::stopRecording() {
 void Sampler::asset(const AudioFile * file) { 
     _file = file; 
     _sampleEnd = _file->frames();
+    _sampleEnd.maximalValue(_file->frames());
 }
 
 void Sampler::addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, frame_t playbackEnd, frame_t delayBeforePlayback) const {
@@ -133,7 +143,7 @@ void Sampler::addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, f
     }
 
     if(_maxVoices == 1 && _activeVoiceCount != 0) {
-        for(uint8_t i=0; i<TOTAL_MAX_VOICES; ++i) {
+        for(uint8_t i=0; i<MAX_VOICES; ++i) {
             Voice &v = _voices[i];
             if(!v.active) continue;
 
@@ -148,7 +158,7 @@ void Sampler::addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, f
         return;
     }
 
-    for(uint8_t i=0; i<TOTAL_MAX_VOICES; ++i) {
+    for(uint8_t i=0; i<MAX_VOICES; ++i) {
         Voice &v = _voices[i];
         if(v.active) continue;
 
@@ -167,7 +177,7 @@ void Sampler::addVoice(uint8_t velocity, uint8_t pitch, frame_t playbackStart, f
 void Sampler::deleteVoice(uint8_t velocity, uint8_t pitch) const {
     assert(_activeVoiceCount > 0);
 
-    for(uint8_t i=0; i<TOTAL_MAX_VOICES; ++i) {
+    for(uint8_t i=0; i<MAX_VOICES; ++i) {
         Voice &v = _voices[i];
         if(!v.active) continue;
         if(v.velocity != velocity && v.pitch != pitch) continue;
@@ -180,7 +190,7 @@ void Sampler::deleteVoice(uint8_t velocity, uint8_t pitch) const {
 void Sampler::playbackVoices(const AudioContext &ctx) const {
     if(_activeVoiceCount == 0) return;
 
-    for(uint8_t vv=0; vv<TOTAL_MAX_VOICES; ++vv) {
+    for(uint8_t vv=0; vv<MAX_VOICES; ++vv) {
         Voice &v = _voices[vv];
         if(!v.active) continue;
 
@@ -191,6 +201,7 @@ void Sampler::playbackVoices(const AudioContext &ctx) const {
         else {
             toPlay = v.playbackEnd - v.playbackPosition; 
             v.active = false; //last thing
+            _activeVoiceCount--;
         }
 
         const AudioBuffer * raw = _file->data();
@@ -206,13 +217,13 @@ void Sampler::playbackVoices(const AudioContext &ctx) const {
             }
         }
         v.playbackPosition += toPlay;
-        LOG_INFO("Voice pos: %lu total: %lu", v.playbackPosition, v.playbackEnd);
+        // LOG_INFO("Voice pos: %lu total: %lu", v.playbackPosition, v.playbackEnd);
     }
 }
 
 void Sampler::clearAllVoices() const {
     _activeVoiceCount = 0;
-    std::for_each(_voices.begin(), _voices.end(), [](Sampler::Voice &v) {
+    std::for_each(_voices.begin(), _voices.end(), [](Voice &v) {
         v.clear();
     });
 }

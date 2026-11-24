@@ -232,6 +232,7 @@ file(GLOB SOURCES
   units/Sampler/SamplerUI.cpp
   units/Sampler/SamplerPushUI.cpp
   units/Sampler/Actions/LoadAsset.cpp
+  units/Sampler/Actions/SetMode.cpp
 
   #ui
   src/display/elements/BottomPanel.cpp

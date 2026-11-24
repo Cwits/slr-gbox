@@ -128,6 +128,11 @@ Track Recording:
 
 [ ] - MIDI recording isn't finished...
 
+Actions:
+[ ] - there is no guarantee that saved pointers in action class itself on one step will be alive in another step...
+        between steps things may happen and... ???
+        e.g. saving pointer to audio unit or sampler but while waiting is happening - something will delete unit(sampler)...
+
 other:
 [\] - introduce using ID = uint32_t(or uint64_t) so ID would be unified thing all across system
         partially - only in core and snapshots(not in UI)

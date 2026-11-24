@@ -18,6 +18,11 @@ SamplerView::SamplerView(Sampler * sampler) :
     _sampler(sampler),
     _fileAsset(nullptr)
 {
+    addParameter(_rootPitch = new ParameterIntView(&sampler->_rootPitch));
+    addParameter(_maxVoices = new ParameterIntView(&sampler->_maxVoices));
+    addParameter(_sampleStart = new ParameterFrameView(&sampler->_sampleStart));
+    addParameter(_sampleEnd = new ParameterFrameView(&sampler->_sampleEnd));
+
     _name = "Sampler " + std::to_string(_uniqueId);
 }
 
@@ -27,6 +32,11 @@ SamplerView::~SamplerView() {
 
 void SamplerView::update() {
     _fileAsset = _sampler->asset();
+    _mode = _sampler->_mode;
+    (*_rootPitch) = _sampler->_rootPitch;
+    (*_maxVoices) = _sampler->_maxVoices;
+    (*_sampleStart) = _sampler->_sampleStart;
+    (*_sampleEnd) = _sampler->_sampleEnd;
     incrementVersion();
 }
 

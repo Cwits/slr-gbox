@@ -19,6 +19,24 @@ struct Color {
         a = other.a;
         return *this;
     }
+
+    uint32_t argb32() const {
+        return (
+            (a & 0xFF) << 24 | 
+            (r & 0xFF) << 16 | 
+            (g & 0xFF) << 8  |
+            (b & 0xFF)
+        );
+    }
+
+    uint32_t rgba32() const {
+        return (
+            (r & 0xFF) << 24 | 
+            (g & 0xFF) << 16 | 
+            (b & 0xFF) << 8  |
+            (a & 0xFF)
+        );
+    }
 };
 
 }

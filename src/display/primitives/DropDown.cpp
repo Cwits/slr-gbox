@@ -129,8 +129,8 @@ bool DropDown::isButtonDisabled() const { return _btn->isDisabled(); }
 
 void DropDown::open() {
     _isClosed = false;
-    lv_obj_move_to_index(lvhost(), -1);
     lv_obj_clear_flag(lvhost(), LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_to_index(lvhost(), -1);
 }
 
 void DropDown::close() {

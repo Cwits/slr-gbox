@@ -37,6 +37,10 @@ AudioUnit::AudioUnit(const ClipContainer * initialContainer, ID id) :
     ID testres = std::max(_uniqueId, uniqueIdCounter);
     if(testres == uniqueIdCounter) uniqueIdCounter = testres+1;
     else uniqueIdCounter = testres;
+    
+    addParameter(&_volume);
+    addParameter(&_pan);
+    addParameter(&_mute);
 }
 
 AudioUnit::~AudioUnit() {
@@ -44,9 +48,6 @@ AudioUnit::~AudioUnit() {
 }
 
 bool AudioUnit::create(BufferManager *man) {
-    addParameter(&_volume);
-    addParameter(&_pan);
-    addParameter(&_mute);
     _outputs = man->acquireAudioRegular();
     _midiInput = man->acquireMidiRegular();
     _midiOutput = man->acquireMidiRegular();

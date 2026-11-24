@@ -12,6 +12,7 @@ class ParameterBase;
 class ParameterFloat;
 class ParameterInt;
 class ParameterBool;
+struct ParameterFrame;
 
 class ParameterBaseView {
     public:
@@ -62,6 +63,23 @@ class ParameterIntView : public ParameterBaseView {
     private:
     float _value;
     void set(int value) { _value = static_cast<float>(value); }
+};
+
+struct ParameterFrameView : public ParameterBaseView {
+    ParameterFrameView(const ParameterFrame *);
+    ~ParameterFrameView();
+
+    operator frame_t() const { return _value; }
+    const float value() const override { return normalize(_value); }
+
+    ParameterFrameView& operator=(frame_t f) { set(f); return *this; }
+    void setValue(float value) override { set(static_cast<frame_t>(value)); } //??
+
+    private:
+    float normalize(frame_t val) const;
+
+    frame_t _value;
+    void set(frame_t value) { _value = value; }
 };
 
 class ParameterBoolView : public ParameterBaseView {

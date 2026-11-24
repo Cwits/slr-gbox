@@ -59,7 +59,7 @@ void FilePreview::setSize(lv_coord_t w, lv_coord_t h) {
     BaseWidget::setSize(w, h);
     _canvasWidth = w;
     _canvasHeight = h;
-    
+    //set canvas size???
     //re?allocate buffer
     if(_drawBuffer) _drawBuffer.reset();
     _drawBuffer = std::make_unique<uint8_t[]>(

@@ -302,7 +302,7 @@ void Timeline::updatePlayhead(slr::frame_t position) {
     int framesPerBar = tl.framesPerBar();
     int pixPerBar = UIUtility::pixelPerBar(*_zoomPtr);
     float framesPerPixel = (float)pixPerBar / tl.framesPerBar();
-    float res = std::round(framesPerPixel*(position-_nudge));
+    float res = Math::round(framesPerPixel*(position-_nudge));
 
     _playhead.points[0] = {res, _y+30}; 
     _playhead.points[1] = {res, _height};

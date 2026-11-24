@@ -14,6 +14,7 @@
 #include "units/Sampler/SamplerPushUI.h"
 
 #include "units/Sampler/Actions/LoadAsset.h"
+#include "units/Sampler/Actions/SetMode.h"
 
 #include <memory>
 
@@ -49,6 +50,7 @@ namespace slr {
 
 void registerSamplerActions(std::map<std::type_index, CreatorFn> &map) {
     map[typeid(Actions::LoadAsset)] = &createLoadAssetAction;
+    map[typeid(Actions::SetMode)] = &createSetModeAction;
 }
 
 }

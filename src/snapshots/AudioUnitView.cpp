@@ -30,7 +30,7 @@ AudioUnitView::AudioUnitView(AudioUnit * au) :
 
     _solo = false;
 
-    _version.store(0);
+    // _version.store(0);
 }
 
 AudioUnitView::~AudioUnitView() {
@@ -51,13 +51,13 @@ void AudioUnitView::appendClipItem(ClipItemView * item) {
     incrementVersion();
 } 
 
-void AudioUnitView::incrementVersion() {
-    _version.fetch_add(1, std::memory_order_acq_rel);
-}
+// void AudioUnitView::incrementVersion() {
+//     _version.fetch_add(1, std::memory_order_acq_rel);
+// }
 
-uint64_t AudioUnitView::version() const { 
-    return _version.load(std::memory_order_acquire);
-}
+// uint64_t AudioUnitView::version() const { 
+//     return _version.load(std::memory_order_acquire);
+// }
 
 nlohmann::ordered_json AudioUnitView::saveUnit() {
     nlohmann::ordered_json ret;

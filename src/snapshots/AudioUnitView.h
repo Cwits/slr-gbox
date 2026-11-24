@@ -7,6 +7,7 @@
 #include "snapshots/ParameterArrayView.h"
 #include "snapshots/ClipContainerView.h"
 #include "common/defines.h"
+#include "common/Version.h"
 #include "common/Color.h"
 
 #include <vector>
@@ -19,7 +20,7 @@ namespace slr {
 
 class AudioUnit;
 
-class AudioUnitView {
+class AudioUnitView : public Common::VersionAtomic {
     public:
     AudioUnitView(AudioUnit * au);
     virtual ~AudioUnitView();
@@ -58,7 +59,7 @@ class AudioUnitView {
 
     ClipContainerView _clipContainer;
 
-    uint64_t version() const;
+    // uint64_t version() const;
 
     //for serialization
     
@@ -81,8 +82,8 @@ class AudioUnitView {
     const ID _uniqueId;
 
     
-    std::atomic<uint64_t> _version;
-    void incrementVersion();
+    // std::atomic<uint64_t> _version;
+    // void incrementVersion();
     
     bool _solo;
     

@@ -4,6 +4,8 @@
 #include "snapshots/ParameterView.h"
 #include "core/primitives/Parameter.h"
 
+#include "common/Math.h"
+
 namespace slr {
 
 
@@ -33,6 +35,23 @@ ParameterIntView::ParameterIntView(ParameterInt * par) : ParameterBaseView(par),
 
 ParameterIntView::~ParameterIntView() {
 
+}
+
+ParameterFrameView::ParameterFrameView(const ParameterFrame *par) : 
+    ParameterBaseView(par), _value(*par) 
+{
+}
+
+ParameterFrameView::~ParameterFrameView() {}
+
+float ParameterFrameView::normalize(frame_t val) const { 
+    return Math::lerp<float>(
+        val, 
+        minimalValue(), 
+        maximalValue(), 
+        -1.0f,
+        1.0f
+    );
 }
 
 ParameterBoolView::ParameterBoolView(ParameterBool * par) : ParameterBaseView(par), _value(*par) {

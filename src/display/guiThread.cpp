@@ -20,6 +20,8 @@
 #include <functional>
 #include <memory>
 
+/* Ugh... such a mess here :c */
+
 #if defined(__aarch64__)
     #define SDL_HOR_RES 1920
     #define SDL_VER_RES 1080
@@ -62,6 +64,18 @@ void my_log_cb(lv_log_level_t level, const char * buf) {
 
 
 void print_sdl_event(const SDL_Event& event);
+
+using Clock = std::chrono::steady_clock;
+
+static uint32_t getLvTick() {
+    static const auto start = Clock::now();
+
+    return static_cast<uint32_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            Clock::now() - start
+        ).count()
+    );
+}
 
 void initGui() {
     lv_init();
@@ -120,21 +134,105 @@ void initGui() {
     // }
     // SDL_SetRelativeMouseMode(SDL_TRUE);
 #endif
+
+    lv_tick_set_cb(getLvTick);
 }
 
 void runGui(std::atomic<bool> &shutdown) {    
     std::unique_ptr<UI::RootWindow> root = std::make_unique<UI::RootWindow>(_main_screen);
     lv_screen_load(_main_screen);
 
-    const uint32_t delayTicksUs = LV_DEF_REFR_PERIOD * 1000; //to micros
+    const uint32_t delayTicksUs = LV_DEF_REFR_PERIOD; //to micros
     // const uint32_t delayTicksUs = static_cast<uint32_t>( (float)(1000.0f/(float)60) * 1000.f);
     SDL_Event event;
 
+    constexpr auto frameDuration = std::chrono::microseconds(16667);
+
+    auto nextFrame = Clock::now();
+    auto nextUpdate = Clock::now();
+
+    while(!shutdown) {
+        const auto frameStart = Clock::now();
+
+#if defined(__aarch64__)
+        std::vector<GestLib::Gesture> gestures = _recognizer->fetchGestures();
+        for(GestLib::Gesture &g : gestures) {
+            UI::RootWindow::inst()->handleGesture(g);
+        }
+        while(SDL_PollEvent(&event)) {
+            if(event.type == SDL_QUIT) {
+                LOG_INFO("SDL quit");
+                // _running = false;
+                shutdown = true;
+            }
+        }
+#else
+        // int counter = 0;
+        while(SDL_PollEvent(&event)) {
+            if(event.type == SDL_QUIT) {
+                //TODO: not always catching this event...
+                LOG_INFO("Sdl quit");
+                shutdown = true;
+            } else {
+                _driver->feedSDLEvent(event);
+            }
+            // print_sdl_event(event);
+        }
+        std::vector<GestLib::Gesture> gestures = _recognizer->fetchGestures();
+        for(GestLib::Gesture &g : gestures) {
+            UI::RootWindow::inst()->handleGesture(g);
+        }
+#endif
+
+
+        if(frameStart >= nextUpdate) {
+            {
+                while(true) {
+                    std::unique_ptr<std::function<void()>> task;
+                    {
+                        std::lock_guard<std::mutex>lk(g_async_mtx);
+                        if(g_async_queue.empty()) break;
+                        task = std::move(g_async_queue.front()); g_async_queue.pop_front();
+                    }
+                    (*task)();
+                }
+            }
+            
+            root->pollUIUpdate();
+
+            nextUpdate += frameDuration;
+
+            const auto afterWork = Clock::now();
+
+            if(nextUpdate <= afterWork)
+                nextUpdate = afterWork + frameDuration;
+        }
+
+        const uint32_t nextTimer = lv_timer_handler();
+
+        nextFrame += frameDuration;
+
+        const auto now = Clock::now();
+
+        if(nextFrame <= now) {
+            nextFrame = now + frameDuration;
+        }
+        const auto timerDeadline = now + std::chrono::milliseconds(nextTimer);
+        const auto wakeTime = std::min(nextFrame, timerDeadline);
+
+        if(wakeTime > now) {
+            std::this_thread::sleep_until(wakeTime);
+        }
+    }
+/*
     // uint32_t lastTick = SDL_GetTicks();
-    std::chrono::time_point<std::chrono::steady_clock> lastTick = std::chrono::steady_clock::now();
-    std::chrono::time_point<std::chrono::steady_clock> now = lastTick;
-    std::chrono::time_point<std::chrono::steady_clock> elapsed = lastTick;
+    std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+    std::chrono::time_point<std::chrono::steady_clock> timeBeforeSleep = now;
+    std::chrono::time_point<std::chrono::steady_clock> timeAfterUpdates = now;
     
+    std::chrono::time_point<std::chrono::steady_clock> tmp1 = now;
+    std::chrono::time_point<std::chrono::steady_clock> tmp2 = now;
+
     while(!shutdown) {
         now = std::chrono::steady_clock::now();
 #if defined(__aarch64__)
@@ -166,7 +264,6 @@ void runGui(std::atomic<bool> &shutdown) {
             UI::RootWindow::inst()->handleGesture(g);
         }
 #endif
-        uint32_t mills = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTick).count();
 
         {
             while(true) {
@@ -179,24 +276,33 @@ void runGui(std::atomic<bool> &shutdown) {
                 (*task)();
             }
         }
-
-        lastTick = now;
-        lv_tick_inc(mills); // Update the tick timer. Tick is new for LVGL 9
-        uint32_t ret = lv_timer_handler(); // Update the UI-
-
+        
         root->pollUIUpdate();
 
-        elapsed = std::chrono::steady_clock::now();
-        mills = std::chrono::duration_cast<std::chrono::microseconds>(elapsed - now).count();
-        // // LOG_INFO("render frame time: %d", mills);
+        timeAfterUpdates = std::chrono::steady_clock::now();
 
-        //is this works? - ok, this is necessary 'cause lvgl don't sleep by itself
-        if(delayTicksUs > mills) {
-            // std::this_thread::sleep_for(std::chrono::microseconds(delayTicksUs - mills));
-            std::this_thread::sleep_for(std::chrono::milliseconds(ret));
+        long spentOnUpdates = std::chrono::duration_cast<std::chrono::milliseconds>(timeAfterUpdates - now).count();
+        long elapsedSinceSleep = std::chrono::duration_cast<std::chrono::milliseconds>(now - timeBeforeSleep).count();
+
+        lv_tick_inc(elapsedSinceSleep + spentOnUpdates); // Update the tick timer. Tick is new for LVGL 9
+        uint32_t ret = lv_timer_handler(); // Update the UI-
+
+        tmp1 = std::chrono::steady_clock::now();
+        unsigned long diff = std::chrono::duration_cast<std::chrono::milliseconds>(tmp1 - tmp2).count();
+        tmp2 = tmp1;
+        LOG_INFO("diff: %lu, total: %lu, ret: %u", diff, elapsedSinceSleep + spentOnUpdates, ret); //for 60fps must be ~16-17ms
+
+        timeBeforeSleep = tmp1; //std::chrono::steady_clock::now();
+
+        // if(ret) {
+        if(ret) {
+            uint32_t toSleep = 0;// delayTicksUs - diff;
+            if(diff < delayTicksUs) toSleep = delayTicksUs - diff;
+            // std::this_thread::sleep_for(std::chrono::milliseconds(ret));
+            std::this_thread::sleep_for(std::chrono::milliseconds(toSleep));
         }
     }
-
+*/
 #if defined(__aarch64__)
     _recognizer->shutdown();
     _driver->shutdown();
