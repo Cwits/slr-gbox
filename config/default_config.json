@@ -1,7 +1,7 @@
 {
-    "Audio Driver": "Dummy Driver",
-    "Sample Rate": 44100,
-    "Block Size": 64,
+    "Audio Driver": "UDP Driver",
+    "Sample Rate": 48000,
+    "Block Size": 256,
     "Latency Compensation": 37,
     "BPM": 120.0,
     "PPQN": 960,

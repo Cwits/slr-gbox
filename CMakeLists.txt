@@ -138,6 +138,7 @@ file(GLOB SOURCES
   src/core/drivers/AudioDriver.cpp
   src/core/drivers/dummyDriver.cpp
   src/core/drivers/jackDriver.cpp
+  src/core/drivers/udpDriver.cpp
 
   #filetasks
   src/core/filetasks/tasks/OpenFile.cpp

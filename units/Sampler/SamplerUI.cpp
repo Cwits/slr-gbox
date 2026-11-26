@@ -35,10 +35,10 @@
 
 namespace UI {
 
-bool _TRY_REDRAW = false;
+bool _REDRAW = false;
 
 void timer_cb(lv_timer_t * timer) {
-    _TRY_REDRAW = true;
+    _REDRAW = true;
 }
 
 SamplerUI::SamplerUI(const std::shared_ptr<const slr::AudioUnitView> &sampler, UIContext * uictx) 
@@ -169,8 +169,8 @@ SamplerUI::SamplerUnitUI::~SamplerUnitUI() {
 void SamplerUI::SamplerUnitUI::pollUIUpdate() {
     const std::shared_ptr<const slr::SamplerView> sampler = _parentUI->_sampler.lock();
 
-    if(_TRY_REDRAW) {
-        _TRY_REDRAW = false;
+    if(_REDRAW) {
+        _REDRAW = false;
      
             //check on voices - make quick copy(not thread safe stuff)
         const std::array<slr::Voice, MAX_VOICES> &varr = sampler->voices();

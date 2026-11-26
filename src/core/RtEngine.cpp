@@ -60,7 +60,8 @@ bool RtEngine::init() {
 #if defined(__aarch64__)
     _driver = AudioDriverFactory::create(SettingsManager::getAudioDriver());
 #else
-    _driver = AudioDriverFactory::create("Dummy Driver");
+    // _driver = AudioDriverFactory::create("Dummy Driver");
+    _driver = AudioDriverFactory::create(SettingsManager::getAudioDriver());
 #endif
 
     if(!_driver->init(SettingsManager::getSampleRate(),

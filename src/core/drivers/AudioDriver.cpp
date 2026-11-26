@@ -4,11 +4,13 @@
 #include "core/drivers/AudioDriver.h"
 #include "core/drivers/jackDriver.h"
 #include "core/drivers/dummyDriver.h"
+#include "core/drivers/udpDriver.h"
 
 namespace slr { 
 
 static DriverRegistrar<DummyDriver>  __attribute__((used)) dummy_reg("Dummy Driver");
 static DriverRegistrar<JackDriver>  __attribute__((used)) jack_reg("Jack Driver");
+static DriverRegistrar<UDPDriver> __attribute__((used)) udp_reg("UDP Driver");
 
 AudioDriver::AudioDriver() : 
     _sampleRate(0), 
