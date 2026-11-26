@@ -10,7 +10,7 @@
 
 namespace slr {
 
-class BufferManager;
+class BufferManager; 
 class AudioFile;
 
 struct Voice {

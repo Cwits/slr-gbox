@@ -1,0 +1,5 @@
+add_subdirectory(common)
+add_subdirectory(core)
+add_subdirectory(display)
+add_subdirectory(push)
+add_subdirectory(snapshots)

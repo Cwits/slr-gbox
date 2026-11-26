@@ -24,7 +24,7 @@ class TimelineView {
     bool paused() const { return _state == Timeline::RollState::Pause ? true : false; }
     bool stopped() const { return _state == Timeline::RollState::Stop ? true : false; }
     bool looping() const { return _isLoop; }
-    const Timeline::RollState state() const { return _state; }
+    Timeline::RollState state() const { return _state; }
     //TODO: add some extra logic here(e.g. playhead == 0 on state == Stop)
     void setState(Timeline::RollState newState) { _state = newState; }
     void setRecording(bool state) { _isRecording = state; }
@@ -32,20 +32,20 @@ class TimelineView {
 
     frame_t elapsed() { return _playhead; }
     void setPlayhead(frame_t pos) { _playhead = pos; _playheadVersion.fetch_add(1, std::memory_order_release); }
-    const frame_t loopStartFrame() const { return _loopStartFrame; }
-    const frame_t loopEndFrame() const { return _loopEndFrame; }
+    frame_t loopStartFrame() const { return _loopStartFrame; }
+    frame_t loopEndFrame() const { return _loopEndFrame; }
     void setLoopStart(frame_t start) { _loopStartFrame = start; }
     void setLoopEnd(frame_t end) { _loopEndFrame = end; }
 
 
-    const float bpm() const { return _bpm; }
-    const int ppqn() const { return _ppqn; }
+    float bpm() const { return _bpm; }
+    int ppqn() const { return _ppqn; }
     
-    const int sampleRate() const { return _sampleRate; }
-    const int blockSize() const { return _blockSize; }
-    const uint32_t framesPerQuater() const { return _framesPerQuater; }
-    const uint32_t framesPerBeat() const { return _framesPerBeat; }
-    const uint32_t framesPerBar() const { return _framesPerBar; }
+    int sampleRate() const { return _sampleRate; }
+    int blockSize() const { return _blockSize; }
+    uint32_t framesPerQuater() const { return _framesPerQuater; }
+    uint32_t framesPerBeat() const { return _framesPerBeat; }
+    uint32_t framesPerBar() const { return _framesPerBar; }
 
     void update();
     void clone(TimelineView & other);

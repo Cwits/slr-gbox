@@ -85,7 +85,7 @@ frame_t Sampler::process(const AudioContext &ctx,  const Dependencies &inputs) c
     clearAudioBuffer((*_mix)[1], ctx.blockSize);
     clearAudioBuffer((*_outputs)[0], ctx.blockSize);
     clearAudioBuffer((*_outputs)[1], ctx.blockSize);
-
+ 
     //do not clear midiInput, because there can be some 
     _midiOutput->clear();
 

@@ -1,49 +1,32 @@
 cmake_minimum_required(VERSION 3.14)
 project(SLR LANGUAGES C CXX)
 
+#options
+option(TESTING "build tests" OFF)
+
+#loguru doesn't support -fno-exceptions flag...
 set(CMAKE_BUILD_TYPE Debug)
-#set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -fsanitize=address")
-#set(CMAKE_CXX_FLAGS "-g -O0 -Wall -fsanitize=address")
-
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type")
-set(CMAKE_CXX_FLAGS "-g -O0 -Wall -Werror=return-type")
-
-
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer -g -O0 -Wall -Werror=return-type")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer -g -O0 -Wall -Werror=return-type")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
-
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type" CACHE STRING "Debug flags" FORCE)
-endif()
-
-message("Building ${CMAKE_BUILD_TYPE}")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Werror=return-type -Wextra")
+set(CMAKE_CXX_FLAGS "-g -O0 -Wall -Werror=return-type -Wextra")
+message("Build: ${CMAKE_BUILD_TYPE}")
+message("Flags: ${CMAKE_CXX_FLAGS}")
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
+#find all packages
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 find_package(SDL2 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Sndfile REQUIRED)
 find_package(ALSA)
-#pkg_check_modules(UDEV REQUIRED libudev)
 
 pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack>=0.100.0)
 find_library(JACK_LIBRARY NAMES ${JACK_LIBRARIES} HINTS ${JACK_LIBDIR})
 
 # Find libusb
-find_path(LIBUSB_INCLUDE_DIR
-  NAMES libusb.h
-  PATH_SUFFIXES "include" "libusb" "libusb-1.0")
-find_library(LIBUSB_LIBRARY
-  NAMES usb usb-1.0
-  PATH_SUFFIXES "lib" "lib32" "lib64")
-
-#message(STATUS ${LIBUSB_INCLUDE_DIR})
-#message(STATUS ${LIBUSB_LIBRARY})
+find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h PATH_SUFFIXES "include" "libusb" "libusb-1.0")
+find_library(LIBUSB_LIBRARY NAMES usb usb-1.0 PATH_SUFFIXES "lib" "lib32" "lib64")
 
 if((NOT LIBUSB_INCLUDE_DIR) OR (NOT LIBUSB_LIBRARY))
   message(FATAL_ERROR "Can't find libusb. Please verify that it is installed")
@@ -54,7 +37,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 
 add_subdirectory(external)
 
-
 set(LIBRARIES lvgl::lvgl
               SDL2::SDL2
               ${LIBSNDFILE_LIBRARIES}
@@ -64,10 +46,7 @@ set(LIBRARIES lvgl::lvgl
               ALSA::ALSA
               ${LIBUSB_LIBRARY})
 
-
-### Grab all our units to compile ###
-#add_subdirectory(units)
-
+### Grab all our units to compile ### (leave it, future improvement)
 #grab all targets
 #set(FXTARGETS )
 #get_property(_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/units PROPERTY SUBDIRECTORIES)
@@ -79,269 +58,26 @@ set(LIBRARIES lvgl::lvgl
 #message("List of units to build:")
 #message("${FXTARGETS}")
 
-file(GLOB SOURCES
-  #actions
-  src/core/actions/AudioUnit/SetParameter.cpp
-  src/core/actions/AudioUnit/ToggleMidiThru.cpp
-  src/core/actions/AudioUnit/ToggleOmniHwInput.cpp
-  src/core/actions/AudioUnit/SetName.cpp
-  src/core/actions/AudioUnit/SetColor.cpp
+#gather sources
+set_property(GLOBAL PROPERTY SOURCES "")
 
-  src/core/actions/ClipItem/LoadAsClip.cpp
-  src/core/actions/ClipItem/RemoveClip.cpp
-  src/core/actions/ClipItem/ModifyClipItem.cpp
+add_subdirectory(src)
+add_subdirectory(units)
 
-  src/core/actions/Project/CreateNewUnit.cpp
-  src/core/actions/Project/DeleteUnit.cpp
-  src/core/actions/Project/AddNewAudioRoute.cpp
-  src/core/actions/Project/AddNewMidiRoute.cpp
-  src/core/actions/Project/SaveProject.cpp
-  src/core/actions/Project/LoadProject.cpp
-  src/core/actions/Project/UpdateRenderPlan.cpp
-  src/core/actions/Project/Undo.cpp
-  src/core/actions/Project/Redo.cpp
+get_property(SOURCES GLOBAL PROPERTY SOURCES)
 
-  src/core/actions/FileTaskProxy/CopyAudio.cpp
-  src/core/actions/FileTaskProxy/PasteAudio.cpp
-  src/core/actions/FileTaskProxy/DeleteAudio.cpp
-  src/core/actions/FileTaskProxy/CutAudio.cpp
-  src/core/actions/FileTaskProxy/SilenceAudio.cpp
-  src/core/actions/FileTaskProxy/ReverseAudio.cpp
-  src/core/actions/FileTaskProxy/AddNewMidiNote.cpp
-  src/core/actions/FileTaskProxy/EraseMidiNotes.cpp
 
-  src/core/actions/Timeline/ChangeSignatureBpm.cpp
-  src/core/actions/Timeline/ChangeTimelineState.cpp
-  src/core/actions/Timeline/LoopPosition.cpp
-  src/core/actions/Timeline/ToggleLoop.cpp
-  src/core/actions/Timeline/UpdatePlayhead.cpp
-  
-  src/core/actions/MidiController/ToggleMidiDevice.cpp
-  src/core/actions/MidiController/VirtualMidiKbdAction.cpp
-  
-  src/core/actions/Metronome/ToggleMetronome.cpp
-
-  src/core/actions/StepSequencer/CreateNewSequence.cpp
-  src/core/actions/StepSequencer/ModifySequence.cpp
-  src/core/actions/StepSequencer/ModifySequenceLayer.cpp
-  src/core/actions/StepSequencer/ModifySequenceEvent.cpp
-  src/core/actions/StepSequencer/ModifySequenceTarget.cpp
-
-  src/core/actions/ModulationEngine/CreateNewModulation.cpp
-  src/core/actions/ModulationEngine/ModifyModulation.cpp
-  src/core/actions/ModulationEngine/ModifyModulationTarget.cpp
-
-  src/core/actions/Actions.cpp
-  src/core/actions/ActionsMap.cpp
-
-  #drivers
-  src/core/drivers/AudioDriver.cpp
-  src/core/drivers/dummyDriver.cpp
-  src/core/drivers/jackDriver.cpp
-  src/core/drivers/udpDriver.cpp
-
-  #filetasks
-  src/core/filetasks/tasks/OpenFile.cpp
-  src/core/filetasks/tasks/DumpAudio.cpp
-  src/core/filetasks/tasks/CopyAudio.cpp
-  src/core/filetasks/tasks/PasteAudio.cpp
-  src/core/filetasks/tasks/UpdateAudioPeaks.cpp
-  src/core/filetasks/tasks/DeleteAudio.cpp
-  src/core/filetasks/tasks/CutAudio.cpp
-  src/core/filetasks/tasks/SilenceAudio.cpp
-  src/core/filetasks/tasks/ReverseAudio.cpp
-  src/core/filetasks/tasks/AddNewMidiNoteTask.cpp
-  src/core/filetasks/tasks/UpdateMidiPeaks.cpp
-  src/core/filetasks/tasks/EraseMidiNotesTask.cpp
-
-  src/core/filetasks/FileTasks.cpp
-
-  #primitives
-  src/core/primitives/AudioBuffer.cpp
-  src/core/primitives/AudioFile.cpp
-  src/core/primitives/AudioPeakFile.cpp
-  src/core/primitives/AudioPeaks.cpp
-  src/core/primitives/AudioUnit.cpp
-  src/core/primitives/File.cpp
-  src/core/primitives/ClipItem.cpp
-  src/core/primitives/MidiFile.cpp
-  src/core/primitives/MidiPeaks.cpp
-  src/core/primitives/MidiPort.cpp
-  src/core/primitives/Parameter.cpp
-  src/core/primitives/ParameterArray.cpp
-  src/core/primitives/RtTask.cpp
-  src/core/primitives/IdGenerator.cpp
-
-  #utility
-  src/core/utility/basicAudioManipulation.cpp
-  src/core/utility/basicMidiManipulation.cpp
-  src/core/utility/ControlContext.cpp
-  src/core/utility/FileWorkerContext.cpp
-
-  #core
-  src/core/BufferManager.cpp
-  src/core/ControlEngine.cpp
-  src/core/FileWorker.cpp
-  src/core/Metronome.cpp
-  src/core/MidiController.cpp
-  src/core/ModulationEngine.cpp
-  src/core/Project.cpp
-  src/core/RenderPlan.cpp
-  src/core/RtEngine.cpp
-  src/core/Serializer.cpp       #move to utility
-  src/core/SettingsManager.cpp
-  src/core/StepSequencer.cpp
-  src/core/Timeline.cpp
-  src/core/UnitManager.cpp
-
-  #snapshots
-  src/snapshots/AudioUnitView.cpp
-  src/snapshots/ClipContainerView.cpp
-  src/snapshots/ParameterArrayView.cpp
-  src/snapshots/ParameterView.cpp
-  src/snapshots/ProjectView.cpp
-  src/snapshots/TimelineView.cpp
-  src/snapshots/DriverView.cpp
-  src/snapshots/SequenceView.cpp
-  src/snapshots/ModulationView.cpp
-
-  #test
-  units/Track/Track.cpp
-  units/Track/TrackUnit.cpp
-  units/Track/TrackUI.cpp
-  units/Track/TrackView.cpp
-  units/Track/TrackPushUI.cpp
-  units/Track/TrackActions.cpp
-  units/Track/Actions/DumpRecordedAudio.cpp
-  units/Track/Actions/RecordArm.cpp
-
-  units/Mixer/Mixer.cpp
-  units/Mixer/MixerUnit.cpp
-  units/Mixer/MixerUI.cpp
-  units/Mixer/MixerView.cpp
-  units/Mixer/MixerPushUI.cpp
-
-  units/SimpleOscillator/SimpleOsc.cpp
-  units/SimpleOscillator/SimpleOscUnit.cpp
-  units/SimpleOscillator/SimpleOscUI.cpp
-  units/SimpleOscillator/SimpleOscView.cpp
-  units/SimpleOscillator/SimpleOscPushUI.cpp
-
-  units/Sampler/Sampler.cpp
-  units/Sampler/SamplerUnit.cpp
-  units/Sampler/SamplerView.cpp
-  units/Sampler/SamplerUI.cpp
-  units/Sampler/SamplerPushUI.cpp
-  units/Sampler/Actions/LoadAsset.cpp
-  units/Sampler/Actions/SetMode.cpp
-
-  #ui
-  src/display/elements/BottomPanel.cpp
-  src/display/elements/Browser.cpp
-  src/display/elements/GridView.cpp
-  src/display/elements/RootWindow.cpp
-  src/display/elements/ModEngineView.cpp
-  src/display/elements/SplashScreen.cpp
-  src/display/elements/StepSequencerView.cpp
-  src/display/elements/Timeline.cpp
-  src/display/elements/TopPanel.cpp
-  src/display/elements/UnitView.cpp
-  src/display/elements/EditorView.cpp
-  
-  src/display/popups/DialogWindows.cpp
-  src/display/popups/DragViewSelector.cpp
-  src/display/popups/NewUnitPopup.cpp
-  src/display/popups/PopupManager.cpp
-  src/display/popups/RouteManager.cpp
-  src/display/popups/ScreenKeyboard.cpp
-  src/display/popups/SettingsPopup.cpp
-  src/display/popups/TimelinePopup.cpp
-  src/display/popups/VirtualMidiKeyboard.cpp
-
-  src/display/primitives/BaseWidget.cpp
-  src/display/primitives/Button.cpp
-  src/display/primitives/Checkbox.cpp
-  src/display/primitives/DropDown.cpp
-  src/display/primitives/ClipPreview.cpp
-  src/display/primitives/FilePreview.cpp
-  src/display/primitives/Label.cpp
-  src/display/primitives/Popup.cpp
-  src/display/primitives/Slider.cpp
-  src/display/primitives/UnitUIBase.cpp
-
-  src/display/utility/FileToCanvas.cpp
-  src/display/utility/DefaultColors.cpp
-  src/display/utility/DefaultStyles.cpp
-  src/display/utility/DragContext.cpp
-  src/display/utility/UIContext.cpp
-
-  src/display/FakeGestures.cpp
-  src/display/guiThread.cpp
-
-  #push core
-  src/push/core/PushContext.cpp
-  src/push/core/PushCore.cpp
-  src/push/core/PushDisplay.cpp
-  src/push/core/PushFaker.cpp
-  src/push/core/PushFonts.cpp
-  src/push/core/PushLeds.cpp
-  src/push/core/PushMidi.cpp
-  src/push/core/PushPads.cpp
-  src/push/core/PushPainter.cpp
-  src/push/core/PushSysex.cpp
-  src/push/core/Widget.cpp
-
-  #widgets
-  src/push/elements/BrowserWidget.cpp
-  src/push/elements/GridWidget.cpp
-  src/push/elements/PadLayoutWidget.cpp
-  src/push/elements/RootWidget.cpp
-  src/push/elements/UnitWidget.cpp
-
-  #primitives
-  src/push/primitives/Canvas.cpp
-  src/push/primitives/Label.cpp
-  src/push/primitives/Pointer.cpp
-  src/push/primitives/Rectangle.cpp
-  src/push/primitives/StaticLabel.cpp
-  src/push/primitives/UnitUIBase.cpp
-
-  #utility
-  src/push/utility/PadNoteLayout.cpp
-  src/push/utility/PushUIContext.cpp
-
-  src/push/pushThread.cpp
-
-  #common
-  src/common/defines.cpp
-  src/common/uiControls.cpp
-  src/common/Profiler.cpp
-)
-
-#add_compile_options(-fsanitize=address)
-#add_link_options(-fsanitize=address)
-#add_compile_options(-fsanitize=thread)
-#add_link_options(-fsanitize=thread)
-
+#compile target
 add_library(slrlib ${SOURCES})
-
-#add_dependencies(slrlib run_codegen)
+target_link_libraries(slrlib ${LIBRARIES})
+list(APPEND LIBRARIES slrlib)
 
 add_executable(slr src/main.cpp)
-
-target_link_libraries(slrlib ${LIBRARIES})
-
-
-list(APPEND LIBRARIES slrlib)
+target_sources(slr PRIVATE ${SOURCES})
 target_link_libraries(slr ${LIBRARIES})
 
-target_include_directories(slr PUBLIC ${CMAKE_SOURCE_DIR}/inc)
-
-message("Flags: ${CMAKE_CXX_FLAGS}")
-
-if(NOT TESTING)
+if(TESTING)
   message("Testing enabled")
-  set(TESTING true)
 
   if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
@@ -362,17 +98,8 @@ if(NOT TESTING)
   include(cmake/tests.cmake)
   enable_testing()
   add_subdirectory(tests)
-endif()
-
-
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(slr PRIVATE -O0 -g -Wall)
-    message(STATUS "Debug flags enabled")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_options(slr PRIVATE -O3)
-    target_compile_definitions(slr PRIVATE NDEBUG)
-    message(STATUS "Release flags enabled")
+else()
+  message("Building without tests")
 endif()
 
 

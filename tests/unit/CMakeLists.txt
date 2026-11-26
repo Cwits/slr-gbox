@@ -6,3 +6,5 @@
 #create_test(testAudioPeaks)
 #create_test(testRenderPlan)
 #create_test(testMidiFile)
+
+message(FATAL_ERROR "need to adjust create_test script to append test files to global list")
